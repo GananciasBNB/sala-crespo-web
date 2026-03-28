@@ -275,6 +275,9 @@ const MASCOTAS = [
   { id: 'guepardo',  label: 'Guepardo',  src: '/mascotas/Guepardo.png'  },
   { id: 'oso',       label: 'Oso',       src: '/mascotas/Oso.png'       },
   { id: 'tigre',     label: 'Tigre',     src: '/mascotas/Tigre.png'     },
+  { id: 'elefante',  label: 'Elefante',  src: '/mascotas/Elefante.png'  },
+  { id: 'rino',      label: 'Rinoceronte', src: '/mascotas/Rino.png'    },
+  { id: 'tibu',      label: 'Tiburón',   src: '/mascotas/Tibu.png'      },
 ]
 function PlayerAvatar({ mascotId, size = 36, name = '' }) {
   const m = MASCOTAS.find(x => x.id === mascotId) || MASCOTAS[0]

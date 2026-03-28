@@ -896,45 +896,69 @@
 /* ── Selector de mascotas ── */
 .modal__mascotas {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
   margin-bottom: 12px;
 }
 .modal__mascota-btn {
   background: var(--wc-card);
   border: 2px solid var(--wc-border);
-  border-radius: 12px;
-  padding: 10px 6px 8px;
+  border-radius: 14px;
+  padding: 10px 4px 8px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  transition: border-color 0.15s, transform 0.15s;
+  position: relative;
+  transition: border-color 0.15s, transform 0.18s, box-shadow 0.18s;
 }
 .modal__mascota-btn img {
-  width: 64px;
-  height: 64px;
+  width: 72px;
+  height: 72px;
   object-fit: contain;
-  border-radius: 8px;
+  transition: transform 0.18s;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
 }
 .modal__mascota-btn span {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--wc-muted);
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
-  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 .modal__mascota-btn:hover {
   border-color: var(--wc-green);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0,200,150,0.15);
+}
+.modal__mascota-btn:hover img {
+  transform: scale(1.1) translateY(-2px);
 }
 .modal__mascota-btn--active {
   border-color: #FFD700;
-  background: rgba(255,215,0,0.08);
+  background: rgba(255,215,0,0.07);
+  box-shadow: 0 0 0 3px rgba(255,215,0,0.2), 0 6px 20px rgba(255,215,0,0.15);
+  transform: translateY(-3px);
+}
+.modal__mascota-btn--active img {
+  transform: scale(1.12) translateY(-2px);
+  filter: drop-shadow(0 4px 10px rgba(255,215,0,0.4));
 }
 .modal__mascota-btn--active span {
   color: #FFD700;
+}
+/* tilde de seleccionado */
+.modal__mascota-btn--active::after {
+  content: '✓';
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  font-size: 12px;
+  font-weight: 900;
+  color: #FFD700;
+  line-height: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════════
