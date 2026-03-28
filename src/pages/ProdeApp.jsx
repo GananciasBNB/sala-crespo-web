@@ -242,7 +242,7 @@ function LeaderboardView({ myId }) {
                 </td>
                 <td className="lb__name">
                   <span style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                    <MascotaAvatar mascotId={p.mascota} size={32} />
+                    <PlayerAvatar seed={p.id} size={32} name={p.name} />
                     <span>
                       {p.name}
                       {p.dniLast3 && <span className="lb__dni"> ···{p.dniLast3}</span>}
@@ -268,19 +268,15 @@ function LeaderboardView({ myId }) {
   )
 }
 
-// ─── Auth Modal ───────────────────────────────────────────────────────────────
-const MASCOTAS = [
-  { id: 'toro',     label: 'El Toro',     src: '/mascotas/mascot-toro.svg' },
-  { id: 'zorro',    label: 'El Zorro',    src: '/mascotas/mascot-zorro.svg' },
-  { id: 'leon',     label: 'El León',     src: '/mascotas/mascot-leon.svg' },
-  { id: 'pinguino', label: 'El Pingüino', src: '/mascotas/mascot-pinguino.svg' },
-  { id: 'lobo',     label: 'El Lobo',     src: '/mascotas/mascot-lobo.svg' },
-  { id: 'aguila',   label: 'El Águila',   src: '/mascotas/mascot-aguila.svg' },
-]
-
-function MascotaAvatar({ mascotId, size = 36 }) {
-  const m = MASCOTAS.find(x => x.id === mascotId) || MASCOTAS[0]
-  return <img src={m.src} alt={m.label} width={size} height={size} style={{ borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
+// ─── Avatar ───────────────────────────────────────────────────────────────────
+// DiceBear "adventurer" — avatar único y automático por jugador, estilo chibi
+const BG_COLORS = ['b6e3f4','c0aede','d1d4f9','ffd5dc','ffdfbf','c1f4c5','f9c1f4']
+function avatarUrl(seed, size = 80) {
+  const bg = BG_COLORS[Math.abs([...String(seed)].reduce((a,c) => a + c.charCodeAt(0), 0)) % BG_COLORS.length]
+  return `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(seed)}&backgroundColor=${bg}&size=${size}`
+}
+function PlayerAvatar({ seed, size = 36, name = '' }) {
+  return <img src={avatarUrl(seed || name, size * 2)} alt={name} width={size} height={size} style={{ borderRadius: '50%', background: '#eee', flexShrink: 0 }} />
 }
 
 function AuthModal({ onClose, onLogin }) {
@@ -290,7 +286,6 @@ function AuthModal({ onClose, onLogin }) {
   const [tel, setTel]           = useState('')
   const [pin, setPin]           = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
-  const [mascota, setMascota]   = useState('toro')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
 
@@ -304,7 +299,7 @@ function AuthModal({ onClose, onLogin }) {
     if (pin !== pinConfirm)      return setError('Los PINs no coinciden.')
     setLoading(true)
     try {
-      const player = await registerPlayer(name.trim(), dni, tel.trim(), pin, mascota)
+      const player = await registerPlayer(name.trim(), dni, tel.trim(), pin)
       localStorage.setItem('prode_player', JSON.stringify(player))
       onLogin(player)
     } catch (err) {
@@ -432,21 +427,12 @@ function AuthModal({ onClose, onLogin }) {
               placeholder="····"
               maxLength={4}
             />
-            <label className="modal__label">Elegí tu mascota</label>
-            <div className="modal__mascotas">
-              {MASCOTAS.map(m => (
-                <button
-                  key={m.id}
-                  type="button"
-                  className={`modal__mascota-btn ${mascota === m.id ? 'modal__mascota-btn--active' : ''}`}
-                  onClick={() => setMascota(m.id)}
-                  title={m.label}
-                >
-                  <img src={m.src} alt={m.label} width={56} height={56} />
-                  <span>{m.label}</span>
-                </button>
-              ))}
-            </div>
+            {name.trim() && (
+              <div className="modal__avatar-preview">
+                <PlayerAvatar seed={name.trim()} size={64} name={name.trim()} />
+                <span>Tu avatar: <strong>{name.trim()}</strong></span>
+              </div>
+            )}
             <p className="modal__hint">💡 El PIN lo elegís vos. Anotalo para no olvidarlo.</p>
             <button className="modal__submit" disabled={loading}>
               {loading ? 'Registrando...' : 'Registrarme y jugar →'}
@@ -850,7 +836,7 @@ export default function ProdeApp() {
             {player ? (
               <>
                 <span className="prode-header__player-name" style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                  <MascotaAvatar mascotId={player.mascota} size={32} />
+                  <PlayerAvatar seed={player.id} size={32} name={player.name} />
                   {player.name}
                 </span>
                 <button className="prode-header__logout" onClick={handleLogout}>Salir</button>
