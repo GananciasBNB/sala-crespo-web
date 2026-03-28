@@ -628,8 +628,6 @@
 .pts-badge--bronze { background: #7a5c3a; color: #fff; }
 .pts-arg { color: var(--wc-muted); font-style: italic; }
 .pts-arg span { color: #C9A84C; font-style: normal; font-weight: 700; margin-right: 2px; }
-  line-height: 1.6;
-}
 
 /* ═══════════════════════════════════════════════════════════════
    LEADERBOARD
