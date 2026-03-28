@@ -863,6 +863,21 @@
 .modal__submit:hover:not(:disabled) { background: #00963a; }
 .modal__submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── Avatar mascota ── */
+@keyframes mascota-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+.player-avatar {
+  border-radius: 50%;
+  object-fit: contain;
+  background: rgba(255,255,255,0.08);
+  transition: transform 0.2s;
+}
+.player-avatar:hover {
+  animation: mascota-bounce 0.5s ease infinite;
+}
+
 /* ── Avatar preview en registro ── */
 .modal__avatar-preview {
   display: flex;
@@ -881,7 +896,7 @@
 /* ── Selector de mascotas ── */
 .modal__mascotas {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -898,10 +913,10 @@
   transition: border-color 0.15s, transform 0.15s;
 }
 .modal__mascota-btn img {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  object-fit: cover;
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border-radius: 8px;
 }
 .modal__mascota-btn span {
   font-size: 11px;
