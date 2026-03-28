@@ -688,8 +688,46 @@
 .lb__row--me { background: rgba(0,177,64,.08) !important; }
 
 .lb__row td { padding: 12px 16px; vertical-align: middle; }
-.lb__pos { width: 40px; text-align: center; font-size: 18px; }
-.lb__pos-num { font-size: 13px; color: var(--wc-muted); font-weight: 700; }
+.lb__pos { width: 48px; text-align: center; }
+.lb__pos-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  color: var(--wc-muted);
+  font-weight: 800;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+.lb__medal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+}
+.lb__medal--gold {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #5A3600;
+  box-shadow: 0 2px 8px rgba(255,215,0,0.45);
+}
+.lb__medal--silver {
+  background: linear-gradient(135deg, #C0C0C0, #909090);
+  color: #2A2A2A;
+  box-shadow: 0 2px 8px rgba(192,192,192,0.35);
+}
+.lb__medal--bronze {
+  background: linear-gradient(135deg, #CD7F32, #A0522D);
+  color: #2A1000;
+  box-shadow: 0 2px 8px rgba(205,127,50,0.35);
+}
 .lb__name { font-weight: 600; color: var(--wc-text); }
 .lb__dni { font-size: 11px; color: var(--wc-muted); margin-left: 4px; }
 .lb__you { font-size: 11px; color: var(--wc-green); margin-left: 4px; font-weight: 700; }

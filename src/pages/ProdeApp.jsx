@@ -200,7 +200,11 @@ function LeaderboardView({ myId }) {
     { id: 'round32', label: '16avos' },
     { id: 'all',     label: 'Acumulado' },
   ]
-  const medals = ['🥇', '🥈', '🥉']
+  const medals = [
+    <span className="lb__medal lb__medal--gold">1</span>,
+    <span className="lb__medal lb__medal--silver">2</span>,
+    <span className="lb__medal lb__medal--bronze">3</span>,
+  ]
 
   return (
     <div className="lb-wrap">
