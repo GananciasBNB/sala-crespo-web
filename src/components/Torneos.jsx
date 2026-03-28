@@ -80,7 +80,7 @@ export default function Torneos() {
             </div>
             <div className="reveal reveal-d3 card torneos__card">
               <div className="torneos__card-icon">🎁</div>
-              <h3>A&amp;B de Cortesía</h3>
+              <h3>Buffet de Cortesía</h3>
               <p>En todos los torneos: comida, bebidas y dulces sin costo para todos los participantes.</p>
             </div>
           </div>

@@ -556,11 +556,11 @@ function ContentAdmin({ token, toast }) {
       { key: 'intro',  label: 'Descripción', type: 'textarea' },
     ]},
     torneos:  { label: 'Torneos', fields: [
-      { key: 'intro',         label: 'Descripción',                                         type: 'textarea' },
-      { key: 'premio',        label: 'Premio destacado',                                    type: 'text' },
-      { key: 'fecha_torneo',  label: 'Próximo torneo — fecha (ej: 26 de Marzo · 21:30 hs)', type: 'text' },
-      { key: 'link_torneo',   label: 'Próximo torneo — link inscripción',                   type: 'text' },
-      { key: 'banner_activo', label: 'Mostrar banner torneo (true / false)',                 type: 'text' },
+      { key: 'fecha_torneo',  label: 'Fecha del próximo torneo',   type: 'datetime' },
+      { key: 'banner_activo', label: 'Mostrar banner en la web',   type: 'toggle'   },
+      { key: 'premio',        label: 'Premio destacado',           type: 'text'     },
+      { key: 'link_torneo',   label: 'Link de inscripción',        type: 'text'     },
+      { key: 'intro',         label: 'Descripción',                type: 'textarea' },
     ]},
     prode:    { label: 'Prode Mundial', fields: [
       { key: 'desc',   label: 'Descripción', type: 'textarea' },
@@ -627,32 +627,80 @@ function ContentAdmin({ token, toast }) {
   )
 }
 
+// Convierte "26 de Marzo · 21:30 hs" → "2026-03-26T21:30" para el input
+function labelToDatetime(label) {
+  if (!label) return ''
+  // si ya viene en formato datetime-local, devolverlo tal cual
+  if (/^\d{4}-\d{2}-\d{2}T/.test(label)) return label
+  return ''
+}
+// Convierte "2026-03-26T21:30" → "26 de Marzo · 21:30 hs"
+function datetimeToLabel(dt) {
+  if (!dt) return ''
+  const d = new Date(dt + ':00')
+  if (isNaN(d)) return dt
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+  const dia = d.getDate()
+  const mes = meses[d.getMonth()]
+  const hh  = String(d.getHours()).padStart(2,'0')
+  const mm  = String(d.getMinutes()).padStart(2,'0')
+  return `${dia} de ${mes} · ${hh}:${mm} hs`
+}
+
 function ContentField({ field, value, saving, onSave }) {
   const [val, setVal] = useState(value)
   useEffect(() => setVal(value), [value])
+
+  // Tipo datetime — date picker + preview del texto generado
+  if (field.type === 'datetime') {
+    const dtVal = labelToDatetime(val) || ''
+    return (
+      <div className="ap-content-field">
+        <label className="ap-label">{field.label}</label>
+        <input
+          className="ap-input"
+          type="datetime-local"
+          value={dtVal}
+          onChange={e => {
+            const label = datetimeToLabel(e.target.value)
+            setVal(label)
+          }}
+        />
+        {val && <p className="ap-field-preview">Se mostrará como: <strong>{val}</strong></p>}
+        <button className="ap-btn ap-btn--primary ap-btn--sm" onClick={() => onSave(val)} disabled={saving}>
+          {saving ? 'Guardando...' : '✓ Guardar fecha'}
+        </button>
+      </div>
+    )
+  }
+
+  // Tipo toggle — switch on/off
+  if (field.type === 'toggle') {
+    const active = val === 'true'
+    return (
+      <div className="ap-content-field ap-content-field--toggle">
+        <label className="ap-label">{field.label}</label>
+        <button
+          className={`ap-toggle ${active ? 'ap-toggle--on' : ''}`}
+          onClick={() => { const next = (!active).toString(); setVal(next); onSave(next) }}
+          disabled={saving}
+        >
+          <span className="ap-toggle__knob" />
+          <span className="ap-toggle__label">{active ? 'Visible' : 'Oculto'}</span>
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="ap-content-field">
       <label className="ap-label">{field.label}</label>
       {field.type === 'textarea' ? (
-        <textarea
-          className="ap-input ap-textarea"
-          value={val}
-          onChange={e => setVal(e.target.value)}
-          rows={4}
-        />
+        <textarea className="ap-input ap-textarea" value={val} onChange={e => setVal(e.target.value)} rows={4} />
       ) : (
-        <input
-          className="ap-input"
-          value={val}
-          onChange={e => setVal(e.target.value)}
-        />
+        <input className="ap-input" value={val} onChange={e => setVal(e.target.value)} />
       )}
-      <button
-        className="ap-btn ap-btn--secondary ap-btn--sm"
-        onClick={() => onSave(val)}
-        disabled={saving}
-      >
+      <button className="ap-btn ap-btn--secondary ap-btn--sm" onClick={() => onSave(val)} disabled={saving}>
         {saving ? 'Guardando...' : 'Guardar'}
       </button>
     </div>

@@ -46,7 +46,7 @@ export default function Hero() {
             <em>favorito</em>
           </h1>
           <p className="hero__subtitle">
-            Slots · Shows en Vivo · Torneos · A&amp;B de Calidad
+            Slots · Shows en Vivo · Torneos · Buffet de Calidad
           </p>
         </div>
 

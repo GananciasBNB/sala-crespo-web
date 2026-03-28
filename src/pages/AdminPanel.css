@@ -490,3 +490,39 @@
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── Toggle switch ───────────────────────────────────────────── */
+.ap-content-field--toggle { flex-direction: row; align-items: center; gap: 16px; flex-wrap: wrap; }
+.ap-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px;
+  padding: 6px 14px 6px 6px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+.ap-toggle--on { background: rgba(0,200,150,0.12); border-color: #00C896; }
+.ap-toggle__knob {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.2);
+  transition: background 0.2s;
+}
+.ap-toggle--on .ap-toggle__knob { background: #00C896; }
+.ap-toggle__label { font-size: 13px; font-weight: 600; color: var(--ap-muted); }
+.ap-toggle--on .ap-toggle__label { color: #00C896; }
+
+/* ─── Field preview ───────────────────────────────────────────── */
+.ap-field-preview {
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin: 4px 0 8px;
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  border-left: 2px solid #FFD700;
+}
+.ap-field-preview strong { color: #FFD700; }

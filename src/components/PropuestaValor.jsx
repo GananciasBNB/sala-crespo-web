@@ -183,7 +183,7 @@ const PILARES = [
     Icon: IconTrofeo,
   },
   {
-    numero: '∞',
+    numero: <svg viewBox="0 0 48 24" width="52" height="26" fill="currentColor" style={{display:'inline-block',verticalAlign:'middle'}}><path d="M37 2C31.5 2 27.3 5.8 24 10.2 20.7 5.8 16.5 2 11 2 5 2 0 7 0 13s5 11 11 11c5.5 0 9.7-3.8 13-8.2C27.3 20.2 31.5 24 37 24c6 0 11-5 11-11S43 2 37 2zM11 20c-3.9 0-7-3.1-7-7s3.1-7 7-7c3.8 0 7 3.8 10.2 7C17.9 16.4 14.8 20 11 20zm26 0c-3.8 0-7-3.8-10.2-7C30.1 9.6 33.2 6 37 6c3.9 0 7 3.1 7 7s-3.1 7-7 7z"/></svg>,
     titulo: 'Shows todos los meses',
     desc: 'Artistas en vivo, torneos especiales y eventos únicos para nuestros clientes.',
     acento: 'gold',
