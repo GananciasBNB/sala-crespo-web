@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg-zorro" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF8C42"/>
+      <stop offset="100%" stop-color="#E65C00"/>
+    </radialGradient>
+    <radialGradient id="face-zorro" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#FF9A5C"/>
+      <stop offset="100%" stop-color="#E07040"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg-zorro)" stroke="#B34700" stroke-width="6"/>
+  <!-- Hoodie body -->
+  <ellipse cx="200" cy="325" rx="100" ry="68" fill="#2C2C2C"/>
+  <rect x="100" y="268" width="200" height="82" rx="12" fill="#2C2C2C"/>
+  <!-- Lightning bolt on hoodie -->
+  <path d="M185,285 L205,305 L195,305 L215,330" stroke="#FFD700" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Hoodie strings -->
+  <line x1="185" y1="275" x2="178" y2="310" stroke="#555" stroke-width="3" stroke-linecap="round"/>
+  <line x1="215" y1="275" x2="222" y2="310" stroke="#555" stroke-width="3" stroke-linecap="round"/>
+  <!-- Neck -->
+  <rect x="178" y="242" width="44" height="38" rx="10" fill="url(#face-zorro)"/>
+  <!-- Head -->
+  <ellipse cx="200" cy="193" rx="82" ry="78" fill="url(#face-zorro)" stroke="#C05A20" stroke-width="3"/>
+  <!-- Pointed fox ears -->
+  <path d="M128,155 L118,95 L165,145" fill="#E07040" stroke="#C05A20" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M133,150 L126,102 L160,142" fill="#FF9A9A" />
+  <path d="M272,155 L282,95 L235,145" fill="#E07040" stroke="#C05A20" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M267,150 L274,102 L240,142" fill="#FF9A9A"/>
+  <!-- White face markings -->
+  <ellipse cx="200" cy="215" rx="55" ry="42" fill="#FAE5D3"/>
+  <!-- Headphones around neck -->
+  <path d="M148,250 Q148,268 158,272" stroke="#333" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M252,250 Q252,268 242,272" stroke="#333" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <rect x="140" y="238" width="22" height="18" rx="9" fill="#111" stroke="#444" stroke-width="2"/>
+  <rect x="238" y="238" width="22" height="18" rx="9" fill="#111" stroke="#444" stroke-width="2"/>
+  <!-- Sly eyebrows -->
+  <path d="M152,172 Q170,162 188,170" stroke="#5D2E0C" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <path d="M212,170 Q228,160 248,168" stroke="#5D2E0C" stroke-width="6" stroke-linecap="round" fill="none"/>
+  <!-- Eyes - sly half-closed -->
+  <ellipse cx="172" cy="185" rx="17" ry="13" fill="white" stroke="#333" stroke-width="2"/>
+  <ellipse cx="228" cy="185" rx="17" ry="13" fill="white" stroke="#333" stroke-width="2"/>
+  <!-- Sly eyelid -->
+  <path d="M155,180 Q172,175 189,180" fill="#E07040"/>
+  <path d="M211,180 Q228,175 245,180" fill="#E07040"/>
+  <circle cx="172" cy="188" r="9" fill="#3D1A00"/>
+  <circle cx="228" cy="188" r="9" fill="#3D1A00"/>
+  <circle cx="175" cy="184" r="3" fill="white"/>
+  <circle cx="231" cy="184" r="3" fill="white"/>
+  <!-- Pointy snout -->
+  <path d="M165,210 Q200,240 235,210 Q220,255 200,258 Q180,255 165,210Z" fill="#FAE5D3" stroke="#C05A20" stroke-width="2"/>
+  <!-- Nose -->
+  <ellipse cx="200" cy="213" rx="10" ry="8" fill="#CC5500"/>
+  <!-- Sly smile -->
+  <path d="M175,242 Q200,255 225,242" stroke="#8B4513" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Name -->
+  <text x="200" y="385" text-anchor="middle" font-family="Arial Black" font-size="22" font-weight="900" fill="white" stroke="#B34700" stroke-width="2">EL ZORRO</text>
+</svg>

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg-leon" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#F4D03F"/>
+      <stop offset="100%" stop-color="#D4AC0D"/>
+    </radialGradient>
+    <radialGradient id="face-leon" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#F5CBA7"/>
+      <stop offset="100%" stop-color="#D4956A"/>
+    </radialGradient>
+    <radialGradient id="mane" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#E67E22"/>
+      <stop offset="100%" stop-color="#A04000"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg-leon)" stroke="#A07800" stroke-width="6"/>
+  <!-- Royal cape body -->
+  <ellipse cx="200" cy="328" rx="100" ry="65" fill="#6C3483"/>
+  <rect x="100" y="268" width="200" height="82" rx="12" fill="#6C3483"/>
+  <!-- Cape fur trim -->
+  <path d="M100,268 Q130,255 160,268 Q190,255 220,268 Q250,255 280,268 Q300,260 300,268" fill="#F5EEF8" stroke="#D7BDE2" stroke-width="2"/>
+  <!-- Cape gold pattern -->
+  <text x="200" y="320" text-anchor="middle" font-size="28" fill="#FFD700">♦ ♦ ♦</text>
+  <!-- Crown -->
+  <path d="M148,128 L148,98 L172,115 L200,88 L228,115 L252,98 L252,128 Z" fill="#FFD700" stroke="#B8860B" stroke-width="3"/>
+  <circle cx="200" cy="93" r="8" fill="#E74C3C"/>
+  <circle cx="172" cy="113" r="6" fill="#3498DB"/>
+  <circle cx="228" cy="113" r="6" fill="#27AE60"/>
+  <rect x="145" y="125" width="110" height="16" rx="4" fill="#FFD700" stroke="#B8860B" stroke-width="2"/>
+  <!-- Mane -->
+  <circle cx="200" cy="205" r="108" fill="url(#mane)"/>
+  <!-- Neck -->
+  <rect x="178" y="248" width="44" height="32" rx="10" fill="url(#face-leon)"/>
+  <!-- Head -->
+  <ellipse cx="200" cy="198" rx="78" ry="75" fill="url(#face-leon)" stroke="#C8956A" stroke-width="3"/>
+  <!-- Ears -->
+  <path d="M132,155 L122,118 L158,148" fill="url(#face-leon)" stroke="#C8956A" stroke-width="3"/>
+  <path d="M136,152 L128,122 L155,145" fill="#F1948A"/>
+  <path d="M268,155 L278,118 L242,148" fill="url(#face-leon)" stroke="#C8956A" stroke-width="3"/>
+  <path d="M264,152 L272,122 L245,145" fill="#F1948A"/>
+  <!-- Confident eyebrows -->
+  <path d="M152,175 Q170,165 188,172" stroke="#7D3C00" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <path d="M212,172 Q230,165 248,175" stroke="#7D3C00" stroke-width="7" stroke-linecap="round" fill="none"/>
+  <!-- Eyes -->
+  <ellipse cx="172" cy="190" rx="18" ry="17" fill="#FFF8DC" stroke="#333" stroke-width="2"/>
+  <ellipse cx="228" cy="190" rx="18" ry="17" fill="#FFF8DC" stroke="#333" stroke-width="2"/>
+  <circle cx="172" cy="192" r="11" fill="#8B4513"/>
+  <circle cx="228" cy="192" r="11" fill="#8B4513"/>
+  <circle cx="172" cy="192" r="6" fill="#1A0A00"/>
+  <circle cx="228" cy="192" r="6" fill="#1A0A00"/>
+  <circle cx="175" cy="188" r="3" fill="white"/>
+  <circle cx="231" cy="188" r="3" fill="white"/>
+  <!-- Snout -->
+  <ellipse cx="200" cy="222" rx="38" ry="28" fill="#E8C4A0" stroke="#C8956A" stroke-width="2"/>
+  <!-- Nose -->
+  <path d="M188,215 Q200,208 212,215 L208,222 Q200,226 192,222 Z" fill="#8B4513"/>
+  <!-- Confident smile -->
+  <path d="M175,235 Q200,248 225,235" stroke="#8B4513" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <path d="M185,235 Q200,242 215,235 Q200,248 185,235Z" fill="#CC6666" opacity="0.6"/>
+  <!-- Name -->
+  <text x="200" y="385" text-anchor="middle" font-family="Arial Black" font-size="22" font-weight="900" fill="white" stroke="#A07800" stroke-width="2">EL LEÓN</text>
+</svg>

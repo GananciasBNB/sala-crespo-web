@@ -863,6 +863,50 @@
 .modal__submit:hover:not(:disabled) { background: #00963a; }
 .modal__submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── Selector de mascotas ── */
+.modal__mascotas {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.modal__mascota-btn {
+  background: var(--wc-card);
+  border: 2px solid var(--wc-border);
+  border-radius: 12px;
+  padding: 10px 6px 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.modal__mascota-btn img {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.modal__mascota-btn span {
+  font-size: 11px;
+  color: var(--wc-muted);
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+.modal__mascota-btn:hover {
+  border-color: var(--wc-green);
+  transform: translateY(-2px);
+}
+.modal__mascota-btn--active {
+  border-color: #FFD700;
+  background: rgba(255,215,0,0.08);
+}
+.modal__mascota-btn--active span {
+  color: #FFD700;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    MATCH CARD
 ═══════════════════════════════════════════════════════════════ */

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg-ping" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2E4057"/>
+      <stop offset="100%" stop-color="#1A252F"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg-ping)" stroke="#0D1B2A" stroke-width="6"/>
+  <!-- Body / Suit jacket -->
+  <ellipse cx="200" cy="325" rx="98" ry="66" fill="#1A1A2E"/>
+  <rect x="102" y="265" width="196" height="82" rx="12" fill="#1A1A2E"/>
+  <!-- White shirt front -->
+  <path d="M185,265 Q200,290 215,265 L218,345 Q200,350 182,345 Z" fill="white"/>
+  <!-- Tie -->
+  <path d="M196,270 L204,270 L207,305 L200,315 L193,305 Z" fill="#CC0000"/>
+  <polygon points="200,315 193,305 207,305" fill="#AA0000"/>
+  <!-- Suit lapels -->
+  <path d="M185,265 Q165,278 155,295 L175,295 Q185,280 195,272 Z" fill="#252540"/>
+  <path d="M215,265 Q235,278 245,295 L225,295 Q215,280 205,272 Z" fill="#252540"/>
+  <!-- Penguin body shape -->
+  <!-- Black head -->
+  <ellipse cx="200" cy="195" rx="80" ry="78" fill="#1A1A2E" stroke="#0D1B2A" stroke-width="3"/>
+  <!-- White face -->
+  <ellipse cx="200" cy="205" rx="52" ry="55" fill="#F5F5F5"/>
+  <!-- Neck -->
+  <rect x="175" y="248" width="50" height="28" rx="10" fill="#F5F5F5"/>
+  <!-- Sunglasses pushed up on head -->
+  <rect x="148" y="148" width="104" height="26" rx="13" fill="#111" stroke="#444" stroke-width="2"/>
+  <line x1="200" y1="148" x2="200" y2="174" stroke="#444" stroke-width="3"/>
+  <rect x="150" y="150" width="46" height="22" rx="11" fill="#1A6B3C" opacity="0.8"/>
+  <rect x="204" y="150" width="46" height="22" rx="11" fill="#1A6B3C" opacity="0.8"/>
+  <!-- Glasses arms -->
+  <line x1="148" y1="161" x2="128" y2="165" stroke="#444" stroke-width="4" stroke-linecap="round"/>
+  <line x1="252" y1="161" x2="272" y2="165" stroke="#444" stroke-width="4" stroke-linecap="round"/>
+  <!-- Eyes -->
+  <ellipse cx="174" cy="195" rx="16" ry="16" fill="white" stroke="#333" stroke-width="2"/>
+  <ellipse cx="226" cy="195" rx="16" ry="16" fill="white" stroke="#333" stroke-width="2"/>
+  <circle cx="174" cy="197" r="10" fill="#1A1A2E"/>
+  <circle cx="226" cy="197" r="10" fill="#1A1A2E"/>
+  <circle cx="177" cy="193" r="4" fill="white"/>
+  <circle cx="229" cy="193" r="4" fill="white"/>
+  <!-- Beak -->
+  <path d="M188,220 Q200,215 212,220 L208,235 Q200,240 192,235 Z" fill="#FF8C00" stroke="#CC6600" stroke-width="2"/>
+  <!-- Confident smile line -->
+  <path d="M188,235 Q200,244 212,235" stroke="#CC6600" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <!-- Briefcase (arm) -->
+  <rect x="285" y="290" width="50" height="38" rx="6" fill="#8B6914" stroke="#6B4F10" stroke-width="3"/>
+  <rect x="298" y="283" width="24" height="12" rx="6" fill="none" stroke="#6B4F10" stroke-width="3"/>
+  <line x1="285" y1="309" x2="335" y2="309" stroke="#6B4F10" stroke-width="3"/>
+  <line x1="310" y1="290" x2="310" y2="328" stroke="#6B4F10" stroke-width="2"/>
+  <!-- Name -->
+  <text x="200" y="385" text-anchor="middle" font-family="Arial Black" font-size="19" font-weight="900" fill="white" stroke="#0D1B2A" stroke-width="2">EL PINGÜINO</text>
+</svg>

@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg-lobo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2980B9"/>
+      <stop offset="100%" stop-color="#154360"/>
+    </radialGradient>
+    <radialGradient id="face-lobo" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#BDC3C7"/>
+      <stop offset="100%" stop-color="#85929E"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg-lobo)" stroke="#0D2B45" stroke-width="6"/>
+  <!-- Body with scarf -->
+  <ellipse cx="200" cy="328" rx="98" ry="65" fill="#2471A3"/>
+  <rect x="102" y="268" width="196" height="82" rx="12" fill="#2471A3"/>
+  <!-- Argentina jersey stripes -->
+  <rect x="102" y="268" width="32" height="82" fill="#85C1E9"/>
+  <rect x="166" y="268" width="32" height="82" fill="#85C1E9"/>
+  <rect x="230" y="268" width="32" height="82" fill="#85C1E9"/>
+  <!-- Scarf -->
+  <path d="M118,268 Q200,295 282,268 Q282,285 200,310 Q118,285 118,268Z" fill="#3498DB"/>
+  <path d="M118,268 Q200,278 282,268" fill="white" opacity="0.5"/>
+  <path d="M130,280 Q200,292 270,280" fill="white" opacity="0.3"/>
+  <!-- Scarf ends hanging -->
+  <rect x="112" y="268" width="30" height="55" rx="8" fill="#3498DB"/>
+  <path d="M112,323 L127,340 L142,323" fill="#2980B9"/>
+  <!-- Face paint - Argentina colors (diagonal stripe) -->
+  <!-- Neck -->
+  <rect x="178" y="245" width="44" height="32" rx="10" fill="url(#face-lobo)"/>
+  <!-- Head -->
+  <ellipse cx="200" cy="195" rx="82" ry="78" fill="url(#face-lobo)" stroke="#717D7E" stroke-width="3"/>
+  <!-- Pointed wolf ears -->
+  <path d="M130,148 L115,92 L168,142" fill="url(#face-lobo)" stroke="#717D7E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M135,145 L122,100 L163,138" fill="#AAB7B8"/>
+  <path d="M270,148 L285,92 L232,142" fill="url(#face-lobo)" stroke="#717D7E" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M265,145 L278,100 L237,138" fill="#AAB7B8"/>
+  <!-- Argentina face paint diagonal -->
+  <path d="M155,162 Q178,190 172,220" stroke="#74B9FF" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <path d="M245,162 Q222,190 228,220" stroke="#74B9FF" stroke-width="12" stroke-linecap="round" fill="none" opacity="0.7"/>
+  <!-- Fierce eyebrows angled inward -->
+  <path d="M148,172 Q168,160 188,170" stroke="#2C3E50" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <path d="M212,170 Q232,160 252,172" stroke="#2C3E50" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <!-- Eyes - fierce -->
+  <ellipse cx="170" cy="187" rx="17" ry="15" fill="#FFF" stroke="#333" stroke-width="2"/>
+  <ellipse cx="230" cy="187" rx="17" ry="15" fill="#FFF" stroke="#333" stroke-width="2"/>
+  <circle cx="172" cy="189" r="10" fill="#F39C12"/>
+  <circle cx="232" cy="189" r="10" fill="#F39C12"/>
+  <circle cx="172" cy="189" r="6" fill="#1A1A1A"/>
+  <circle cx="232" cy="189" r="6" fill="#1A1A1A"/>
+  <circle cx="175" cy="185" r="3" fill="white"/>
+  <circle cx="235" cy="185" r="3" fill="white"/>
+  <!-- Snout -->
+  <ellipse cx="200" cy="220" rx="36" ry="26" fill="#AAB7B8" stroke="#717D7E" stroke-width="2"/>
+  <!-- Nose -->
+  <ellipse cx="200" cy="213" rx="11" ry="9" fill="#2C3E50"/>
+  <!-- Snarl/fierce mouth -->
+  <path d="M178,232 Q186,238 200,235 Q214,238 222,232" stroke="#2C3E50" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Raised fist (right side) -->
+  <circle cx="298" cy="265" r="28" fill="url(#face-lobo)" stroke="#717D7E" stroke-width="3"/>
+  <!-- Fist knuckles -->
+  <path d="M280,255 Q298,248 316,255" stroke="#717D7E" stroke-width="3" fill="none"/>
+  <line x1="285" y1="255" x2="283" y2="248" stroke="#717D7E" stroke-width="3" stroke-linecap="round"/>
+  <line x1="297" y1="252" x2="296" y2="245" stroke="#717D7E" stroke-width="3" stroke-linecap="round"/>
+  <line x1="310" y1="255" x2="311" y2="248" stroke="#717D7E" stroke-width="3" stroke-linecap="round"/>
+  <!-- Name -->
+  <text x="200" y="385" text-anchor="middle" font-family="Arial Black" font-size="22" font-weight="900" fill="white" stroke="#0D2B45" stroke-width="2">EL LOBO</text>
+</svg>

@@ -18,8 +18,8 @@ function authHeaders(token) {
 }
 
 // ─── Jugadores ────────────────────────────────────────────────────────────────
-export const registerPlayer = (name, dni, tel, pin) =>
-  api('/api/register', { method: 'POST', body: JSON.stringify({ name, dni, tel, pin }) })
+export const registerPlayer = (name, dni, tel, pin, mascota = 'toro') =>
+  api('/api/register', { method: 'POST', body: JSON.stringify({ name, dni, tel, pin, mascota }) })
 
 export const loginPlayer = (dni, pin) =>
   api('/api/login', { method: 'POST', body: JSON.stringify({ dni, pin }) })

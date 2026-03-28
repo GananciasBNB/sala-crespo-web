@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg-toro" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#FF6B6B"/>
+      <stop offset="100%" stop-color="#C0392B"/>
+    </radialGradient>
+    <radialGradient id="face-toro" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#F5CBA7"/>
+      <stop offset="100%" stop-color="#D4A574"/>
+    </radialGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg-toro)" stroke="#8B0000" stroke-width="6"/>
+  <!-- Jersey body -->
+  <ellipse cx="200" cy="320" rx="95" ry="70" fill="#CC0000"/>
+  <rect x="105" y="270" width="190" height="80" rx="10" fill="#CC0000"/>
+  <!-- Jersey number 10 -->
+  <text x="200" y="330" text-anchor="middle" font-family="Arial Black" font-size="36" font-weight="900" fill="white">10</text>
+  <!-- Jersey collar -->
+  <path d="M160,270 Q200,295 240,270" fill="none" stroke="white" stroke-width="6" stroke-linecap="round"/>
+  <!-- Neck -->
+  <rect x="175" y="240" width="50" height="40" rx="12" fill="url(#face-toro)"/>
+  <!-- Head -->
+  <ellipse cx="200" cy="195" rx="85" ry="80" fill="url(#face-toro)" stroke="#C8956A" stroke-width="3"/>
+  <!-- Ears -->
+  <ellipse cx="118" cy="190" rx="22" ry="20" fill="url(#face-toro)" stroke="#C8956A" stroke-width="3"/>
+  <ellipse cx="118" cy="190" rx="12" ry="11" fill="#E8A87C"/>
+  <ellipse cx="282" cy="190" rx="22" ry="20" fill="url(#face-toro)" stroke="#C8956A" stroke-width="3"/>
+  <ellipse cx="282" cy="190" rx="12" ry="11" fill="#E8A87C"/>
+  <!-- Horns -->
+  <path d="M140,145 Q110,95 130,75 Q155,80 148,140" fill="#8B6914" stroke="#6B4F10" stroke-width="3"/>
+  <path d="M260,145 Q290,95 270,75 Q245,80 252,140" fill="#8B6914" stroke="#6B4F10" stroke-width="3"/>
+  <!-- Angry eyebrows -->
+  <path d="M148,168 Q168,155 188,165" stroke="#5D2E0C" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M212,165 Q232,155 252,168" stroke="#5D2E0C" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <!-- Eyes -->
+  <ellipse cx="170" cy="185" rx="18" ry="16" fill="white" stroke="#333" stroke-width="2"/>
+  <ellipse cx="230" cy="185" rx="18" ry="16" fill="white" stroke="#333" stroke-width="2"/>
+  <circle cx="173" cy="187" r="10" fill="#2C1810"/>
+  <circle cx="233" cy="187" r="10" fill="#2C1810"/>
+  <circle cx="176" cy="183" r="4" fill="white"/>
+  <circle cx="236" cy="183" r="4" fill="white"/>
+  <!-- Snout -->
+  <ellipse cx="200" cy="225" rx="38" ry="28" fill="#E8A87C" stroke="#C8956A" stroke-width="2"/>
+  <!-- Nostrils -->
+  <ellipse cx="185" cy="222" rx="9" ry="8" fill="#8B5E3C"/>
+  <ellipse cx="215" cy="222" rx="9" ry="8" fill="#8B5E3C"/>
+  <!-- Steam from nostrils -->
+  <path d="M178,212 Q172,198 178,188" stroke="white" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <path d="M222,212 Q228,198 222,188" stroke="white" stroke-width="4" stroke-linecap="round" fill="none" opacity="0.9"/>
+  <!-- Determined mouth -->
+  <path d="M180,240 Q200,248 220,240" stroke="#8B5E3C" stroke-width="4" stroke-linecap="round" fill="none"/>
+  <!-- Name -->
+  <text x="200" y="385" text-anchor="middle" font-family="Arial Black" font-size="22" font-weight="900" fill="white" stroke="#8B0000" stroke-width="2">EL TORO</text>
+</svg>

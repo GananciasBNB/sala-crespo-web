@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg-aguila" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#27AE60"/>
+      <stop offset="100%" stop-color="#0E5C30"/>
+    </radialGradient>
+    <radialGradient id="face-aguila" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#E8D5B0"/>
+      <stop offset="100%" stop-color="#C8A878"/>
+    </radialGradient>
+  </defs>
+  <!-- Background -->
+  <circle cx="200" cy="200" r="195" fill="url(#bg-aguila)" stroke="#084C24" stroke-width="6"/>
+  <!-- Wings spread slightly (behind body) -->
+  <path d="M102,230 Q50,195 40,240 Q55,280 105,270 Z" fill="#8B6914" stroke="#6B4F10" stroke-width="3"/>
+  <path d="M298,230 Q350,195 360,240 Q345,280 295,270 Z" fill="#8B6914" stroke="#6B4F10" stroke-width="3"/>
+  <!-- Wing feather details left -->
+  <path d="M102,235 Q75,220 55,245" stroke="#6B4F10" stroke-width="2" fill="none"/>
+  <path d="M100,248 Q70,238 50,258" stroke="#6B4F10" stroke-width="2" fill="none"/>
+  <!-- Wing feather details right -->
+  <path d="M298,235 Q325,220 345,245" stroke="#6B4F10" stroke-width="2" fill="none"/>
+  <path d="M300,248 Q330,238 350,258" stroke="#6B4F10" stroke-width="2" fill="none"/>
+  <!-- Goalkeeper jersey body -->
+  <ellipse cx="200" cy="328" rx="98" ry="65" fill="#F39C12"/>
+  <rect x="102" y="265" width="196" height="85" rx="12" fill="#F39C12"/>
+  <!-- Jersey chest pattern -->
+  <rect x="102" y="265" width="196" height="20" fill="#E67E22"/>
+  <text x="200" y="318" text-anchor="middle" font-family="Arial Black" font-size="28" font-weight="900" fill="#CC5500">1</text>
+  <!-- Neck -->
+  <rect x="178" y="245" width="44" height="30" rx="10" fill="url(#face-aguila)"/>
+  <!-- Head - more oval for eagle -->
+  <ellipse cx="200" cy="193" rx="80" ry="78" fill="#3D2B1F" stroke="#2C1810" stroke-width="3"/>
+  <!-- White eagle head marking -->
+  <ellipse cx="200" cy="200" rx="62" ry="65" fill="white"/>
+  <!-- Brown cap top of head -->
+  <path d="M138,175 Q200,135 262,175 Q245,148 200,142 Q155,148 138,175Z" fill="#3D2B1F"/>
+  <!-- Eagle crest feathers -->
+  <path d="M185,142 Q190,118 200,112 Q210,118 215,142" fill="#3D2B1F"/>
+  <path d="M195,138 Q198,120 200,115 Q202,120 205,138" fill="#5D3A1A"/>
+  <!-- Goalkeeper gloves on head -->
+  <!-- Majestic eyebrows (fierce) -->
+  <path d="M155,180 Q172,168 190,176" stroke="#3D2B1F" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <path d="M210,176 Q228,168 245,180" stroke="#3D2B1F" stroke-width="8" stroke-linecap="round" fill="none"/>
+  <!-- Eyes - piercing eagle eyes -->
+  <ellipse cx="172" cy="195" rx="18" ry="16" fill="#FFF8DC" stroke="#3D2B1F" stroke-width="3"/>
+  <ellipse cx="228" cy="195" rx="18" ry="16" fill="#FFF8DC" stroke="#3D2B1F" stroke-width="3"/>
+  <circle cx="172" cy="197" r="11" fill="#F39C12"/>
+  <circle cx="228" cy="197" r="11" fill="#F39C12"/>
+  <circle cx="172" cy="197" r="6" fill="#1A0A00"/>
+  <circle cx="228" cy="197" r="6" fill="#1A0A00"/>
+  <circle cx="175" cy="192" r="3" fill="white"/>
+  <circle cx="231" cy="192" r="3" fill="white"/>
+  <!-- Eagle beak -->
+  <path d="M185,220 Q200,215 215,220 L212,235 Q200,245 188,235 Z" fill="#FF8C00" stroke="#CC5500" stroke-width="2"/>
+  <!-- Beak curve (hooked) -->
+  <path d="M200,235 Q210,240 212,248 Q205,248 200,243 Z" fill="#FF7700"/>
+  <!-- Goalkeeper gloves (hands) -->
+  <rect x="55" y="290" width="55" height="40" rx="14" fill="#27AE60" stroke="#1A7A40" stroke-width="3"/>
+  <path d="M58,298 L108,298" stroke="#1A7A40" stroke-width="3"/>
+  <path d="M58,308" stroke="#1A7A40" stroke-width="3"/>
+  <rect x="290" y="290" width="55" height="40" rx="14" fill="#27AE60" stroke="#1A7A40" stroke-width="3"/>
+  <path d="M293,298 L343,298" stroke="#1A7A40" stroke-width="3"/>
+  <!-- Name -->
+  <text x="200" y="385" text-anchor="middle" font-family="Arial Black" font-size="21" font-weight="900" fill="white" stroke="#084C24" stroke-width="2">EL ÁGUILA</text>
+</svg>
