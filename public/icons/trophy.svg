@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F5E27A"/>
+      <stop offset="40%" stop-color="#C9A84C"/>
+      <stop offset="100%" stop-color="#8B6914"/>
+    </linearGradient>
+    <linearGradient id="goldGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E8C96A"/>
+      <stop offset="100%" stop-color="#A07820"/>
+    </linearGradient>
+    <linearGradient id="shineGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Base -->
+  <rect x="28" y="66" width="24" height="5" rx="2" fill="url(#goldGrad)"/>
+  <rect x="24" y="63" width="32" height="5" rx="2" fill="url(#goldGrad2)"/>
+  <!-- Tallo -->
+  <rect x="34" y="52" width="12" height="13" rx="1" fill="url(#goldGrad)"/>
+  <!-- Copa principal -->
+  <path d="M22,16 L22,42 Q22,54 40,54 Q58,54 58,42 L58,16 Z"
+        fill="url(#goldGrad)" rx="4"/>
+  <!-- Asas -->
+  <path d="M22,22 Q10,22 10,32 Q10,42 22,40" fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round"/>
+  <path d="M58,22 Q70,22 70,32 Q70,42 58,40" fill="none" stroke="url(#goldGrad)" stroke-width="4" stroke-linecap="round"/>
+  <!-- Brillo interior copa -->
+  <path d="M28,18 L28,44 Q28,50 36,51 L36,18 Z" fill="url(#shineGrad)" opacity="0.5"/>
+  <!-- Borde copa -->
+  <path d="M22,16 L22,42 Q22,54 40,54 Q58,54 58,42 L58,16 Z"
+        fill="none" stroke="#F5E27A" stroke-width="1" opacity="0.6"/>
+  <!-- Estrella en copa -->
+  <path d="M40,26 L41.8,31.5 L47.5,31.5 L43,35 L44.8,40.5 L40,37 L35.2,40.5 L37,35 L32.5,31.5 L38.2,31.5 Z"
+        fill="#fff" opacity="0.35"/>
+  <!-- Borde superior copa -->
+  <rect x="21" y="13" width="38" height="5" rx="2.5" fill="url(#goldGrad2)"/>
+</svg>

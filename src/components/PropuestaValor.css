@@ -1,0 +1,115 @@
+.pv {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(80px, 10vw, 120px) 0;
+  background: var(--dark2);
+}
+
+/* Foto de fondo sutil */
+.pv__bg-photo {
+  position: absolute;
+  inset: 0;
+  background-image: url('/sala/gonxifacai.png');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.06;
+  filter: saturate(0.3);
+}
+.pv__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(196,30,58,0.04) 0%, transparent 50%, rgba(201,168,76,0.03) 100%);
+}
+
+.pv__inner {
+  position: relative;
+  z-index: 1;
+}
+
+.pv__label {
+  margin-bottom: 56px;
+}
+
+/* Grid asimétrico — 3 columnas en desktop, apilado en mobile */
+.pv__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+.pv__item {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 48px 40px 0;
+  border-right: 1px solid rgba(201,168,76,0.12);
+  gap: 20px;
+}
+.pv__item:last-child {
+  border-right: none;
+  padding-right: 0;
+  padding-left: 48px;
+}
+.pv__item:nth-child(2) {
+  padding-left: 48px;
+}
+
+/* Ícono SVG ilustrativo */
+.pv__icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 20px rgba(201,168,76,0.25));
+  transition: transform 0.4s ease, filter 0.4s ease;
+}
+.pv__item:hover .pv__icon {
+  transform: translateY(-4px) scale(1.06);
+  filter: drop-shadow(0 8px 32px rgba(201,168,76,0.45));
+}
+
+/* Número masivo */
+.pv__numero {
+  font-family: var(--font-impact);
+  font-size: clamp(64px, 9vw, 110px);
+  line-height: 0.9;
+  letter-spacing: -2px;
+  text-align: center;
+}
+.pv__numero--gold {
+  color: var(--gold);
+  text-shadow: 0 0 60px rgba(201,168,76,0.25);
+}
+.pv__numero--crimson {
+  color: var(--crimson);
+  text-shadow: 0 0 60px rgba(196,30,58,0.25);
+}
+
+/* Texto */
+.pv__texto { flex: 1; text-align: center; }
+.pv__titulo {
+  font-family: var(--font-display);
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 10px;
+  line-height: 1.2;
+}
+.pv__desc {
+  font-size: 14.5px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+
+@media (max-width: 900px) {
+  .pv__grid { grid-template-columns: 1fr; gap: 0; }
+  .pv__item {
+    padding: 32px 0;
+    border-right: none;
+    border-bottom: 1px solid rgba(201,168,76,0.12);
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 28px;
+  }
+  .pv__item:last-child { border-bottom: none; padding-left: 0; }
+  .pv__item:nth-child(2) { padding-left: 0; }
+  .pv__numero { font-size: 56px; min-width: 120px; }
+}

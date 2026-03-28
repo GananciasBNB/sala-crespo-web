@@ -1,0 +1,132 @@
+// Base URL: vacío en dev (el proxy de Vite redirige /api → :8080)
+// En producción Vercel usa VITE_API_URL
+const BASE = import.meta.env.VITE_API_URL || ''
+
+async function api(endpoint, options = {}) {
+  const { headers: extraHeaders, ...restOptions } = options
+  const res = await fetch(BASE + endpoint, {
+    headers: { 'Content-Type': 'application/json', ...extraHeaders },
+    ...restOptions,
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.error || `Error ${res.status}`)
+  return data
+}
+
+function authHeaders(token) {
+  return { Authorization: `Bearer ${token}` }
+}
+
+// ─── Jugadores ────────────────────────────────────────────────────────────────
+export const registerPlayer = (name, dni, tel, pin) =>
+  api('/api/register', { method: 'POST', body: JSON.stringify({ name, dni, tel, pin }) })
+
+export const loginPlayer = (dni, pin) =>
+  api('/api/login', { method: 'POST', body: JSON.stringify({ dni, pin }) })
+
+// ─── Partidos y pronósticos ───────────────────────────────────────────────────
+export const getMatches = () => api('/api/matches')
+
+export const getMyPredictions = (playerId) =>
+  api(`/api/predictions/${playerId}`)
+
+export const savePrediction = (playerId, matchId, home, away) =>
+  api('/api/predictions', {
+    method: 'POST',
+    body: JSON.stringify({ playerId, matchId, home, away }),
+  })
+
+// Guarda múltiples pronósticos de una vez (un request por partido en paralelo)
+export const savePredictionsBatch = (playerId, preds) =>
+  Promise.all(
+    preds.map(({ matchId, home, away }) =>
+      api('/api/predictions', { method: 'POST', body: JSON.stringify({ playerId, matchId, home, away }) })
+    )
+  )
+
+// ─── Leaderboard y datos públicos ─────────────────────────────────────────────
+export const getLeaderboard = (phase = 'all') => api(`/api/leaderboard?phase=${phase}`)
+export const getShows       = () => api('/api/shows')
+export const getContent     = () => api('/api/content')
+
+// ─── Admin: autenticación ─────────────────────────────────────────────────────
+export const adminLogin  = (email, password) =>
+  api('/api/admin/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+
+export const adminVerify = (token) =>
+  api('/api/admin/me', { headers: authHeaders(token) })
+
+// ─── Admin: prode ─────────────────────────────────────────────────────────────
+export const adminSetResult = (token, matchId, home, away) =>
+  api('/api/admin/result', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ matchId, home, away }),
+  })
+
+export const adminDeleteResult = (token, matchId) =>
+  api(`/api/admin/result/${matchId}`, { method: 'DELETE', headers: authHeaders(token) })
+
+export const adminSetTeams = (token, matchId, homeName, homeFlag, awayName, awayFlag) =>
+  api('/api/admin/teams', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ matchId, homeName, homeFlag, awayName, awayFlag }),
+  })
+
+export const adminGetPlayers = (token) =>
+  api('/api/admin/players', { headers: authHeaders(token) })
+
+export const adminDeletePlayer = (token, id) =>
+  api(`/api/admin/player/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
+export const adminEditPlayer = (token, id, data) =>
+  api(`/api/admin/player/${id}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(data) })
+
+// ─── Admin: shows ─────────────────────────────────────────────────────────────
+export const adminCreateShow = (token, show) =>
+  api('/api/admin/shows', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(show),
+  })
+
+export const adminUpdateShow = (token, id, show) =>
+  api(`/api/admin/shows/${id}`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(show),
+  })
+
+export const adminDeleteShow = (token, id) =>
+  api(`/api/admin/shows/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
+// ─── Admin: contenido web ─────────────────────────────────────────────────────
+export const adminUpdateContent = (token, section, key, value) =>
+  api('/api/admin/content', {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify({ section, key, value }),
+  })
+
+// ─── Admin: imágenes ──────────────────────────────────────────────────────────
+export const adminUploadImage = (token, imageBase64, folder) =>
+  api('/api/admin/upload', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ imageBase64, folder }),
+  })
+
+// ─── Admin: gestión de admins ─────────────────────────────────────────────────
+export const adminGetAdmins = (token) =>
+  api('/api/admin/admins', { headers: authHeaders(token) })
+
+export const adminCreateAdmin = (token, data) =>
+  api('/api/admin/admins', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  })
+
+export const adminDeleteAdmin = (token, id) =>
+  api(`/api/admin/admins/${id}`, { method: 'DELETE', headers: authHeaders(token) })

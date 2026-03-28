@@ -1,0 +1,147 @@
+.shows { background: var(--onyx); }
+.shows__header { max-width: 600px; margin-bottom: 48px; }
+.shows__header em { font-style: italic; color: var(--crimson); }
+.shows__intro { color: var(--text2); font-size: 17px; margin-top: 16px; line-height: 1.7; }
+.shows__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; }
+.shows__col-label {
+  font-family: var(--font-impact);
+  font-size: 13px;
+  letter-spacing: 3px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.shows__cards { display: flex; flex-direction: column; gap: 16px; }
+/* Cards cargadas dinámicamente — animación directa sin depender del IntersectionObserver */
+@keyframes cardFadeIn {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.shows__card--loaded {
+  animation: cardFadeIn 0.5s ease both;
+}
+
+.shows__card {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  background: var(--dark2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  transition: transform 0.25s, border-color 0.25s;
+}
+.shows__card:hover { transform: translateX(4px); border-color: rgba(196,30,58,0.4); }
+.shows__card--next:hover { border-color: rgba(201,168,76,0.4); }
+.shows__card-img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: var(--dark3);
+  border: 2px solid rgba(196,30,58,0.3);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.shows__card-img--glow { border-color: rgba(201,168,76,0.4); box-shadow: 0 0 24px rgba(201,168,76,0.15); }
+.shows__card-placeholder { font-size: 28px; }
+.shows__card-placeholder--pulse { animation: pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.12); } }
+.shows__card-tag {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text3);
+  background: var(--dark3);
+  padding: 3px 8px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.shows__card-tag--gold { color: var(--gold); background: rgba(201,168,76,0.08); }
+.shows__card-name { font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--cream); margin-bottom: 4px; }
+.shows__card-date { font-size: 13px; color: var(--text3); }
+/* Featured upcoming show card */
+.shows__featured {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(201,168,76,0.3);
+  box-shadow: 0 0 40px rgba(201,168,76,0.08);
+  background: var(--dark2);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.shows__featured:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 48px rgba(201,168,76,0.18);
+}
+.shows__featured-img {
+  position: relative;
+  width: 100%;
+  background: var(--dark3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.shows__featured-img img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.shows__featured-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none;
+}
+.shows__featured-info {
+  padding: 20px 24px 24px;
+}
+.shows__badge-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold, #C9A84C);
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.25);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+.shows__badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold, #C9A84C);
+  animation: pulse 1.8s ease-in-out infinite;
+}
+.shows__featured-name {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--cream, #F5ECD7);
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+.shows__featured-date {
+  font-size: 14px;
+  color: var(--text3);
+}
+
+.shows__more {
+  padding: 16px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--gold);
+  border: 1px dashed rgba(201,168,76,0.25);
+  border-radius: 8px;
+}
+@media (max-width: 700px) { .shows__grid { grid-template-columns: 1fr; } }

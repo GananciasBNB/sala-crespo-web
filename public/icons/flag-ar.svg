@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 60">
+  <!-- Franjas Argentina -->
+  <rect width="90" height="60" fill="#74ACDF"/>
+  <rect y="20" width="90" height="20" fill="#fff"/>
+  <!-- Sol de Mayo -->
+  <g transform="translate(45,30)">
+    <!-- Rayos rectos -->
+    <g stroke="#F6B40E" stroke-width="2.2" stroke-linecap="round">
+      <line x1="0" y1="-13" x2="0" y2="-8"/>
+      <line x1="0" y1="8" x2="0" y2="13"/>
+      <line x1="-13" y1="0" x2="-8" y2="0"/>
+      <line x1="8" y1="0" x2="13" y2="0"/>
+      <line x1="-9.2" y1="-9.2" x2="-5.6" y2="-5.6"/>
+      <line x1="5.6" y1="5.6" x2="9.2" y2="9.2"/>
+      <line x1="9.2" y1="-9.2" x2="5.6" y2="-5.6"/>
+      <line x1="-5.6" y1="5.6" x2="-9.2" y2="9.2"/>
+    </g>
+    <!-- Rayos ondulados -->
+    <g fill="#F6B40E">
+      <path d="M0,-16 Q1,-12.5 0,-10 Q-1,-12.5 0,-16z"/>
+      <path d="M0,10 Q1,12.5 0,16 Q-1,12.5 0,10z"/>
+      <path d="M-16,0 Q-12.5,1 -10,0 Q-12.5,-1 -16,0z"/>
+      <path d="M10,0 Q12.5,1 16,0 Q12.5,-1 10,0z"/>
+      <path transform="rotate(45)">  <path d="M0,-16 Q1,-12.5 0,-10 Q-1,-12.5 0,-16z"/></path>
+      <path transform="rotate(45)" d="M0,10 Q1,12.5 0,16 Q-1,12.5 0,10z"/>
+      <path transform="rotate(45)" d="M-16,0 Q-12.5,1 -10,0 Q-12.5,-1 -16,0z"/>
+      <path transform="rotate(45)" d="M10,0 Q12.5,1 16,0 Q12.5,-1 10,0z"/>
+    </g>
+    <!-- Círculo del sol -->
+    <circle r="7" fill="#F6B40E"/>
+    <!-- Cara del sol -->
+    <circle cx="-2" cy="-1.5" r="1" fill="#85340A"/>
+    <circle cx="2" cy="-1.5" r="1" fill="#85340A"/>
+    <path d="M-2.5,1.5 Q0,3.5 2.5,1.5" stroke="#85340A" stroke-width="0.8" fill="none"/>
+  </g>
+</svg>

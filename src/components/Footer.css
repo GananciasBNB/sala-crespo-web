@@ -1,0 +1,30 @@
+.footer {
+  background: var(--dark);
+  border-top: 1px solid var(--border);
+}
+.footer__inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 48px;
+  padding: 64px 0 40px;
+}
+.footer__logo { height: 60px; width: auto; margin-bottom: 16px; }
+.footer__tagline { color: var(--text2); font-size: 15px; margin-bottom: 6px; }
+.footer__address { color: var(--text3); font-size: 13px; }
+.footer__nav { display: flex; flex-direction: column; gap: 10px; }
+.footer__nav h4 {
+  font-family: var(--font-impact);
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.footer__nav a { font-size: 14px; color: var(--text3); transition: color 0.2s; }
+.footer__nav a:hover { color: var(--cream); }
+.footer__bottom { border-top: 1px solid var(--border); padding: 20px 0; }
+.footer__bottom-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+.footer__bottom p { font-size: 12px; color: var(--text3); }
+.footer__casinos { color: rgba(201,168,76,0.5); }
+@media (max-width: 860px) { .footer__inner { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 500px) { .footer__inner { grid-template-columns: 1fr; gap: 28px; } }
