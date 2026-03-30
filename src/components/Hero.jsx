@@ -69,13 +69,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Horario */}
-      <div className="hero__horario">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        <span>Dom–Jue: 15:00 a 03:00 hs</span>
-        <span className="hero__horario-sep">·</span>
-        <span>Vie, Sáb y Feriados: 15:00 a 04:00 hs</span>
-      </div>
 
       <div className="hero__scroll-hint" aria-hidden="true">
         <span className="hero__scroll-dot" />
