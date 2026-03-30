@@ -200,11 +200,7 @@ function LeaderboardView({ myId }) {
     { id: 'round32', label: '16avos' },
     { id: 'all',     label: 'Acumulado' },
   ]
-  const medals = [
-    <span className="lb__medal lb__medal--gold">1</span>,
-    <span className="lb__medal lb__medal--silver">2</span>,
-    <span className="lb__medal lb__medal--bronze">3</span>,
-  ]
+  const medals = ['🥇', '🥈', '🥉']
 
   return (
     <div className="lb-wrap">
@@ -242,7 +238,7 @@ function LeaderboardView({ myId }) {
             {data.map((p, i) => (
               <tr key={p.id} className={`lb__row ${p.id === myId ? 'lb__row--me' : ''} ${i < 3 ? 'lb__row--top' : ''}`}>
                 <td className="lb__pos">
-                  {i < 3 ? medals[i] : <span className="lb__pos-num">{i + 1}</span>}
+                  {i < 3 ? <span style={{fontSize:'22px'}}>{medals[i]}</span> : <span className="lb__pos-num">{i + 1}</span>}
                 </td>
                 <td className="lb__name">
                   <span style={{ display:'flex', alignItems:'center', gap:'8px' }}>
@@ -461,6 +457,13 @@ function AuthModal({ onClose, onLogin }) {
   )
 }
 
+// Formatea nombre de equipo — si es placeholder tipo "Ganador P74" lo muestra bonito
+function formatTeamName(name) {
+  if (!name) return 'Por definir'
+  if (/^(Ganador|Winner|Vencedor)\s+P\d+$/i.test(name.trim())) return 'Por definir'
+  return name
+}
+
 // ─── Match Card ───────────────────────────────────────────────────────────────
 // MatchCard en modo batch: inputs controlados desde el padre, sin botón propio
 function MatchCard({ match, myPred, localPred, onLocalChange }) {
@@ -492,7 +495,7 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
       <div className="mc__teams">
         <div className="mc__team mc__team--home">
           <FlagImg name={match.homeName} size={36} className="mc__flag-img" />
-          <span className="mc__name">{match.homeName}</span>
+          <span className="mc__name">{formatTeamName(match.homeName)}</span>
         </div>
 
         <div className="mc__score">
@@ -525,7 +528,7 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
         </div>
 
         <div className="mc__team mc__team--away">
-          <span className="mc__name">{match.awayName}</span>
+          <span className="mc__name">{formatTeamName(match.awayName)}</span>
           <FlagImg name={match.awayName} size={36} className="mc__flag-img" />
         </div>
       </div>
@@ -591,6 +594,9 @@ function PronosticosView({ matches, myPreds, player, onSaved }) {
 
   return (
     <div className="pronosticos">
+      <div className="pronosticos__hint">
+        Ingresá el resultado que esperás de cada partido antes de que empiece. Una vez iniciado, ya no podés cambiarlo.
+      </div>
       <div className="pronosticos__phases">
         {phases.map(ph => (
           <button
@@ -730,26 +736,7 @@ function PublicHome({ onParticipa }) {
         <span className="arg-banner__flag">🇦🇷</span>
       </div>
 
-      {/* Premios */}
-      <PrizeCards />
-
-      {/* 48 equipos */}
-      <GroupsGrid />
-
-      {/* Tabla */}
-      <div className="pub-lb">
-        <div className="pub-lb__header">
-          <h2 className="pub-lb__title">🏆 Tabla de Posiciones</h2>
-          <p className="pub-lb__sub">Actualizada en tiempo real</p>
-        </div>
-        <LeaderboardView myId={null} />
-        <div className="pub-lb__cta">
-          <p>¿Querés aparecer acá?</p>
-          <button className="pub-lb__btn" onClick={onParticipa}>Registrarme y jugar →</button>
-        </div>
-      </div>
-
-      {/* Info */}
+      {/* Info — al tope para que sea lo primero que lean */}
       <div className="pub-info">
         <div className="pub-info__card">
           <div className="pub-info__icon">🎯</div>
@@ -770,6 +757,25 @@ function PublicHome({ onParticipa }) {
           <div className="pub-info__icon">🎁</div>
           <h3>¿Cómo cobrar?</h3>
           <p>Los premios son en tickets promocionales de Sala Crespo. El admin verifica identidad con DNI al finalizar la fase.</p>
+        </div>
+      </div>
+
+      {/* Premios */}
+      <PrizeCards />
+
+      {/* 48 equipos */}
+      <GroupsGrid />
+
+      {/* Tabla */}
+      <div className="pub-lb">
+        <div className="pub-lb__header">
+          <h2 className="pub-lb__title">🏆 Tabla de Posiciones</h2>
+          <p className="pub-lb__sub">Actualizada en tiempo real</p>
+        </div>
+        <LeaderboardView myId={null} />
+        <div className="pub-lb__cta">
+          <p>¿Querés aparecer acá?</p>
+          <button className="pub-lb__btn" onClick={onParticipa}>Registrarme y jugar →</button>
         </div>
       </div>
     </div>
@@ -828,12 +834,12 @@ export default function ProdeApp() {
 
   const TABS = player ? [
     { id: 'inicio',      label: '🏠 Inicio' },
-    { id: 'pronosticos', label: '🎯 Pronósticos' },
-    { id: 'tabla',       label: '🏆 Tabla' },
-    { id: 'llaves',      label: '🌐 Llaves' },
+    { id: 'pronosticos', label: '🎯 Mis pronósticos' },
+    { id: 'tabla',       label: '📊 Mi posición' },
+    { id: 'llaves',      label: '🗓️ Fixture' },
   ] : [
     { id: 'inicio', label: '🏠 Inicio' },
-    { id: 'tabla',  label: '🏆 Tabla' },
+    { id: 'tabla',  label: '📊 Posiciones' },
   ]
 
   return (
