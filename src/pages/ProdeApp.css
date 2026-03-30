@@ -110,17 +110,19 @@
   background: #0A0E15;
   border-bottom: 1px solid var(--wc-border);
   display: flex;
-  gap: 0;
+  gap: 8px;
   max-width: 100%;
   overflow-x: auto;
-  padding: 0 20px;
+  padding: 10px 16px;
+  scrollbar-width: none;
 }
+.prode-nav::-webkit-scrollbar { display: none; }
 .prode-nav__btn {
-  background: none;
-  border: none;
-  border-bottom: 3px solid transparent;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
   color: var(--wc-muted);
-  padding: 14px 18px;
+  padding: 9px 16px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -128,10 +130,15 @@
   transition: all .2s;
   letter-spacing: 0.3px;
 }
-.prode-nav__btn:hover { color: var(--wc-text); }
+.prode-nav__btn:hover {
+  color: var(--wc-text);
+  background: rgba(255,255,255,0.09);
+}
 .prode-nav__btn--active {
-  color: var(--wc-gold);
-  border-bottom-color: var(--wc-gold);
+  background: var(--wc-gold);
+  border-color: var(--wc-gold);
+  color: #000;
+  font-weight: 700;
 }
 
 /* ─── Toast ───────────────────────────────────────────────────── */
