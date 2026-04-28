@@ -4,6 +4,7 @@ import {
   registerPlayer, loginPlayer, forgotPin,
   getMatches, getMyPredictions, savePrediction, savePredictionsBatch,
   getLeaderboard, getEmployeesLeaderboard, getRegistrationStatus,
+  getContent,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -1058,11 +1059,13 @@ function PublicHome({ player, onParticipa }) {
 // ─── Modo Promotora ───────────────────────────────────────────────────────────
 // URL ?promo=1 — pantalla full pensada para tablet, registro rápido por la promotora
 
-// TODO: validar/actualizar URL del Google Form de inscripción al torneo de máquinas
-const TOURNAMENT_DATE_LABEL = '21 de mayo · 2026'
-const TOURNAMENT_FORM_URL   = 'https://forms.gle/REEMPLAZAR' // ⚠ pegar URL real
-const INSTAGRAM_HANDLE      = '@saladejuegoscrespo'
-const INSTAGRAM_URL         = 'https://instagram.com/saladejuegoscrespo'
+// Instagram oficial de Sala Crespo (mismo handle que footer público)
+const INSTAGRAM_HANDLE = '@salajuegoscrespo'
+const INSTAGRAM_URL    = 'https://www.instagram.com/salajuegoscrespo/'
+
+// Fallbacks por si /api/content todavía no responde — se reemplazan por valores reales de DB
+const FALLBACK_TOURNAMENT_DATE = '21 de mayo · 2026'
+const FALLBACK_TOURNAMENT_URL  = 'https://docs.google.com/forms/d/1sOfBSy8FXm-ncMuQGU6GqbP60zP08DADbb0DrqGBG8g/edit'
 
 function PromoMode({ onExit }) {
   const [step, setStep] = useState('form') // 'form' | 'success'
@@ -1079,6 +1082,21 @@ function PromoMode({ onExit }) {
   const [info, setInfo]   = useState('')
   const [lastResult, setLastResult] = useState(null) // { name, pin }
   const [count, setCount] = useState(0)
+
+  // Cargar datos del torneo desde la misma fuente que la landing pública
+  const [tournament, setTournament] = useState({
+    date: FALLBACK_TOURNAMENT_DATE,
+    url:  FALLBACK_TOURNAMENT_URL,
+  })
+  useEffect(() => {
+    getContent().then(content => {
+      const t = content?.torneos || {}
+      setTournament({
+        date: t.fecha_torneo  || FALLBACK_TOURNAMENT_DATE,
+        url:  t.link_torneo   || FALLBACK_TOURNAMENT_URL,
+      })
+    }).catch(() => {})
+  }, [])
 
   const currentYear = new Date().getFullYear()
   const minBirthYear = 1900
@@ -1161,13 +1179,13 @@ function PromoMode({ onExit }) {
               <div className="promo-extras__grid">
                 <a
                   className="promo-extra promo-extra--tournament"
-                  href={TOURNAMENT_FORM_URL}
+                  href={tournament.url}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   <div className="promo-extra__icon">🎰</div>
                   <div className="promo-extra__label">Inscribir al torneo de máquinas</div>
-                  <div className="promo-extra__sub">{TOURNAMENT_DATE_LABEL}</div>
+                  <div className="promo-extra__sub">{tournament.date}</div>
                 </a>
                 <a
                   className="promo-extra promo-extra--instagram"
@@ -1214,7 +1232,7 @@ function PromoMode({ onExit }) {
           <div className="promo-reminders">
             <div className="promo-reminders__title">📌 Antes de soltar al cliente acordate de:</div>
             <ul className="promo-reminders__list">
-              <li>📋 Inscribirlo también al <strong>torneo de máquinas</strong> ({TOURNAMENT_DATE_LABEL})</li>
+              <li>📋 Inscribirlo también al <strong>torneo de máquinas</strong> ({tournament.date})</li>
               <li>📸 Pedirle que nos siga en Instagram <strong>{INSTAGRAM_HANDLE}</strong> (mostrale el QR si no encuentra)</li>
             </ul>
           </div>
