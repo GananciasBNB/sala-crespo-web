@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
-  adminSetResult, adminDeleteResult, adminSetTeams, adminGetPlayers, adminDeletePlayer, adminEditPlayer,
+  adminSetResult, adminDeleteResult, adminSetTeams, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer,
   adminCreateShow, adminUpdateShow, adminDeleteShow,
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
@@ -95,7 +95,9 @@ function ProdeAdmin({ token, toast }) {
   const [teamsMatchId, setTeamsMatchId] = useState('')
   const [teamData, setTeamData] = useState({ homeName: '', homeFlag: '', awayName: '', awayFlag: '' })
   const [subtab, setSubtab]     = useState('resultados')
-  const [editingPlayer, setEditingPlayer] = useState(null) // { id, name, tel }
+  const [editingPlayer, setEditingPlayer] = useState(null) // { id, name, tel, email }
+  const [invitingPlayer, setInvitingPlayer] = useState(null) // { name, dni, tel, email, isEmployee } | null
+  const [invitedPin, setInvitedPin] = useState(null)         // { name, pin, emailSent }
 
   useEffect(() => {
     getMatches().then(setMatches).catch(() => {})
@@ -155,10 +157,52 @@ function ProdeAdmin({ token, toast }) {
   async function handleEditPlayerSave() {
     if (!editingPlayer.name.trim()) return toast.show('El nombre no puede estar vacío.', 'err')
     try {
-      await adminEditPlayer(token, editingPlayer.id, { name: editingPlayer.name.trim(), tel: editingPlayer.tel })
+      await adminEditPlayer(token, editingPlayer.id, {
+        name: editingPlayer.name.trim(),
+        tel: editingPlayer.tel,
+        email: editingPlayer.email || null,
+      })
       toast.show('Jugador actualizado')
       setEditingPlayer(null)
       adminGetPlayers(token).then(setPlayers)
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  async function handleInvitePlayerSave() {
+    const inv = invitingPlayer
+    if (!inv) return
+    if (!inv.name?.trim()) return toast.show('Nombre requerido', 'err')
+    if (!/^\d{7,8}$/.test(String(inv.dni || '').trim())) return toast.show('DNI debe tener 7 u 8 dígitos', 'err')
+    if (!/^[\d\s\-\+\(\)]{8,15}$/.test(String(inv.tel || '').trim())) return toast.show('Teléfono inválido', 'err')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(inv.email || '').trim().toLowerCase())) return toast.show('Email obligatorio (se envía el PIN por mail)', 'err')
+    try {
+      const res = await adminInvitePlayer(token, {
+        name: inv.name.trim(),
+        dni: String(inv.dni).trim(),
+        tel: String(inv.tel).trim(),
+        email: String(inv.email).trim().toLowerCase(),
+        isEmployee: !!inv.isEmployee,
+      })
+      setInvitingPlayer(null)
+      setInvitedPin({ name: inv.name.trim(), pin: res.pin, isEmployee: !!inv.isEmployee, emailSent: res.emailSent })
+      adminGetPlayers(token).then(setPlayers)
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  async function handleResetPin(player) {
+    const ok = confirm(`¿Resetear el PIN de ${player.name}?\n\nSe generará un PIN nuevo y se mostrará en pantalla. ${player.email ? 'También se enviará por email.' : 'El jugador no tiene email registrado, anotalo y entregalo en mostrador.'}`)
+    if (!ok) return
+    try {
+      const res = await adminResetPin(token, player.id)
+      // Mostrar PIN en alert grande y obvio
+      const msg = res.emailSent
+        ? `✓ PIN nuevo de ${player.name}: ${res.pin}\n\nTambién se envió por email a ${player.email}.\n\nAnotalo igual por las dudas.`
+        : `✓ PIN nuevo de ${player.name}: ${res.pin}\n\n(El jugador no tiene email — anotalo y entregalo en mostrador)`
+      alert(msg)
     } catch (err) {
       toast.show(err.message, 'err')
     }
@@ -295,7 +339,72 @@ function ProdeAdmin({ token, toast }) {
 
       {subtab === 'jugadores' && (
         <div className="ap-block">
-          <h3 className="ap-block__title">Jugadores registrados ({players.length})</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+            <h3 className="ap-block__title" style={{ margin: 0 }}>Jugadores registrados ({players.length})</h3>
+            <button
+              className="ap-btn ap-btn--primary"
+              onClick={() => setInvitingPlayer({ name: '', dni: '', tel: '', email: '', isEmployee: false })}
+            >+ Invitar jugador</button>
+          </div>
+
+          {/* Modal de invitación */}
+          {invitingPlayer && (
+            <div className="ap-edit-modal">
+              <h4 className="ap-edit-modal__title">Invitar jugador</h4>
+              <p style={{ color: 'var(--ap-muted)', fontSize: 13, marginTop: 0 }}>
+                Se generará un PIN de 4 dígitos y se enviará por email al jugador.
+              </p>
+              <label className="ap-label">Nombre completo</label>
+              <input className="ap-input" value={invitingPlayer.name}
+                onChange={e => setInvitingPlayer(p => ({ ...p, name: e.target.value }))}
+                placeholder="Ej: Juan Pérez" autoFocus />
+              <label className="ap-label">DNI (7 u 8 dígitos, sin puntos)</label>
+              <input className="ap-input" type="tel" inputMode="numeric" maxLength={8}
+                value={invitingPlayer.dni}
+                onChange={e => setInvitingPlayer(p => ({ ...p, dni: e.target.value.replace(/\D/g, '') }))}
+                placeholder="Ej: 35123456" />
+              <label className="ap-label">Teléfono</label>
+              <input className="ap-input" value={invitingPlayer.tel}
+                onChange={e => setInvitingPlayer(p => ({ ...p, tel: e.target.value }))}
+                placeholder="Ej: 3435 123456" />
+              <label className="ap-label">Email (obligatorio para invitación)</label>
+              <input className="ap-input" type="email" value={invitingPlayer.email}
+                onChange={e => setInvitingPlayer(p => ({ ...p, email: e.target.value }))}
+                placeholder="ejemplo@correo.com" />
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: 12, background: 'rgba(155,31,31,0.1)', border: '1px solid rgba(155,31,31,0.3)', borderRadius: 8, cursor: 'pointer' }}>
+                <input type="checkbox" checked={!!invitingPlayer.isEmployee}
+                  onChange={e => setInvitingPlayer(p => ({ ...p, isEmployee: e.target.checked }))}
+                  style={{ width: 18, height: 18, cursor: 'pointer' }} />
+                <span style={{ fontSize: 14, color: '#E8EDF5' }}>
+                  🏢 <strong>Es empleado de Electric Line SRL</strong>
+                  <br /><span style={{ fontSize: 12, color: 'var(--ap-muted)' }}>(participa solo del concurso interno, no aparece en ranking público)</span>
+                </span>
+              </label>
+              <div className="ap-edit-modal__btns">
+                <button className="ap-btn ap-btn--primary" onClick={handleInvitePlayerSave}>Generar PIN y enviar email</button>
+                <button className="ap-btn" onClick={() => setInvitingPlayer(null)}>Cancelar</button>
+              </div>
+            </div>
+          )}
+
+          {/* Modal post-invitación con PIN visible */}
+          {invitedPin && (
+            <div className="ap-edit-modal" style={{ borderColor: '#C9A84C' }}>
+              <h4 className="ap-edit-modal__title" style={{ color: '#F0D275' }}>✓ Invitación enviada a {invitedPin.name}</h4>
+              <p style={{ color: 'var(--ap-muted)', fontSize: 14 }}>
+                {invitedPin.emailSent ? 'Se envió un email con el PIN.' : 'No se pudo enviar el email — anotá el PIN.'}
+                {invitedPin.isEmployee && <><br /><strong style={{ color: '#9B1F1F' }}>🏢 Marcado como empleado interno.</strong></>}
+              </p>
+              <div style={{ background: '#0a0d12', border: '2px solid #C9A84C', borderRadius: 12, padding: 24, textAlign: 'center', margin: '16px 0' }}>
+                <div style={{ fontSize: 11, color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>PIN generado</div>
+                <div style={{ fontFamily: 'Courier New, monospace', fontSize: 48, color: '#F0D275', letterSpacing: 16, fontWeight: 'bold' }}>{invitedPin.pin}</div>
+              </div>
+              <p style={{ fontSize: 13, color: 'var(--ap-muted)' }}>El jugador puede cambiar su PIN cuando quiera desde "Olvidé mi PIN" en el sitio.</p>
+              <div className="ap-edit-modal__btns">
+                <button className="ap-btn ap-btn--primary" onClick={() => setInvitedPin(null)}>Cerrar</button>
+              </div>
+            </div>
+          )}
 
           {/* Modal de edición inline */}
           {editingPlayer && (
@@ -314,6 +423,14 @@ function ProdeAdmin({ token, toast }) {
                 onChange={e => setEditingPlayer(p => ({ ...p, tel: e.target.value }))}
                 placeholder="Ej: 3435 123456"
               />
+              <label className="ap-label">Email (opcional)</label>
+              <input
+                className="ap-input"
+                type="email"
+                value={editingPlayer.email || ''}
+                onChange={e => setEditingPlayer(p => ({ ...p, email: e.target.value }))}
+                placeholder="ejemplo@correo.com"
+              />
               <div className="ap-edit-modal__btns">
                 <button className="ap-btn ap-btn--primary" onClick={handleEditPlayerSave}>Guardar</button>
                 <button className="ap-btn" onClick={() => setEditingPlayer(null)}>Cancelar</button>
@@ -324,20 +441,29 @@ function ProdeAdmin({ token, toast }) {
           <div className="ap-table-wrap">
             <table className="ap-table">
               <thead>
-                <tr><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Registrado</th><th></th></tr>
+                <tr><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Email</th><th>Registrado</th><th></th></tr>
               </thead>
               <tbody>
                 {players.map(p => (
                   <tr key={p.id}>
-                    <td>{p.name}</td>
+                    <td>
+                      {p.name}
+                      {p.isEmployee && <span title="Empleado interno" style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', background: 'rgba(155,31,31,0.2)', border: '1px solid rgba(155,31,31,0.5)', color: '#FF8888', borderRadius: 4, letterSpacing: 0.5 }}>🏢 INTERNO</span>}
+                    </td>
                     <td><code className="ap-code">{p.dni}</code></td>
                     <td>{p.tel || '—'}</td>
+                    <td>{p.email ? <span title={p.email}>{p.email.length > 22 ? p.email.slice(0,20) + '…' : p.email}</span> : <span className="ap-muted">—</span>}</td>
                     <td>{new Date(p.createdAt).toLocaleDateString('es-AR')}</td>
                     <td className="ap-table__actions">
                       <button
                         className="ap-btn ap-btn--sm"
-                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, tel: p.tel || '' })}
+                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, tel: p.tel || '', email: p.email || '' })}
                       >Editar</button>
+                      <button
+                        className="ap-btn ap-btn--sm"
+                        onClick={() => handleResetPin(p)}
+                        title="Generar PIN nuevo"
+                      >🔑 Reset PIN</button>
                       <button
                         className="ap-btn ap-btn--danger ap-btn--sm"
                         onClick={() => handleDeletePlayer(p.id)}

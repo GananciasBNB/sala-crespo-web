@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   registerPlayer, loginPlayer, forgotPin,
   getMatches, getMyPredictions, savePrediction, savePredictionsBatch,
-  getLeaderboard,
+  getLeaderboard, getEmployeesLeaderboard, getRegistrationStatus,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -183,18 +183,21 @@ function PrizeCards() {
 }
 
 // ─── Leaderboard con 3 tabs ───────────────────────────────────────────────────
-function LeaderboardView({ myId }) {
+function LeaderboardView({ myId, audience = 'public', token }) {
   const [phase, setPhase] = useState('all')
   const [data, setData]   = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     setLoading(true)
-    getLeaderboard(phase)
+    const fetcher = audience === 'employees'
+      ? getEmployeesLeaderboard(phase, token)
+      : getLeaderboard(phase)
+    fetcher
       .then(setData)
       .catch(() => setData([]))
       .finally(() => setLoading(false))
-  }, [phase])
+  }, [phase, audience, token])
 
   const tabs = [
     { id: 'group',   label: 'Grupos' },
@@ -286,7 +289,11 @@ function PlayerAvatar({ mascotId, size = 36, name = '' }) {
 }
 
 function AuthModal({ onClose, onLogin }) {
-  const [tab, setTab]           = useState('registro')
+  const [registrationClosed, setRegistrationClosed] = useState(false)
+  useEffect(() => {
+    getRegistrationStatus().then(s => setRegistrationClosed(!!s.closed)).catch(() => {})
+  }, [])
+  const [tab, setTab]           = useState(registrationClosed ? 'login' : 'registro')
   const [name, setName]         = useState('')
   const [dni, setDni]           = useState('')
   const [tel, setTel]           = useState('')
@@ -371,6 +378,11 @@ function AuthModal({ onClose, onLogin }) {
 
         {error && <div className="modal__error">⚠️ {error}</div>}
         {info && <div className="modal__info">✓ {info}</div>}
+        {registrationClosed && tab === 'registro' && (
+          <div className="modal__error" style={{ background: 'rgba(255,157,58,.12)', borderColor: 'rgba(255,157,58,.5)', color: '#FFB870' }}>
+            🔒 Las inscripciones cerraron el <strong>30/06/2026</strong> al finalizar la fase de 16avos. Si ya tenías cuenta, podés ingresar desde "Ya tengo cuenta".
+          </div>
+        )}
 
         {tab === 'login' ? (
           <form className="modal__form" onSubmit={handleLogin}>
@@ -493,8 +505,8 @@ function AuthModal({ onClose, onLogin }) {
               ))}
             </div>
             <p className="modal__hint">💡 El PIN lo elegís vos. Anotalo para no olvidarlo.</p>
-            <button className="modal__submit" disabled={loading}>
-              {loading ? 'Registrando...' : 'Registrarme y jugar →'}
+            <button className="modal__submit" disabled={loading || registrationClosed}>
+              {registrationClosed ? '🔒 Inscripciones cerradas' : (loading ? 'Registrando...' : 'Registrarme y jugar →')}
             </button>
           </form>
         )}
@@ -518,8 +530,9 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
   const isArg     = match.isArgentina
 
   const matchDate = new Date(match.date)
-  const dateStr   = matchDate.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' })
-  const timeStr   = matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  const TZ        = 'America/Argentina/Buenos_Aires'
+  const dateStr   = matchDate.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: TZ })
+  const timeStr   = matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: TZ }) + ' hs (ARG)'
 
   // Valor a mostrar: si hay cambio local, ese; si no, el guardado en server
   const homeVal = localPred?.home ?? myPred?.home ?? ''
@@ -750,7 +763,7 @@ function BracketView({ matches }) {
 }
 
 // ─── Home Pública ─────────────────────────────────────────────────────────────
-function PublicHome({ onParticipa }) {
+function PublicHome({ player, onParticipa }) {
   return (
     <div className="pub-home">
       {/* Hero */}
@@ -767,7 +780,7 @@ function PublicHome({ onParticipa }) {
           <MundialCountdown variant="hero" />
           <FlagTicker />
           <button className="pub-hero__cta" onClick={onParticipa}>
-            ⚽ PARTICIPÁ AQUÍ
+            {player ? `🎯 Cargar mis pronósticos` : '⚽ PARTICIPÁ AQUÍ'}
           </button>
         </div>
         <div className="pub-hero__balls">
@@ -891,6 +904,7 @@ export default function ProdeApp() {
     { id: 'inicio',      label: '🏠 Inicio' },
     { id: 'pronosticos', label: '🎯 Mis pronósticos' },
     { id: 'tabla',       label: '📊 Mi posición' },
+    ...(player.isEmployee ? [{ id: 'tabla-interna', label: '🏢 Tabla interna' }] : []),
     { id: 'llaves',      label: '🗓️ Fixture' },
   ] : [
     { id: 'inicio', label: '🏠 Inicio' },
@@ -957,11 +971,23 @@ export default function ProdeApp() {
         ) : (
           <>
             {tab === 'inicio' && (
-              <PublicHome onParticipa={() => setShowAuth(true)} />
+              <PublicHome
+                player={player}
+                onParticipa={() => player ? setTab('pronosticos') : setShowAuth(true)}
+              />
             )}
             {tab === 'tabla' && (
               <div className="prode-content">
                 <LeaderboardView myId={player?.id} />
+              </div>
+            )}
+            {tab === 'tabla-interna' && player?.isEmployee && (
+              <div className="prode-content">
+                <div style={{ background: 'rgba(155,31,31,0.12)', border: '1px solid rgba(155,31,31,0.4)', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
+                  <div style={{ fontSize: 12, color: '#FF8888', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 'bold', marginBottom: 6 }}>🏢 Concurso Interno</div>
+                  <div style={{ color: '#E8EDF5', fontSize: 14, lineHeight: 1.5 }}>Esta tabla es exclusiva del staff de Electric Line SRL. Premios y bases independientes del concurso público.</div>
+                </div>
+                <LeaderboardView myId={player?.id} audience="employees" token={player?.token} />
               </div>
             )}
             {tab === 'pronosticos' && player && (

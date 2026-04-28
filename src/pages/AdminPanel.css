@@ -353,6 +353,7 @@
 .ap-table tr:hover td { background: rgba(255,255,255,0.02); }
 .ap-result { font-weight: 700; color: var(--gold); font-family: var(--font-impact); font-size: 16px; }
 .ap-code { background: #0D0F14; padding: 2px 8px; border-radius: 4px; letter-spacing: 3px; font-size: 13px; }
+.ap-muted { color: #6b7280; font-style: italic; }
 
 /* ─── Shows grid ──────────────────────────────────────────────── */
 .ap-shows-grid {

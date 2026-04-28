@@ -54,6 +54,9 @@ export const savePredictionsBatch = (token, preds) =>
 
 // ─── Leaderboard y datos públicos ─────────────────────────────────────────────
 export const getLeaderboard = (phase = 'all') => api(`/api/leaderboard?phase=${phase}`)
+export const getEmployeesLeaderboard = (phase = 'all', token) =>
+  api(`/api/leaderboard?phase=${phase}&audience=employees`, { headers: authHeaders(token) })
+export const getRegistrationStatus = () => api('/api/registration-status')
 export const getShows       = () => api('/api/shows')
 export const getContent     = () => api('/api/content')
 
@@ -93,6 +96,9 @@ export const adminEditPlayer = (token, id, data) =>
 
 export const adminResetPin = (token, id) =>
   api(`/api/admin/player/${id}/reset-pin`, { method: 'POST', headers: authHeaders(token) })
+
+export const adminInvitePlayer = (token, data) =>
+  api('/api/admin/invite-player', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(data) })
 
 // ─── Admin: shows ─────────────────────────────────────────────────────────────
 export const adminCreateShow = (token, show) =>
