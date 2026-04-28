@@ -2099,13 +2099,15 @@
 }
 .promo-btn--full { width: 100%; margin-top: 24px; }
 .promo-btn--primary {
-  background: linear-gradient(135deg, var(--wc-gold) 0%, #f6c500 100%);
-  color: #0a0d12;
-  box-shadow: 0 6px 20px rgba(246, 197, 0, 0.25);
+  background: linear-gradient(135deg, var(--wc-red) 0%, #9B1F1F 100%);
+  color: #fff;
+  box-shadow: 0 6px 20px rgba(196, 30, 58, 0.35);
+  border: 1px solid rgba(246, 197, 0, 0.4);
 }
 .promo-btn--primary:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 10px 28px rgba(246, 197, 0, 0.35);
+  box-shadow: 0 10px 28px rgba(196, 30, 58, 0.45);
+  border-color: var(--wc-gold);
 }
 .promo-btn--primary:disabled {
   opacity: .5;
