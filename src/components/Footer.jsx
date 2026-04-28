@@ -34,6 +34,15 @@ export default function Footer() {
           </a>
           <a href="#ubicacion" style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><IconPin size={14} /> Cómo llegar</a>
         </nav>
+
+        <nav className="footer__nav">
+          <h4>Legales</h4>
+          <a href="/legal/01-aviso-legal.html" target="_blank" rel="noopener noreferrer">Aviso legal</a>
+          <a href="/legal/02-terminos-web.html" target="_blank" rel="noopener noreferrer">Términos y condiciones</a>
+          <a href="/legal/03-politica-privacidad.html" target="_blank" rel="noopener noreferrer">Política de privacidad</a>
+          <a href="/legal/04-politica-cookies.html" target="_blank" rel="noopener noreferrer">Política de cookies</a>
+          <a href="/legal/05-bases-prode-publico.html" target="_blank" rel="noopener noreferrer">Bases del Prode Mundial 2026</a>
+        </nav>
       </div>
 
       <div className="footer__bottom">

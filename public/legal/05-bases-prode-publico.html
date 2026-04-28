@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Bases y Condiciones · Prode Mundial 2026 · Sala de Juegos Crespo</title>
+<meta name="description" content="Bases y Condiciones del concurso promocional gratuito Prode Mundial 2026 organizado por Electric Line S.R.L." />
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: #f6f7f9; color: #1a1f29; line-height: 1.7;
+    padding: 40px 20px 80px; -webkit-font-smoothing: antialiased; overflow-wrap: break-word; }
+  .wrap { max-width: 880px; margin: 0 auto; min-width: 0; }
+  header.hero { background: #fff; border: 1px solid #e2e6ed; border-radius: 10px;
+    padding: 36px 32px 30px; margin-bottom: 24px; border-top: 4px solid #C41E3A; }
+  .kicker { display: inline-block; font-size: 11px; color: #C41E3A;
+    text-transform: uppercase; letter-spacing: 2.5px; font-weight: 700; margin-bottom: 10px; }
+  h1 { font-size: clamp(24px, 4vw, 34px); margin: 0 0 8px; color: #0a0d12; line-height: 1.2; }
+  .subtitle { color: #5a6678; font-size: 15px; margin: 0; }
+  .toc { background: #fafbfc; border: 1px solid #e2e6ed; border-radius: 8px;
+    padding: 16px 22px; margin-top: 18px; }
+  .toc strong { display: block; color: #5a6678; text-transform: uppercase;
+    font-size: 11px; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 24px; }
+  .toc ol li { font-size: 13px; margin-bottom: 4px; break-inside: avoid; }
+
+  section { background: #fff; border: 1px solid #e2e6ed; border-radius: 10px;
+    padding: 26px 32px; margin-bottom: 18px; }
+  section h2 { font-size: 18px; margin: 0 0 14px; color: #0a0d12;
+    border-bottom: 2px solid #f0d275; padding-bottom: 8px; }
+  section h3 { font-size: 14px; margin: 18px 0 8px; color: #5a6678;
+    text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
+  p { margin: 0 0 12px; color: #2a3346; }
+  ul, ol { margin: 8px 0 14px; padding-left: 22px; }
+  ul li, ol li { margin-bottom: 6px; color: #2a3346; }
+
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+  th, td { padding: 11px 14px; text-align: left; border-bottom: 1px solid #eaedf2; font-size: 14px; vertical-align: top; }
+  th { background: #fafbfc; color: #5a6678; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 12px; }
+  td.label { color: #5a6678; width: 36%; }
+
+  code { font-family: 'SF Mono', Menlo, Consolas, monospace; background: #f0f2f6;
+    padding: 2px 6px; border-radius: 4px; font-size: 13px; color: #0a0d12; }
+  a { color: #C41E3A; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  .nota { background: #e8f4fd; border-left: 4px solid #2a7fc4; padding: 14px 18px;
+    border-radius: 6px; margin: 14px 0; }
+  .nota-warn { background: #fff8e1; border-left: 4px solid #C9A84C; padding: 14px 18px;
+    border-radius: 6px; margin: 14px 0; }
+  .nota-red { background: #fdecec; border-left: 4px solid #C41E3A; padding: 14px 18px;
+    border-radius: 6px; margin: 14px 0; }
+
+  .prizes { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px; margin: 14px 0; }
+  .prize { background: #fafbfc; border: 1px solid #e2e6ed; border-radius: 8px; padding: 16px 18px; }
+  .prize-title { font-size: 14px; font-weight: 700; color: #0a0d12; margin-bottom: 10px;
+    text-transform: uppercase; letter-spacing: 1px; }
+  .prize-row { display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 14px; padding: 4px 0; border-bottom: 1px dashed #e2e6ed; }
+  .prize-row:last-child { border-bottom: 0; }
+  .prize-row .pos { color: #5a6678; }
+  .prize-row .amt { font-weight: 700; color: #0a0d12; font-variant-numeric: tabular-nums; }
+  .total-box { background: #fff8e1; border: 1px solid #f0d275; border-radius: 8px;
+    padding: 14px 18px; text-align: center; font-size: 15px; margin-top: 12px; }
+
+  .signbox { margin-top: 28px; padding: 24px; border: 1px dashed #8b95a7;
+    border-radius: 8px; background: #fafbfc; }
+  .signbox p { margin: 0 0 8px; color: #5a6678; font-size: 13px; }
+
+  footer { margin-top: 32px; padding: 20px 0 0; border-top: 1px solid #e2e6ed;
+    color: #8b95a7; font-size: 13px; text-align: center; }
+
+  @media print {
+    body { background: #fff; padding: 0; color: #000; font-size: 11pt; }
+    section, header.hero { box-shadow: none; border: none; padding: 12px 0; page-break-inside: avoid; }
+    .wrap { max-width: 100%; } a { color: #000; text-decoration: underline; }
+    .toc ol { columns: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <span class="kicker">Documento legal · 05 de 07 · ★ Para presentación ante IAFAS</span>
+  <h1>Bases y Condiciones — Prode Mundial 2026</h1>
+  <p class="subtitle">Concurso promocional gratuito organizado por <strong>Electric Line S.R.L.</strong> — Sala de Juegos Crespo, Provincia de Entre Ríos, República Argentina.</p>
+
+  <div class="toc">
+    <strong>Índice</strong>
+    <ol>
+      <li>Organizador</li>
+      <li>Naturaleza del concurso</li>
+      <li>Vigencia y calendario</li>
+      <li>Ámbito territorial</li>
+      <li>Participantes habilitados</li>
+      <li>Restricciones de participación</li>
+      <li>Inscripción y registro</li>
+      <li>Mecánica del concurso</li>
+      <li>Sistema de puntuación</li>
+      <li>Reglas de desempate</li>
+      <li>Premios</li>
+      <li>Comunicación de ganadores</li>
+      <li>Entrega y canje de premios</li>
+      <li>Caducidad de premios</li>
+      <li>Tratamiento de datos personales</li>
+      <li>Modificaciones y suspensión</li>
+      <li>Aceptación de las Bases</li>
+      <li>Legislación aplicable</li>
+    </ol>
+  </div>
+</header>
+
+<section>
+  <h2>1. Organizador</h2>
+  <p>El presente concurso, denominado <strong>"Prode Mundial 2026 — Sala de Juegos Crespo"</strong> (en adelante, "el Concurso"), es organizado por:</p>
+  <table>
+    <tr><td class="label">Razón social</td><td><strong>Electric Line S.R.L.</strong></td></tr>
+    <tr><td class="label">CUIT</td><td><code>30-67016680-1</code></td></tr>
+    <tr><td class="label">Domicilio legal</td><td>San Martín 1053, Crespo, Provincia de Entre Ríos</td></tr>
+    <tr><td class="label">Establecimiento</td><td>Sala de Juegos Crespo</td></tr>
+    <tr><td class="label">Email de contacto</td><td><a href="mailto:info@saladejuegoscrespo.ar">info@saladejuegoscrespo.ar</a></td></tr>
+    <tr><td class="label">Sitio oficial del Concurso</td><td><code>https://www.saladejuegoscrespo.ar/prode</code></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>2. Naturaleza del concurso</h2>
+  <p>El Concurso es de carácter <strong>promocional, gratuito y sin obligación de compra ni canje</strong>. Los ganadores se determinan exclusivamente en función de la <strong>destreza, conocimiento y capacidad de pronóstico</strong> de cada Participante respecto de los partidos de fútbol disputados en la Copa Mundial de la FIFA 2026™. <strong>No se trata de un juego de azar</strong>: la elección de resultados deportivos requiere conocimiento e información previa.</p>
+  <p>El presente Concurso <strong>no está auspiciado, patrocinado, administrado ni asociado en forma alguna con la FIFA</strong> ni con ninguna asociación nacional de fútbol. Las marcas, logotipos y nombres de selecciones referenciados en la mecánica son propiedad de sus respectivos titulares y se utilizan con fines puramente informativos.</p>
+  <p>El Concurso se rige por la legislación argentina, en particular por la Ley 22.802 de Lealtad Comercial, la Resolución 7/2015 de la Inspección General de Justicia, y será notificado al Instituto de Ayuda Financiera y Acción Social (IAFAS) de la Provincia de Entre Ríos, organismo de control de la actividad de juego en la Provincia.</p>
+</section>
+
+<section>
+  <h2>3. Vigencia y calendario</h2>
+  <table>
+    <tr><td class="label">Apertura de inscripciones</td><td><strong>28 de abril de 2026</strong>, 00:01 hs (hora Argentina, UTC−3).</td></tr>
+    <tr><td class="label">Cierre de inscripciones</td><td><strong>30 de junio de 2026</strong>, 23:59 hs (hora Argentina, UTC−3) — coincidiendo con el final de la fase de Dieciseisavos del Mundial 2026.</td></tr>
+    <tr><td class="label">Inicio del Mundial 2026</td><td>11 de junio de 2026 (fecha oficial FIFA).</td></tr>
+    <tr><td class="label">Final del Mundial 2026</td><td>19 de julio de 2026 (estimado FIFA).</td></tr>
+    <tr><td class="label">Inscripción tardía</td><td>Permitida hasta el cierre. Quien se inscriba luego del 11 de junio de 2026 podrá competir únicamente por las fases del Concurso que aún no hubieran finalizado al momento de su registro.</td></tr>
+    <tr><td class="label">Bloqueo de carga de pronósticos</td><td>Cada partido cierra automáticamente para carga al momento del inicio del kickoff oficial. Una vez iniciado el partido, no se admiten cargas, modificaciones ni reclamos por error u omisión.</td></tr>
+    <tr><td class="label">Zona horaria</td><td>Toda referencia horaria del Concurso corresponde a la hora oficial de la República Argentina (UTC−3), forzada a nivel sistema, independiente de la configuración del navegador o dispositivo del Participante.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>4. Ámbito territorial</h2>
+  <p>El Concurso es válido en todo el territorio de la <strong>República Argentina</strong>. La participación se realiza por medios remotos a través del sitio web oficial. Los premios solo pueden ser canjeados de manera presencial en el establecimiento Sala de Juegos Crespo (San Martín 1053, Crespo, Entre Ríos).</p>
+</section>
+
+<section>
+  <h2>5. Participantes habilitados</h2>
+  <p>Pueden participar las personas humanas que reúnan, en forma simultánea, los siguientes requisitos al momento de la inscripción:</p>
+  <ul>
+    <li>Ser <strong>mayor de 18 años</strong> de edad cumplidos.</li>
+    <li>Poseer <strong>Documento Nacional de Identidad argentino</strong> vigente (DNI de 7 u 8 dígitos).</li>
+    <li>Aportar la totalidad de los datos requeridos en el formulario de inscripción de manera veraz y completa.</li>
+    <li>Aceptar expresamente las presentes Bases y Condiciones, la Política de Privacidad y los Términos de Uso del sitio.</li>
+  </ul>
+  <p>La inscripción es <strong>personal e intransferible</strong>. Solo se admite <strong>un (1) registro por DNI</strong>. La detección de inscripciones múltiples con el mismo DNI o con datos falsos habilita al Organizador a deshabilitar las cuentas afectadas y, en su caso, descalificar al Participante.</p>
+</section>
+
+<section>
+  <h2>6. Restricciones de participación</h2>
+  <p>No podrán participar del Concurso, encontrándose expresamente excluidos:</p>
+  <ul>
+    <li>Las personas menores de 18 años.</li>
+    <li>Los <strong>empleados de Electric Line S.R.L.</strong> en relación de dependencia, durante el período en que mantengan dicha relación laboral. Estos podrán participar del Concurso Interno regulado por el <a href="06-bases-prode-interno.html">Anexo I — Bases del Concurso Interno</a>.</li>
+    <li>Los <strong>administradores y operadores técnicos</strong> del sistema informático del Concurso, individualizados en el Anexo II del presente, así como sus cónyuges convivientes.</li>
+    <li>Toda persona que, sin tener vínculo laboral formal con el Organizador, tenga acceso a información privilegiada sobre el sistema (cargas de resultados, ranking interno, datos no publicados) que pueda generar ventaja competitiva.</li>
+  </ul>
+  <div class="nota-warn">
+    <strong>Aclaración expresa:</strong> Los <strong>familiares de empleados</strong> (padres, hijos mayores de 18, hermanos, primos, sobrinos, suegros y demás parientes) <strong>SÍ pueden participar</strong> en el Concurso público en igualdad de condiciones que cualquier otro Participante. La restricción se limita exclusivamente a los empleados directos en relación de dependencia y a los operadores técnicos del sistema con sus cónyuges.
+  </div>
+</section>
+
+<section>
+  <h2>7. Inscripción y registro</h2>
+  <p>La inscripción al Concurso se realiza exclusivamente por vía electrónica, ingresando al sitio <code>www.saladejuegoscrespo.ar/prode</code> y completando el formulario de registro. El Participante deberá aportar los siguientes datos:</p>
+  <ul>
+    <li><strong>Nombre y apellido</strong> completos.</li>
+    <li><strong>DNI</strong> (7 u 8 dígitos).</li>
+    <li><strong>Teléfono</strong> de contacto.</li>
+    <li><strong>PIN</strong> personal de cuatro (4) dígitos numéricos elegido por el Participante (será su clave de acceso).</li>
+    <li><strong>Email</strong> (opcional, recomendado para recuperación del PIN en caso de olvido).</li>
+    <li><strong>Mascota representativa</strong> (opcional, sólo a fines visuales en el ranking público).</li>
+  </ul>
+  <p>El Participante es el único responsable de la veracidad de los datos aportados, así como del resguardo confidencial de su PIN. Cualquier operación realizada con su DNI y PIN se presumirá efectuada por el titular registrado, salvo prueba en contrario.</p>
+  <p>La inscripción no tiene costo alguno y no implica obligación de compra ni canje. Solo se admite un registro por DNI.</p>
+</section>
+
+<section>
+  <h2>8. Mecánica del concurso</h2>
+  <ol>
+    <li>Una vez registrado, el Participante accede al sitio mediante DNI y PIN.</li>
+    <li>El Participante carga sus pronósticos para los partidos de la Copa Mundial 2026, indicando el resultado final que estima para cada encuentro (cantidad de goles para cada selección).</li>
+    <li>Cada pronóstico debe cargarse con anterioridad al inicio (kickoff) del partido respectivo. El sistema bloquea automáticamente la posibilidad de carga al iniciarse el partido.</li>
+    <li>Una vez finalizado el partido, el Organizador carga el resultado oficial y el sistema computa automáticamente los puntos del Participante conforme al sistema descripto en el punto 9.</li>
+    <li>El ranking se actualiza en tiempo real y puede ser consultado por todos los Participantes a través del sitio.</li>
+    <li>Al finalizar cada fase del Concurso (Grupos, Dieciseisavos, Total acumulado), se determinan los ganadores conforme al ranking final de la fase.</li>
+  </ol>
+  <p>El Concurso comprende los <strong>partidos oficiales</strong> de la Copa Mundial de la FIFA 2026™ desde la Fase de Grupos hasta la Final. La nómina de partidos a pronosticar se ajusta al fixture oficial publicado por la FIFA y a las eventuales reprogramaciones que la entidad rectora del torneo establezca.</p>
+</section>
+
+<section>
+  <h2>9. Sistema de puntuación</h2>
+  <p>El sistema asigna puntos por cada pronóstico cargado y procesado, conforme al siguiente esquema:</p>
+  <table>
+    <tr><th>Criterio de acierto</th><th>Puntos</th></tr>
+    <tr><td>Resultado exacto (marcador final correcto, ej: pronosticó 2-1, terminó 2-1)</td><td><strong>10 puntos</strong></td></tr>
+    <tr><td>Ganador o empate correcto (acertó el resultado pero no el marcador exacto)</td><td><strong>5 puntos</strong></td></tr>
+    <tr><td>Total de goles correcto del partido (sin acertar resultado ni ganador)</td><td><strong>1 punto</strong></td></tr>
+    <tr><td>Pronóstico totalmente errado</td><td>0 puntos</td></tr>
+  </table>
+  <h3>Multiplicador Argentina</h3>
+  <p>Los puntos obtenidos en partidos donde la selección argentina sea protagonista se computan con un <strong>multiplicador ×2 (doble)</strong>. Por ejemplo: un acierto de resultado exacto en un partido de Argentina otorga 20 puntos en lugar de 10.</p>
+  <p>Las reglas de cómputo se aplican de manera idéntica a todos los Participantes y son procesadas por el sistema informático automáticamente, sin intervención humana en el cálculo.</p>
+</section>
+
+<section>
+  <h2>10. Reglas de desempate</h2>
+  <p>En caso de que dos o más Participantes obtengan idéntico puntaje al cierre de una fase, se aplicarán los siguientes criterios de desempate, en orden estricto:</p>
+  <ol>
+    <li><strong>Mayor puntaje total</strong> al cierre de la fase.</li>
+    <li><strong>Mayor cantidad de aciertos exactos</strong> (resultados con marcador correcto).</li>
+    <li><strong>Mayor puntaje obtenido en partidos de la selección argentina</strong> (campo <code>argPts</code>).</li>
+    <li><strong>Fecha y hora de registro más antigua</strong> en el sistema.</li>
+  </ol>
+  <p>Si tras la aplicación de los cuatro criterios persistiera el empate, el premio será dividido en partes iguales entre los Participantes empatados.</p>
+</section>
+
+<section>
+  <h2>11. Premios</h2>
+  <p>El Concurso otorgará los siguientes premios, todos los cuales consisten en <strong>tickets promocionales (Free Play)</strong> canjeables exclusivamente en la Sala de Juegos Crespo (San Martín 1053, Crespo, Entre Ríos). Los premios <strong>no son convertibles en dinero efectivo, no son transferibles y no son canjeables por otros bienes o servicios</strong>.</p>
+
+  <div class="prizes">
+    <div class="prize">
+      <div class="prize-title">🥇 Fase de Grupos</div>
+      <div class="prize-row"><span class="pos">1° puesto</span><span class="amt">$75.000</span></div>
+      <div class="prize-row"><span class="pos">2° puesto</span><span class="amt">$50.000</span></div>
+      <div class="prize-row"><span class="pos">3° puesto</span><span class="amt">$25.000</span></div>
+    </div>
+    <div class="prize">
+      <div class="prize-title">🔥 Dieciseisavos de Final</div>
+      <div class="prize-row"><span class="pos">1° puesto</span><span class="amt">$75.000</span></div>
+      <div class="prize-row"><span class="pos">2° puesto</span><span class="amt">$50.000</span></div>
+      <div class="prize-row"><span class="pos">3° puesto</span><span class="amt">$25.000</span></div>
+    </div>
+    <div class="prize">
+      <div class="prize-title">🏆 Acumulado Total</div>
+      <div class="prize-row"><span class="pos">1° puesto</span><span class="amt">$100.000</span></div>
+      <div class="prize-row"><span class="pos">2° puesto</span><span class="amt">$75.000</span></div>
+      <div class="prize-row"><span class="pos">3° puesto</span><span class="amt">$50.000</span></div>
+    </div>
+  </div>
+
+  <div class="total-box">
+    <strong>Total comprometido en tickets promocionales:</strong> $525.000 (pesos argentinos)
+  </div>
+
+  <p style="margin-top: 14px;">Los premios de cada fase se otorgan a los Participantes que ocupen los primeros tres puestos del ranking de esa fase, según los puntos obtenidos exclusivamente en los partidos correspondientes a la fase. El premio del Acumulado Total se otorga a los tres Participantes con mayor puntaje en la totalidad del Concurso (todas las fases).</p>
+  <p>Un mismo Participante puede resultar ganador en más de una fase, cobrando los premios correspondientes a cada una de manera acumulativa.</p>
+</section>
+
+<section>
+  <h2>12. Comunicación de ganadores</h2>
+  <p>Los ganadores serán comunicados dentro de los cinco (5) días corridos posteriores a la finalización de la fase respectiva, mediante:</p>
+  <ul>
+    <li>Publicación del ranking final en el sitio oficial del Concurso.</li>
+    <li>Notificación directa al ganador a través del email registrado (en caso de haberse aportado) y/o por teléfono al número informado en la inscripción.</li>
+    <li>Eventuales publicaciones en los canales de comunicación de Sala de Juegos Crespo (Instagram, redes sociales).</li>
+  </ul>
+  <p>Es responsabilidad del Participante mantener actualizados sus datos de contacto. Si tras tres (3) intentos de notificación a través de los datos registrados el Organizador no lograra ubicar al ganador, se entenderá que éste renuncia tácitamente al premio.</p>
+</section>
+
+<section>
+  <h2>13. Entrega y canje de premios</h2>
+  <p>Para retirar el premio, el ganador deberá:</p>
+  <ol>
+    <li>Concurrir <strong>personalmente</strong> al establecimiento Sala de Juegos Crespo, en San Martín 1053, Crespo, Entre Ríos.</li>
+    <li>Acreditar su identidad mediante presentación del <strong>DNI físico vigente</strong> (el mismo declarado en la inscripción).</li>
+    <li>Suscribir el recibo correspondiente, donde declarará la conformidad con la entrega y la lectura de las presentes Bases.</li>
+  </ol>
+  <p>Los tickets promocionales entregados podrán ser utilizados en las máquinas de juego del establecimiento conforme a las normas operativas del mismo. <strong>No se entregarán premios a terceros</strong>, aún cuando porten autorización escrita del ganador, salvo en los casos expresamente previstos por la legislación civil (representación legal por minoridad, incapacidad declarada o fallecimiento, supuestos en los cuales se aplicarán las normas sucesorias correspondientes).</p>
+</section>
+
+<section>
+  <h2>14. Caducidad de premios</h2>
+  <div class="nota-red">
+    <strong>Plazo de canje:</strong> Los premios deben ser retirados dentro de los <strong>sesenta (60) días corridos</strong> contados a partir de la fecha de notificación al ganador. Vencido dicho plazo sin que el ganador concurra a retirar su premio, éste <strong>caduca automáticamente sin posibilidad de reclamo posterior</strong> y el Organizador queda liberado de cualquier obligación al respecto.
+  </div>
+  <p>Los premios caducados podrán ser, a discreción del Organizador, reasignados al Participante que siga en el orden del ranking, o destinados a futuras promociones.</p>
+</section>
+
+<section>
+  <h2>15. Tratamiento de datos personales</h2>
+  <p>Los datos personales aportados por los Participantes se tratan conforme a la <a href="03-politica-privacidad.html">Política de Privacidad</a> publicada en el sitio, en cumplimiento con la <strong>Ley 25.326</strong> de Protección de Datos Personales y normativa complementaria.</p>
+  <p>El Participante presta consentimiento expreso para el tratamiento de sus datos con la finalidad exclusiva de gestionar su participación, calcular el ranking, notificar premios y atender requerimientos legales. <strong>Los datos no serán cedidos a terceros</strong> salvo los supuestos previstos en la Política de Privacidad (proveedores técnicos del Sitio bajo confidencialidad, requerimientos judiciales, autoridades de control).</p>
+  <p>El Participante puede ejercer en cualquier momento sus derechos de acceso, rectificación, actualización y supresión enviando una solicitud a <a href="mailto:info@saladejuegoscrespo.ar">info@saladejuegoscrespo.ar</a>.</p>
+  <p>El Organizador podrá utilizar el nombre y la imagen de los ganadores con fines publicitarios y de difusión del Concurso (publicaciones en redes sociales, sitio web, material gráfico) sin que ello genere derecho a compensación adicional, durante los doce (12) meses posteriores a la finalización del Concurso. El Participante presta consentimiento expreso a este uso al aceptar las presentes Bases. En caso de oposición específica, podrá manifestarla por escrito al Organizador.</p>
+</section>
+
+<section>
+  <h2>16. Modificaciones, suspensión y cancelación</h2>
+  <p>El Organizador se reserva el derecho de:</p>
+  <ul>
+    <li>Modificar las presentes Bases para adecuarlas a cambios normativos, operativos o por causas de fuerza mayor, comunicando los cambios mediante publicación en el sitio oficial.</li>
+    <li>Suspender o cancelar el Concurso ante la imposibilidad sobreviniente de continuar (caso fortuito, fuerza mayor, decisiones de FIFA respecto del torneo, requerimientos de autoridades, etc.).</li>
+    <li>Descalificar a Participantes que incurran en conductas fraudulentas, manipulen el sistema, registren cuentas múltiples o aporten datos falsos.</li>
+  </ul>
+  <p>Las modificaciones no podrán afectar derechos ya adquiridos por los Participantes (puntos obtenidos hasta el momento de la modificación, premios ya asignados, etc.).</p>
+</section>
+
+<section>
+  <h2>17. Aceptación de las Bases</h2>
+  <p>La inscripción al Concurso implica el conocimiento y la aceptación plena, lisa y llana de las presentes Bases y Condiciones por parte del Participante, así como de la <a href="03-politica-privacidad.html">Política de Privacidad</a>, los <a href="02-terminos-web.html">Términos de Uso</a> del sitio y la <a href="04-politica-cookies.html">Política de Cookies</a>.</p>
+  <p>Al momento del registro, el Participante deberá tildar la opción de aceptación de las Bases, sin la cual no podrá completar su inscripción.</p>
+</section>
+
+<section>
+  <h2>18. Legislación aplicable y jurisdicción</h2>
+  <p>El presente Concurso se rige por las leyes de la República Argentina y, en particular, por la Ley 22.802 de Lealtad Comercial, la Ley 25.326 de Protección de Datos Personales y la normativa de la Provincia de Entre Ríos en materia de juego promocional. Para toda controversia, las partes se someten a la jurisdicción de los Tribunales Ordinarios de la ciudad de Crespo, Provincia de Entre Ríos, con renuncia expresa a cualquier otro fuero o jurisdicción.</p>
+</section>
+
+<section>
+  <h2>Anexo II — Operadores técnicos del sistema (excluidos de participación)</h2>
+  <p>A los efectos de lo establecido en el punto 6, se identifican como operadores técnicos del sistema con acceso a información privilegiada del Concurso a las siguientes personas, quienes se encuentran <strong>excluidas de la participación en el Concurso público</strong>:</p>
+  <ul>
+    <li><strong>Uriel Prieto</strong> — Administrador y desarrollador del sistema.</li>
+    <li><strong>Julieta Biscossi</strong> — Co-administradora del sistema.</li>
+  </ul>
+  <p>La exclusión se extiende a sus respectivos cónyuges convivientes durante el plazo en que ostenten dicha condición.</p>
+</section>
+
+<div class="signbox">
+  <p>Las presentes Bases y Condiciones constan de 18 cláusulas más Anexo II, en 1 cuerpo, y se firman en señal de conformidad y para presentación ante el Instituto de Ayuda Financiera y Acción Social (IAFAS) de la Provincia de Entre Ríos.</p>
+  <br/>
+  <p>Crespo, Provincia de Entre Ríos, ____ de ________________ de 2026.</p>
+  <br/><br/>
+  <p>______________________________________</p>
+  <p style="font-size: 12px; color: #5a6678;">Firma y aclaración — Representante legal de Electric Line S.R.L.<br/>CUIT 30-67016680-1</p>
+</div>
+
+<footer>
+  Última actualización: 28 de abril de 2026 · Electric Line S.R.L. · CUIT 30-67016680-1<br/>
+  <a href="https://www.saladejuegoscrespo.ar">www.saladejuegoscrespo.ar</a>
+</footer>
+
+</div>
+</body>
+</html>
