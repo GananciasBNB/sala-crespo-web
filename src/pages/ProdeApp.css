@@ -1890,6 +1890,56 @@
   line-height: 1.5;
 }
 
+/* Pantalla de checklist (paso 3) */
+.promo-checklist {
+  width: 100%;
+  max-width: 620px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--wc-border);
+  border-radius: 20px;
+  padding: 40px 36px 32px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: promo-success-in .35s cubic-bezier(.4, .0, .2, 1);
+}
+.promo-checklist__icon {
+  font-size: 44px;
+  margin-bottom: 8px;
+}
+.promo-checklist__title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px;
+  letter-spacing: 1.5px;
+  color: var(--wc-gold);
+  margin: 0 0 6px;
+  line-height: 1.1;
+}
+.promo-checklist__sub {
+  font-size: 14px;
+  color: var(--wc-muted);
+  margin: 0 0 22px;
+  line-height: 1.5;
+}
+.promo-checklist__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.promo-checklist__skip {
+  font-size: 12.5px;
+  color: var(--wc-muted);
+  font-style: italic;
+  margin: 0 0 22px;
+  line-height: 1.55;
+  padding: 12px 14px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  border: 1px dashed rgba(255,255,255,0.1);
+}
+
 /* Extras post-registro */
 .promo-extras {
   margin: 28px 0 24px;

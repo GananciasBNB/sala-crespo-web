@@ -1068,7 +1068,7 @@ const FALLBACK_TOURNAMENT_DATE = '21 de mayo · 2026'
 const FALLBACK_TOURNAMENT_URL  = 'https://docs.google.com/forms/d/1sOfBSy8FXm-ncMuQGU6GqbP60zP08DADbb0DrqGBG8g/edit'
 
 function PromoMode({ onExit }) {
-  const [step, setStep] = useState('form') // 'form' | 'success'
+  const [step, setStep] = useState('form') // 'form' | 'success' | 'extras'
   const [name, setName] = useState('')
   const [dni, setDni]   = useState('')
   const [tel, setTel]   = useState('')
@@ -1150,6 +1150,7 @@ function PromoMode({ onExit }) {
     setLoading(false)
   }
 
+  // PASO 2 — PIN listo, mostrar el código grande para que el cliente lo anote
   if (step === 'success' && lastResult) {
     return (
       <div className="promo">
@@ -1158,7 +1159,7 @@ function PromoMode({ onExit }) {
             <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="promo__logo" />
             <div>
               <div className="promo__title">Modo Promotora</div>
-              <div className="promo__sub">Registros: {count}</div>
+              <div className="promo__sub">Paso 2 de 3 · Registros: {count}</div>
             </div>
           </div>
           <button className="promo__exit" onClick={onExit}>✕ Salir del modo</button>
@@ -1173,36 +1174,66 @@ function PromoMode({ onExit }) {
             <div className="promo-success__pin">{lastResult.pin}</div>
             <p className="promo-success__hint">📝 Anotalo y entregáselo al cliente. Lo va a necesitar para cargar sus pronósticos.</p>
 
-            {/* Acciones secundarias destacadas */}
-            <div className="promo-extras">
-              <div className="promo-extras__title">Aprovechá que tenés al cliente acá 👇</div>
-              <div className="promo-extras__grid">
-                <a
-                  className="promo-extra promo-extra--tournament"
-                  href={tournament.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div className="promo-extra__icon">🎰</div>
-                  <div className="promo-extra__label">Inscribir al torneo de máquinas</div>
-                  <div className="promo-extra__sub">{tournament.date}</div>
-                </a>
-                <a
-                  className="promo-extra promo-extra--instagram"
-                  href={INSTAGRAM_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div className="promo-extra__icon">📸</div>
-                  <div className="promo-extra__label">Que nos siga en Instagram</div>
-                  <div className="promo-extra__sub">{INSTAGRAM_HANDLE}</div>
-                </a>
-              </div>
+            <div className="promo-success__actions">
+              <button className="promo-btn promo-btn--primary" onClick={() => setStep('extras')}>Continuar →</button>
+              <button className="promo-btn promo-btn--ghost" onClick={onExit}>Salir del modo</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // PASO 3 — Extras / Checklist final antes de soltar al cliente
+  if (step === 'extras' && lastResult) {
+    const firstName = lastResult.name.split(' ')[0]
+    return (
+      <div className="promo">
+        <header className="promo__header">
+          <div className="promo__brand">
+            <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="promo__logo" />
+            <div>
+              <div className="promo__title">Modo Promotora</div>
+              <div className="promo__sub">Paso 3 de 3 · Antes de soltar al cliente</div>
+            </div>
+          </div>
+          <button className="promo__exit" onClick={onExit}>✕ Salir del modo</button>
+        </header>
+
+        <div className="promo__body promo__body--success">
+          <div className="promo-checklist">
+            <div className="promo-checklist__icon">🎯</div>
+            <h2 className="promo-checklist__title">Antes de soltar a {firstName}…</h2>
+            <p className="promo-checklist__sub">Aprovechá que está acá. Tocá las tarjetas que correspondan, o pasá al siguiente cliente si ya las hicieron.</p>
+
+            <div className="promo-checklist__grid">
+              <a
+                className="promo-extra promo-extra--tournament"
+                href={tournament.url}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div className="promo-extra__icon">🎰</div>
+                <div className="promo-extra__label">Inscribirlo al torneo de máquinas</div>
+                <div className="promo-extra__sub">{tournament.date}</div>
+              </a>
+              <a
+                className="promo-extra promo-extra--instagram"
+                href={INSTAGRAM_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <div className="promo-extra__icon">📸</div>
+                <div className="promo-extra__label">Que nos siga en Instagram</div>
+                <div className="promo-extra__sub">{INSTAGRAM_HANDLE}</div>
+              </a>
             </div>
 
+            <p className="promo-checklist__skip">Si {firstName} ya está inscripto al torneo y nos sigue en Instagram, podés pasar directo al siguiente cliente.</p>
+
             <div className="promo-success__actions">
-              <button className="promo-btn promo-btn--primary" onClick={reset}>🔄 Registrar otro cliente</button>
-              <button className="promo-btn promo-btn--ghost" onClick={onExit}>Salir</button>
+              <button className="promo-btn promo-btn--primary" onClick={reset}>✓ Listo, registrar siguiente cliente</button>
+              <button className="promo-btn promo-btn--ghost" onClick={onExit}>Salir del modo</button>
             </div>
           </div>
         </div>
@@ -1226,14 +1257,15 @@ function PromoMode({ onExit }) {
       <div className="promo__body">
         <form className="promo-form" onSubmit={handleSubmit}>
           <h2 className="promo-form__title">Inscribir cliente al Prode</h2>
-          <p className="promo-form__sub">Cargá los datos básicos. Después de registrar al cliente vas a poder inscribirlo también al torneo de máquinas.</p>
+          <p className="promo-form__sub">Cargá los datos básicos. Al final también vas a poder inscribirlo al torneo de máquinas e invitarlo a seguirnos en Instagram.</p>
 
-          {/* Recordatorios para la promotora — siempre visibles */}
+          {/* Indicador de pasos */}
           <div className="promo-reminders">
-            <div className="promo-reminders__title">📌 Antes de soltar al cliente acordate de:</div>
+            <div className="promo-reminders__title">📌 Paso 1 de 3 · Datos del cliente</div>
             <ul className="promo-reminders__list">
-              <li>📋 Inscribirlo también al <strong>torneo de máquinas</strong> ({tournament.date})</li>
-              <li>📸 Pedirle que nos siga en Instagram <strong>{INSTAGRAM_HANDLE}</strong> (mostrale el QR si no encuentra)</li>
+              <li>1️⃣ <strong>Cargar datos</strong> y elegir PIN (este paso)</li>
+              <li>2️⃣ Mostrarle el PIN al cliente para que lo anote</li>
+              <li>3️⃣ Inscribirlo al torneo de máquinas + pedirle que siga el Instagram</li>
             </ul>
           </div>
 
