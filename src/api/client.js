@@ -85,6 +85,12 @@ export const adminSetTeams = (token, matchId, homeName, homeFlag, awayName, away
     body: JSON.stringify({ matchId, homeName, homeFlag, awayName, awayFlag }),
   })
 
+export const adminSyncTeamsFromFixture = (token) =>
+  api('/api/admin/teams/sync-from-fixture', {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+
 export const adminGetPlayers = (token) =>
   api('/api/admin/players', { headers: authHeaders(token) })
 

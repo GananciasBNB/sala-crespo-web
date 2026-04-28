@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
-  adminSetResult, adminDeleteResult, adminSetTeams, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer,
+  adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer,
   adminCreateShow, adminUpdateShow, adminDeleteShow,
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
@@ -138,6 +138,17 @@ function ProdeAdmin({ token, toast }) {
       toast.show('Equipos actualizados')
       setTeamsMatchId('')
       setTeamData({ homeName: '', homeFlag: '', awayName: '', awayFlag: '' })
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  async function handleSyncFixture() {
+    if (!confirm('Esto re-cargará los 72 partidos de fase de grupos desde el fixture oficial. Útil tras actualizar equipos de repechaje. ¿Continuar?')) return
+    try {
+      const r = await adminSyncTeamsFromFixture(token)
+      toast.show(`Sincronizados ${r.synced} partidos`)
+      getMatches().then(setMatches)
     } catch (err) {
       toast.show(err.message, 'err')
     }
@@ -291,6 +302,12 @@ function ProdeAdmin({ token, toast }) {
 
       {subtab === 'equipos' && (
         <div className="ap-block">
+          <h3 className="ap-block__title">Sincronizar fase de grupos desde fixture oficial</h3>
+          <p className="ap-block__desc">Carga los 72 partidos de fase de grupos en la base de datos según el archivo <code>fixture.js</code>. Útil tras actualizar equipos clasificados de repechaje.</p>
+          <button className="ap-btn ap-btn--primary" onClick={handleSyncFixture}>🔄 Sincronizar fase de grupos</button>
+
+          <hr style={{ margin: '24px 0', border: 0, borderTop: '1px solid var(--ap-border)' }} />
+
           <h3 className="ap-block__title">Actualizar equipos de eliminatoria</h3>
           <p className="ap-block__desc">Usar cuando se definan los cruces de 16avos, octavos, etc.</p>
           <form className="ap-form ap-form--col" onSubmit={handleSetTeams}>

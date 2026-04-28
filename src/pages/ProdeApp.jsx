@@ -10,14 +10,17 @@ import './ProdeApp.css'
 
 // ─── Mapa de nombre → ISO para flagcdn.com ────────────────────────────────────
 const NAME_TO_ISO = {
-  'México':'mx','Sudáfrica':'za','República de Corea':'kr','Canadá':'ca','Catar':'qa',
-  'Suiza':'ch','Brasil':'br','Marruecos':'ma','Haití':'ht','Escocia':'gb-sct',
-  'Estados Unidos':'us','Paraguay':'py','Australia':'au','Alemania':'de','Curazao':'cw',
-  'Costa de Marfil':'ci','Ecuador':'ec','Países Bajos':'nl','Japón':'jp','Túnez':'tn',
-  'Bélgica':'be','Egipto':'eg','RI de Irán':'ir','Nueva Zelanda':'nz','España':'es',
-  'Islas de Cabo Verde':'cv','Arabia Saudí':'sa','Uruguay':'uy','Francia':'fr',
-  'Senegal':'sn','Noruega':'no','Argentina':'ar','Argelia':'dz','Austria':'at',
-  'Jordania':'jo','Portugal':'pt','Uzbekistán':'uz','Colombia':'co',
+  'México':'mx','Sudáfrica':'za','República de Corea':'kr','República Checa':'cz',
+  'Canadá':'ca','Bosnia y Herzegovina':'ba','Catar':'qa','Suiza':'ch',
+  'Brasil':'br','Marruecos':'ma','Haití':'ht','Escocia':'gb-sct',
+  'Estados Unidos':'us','Paraguay':'py','Australia':'au','Turquía':'tr',
+  'Alemania':'de','Curazao':'cw','Costa de Marfil':'ci','Ecuador':'ec',
+  'Países Bajos':'nl','Japón':'jp','Suecia':'se','Túnez':'tn',
+  'Bélgica':'be','Egipto':'eg','RI de Irán':'ir','Nueva Zelanda':'nz',
+  'España':'es','Cabo Verde':'cv','Arabia Saudí':'sa','Uruguay':'uy',
+  'Francia':'fr','Senegal':'sn','Irak':'iq','Noruega':'no',
+  'Argentina':'ar','Argelia':'dz','Austria':'at','Jordania':'jo',
+  'Portugal':'pt','RD Congo':'cd','Uzbekistán':'uz','Colombia':'co',
   'Inglaterra':'gb-eng','Croacia':'hr','Ghana':'gh','Panamá':'pa',
 }
 function isoFlag(name) { return NAME_TO_ISO[name] || null }
@@ -44,26 +47,26 @@ function FlagImg({ name, size = 32, className = '' }) {
 
 // ─── Datos de equipos por grupo ───────────────────────────────────────────────
 const TEAMS_BY_GROUP = {
-  A: [{ name: 'México' }, { name: 'Sudáfrica' }, { name: 'República de Corea' }, { name: null, label: 'Play-off D' }],
-  B: [{ name: 'Canadá' }, { name: 'Catar' }, { name: 'Suiza' }, { name: null, label: 'Play-off A' }],
+  A: [{ name: 'México' }, { name: 'Sudáfrica' }, { name: 'República de Corea' }, { name: 'República Checa' }],
+  B: [{ name: 'Canadá' }, { name: 'Bosnia y Herzegovina' }, { name: 'Catar' }, { name: 'Suiza' }],
   C: [{ name: 'Brasil' }, { name: 'Marruecos' }, { name: 'Haití' }, { name: 'Escocia' }],
-  D: [{ name: 'Estados Unidos' }, { name: 'Paraguay' }, { name: 'Australia' }, { name: null, label: 'Play-off C' }],
+  D: [{ name: 'Estados Unidos' }, { name: 'Paraguay' }, { name: 'Australia' }, { name: 'Turquía' }],
   E: [{ name: 'Alemania' }, { name: 'Curazao' }, { name: 'Costa de Marfil' }, { name: 'Ecuador' }],
-  F: [{ name: 'Países Bajos' }, { name: 'Japón' }, { name: null, label: 'Play-off B' }, { name: 'Túnez' }],
+  F: [{ name: 'Países Bajos' }, { name: 'Japón' }, { name: 'Suecia' }, { name: 'Túnez' }],
   G: [{ name: 'Bélgica' }, { name: 'Egipto' }, { name: 'RI de Irán' }, { name: 'Nueva Zelanda' }],
-  H: [{ name: 'España' }, { name: 'Islas de Cabo Verde' }, { name: 'Arabia Saudí' }, { name: 'Uruguay' }],
-  I: [{ name: 'Francia' }, { name: 'Senegal' }, { name: null, label: 'Play-off IB' }, { name: 'Noruega' }],
+  H: [{ name: 'España' }, { name: 'Cabo Verde' }, { name: 'Arabia Saudí' }, { name: 'Uruguay' }],
+  I: [{ name: 'Francia' }, { name: 'Senegal' }, { name: 'Irak' }, { name: 'Noruega' }],
   J: [{ name: 'Argentina' }, { name: 'Argelia' }, { name: 'Austria' }, { name: 'Jordania' }],
-  K: [{ name: 'Portugal' }, { name: null, label: 'Play-off IA' }, { name: 'Uzbekistán' }, { name: 'Colombia' }],
+  K: [{ name: 'Portugal' }, { name: 'RD Congo' }, { name: 'Uzbekistán' }, { name: 'Colombia' }],
   L: [{ name: 'Inglaterra' }, { name: 'Croacia' }, { name: 'Ghana' }, { name: 'Panamá' }],
 }
 
-// ISO codes en orden para el ticker (44 países)
+// ISO codes en orden para el ticker (48 países — los 48 clasificados al Mundial 2026)
 const ALL_FLAGS_ISO = [
-  'mx','za','kr','ca','qa','ch','br','ma','ht','gb-sct',
-  'us','py','au','de','cw','ci','ec','nl','jp','tn',
-  'be','eg','ir','nz','es','cv','sa','uy','fr','sn',
-  'no','ar','dz','at','jo','pt','uz','co','gb-eng','hr','gh','pa',
+  'mx','za','kr','cz','ca','ba','qa','ch','br','ma','ht','gb-sct',
+  'us','py','au','tr','de','cw','ci','ec','nl','jp','se','tn',
+  'be','eg','ir','nz','es','cv','sa','uy','fr','sn','iq','no',
+  'ar','dz','at','jo','pt','cd','uz','co','gb-eng','hr','gh','pa',
 ]
 
 const PHASE_LABELS = {
