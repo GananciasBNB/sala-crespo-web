@@ -5,6 +5,7 @@ import {
   getMatches, getMyPredictions, savePrediction, savePredictionsBatch,
   getLeaderboard,
 } from '../api/client'
+import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
 
 // ─── Mapa de nombre → ISO para flagcdn.com ────────────────────────────────────
@@ -221,7 +222,7 @@ function LeaderboardView({ myId }) {
       ) : data.length === 0 ? (
         <div className="prode-empty">
           <div className="prode-empty__icon">🏆</div>
-          <p>Aún no hay resultados. ¡El Mundial arranca el 11 de junio!</p>
+          <p><strong>Todavía no empezó el Mundial.</strong> Pre-cargá tus pronósticos ahora y arrancá con ventaja desde el primer partido.</p>
         </div>
       ) : (
         <table className="lb__table">
@@ -729,6 +730,7 @@ function PublicHome({ onParticipa }) {
             <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="pub-hero__logo" />
           </div>
           <p className="pub-hero__sub">104 partidos · Premios reales · Gratis para todos los clientes</p>
+          <MundialCountdown variant="hero" />
           <FlagTicker />
           <button className="pub-hero__cta" onClick={onParticipa}>
             ⚽ PARTICIPÁ AQUÍ
@@ -741,12 +743,12 @@ function PublicHome({ onParticipa }) {
 
       {/* Banner Argentina */}
       <div className="arg-banner">
-        <span className="arg-banner__flag">🇦🇷</span>
+        <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
         <div className="arg-banner__text">
           <strong>¡LOS PARTIDOS DE NUESTRA SELECCIÓN SUMAN DOBLE!</strong>
           <span>Cada partido de Argentina vale el doble de puntos. ¡Dale Albiceleste!</span>
         </div>
-        <span className="arg-banner__flag">🇦🇷</span>
+        <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
       </div>
 
       {/* Info — al tope para que sea lo primero que lean */}

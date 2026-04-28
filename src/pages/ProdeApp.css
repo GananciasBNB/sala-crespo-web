@@ -379,7 +379,7 @@
   padding: 18px 24px;
   text-align: center;
 }
-.arg-banner__flag { font-size: 32px; flex-shrink: 0; }
+.arg-banner__flag { width: 48px; height: 32px; flex-shrink: 0; border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,.3); object-fit: cover; }
 .arg-banner__text {
   display: flex;
   flex-direction: column;
@@ -1397,5 +1397,5 @@
   .mc__input { width: 44px; font-size: 20px; }
   .modal { padding: 24px 20px; }
   .arg-banner { gap: 10px; }
-  .arg-banner__flag { font-size: 24px; }
+  .arg-banner__flag { width: 36px; height: 24px; }
 }

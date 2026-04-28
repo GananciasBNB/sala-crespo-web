@@ -1,3 +1,4 @@
+import MundialCountdown from './MundialCountdown'
 import './ProdeBanner.css'
 
 // Selección de selecciones del Mundial 2026
@@ -32,7 +33,7 @@ export default function ProdeBanner() {
         <p className="prode-bar__text">
           <strong>Prode Mundial 2026 · Sala Crespo</strong>
           <span className="prode-bar__sep">—</span>
-          Pronosticá los 104 partidos y ganá fabulosos premios
+          <MundialCountdown variant="banner" />
         </p>
         <a href="/prode" className="prode-bar__cta">
           Participar gratis →
