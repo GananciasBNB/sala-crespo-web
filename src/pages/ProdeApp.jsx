@@ -285,12 +285,13 @@ function PlayerAvatar({ mascotId, size = 36, name = '' }) {
 }
 
 function AuthModal({ onClose, onLogin }) {
-  const [tab, setTab]           = useState('login')
+  const [tab, setTab]           = useState('registro')
   const [name, setName]         = useState('')
   const [dni, setDni]           = useState('')
   const [tel, setTel]           = useState('')
   const [pin, setPin]           = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
+  const [showPin, setShowPin]   = useState(true)
   const [mascota, setMascota]   = useState('cocodrilo')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
@@ -299,10 +300,10 @@ function AuthModal({ onClose, onLogin }) {
     e.preventDefault()
     setError('')
     if (!name.trim())            return setError('Ingresá tu nombre.')
-    if (!/^\d{6,8}$/.test(dni))  return setError('El DNI debe tener entre 6 y 8 dígitos.')
+    if (!/^\d{7,8}$/.test(dni))  return setError(`Revisá tu DNI: ingresaste ${dni.length} ${dni.length === 1 ? 'número' : 'números'}, deberían ser 7 u 8 (sin puntos).`)
     if (!/^[\d\s\-\+\(\)]{8,15}$/.test(tel.trim())) return setError('Ingresá un teléfono válido (ej: 3435 123456).')
     if (!/^\d{4}$/.test(pin))    return setError('El PIN debe tener exactamente 4 dígitos.')
-    if (pin !== pinConfirm)      return setError('Los PINs no coinciden.')
+    if (pin !== pinConfirm)      return setError('Los PINs no coinciden. Volvé a escribirlo.')
     setLoading(true)
     try {
       const player = await registerPlayer(name.trim(), dni, tel.trim(), pin, mascota)
@@ -317,7 +318,7 @@ function AuthModal({ onClose, onLogin }) {
   async function handleLogin(e) {
     e.preventDefault()
     setError('')
-    if (!/^\d{6,8}$/.test(dni)) return setError('Ingresá tu DNI (6–8 dígitos).')
+    if (!/^\d{7,8}$/.test(dni)) return setError('Ingresá tu DNI (7 u 8 dígitos, sin puntos).')
     if (!/^\d{4}$/.test(pin))   return setError('Ingresá tu PIN de 4 dígitos.')
     setLoading(true)
     try {
@@ -340,11 +341,11 @@ function AuthModal({ onClose, onLogin }) {
         </div>
 
         <div className="modal__tabs">
-          <button className={`modal__tab ${tab === 'login' ? 'modal__tab--active' : ''}`} onClick={() => { setTab('login'); setError('') }}>
-            Ya estoy registrado
-          </button>
           <button className={`modal__tab ${tab === 'registro' ? 'modal__tab--active' : ''}`} onClick={() => { setTab('registro'); setError('') }}>
-            Registrarme
+            Soy nuevo
+          </button>
+          <button className={`modal__tab ${tab === 'login' ? 'modal__tab--active' : ''}`} onClick={() => { setTab('login'); setError('') }}>
+            Ya tengo cuenta
           </button>
         </div>
 
@@ -365,16 +366,21 @@ function AuthModal({ onClose, onLogin }) {
               autoFocus
             />
             <label className="modal__label">PIN de 4 dígitos</label>
-            <input
-              className="modal__input modal__input--pin"
-              type="password"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g,''))}
-              placeholder="····"
-              maxLength={4}
-            />
+            <div className="modal__pin-row">
+              <input
+                className="modal__input modal__input--pin"
+                type={showPin ? 'tel' : 'password'}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={pin}
+                onChange={e => setPin(e.target.value.replace(/\D/g,''))}
+                placeholder="1234"
+                maxLength={4}
+              />
+              <button type="button" className="modal__pin-toggle" onClick={() => setShowPin(s => !s)} aria-label="Mostrar/ocultar PIN">
+                {showPin ? '🙈' : '👁️'}
+              </button>
+            </div>
             <button className="modal__submit" disabled={loading}>
               {loading ? 'Ingresando...' : 'Ingresar →'}
             </button>
@@ -412,25 +418,30 @@ function AuthModal({ onClose, onLogin }) {
               maxLength={15}
             />
             <label className="modal__label">Elegí tu PIN (4 dígitos)</label>
-            <input
-              className="modal__input modal__input--pin"
-              type="password"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g,''))}
-              placeholder="····"
-              maxLength={4}
-            />
+            <div className="modal__pin-row">
+              <input
+                className="modal__input modal__input--pin"
+                type={showPin ? 'tel' : 'password'}
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={pin}
+                onChange={e => setPin(e.target.value.replace(/\D/g,''))}
+                placeholder="1234"
+                maxLength={4}
+              />
+              <button type="button" className="modal__pin-toggle" onClick={() => setShowPin(s => !s)} aria-label="Mostrar/ocultar PIN">
+                {showPin ? '🙈' : '👁️'}
+              </button>
+            </div>
             <label className="modal__label">Confirmá tu PIN</label>
             <input
               className="modal__input modal__input--pin"
-              type="password"
+              type={showPin ? 'tel' : 'password'}
               inputMode="numeric"
               pattern="[0-9]*"
               value={pinConfirm}
               onChange={e => setPinConfirm(e.target.value.replace(/\D/g,''))}
-              placeholder="····"
+              placeholder="Repetí los 4 dígitos"
               maxLength={4}
             />
             <label className="modal__label">Elegí tu mascota</label>
@@ -651,7 +662,9 @@ function PronosticosView({ matches, myPreds, player, onSaved }) {
             >
               {saving
                 ? 'Guardando...'
-                : `Guardar pronósticos del Grupo ${group} (${toSave.length}/${openMatches.length})`}
+                : toSave.length === openMatches.length
+                  ? `Guardar los ${toSave.length} pronósticos del Grupo ${group}`
+                  : `Guardar ${toSave.length} de ${openMatches.length} pronósticos del Grupo ${group}`}
             </button>
           )}
         </div>

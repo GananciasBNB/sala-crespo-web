@@ -13,13 +13,14 @@
   --wc-card:   #0F1520;
   --wc-border: #1E2A38;
   --wc-text:   #E8EDF5;
-  --wc-muted:  #5A6A80;
+  --wc-muted:  #8B9BB4; /* WCAG AA: 7:1 sobre fondo oscuro */
   --wc-arg:    #74ACDF; /* celeste argentina */
 
   min-height: 100vh;
   background: var(--wc-bg);
   color: var(--wc-text);
   font-family: 'DM Sans', sans-serif;
+  font-size: 16px; /* base legible para 60+ */
 }
 
 /* ─── Header ──────────────────────────────────────────────────── */
@@ -882,12 +883,34 @@
   border-color: var(--wc-green);
 }
 .modal__input--pin {
-  letter-spacing: 8px;
-  font-size: 20px;
+  letter-spacing: 4px;
+  font-size: 22px;
   text-align: center;
+  font-weight: 700;
 }
+.modal__pin-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.modal__pin-row .modal__input {
+  flex: 1;
+}
+.modal__pin-toggle {
+  background: rgba(255,255,255,.05);
+  border: 1px solid var(--wc-border);
+  border-radius: 6px;
+  color: var(--wc-text);
+  font-size: 22px;
+  padding: 0 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  min-width: 56px;
+  transition: background .15s;
+}
+.modal__pin-toggle:hover { background: rgba(255,255,255,.1); }
 .modal__hint {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--wc-muted);
   margin: 0;
   line-height: 1.5;
@@ -1139,10 +1162,10 @@
   background: transparent;
   border: none;
   color: var(--wc-text);
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
-  width: 40px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   cursor: pointer;
   transition: background .15s;
   line-height: 1;
@@ -1152,10 +1175,10 @@
 .mc__step-btn:hover  { background: rgba(255,255,255,.12); }
 .mc__step-btn:active { background: rgba(255,255,255,.2); }
 .mc__step-val {
-  min-width: 36px;
+  min-width: 48px;
   text-align: center;
   font-family: 'Bebas Neue', sans-serif;
-  font-size: 26px;
+  font-size: 30px;
   color: var(--wc-green);
   border-left: 1px solid var(--wc-border);
   border-right: 1px solid var(--wc-border);
@@ -1164,8 +1187,8 @@
 }
 
 @media (max-width: 480px) {
-  .mc__step-btn { width: 46px; height: 54px; font-size: 22px; }
-  .mc__step-val { min-width: 42px; font-size: 28px; }
+  .mc__step-btn { width: 60px; height: 60px; font-size: 26px; }
+  .mc__step-val { min-width: 50px; font-size: 32px; }
 }
 .mc__vs {
   font-size: 11px;
@@ -1240,11 +1263,11 @@
   background: rgba(79, 142, 247, 0.08);
   border: 1px solid rgba(79, 142, 247, 0.25);
   border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  color: #8B9DC3;
+  padding: 12px 16px;
+  font-size: 15px;
+  color: #B5C5E0;
   margin-bottom: 16px;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 .pronosticos__phases {
   display: flex;
