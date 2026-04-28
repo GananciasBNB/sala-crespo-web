@@ -839,10 +839,19 @@ function PublicHome({ player, onParticipa }) {
           <h2 className="pub-lb__title">🏆 Tabla de Posiciones</h2>
           <p className="pub-lb__sub">Actualizada en tiempo real</p>
         </div>
-        <LeaderboardView myId={null} />
+        <LeaderboardView myId={player?.id || null} />
         <div className="pub-lb__cta">
-          <p>¿Querés aparecer acá?</p>
-          <button className="pub-lb__btn" onClick={onParticipa}>Registrarme y jugar →</button>
+          {player ? (
+            <>
+              <p>Estás dentro del concurso 🎯</p>
+              <button className="pub-lb__btn" onClick={onParticipa}>Cargar mis pronósticos →</button>
+            </>
+          ) : (
+            <>
+              <p>¿Querés aparecer acá?</p>
+              <button className="pub-lb__btn" onClick={onParticipa}>Registrarme y jugar →</button>
+            </>
+          )}
         </div>
       </div>
     </div>
