@@ -47,6 +47,33 @@ export default function PromoMundial() {
             <a href="/prode" className="btn-primary prode__cta">
               ¡Quiero jugar el Prode! →
             </a>
+
+            {/* Premios concretos */}
+            <div className="prode__prizes">
+              <div className="prode__prizes-title">💰 Premios reales en tickets promocionales</div>
+              <div className="prode__prizes-grid">
+                <div className="prode__prize">
+                  <div className="prode__prize-label">🏅 Fase de Grupos</div>
+                  <div className="prode__prize-row"><span>🥇</span><strong>$75.000</strong></div>
+                  <div className="prode__prize-row"><span>🥈</span><strong>$50.000</strong></div>
+                  <div className="prode__prize-row"><span>🥉</span><strong>$25.000</strong></div>
+                </div>
+                <div className="prode__prize">
+                  <div className="prode__prize-label">🔥 16avos de Final</div>
+                  <div className="prode__prize-row"><span>🥇</span><strong>$75.000</strong></div>
+                  <div className="prode__prize-row"><span>🥈</span><strong>$50.000</strong></div>
+                  <div className="prode__prize-row"><span>🥉</span><strong>$25.000</strong></div>
+                </div>
+                <div className="prode__prize prode__prize--featured">
+                  <div className="prode__prize-label">🏆 Gran Premio Final</div>
+                  <div className="prode__prize-row"><span>🥇</span><strong>$100.000</strong></div>
+                  <div className="prode__prize-row"><span>🥈</span><strong>$75.000</strong></div>
+                  <div className="prode__prize-row"><span>🥉</span><strong>$50.000</strong></div>
+                  <div className="prode__prize-star">★ GRAN PREMIO</div>
+                </div>
+              </div>
+              <div className="prode__prizes-total">Total comprometido: <strong>$525.000</strong> en Free Play</div>
+            </div>
           </div>
 
           <div className="prode__deco" aria-hidden="true">

@@ -744,8 +744,8 @@
   box-shadow: 0 2px 8px rgba(205,127,50,0.35);
 }
 .lb__name { font-weight: 600; color: var(--wc-text); }
-.lb__dni { font-size: 11px; color: var(--wc-muted); margin-left: 4px; }
-.lb__you { font-size: 11px; color: var(--wc-green); margin-left: 4px; font-weight: 700; }
+.lb__dni { font-size: 13px; color: var(--wc-muted); margin-left: 6px; }
+.lb__you { font-size: 13px; color: var(--wc-green); margin-left: 6px; font-weight: 700; }
 .lb__pts { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--wc-gold); }
 .lb__exact { color: var(--wc-green); font-weight: 700; text-align: center; }
 .lb__hide-sm { display: table-cell; text-align: center; }

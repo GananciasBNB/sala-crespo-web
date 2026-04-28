@@ -63,3 +63,87 @@
   .prode__card { grid-template-columns: 1fr; }
   .prode__deco { display: none; }
 }
+
+/* ─── Premios concretos en home pública ──────────────────────── */
+.prode__prizes {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(201,168,76,0.15);
+}
+.prode__prizes-title {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gold, #C9A84C);
+  margin-bottom: 14px;
+  text-align: center;
+}
+.prode__prizes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.prode__prize {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 12px;
+  padding: 16px 18px;
+  position: relative;
+  transition: transform .2s, border-color .2s;
+}
+.prode__prize:hover {
+  transform: translateY(-2px);
+  border-color: rgba(201,168,76,0.45);
+}
+.prode__prize-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text2, #B5C5E0);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255,255,255,0.08);
+}
+.prode__prize-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 15px;
+  padding: 4px 0;
+  font-variant-numeric: tabular-nums;
+}
+.prode__prize-row strong { color: #fff; font-weight: 700; }
+.prode__prize--featured {
+  background: linear-gradient(135deg, rgba(196,30,58,0.12) 0%, rgba(201,168,76,0.08) 100%);
+  border-color: rgba(196,30,58,0.4);
+}
+.prode__prize-star {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  background: var(--gold, #C9A84C);
+  color: #0a0d12;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 12px rgba(201,168,76,0.4);
+}
+.prode__prizes-total {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text2, #B5C5E0);
+  padding: 12px 16px;
+  background: rgba(201,168,76,0.06);
+  border-radius: 8px;
+}
+.prode__prizes-total strong {
+  font-size: 18px;
+  color: var(--gold, #C9A84C);
+  font-variant-numeric: tabular-nums;
+}
