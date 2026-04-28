@@ -1063,6 +1063,9 @@ function PromoMode({ onExit }) {
   const [dni, setDni]   = useState('')
   const [tel, setTel]   = useState('')
   const [email, setEmail] = useState('')
+  const [pin, setPin]   = useState('')
+  const [showYearInput, setShowYearInput] = useState(false)
+  const [year, setYear] = useState('')
   const [accept, setAccept] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -1070,12 +1073,29 @@ function PromoMode({ onExit }) {
   const [lastResult, setLastResult] = useState(null) // { name, pin }
   const [count, setCount] = useState(0)
 
-  function genPin() {
-    return String(Math.floor(1000 + Math.random() * 9000))
+  const currentYear = new Date().getFullYear()
+  const minBirthYear = 1900
+  const maxBirthYear = currentYear - 18
+
+  function applyYearAsPin() {
+    if (!/^\d{4}$/.test(year)) {
+      setError('Ingresá un año válido de 4 dígitos.')
+      return
+    }
+    const y = parseInt(year, 10)
+    if (y < minBirthYear || y > maxBirthYear) {
+      setError(`El año debe estar entre ${minBirthYear} y ${maxBirthYear} (mayor de 18).`)
+      return
+    }
+    setPin(year)
+    setError('')
+    setInfo('PIN sugerido cargado: el año de nacimiento del cliente.')
+    setShowYearInput(false)
   }
 
   function reset() {
-    setName(''); setDni(''); setTel(''); setEmail('')
+    setName(''); setDni(''); setTel(''); setEmail(''); setPin('')
+    setYear(''); setShowYearInput(false)
     setAccept(false); setError(''); setInfo(''); setStep('form')
   }
 
@@ -1086,9 +1106,9 @@ function PromoMode({ onExit }) {
     if (!/^\d{7,8}$/.test(dni)) return setError(`DNI: ingresaste ${dni.length} ${dni.length === 1 ? 'número' : 'números'}, debe tener 7 u 8 (sin puntos).`)
     if (!/^[\d\s\-\+\(\)]{8,15}$/.test(tel.trim())) return setError('Teléfono inválido (ej: 3435 123456).')
     if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError('Email inválido. Borralo si no querés cargarlo.')
+    if (!/^\d{4}$/.test(pin)) return setError('El PIN debe tener exactamente 4 dígitos.')
     if (!accept) return setError('El cliente debe aceptar las bases del concurso.')
     setLoading(true)
-    const pin = genPin()
     try {
       await registerPlayer(name.trim(), dni, tel.trim(), pin, 'cocodrilo', email.trim() || null)
       setLastResult({ name: name.trim(), pin })
@@ -1201,6 +1221,46 @@ function PromoMode({ onExit }) {
             autoCapitalize="off"
             spellCheck={false}
           />
+
+          <label className="promo-label">PIN <span className="promo-label__hint">(4 dígitos — el cliente lo va a usar para entrar)</span></label>
+          <div className="promo-pin-row">
+            <input
+              className="promo-input promo-input--pin"
+              type="tel"
+              inputMode="numeric"
+              maxLength={4}
+              value={pin}
+              onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
+              placeholder="1234"
+              autoComplete="off"
+            />
+            <button
+              type="button"
+              className="promo-btn promo-btn--ghost promo-btn--sm"
+              onClick={() => { setShowYearInput(v => !v); setError('') }}
+            >📅 Sugerir año de nacimiento</button>
+          </div>
+
+          {showYearInput && (
+            <div className="promo-year-box">
+              <p className="promo-year-box__hint">💡 <strong>Truco:</strong> el año de nacimiento es fácil de recordar para el cliente y no es un dato sensible. Cargalo y se completa el PIN.</p>
+              <div className="promo-pin-row">
+                <input
+                  className="promo-input promo-input--pin"
+                  type="tel"
+                  inputMode="numeric"
+                  maxLength={4}
+                  value={year}
+                  onChange={e => setYear(e.target.value.replace(/\D/g, ''))}
+                  placeholder={`Ej: 1965 (entre ${minBirthYear} y ${maxBirthYear})`}
+                  autoFocus
+                />
+                <button type="button" className="promo-btn promo-btn--primary promo-btn--sm" onClick={applyYearAsPin}>
+                  Usar como PIN
+                </button>
+              </div>
+            </div>
+          )}
 
           <label className="promo-check">
             <input type="checkbox" checked={accept} onChange={e => setAccept(e.target.checked)} />
