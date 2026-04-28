@@ -1,18 +1,51 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
+    <linearGradient id="redBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#D03030"/>
+      <stop offset="100%" stop-color="#9B1F1F"/>
+    </linearGradient>
     <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#E8C765"/>
+      <stop offset="0%" stop-color="#F0D275"/>
       <stop offset="50%" stop-color="#C9A84C"/>
       <stop offset="100%" stop-color="#9F7E2A"/>
     </linearGradient>
   </defs>
-  <!-- Aro circular dorado -->
-  <circle cx="32" cy="32" r="28" fill="none" stroke="url(#gold)" stroke-width="3.5"/>
-  <!-- Letra C estilizada -->
-  <path d="M 46 22
-           A 18 18 0 1 0 46 42"
-        fill="none"
+
+  <!-- Escudo rojo con borde dorado -->
+  <rect x="4" y="10" width="56" height="44" rx="8" ry="8"
+        fill="url(#redBg)"
         stroke="url(#gold)"
-        stroke-width="7"
-        stroke-linecap="round"/>
+        stroke-width="2.5"/>
+
+  <!-- Corona dorada -->
+  <g transform="translate(32, 28)">
+    <path d="M -10 0
+             L -10 -5
+             L -6 -2
+             L -3 -8
+             L 0 -3
+             L 3 -8
+             L 6 -2
+             L 10 -5
+             L 10 0 Z"
+          fill="url(#gold)"
+          stroke="#7A5E1E"
+          stroke-width="0.5"
+          stroke-linejoin="round"/>
+    <!-- Joyas en la corona -->
+    <circle cx="-6" cy="-2" r="1" fill="#FFF8DC"/>
+    <circle cx="0" cy="-3" r="1" fill="#FFF8DC"/>
+    <circle cx="6" cy="-2" r="1" fill="#FFF8DC"/>
+    <!-- Base de la corona -->
+    <rect x="-10" y="0" width="20" height="2" fill="url(#gold)"/>
+  </g>
+
+  <!-- Texto SJ centrado -->
+  <text x="32" y="48"
+        font-family="'Playfair Display', Georgia, serif"
+        font-size="14"
+        font-weight="900"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        letter-spacing="1">SJ</text>
 </svg>
