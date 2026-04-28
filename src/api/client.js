@@ -91,6 +91,27 @@ export const adminSyncTeamsFromFixture = (token) =>
     headers: authHeaders(token),
   })
 
+// ─── Premios ──────────────────────────────────────────────────────────────────
+export const adminGetPrizes = (token, filters = {}) => {
+  const qs = new URLSearchParams()
+  if (filters.status) qs.set('status', filters.status)
+  if (filters.phase)  qs.set('phase',  filters.phase)
+  const suffix = qs.toString() ? `?${qs}` : ''
+  return api(`/api/admin/prizes${suffix}`, { headers: authHeaders(token) })
+}
+export const adminGetPrizesSummary = (token) =>
+  api('/api/admin/prizes/summary', { headers: authHeaders(token) })
+export const adminGeneratePrizes = (token, phase) =>
+  api(`/api/admin/prizes/generate/${phase}`, { method: 'POST', headers: authHeaders(token) })
+export const adminRedeemPrize = (token, id, ticketCode, notes) =>
+  api(`/api/admin/prizes/${id}/redeem`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ ticketCode, notes }),
+  })
+export const adminRevokePrize = (token, id) =>
+  api(`/api/admin/prizes/${id}/revoke`, { method: 'POST', headers: authHeaders(token) })
+
 export const adminGetPlayers = (token) =>
   api('/api/admin/players', { headers: authHeaders(token) })
 

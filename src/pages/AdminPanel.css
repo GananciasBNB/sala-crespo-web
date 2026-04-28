@@ -527,3 +527,234 @@
   border-left: 2px solid #FFD700;
 }
 .ap-field-preview strong { color: #FFD700; }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ─── Premios (PrizesAdmin) ──────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════ */
+.ap-prize-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.ap-stat {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+}
+.ap-stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.ap-stat--committed::before { background: linear-gradient(90deg, var(--gold), #f6c500); }
+.ap-stat--pending::before   { background: linear-gradient(90deg, #FFB020, #FF6B35); }
+.ap-stat--redeemed::before  { background: linear-gradient(90deg, #00B140, #4ade80); }
+.ap-stat__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  color: var(--ap-muted);
+  margin-bottom: 8px;
+}
+.ap-stat__value {
+  font-family: var(--font-impact, 'Bebas Neue'), sans-serif;
+  font-size: 30px;
+  letter-spacing: 1px;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ap-stat--committed .ap-stat__value { color: var(--gold); }
+.ap-stat--pending   .ap-stat__value { color: #FFB020; }
+.ap-stat--redeemed  .ap-stat__value { color: #4ade80; }
+.ap-stat__sub {
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin-top: 6px;
+}
+
+.ap-prize-generators {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 12px 0 20px;
+}
+
+.ap-prize-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.ap-chip {
+  padding: 6px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--ap-muted);
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+.ap-chip:hover { color: #fff; border-color: var(--gold); }
+.ap-chip--active {
+  background: var(--gold);
+  color: #000;
+  border-color: var(--gold);
+}
+
+.ap-block__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.ap-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+.ap-pill--ok   { background: rgba(74,222,128,0.15); color: #4ade80; border: 1px solid rgba(74,222,128,0.4); }
+.ap-pill--warn { background: rgba(255,176,32,0.15); color: #FFB020; border: 1px solid rgba(255,176,32,0.4); }
+
+.ap-prize-row--done td { opacity: .75; }
+
+.ap-empty {
+  text-align: center;
+  padding: 48px 20px;
+  background: rgba(255,255,255,0.02);
+  border: 1px dashed rgba(255,255,255,0.08);
+  border-radius: 12px;
+  color: var(--ap-muted);
+}
+.ap-empty__icon { font-size: 40px; margin-bottom: 8px; }
+.ap-empty p { margin: 4px 0; }
+
+/* ═══════════════════════════════════════════════════════════════ */
+/* ─── Polish: header + nav + buttons (rediseño general) ──────── */
+/* ═══════════════════════════════════════════════════════════════ */
+.ap-header {
+  background: linear-gradient(180deg, #0F1420 0%, #0A0E15 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.ap-header__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.ap-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ap-header__brand > span {
+  font-size: 28px;
+  filter: drop-shadow(0 2px 6px rgba(201,168,76,0.3));
+}
+.ap-header__title {
+  font-family: var(--font-impact, 'Bebas Neue'), sans-serif;
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: #fff;
+  margin: 0;
+  line-height: 1;
+}
+.ap-header__sub {
+  font-size: 12px;
+  color: var(--ap-muted);
+  margin: 2px 0 0;
+}
+.ap-header__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Nav: scrollbar invisible en mobile */
+.ap-nav {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 8px 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.ap-nav::-webkit-scrollbar { display: none; }
+.ap-nav__btn {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ap-muted);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: all .15s;
+}
+.ap-nav__btn:hover { color: #fff; background: rgba(255,255,255,0.04); }
+.ap-nav__btn--active {
+  color: #fff;
+  background: rgba(201,168,76,0.12);
+  border-color: rgba(201,168,76,0.4);
+}
+
+.ap-main {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+/* Pulida de botones primarios — gradient rojo institucional */
+.ap-btn--primary {
+  background: linear-gradient(135deg, #C41E3A 0%, #9B1F1F 100%);
+  color: #fff;
+  border: 1px solid rgba(201,168,76,0.3);
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(196,30,58,0.25);
+  transition: all .15s;
+}
+.ap-btn--primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(196,30,58,0.35);
+  border-color: var(--gold);
+}
+.ap-btn--ghost {
+  background: transparent;
+  color: var(--ap-muted);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.ap-btn--ghost:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
+.ap-btn--sm { padding: 6px 12px; font-size: 12px; }
+.ap-btn--danger {
+  background: rgba(196,30,58,0.1);
+  color: #ff8888;
+  border: 1px solid rgba(196,30,58,0.3);
+}
+.ap-btn--danger:hover { background: rgba(196,30,58,0.2); border-color: var(--wc-red, #C41E3A); }

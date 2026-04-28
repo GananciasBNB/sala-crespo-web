@@ -6,6 +6,7 @@ import {
   adminCreateShow, adminUpdateShow, adminDeleteShow,
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
+  adminGetPrizes, adminGetPrizesSummary, adminGeneratePrizes, adminRedeemPrize, adminRevokePrize,
 } from '../api/client'
 import './AdminPanel.css'
 
@@ -966,6 +967,243 @@ function AdminsAdmin({ token, currentAdmin, toast }) {
   )
 }
 
+// ─── PrizesAdmin — sistema de canje de premios ────────────────────────────────
+const PHASE_LABELS = {
+  group:   'Fase de Grupos',
+  round32: '16avos de Final',
+  total:   'Acumulado Total (Gran Premio)',
+}
+function fmtMoney(n) {
+  return '$' + Number(n || 0).toLocaleString('es-AR')
+}
+
+function PrizesAdmin({ token, toast }) {
+  const [prizes, setPrizes]   = useState([])
+  const [summary, setSummary] = useState({ committed: 0, total: 0, pending: 0, redeemed: 0, prize_count: 0, pending_count: 0, redeemed_count: 0 })
+  const [filter, setFilter]   = useState('all') // 'all' | 'pending' | 'redeemed'
+  const [search, setSearch]   = useState('')
+  const [redeemingId, setRedeemingId] = useState(null)
+  const [redeemForm, setRedeemForm]   = useState({ ticketCode: '', notes: '' })
+  const [loading, setLoading] = useState(true)
+
+  function reload() {
+    setLoading(true)
+    Promise.all([
+      adminGetPrizes(token, filter === 'all' ? {} : { status: filter }),
+      adminGetPrizesSummary(token),
+    ]).then(([list, sum]) => {
+      setPrizes(list)
+      setSummary(sum)
+    }).catch(err => toast.show(err.message, 'err'))
+      .finally(() => setLoading(false))
+  }
+  useEffect(reload, [token, filter])
+
+  async function handleGenerate(phase) {
+    if (!confirm(`Generar premios para "${PHASE_LABELS[phase]}"? Se tomarán los top 3 del leaderboard público actual.`)) return
+    try {
+      const r = await adminGeneratePrizes(token, phase)
+      toast.show(r.created > 0 ? `Generados ${r.created} premios` : 'No se generaron premios nuevos (ya existían o no hay top 3 con partidos jugados)')
+      reload()
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  async function handleRedeem(e) {
+    e.preventDefault()
+    try {
+      await adminRedeemPrize(token, redeemingId, redeemForm.ticketCode || null, redeemForm.notes || null)
+      toast.show('Premio marcado como entregado')
+      setRedeemingId(null)
+      setRedeemForm({ ticketCode: '', notes: '' })
+      reload()
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  async function handleRevoke(id) {
+    if (!confirm('¿Anular este canje? El premio volverá a estado "Pendiente".')) return
+    try {
+      await adminRevokePrize(token, id)
+      toast.show('Canje anulado')
+      reload()
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  const filtered = prizes.filter(p => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return (p.playerName || '').toLowerCase().includes(q) ||
+           String(p.playerDniLast3 || '').includes(q) ||
+           String(p.amount || '').includes(q)
+  })
+
+  return (
+    <div className="ap-block">
+      {/* Stats */}
+      <div className="ap-prize-stats">
+        <div className="ap-stat ap-stat--committed">
+          <div className="ap-stat__label">💰 Comprometido</div>
+          <div className="ap-stat__value">{fmtMoney(summary.committed || 525000)}</div>
+          <div className="ap-stat__sub">Total a otorgar según bases</div>
+        </div>
+        <div className="ap-stat ap-stat--pending">
+          <div className="ap-stat__label">⏳ Pendiente de canje</div>
+          <div className="ap-stat__value">{fmtMoney(summary.pending)}</div>
+          <div className="ap-stat__sub">{summary.pending_count} premios</div>
+        </div>
+        <div className="ap-stat ap-stat--redeemed">
+          <div className="ap-stat__label">✅ Entregado</div>
+          <div className="ap-stat__value">{fmtMoney(summary.redeemed)}</div>
+          <div className="ap-stat__sub">{summary.redeemed_count} canjes</div>
+        </div>
+      </div>
+
+      {/* Generación de premios por fase */}
+      <div className="ap-block__title-row">
+        <h3 className="ap-block__title" style={{ margin: 0 }}>Generar premios por fase</h3>
+      </div>
+      <p className="ap-block__desc">Cuando termine una fase, generá los 3 premios automáticamente desde el leaderboard público. Idempotente: si ya existen, no los duplica.</p>
+      <div className="ap-prize-generators">
+        {Object.entries(PHASE_LABELS).map(([phase, label]) => (
+          <button
+            key={phase}
+            className="ap-btn ap-btn--primary"
+            onClick={() => handleGenerate(phase)}
+          >🏅 Generar — {label}</button>
+        ))}
+      </div>
+
+      {/* Filtros */}
+      <div className="ap-block__title-row" style={{ marginTop: 28 }}>
+        <h3 className="ap-block__title" style={{ margin: 0 }}>Premios registrados ({filtered.length})</h3>
+        <div className="ap-prize-filters">
+          {[
+            { id: 'all',      label: `Todos (${summary.prize_count})` },
+            { id: 'pending',  label: `Pendientes (${summary.pending_count})` },
+            { id: 'redeemed', label: `Entregados (${summary.redeemed_count})` },
+          ].map(f => (
+            <button
+              key={f.id}
+              className={`ap-chip ${filter === f.id ? 'ap-chip--active' : ''}`}
+              onClick={() => setFilter(f.id)}
+            >{f.label}</button>
+          ))}
+        </div>
+      </div>
+
+      <input
+        className="ap-input"
+        type="search"
+        placeholder="🔍 Buscar por nombre, últimos 3 del DNI o monto..."
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+        style={{ marginBottom: 14 }}
+      />
+
+      {loading ? (
+        <p style={{ color: 'var(--ap-muted)' }}>Cargando…</p>
+      ) : filtered.length === 0 ? (
+        <div className="ap-empty">
+          <div className="ap-empty__icon">🎫</div>
+          <p>No hay premios {filter !== 'all' ? `con estado "${filter}"` : 'todavía'}.</p>
+          <p style={{ fontSize: 13, color: 'var(--ap-muted)' }}>Generá los premios al cerrar una fase con los botones de arriba.</p>
+        </div>
+      ) : (
+        <div className="ap-table-wrap">
+          <table className="ap-table">
+            <thead>
+              <tr>
+                <th>Jugador</th>
+                <th>Fase</th>
+                <th>Pos.</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Detalles</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(p => (
+                <tr key={p.id} className={p.status === 'redeemed' ? 'ap-prize-row--done' : ''}>
+                  <td>
+                    <strong>{p.playerName}</strong>
+                    <div style={{ fontSize: 11, color: 'var(--ap-muted)' }}>***{p.playerDniLast3}</div>
+                  </td>
+                  <td>{PHASE_LABELS[p.phase] || p.phase}</td>
+                  <td>{p.position}°</td>
+                  <td><strong>{fmtMoney(p.amount)}</strong></td>
+                  <td>
+                    {p.status === 'redeemed'
+                      ? <span className="ap-pill ap-pill--ok">✓ Entregado</span>
+                      : <span className="ap-pill ap-pill--warn">⏳ Pendiente</span>}
+                  </td>
+                  <td style={{ fontSize: 12, color: 'var(--ap-muted)' }}>
+                    {p.status === 'redeemed' && (
+                      <>
+                        {p.ticketCode && <div>🎫 {p.ticketCode}</div>}
+                        {p.redeemedAt && <div>📅 {new Date(p.redeemedAt).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short', timeZone: 'America/Argentina/Buenos_Aires' })}</div>}
+                        {p.notes && <div>📝 {p.notes}</div>}
+                      </>
+                    )}
+                  </td>
+                  <td>
+                    {p.status === 'pending' ? (
+                      <button
+                        className="ap-btn ap-btn--primary ap-btn--sm"
+                        onClick={() => { setRedeemingId(p.id); setRedeemForm({ ticketCode: '', notes: '' }) }}
+                      >Marcar entregado</button>
+                    ) : (
+                      <button
+                        className="ap-btn ap-btn--danger ap-btn--sm"
+                        onClick={() => handleRevoke(p.id)}
+                      >Anular canje</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Modal de entrega */}
+      {redeemingId && (
+        <div className="ap-edit-modal" style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', maxWidth: 480, width: '90%', zIndex: 100 }}>
+          <h4 className="ap-edit-modal__title">🎫 Marcar premio como entregado</h4>
+          <p style={{ color: 'var(--ap-muted)', fontSize: 13, marginTop: 0 }}>Quedará registrado quién lo entregó y cuándo. Podés anular el canje después si fue por error.</p>
+          <form onSubmit={handleRedeem}>
+            <label className="ap-label">Código del ticket Free Play (opcional)</label>
+            <input
+              className="ap-input"
+              value={redeemForm.ticketCode}
+              onChange={e => setRedeemForm(f => ({ ...f, ticketCode: e.target.value }))}
+              placeholder="Ej: FP-25-000123"
+              autoFocus
+            />
+            <label className="ap-label" style={{ marginTop: 12 }}>Notas (opcional)</label>
+            <textarea
+              className="ap-input"
+              value={redeemForm.notes}
+              onChange={e => setRedeemForm(f => ({ ...f, notes: e.target.value }))}
+              placeholder="Ej: Entregado en mostrador a las 14:30, firmó recibo."
+              rows={3}
+            />
+            <div className="ap-edit-modal__btns" style={{ marginTop: 14 }}>
+              <button type="submit" className="ap-btn ap-btn--primary">✓ Confirmar entrega</button>
+              <button type="button" className="ap-btn ap-btn--ghost" onClick={() => setRedeemingId(null)}>Cancelar</button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── AdminPanel (main) ────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const [token, setToken]   = useState(() => localStorage.getItem('admin_token') || '')
@@ -1005,6 +1243,7 @@ export default function AdminPanel() {
 
   const TABS = [
     { id: 'prode',    label: '⚽ Prode' },
+    ...(admin?.role === 'superadmin' ? [{ id: 'premios', label: '💰 Premios' }] : []),
     { id: 'shows',    label: '🎤 Shows' },
     { id: 'contenido', label: '📝 Contenido' },
     ...(admin?.role === 'superadmin' ? [{ id: 'admins', label: '👤 Admins' }] : []),
@@ -1055,6 +1294,7 @@ export default function AdminPanel() {
       {/* Content */}
       <main className="ap-main">
         {tab === 'prode'     && <ProdeAdmin    token={token} toast={toast} />}
+        {tab === 'premios'   && <PrizesAdmin   token={token} toast={toast} />}
         {tab === 'shows'     && <ShowsAdmin    token={token} toast={toast} />}
         {tab === 'contenido' && <ContentAdmin  token={token} toast={toast} />}
         {tab === 'admins'    && <AdminsAdmin   token={token} currentAdmin={admin} toast={toast} />}
