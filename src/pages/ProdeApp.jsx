@@ -1055,6 +1055,170 @@ function PublicHome({ player, onParticipa }) {
   )
 }
 
+// ─── Modo Promotora ───────────────────────────────────────────────────────────
+// URL ?promo=1 — pantalla full pensada para tablet, registro rápido por la promotora
+function PromoMode({ onExit }) {
+  const [step, setStep] = useState('form') // 'form' | 'success'
+  const [name, setName] = useState('')
+  const [dni, setDni]   = useState('')
+  const [tel, setTel]   = useState('')
+  const [email, setEmail] = useState('')
+  const [accept, setAccept] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [info, setInfo]   = useState('')
+  const [lastResult, setLastResult] = useState(null) // { name, pin }
+  const [count, setCount] = useState(0)
+
+  function genPin() {
+    return String(Math.floor(1000 + Math.random() * 9000))
+  }
+
+  function reset() {
+    setName(''); setDni(''); setTel(''); setEmail('')
+    setAccept(false); setError(''); setInfo(''); setStep('form')
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setError('')
+    if (!name.trim()) return setError('Falta el nombre del cliente.')
+    if (!/^\d{7,8}$/.test(dni)) return setError(`DNI: ingresaste ${dni.length} ${dni.length === 1 ? 'número' : 'números'}, debe tener 7 u 8 (sin puntos).`)
+    if (!/^[\d\s\-\+\(\)]{8,15}$/.test(tel.trim())) return setError('Teléfono inválido (ej: 3435 123456).')
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError('Email inválido. Borralo si no querés cargarlo.')
+    if (!accept) return setError('El cliente debe aceptar las bases del concurso.')
+    setLoading(true)
+    const pin = genPin()
+    try {
+      await registerPlayer(name.trim(), dni, tel.trim(), pin, 'cocodrilo', email.trim() || null)
+      setLastResult({ name: name.trim(), pin })
+      setCount(c => c + 1)
+      setStep('success')
+    } catch (err) {
+      // Caso especial: DNI duplicado
+      if (/ya está registrad|exist|duplicad/i.test(err.message || '')) {
+        setError(`Este DNI ya está registrado. ${err.message}`)
+      } else {
+        setError(err.message)
+      }
+    }
+    setLoading(false)
+  }
+
+  if (step === 'success' && lastResult) {
+    return (
+      <div className="promo">
+        <header className="promo__header">
+          <div className="promo__brand">
+            <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="promo__logo" />
+            <div>
+              <div className="promo__title">Modo Promotora</div>
+              <div className="promo__sub">Registros: {count}</div>
+            </div>
+          </div>
+          <button className="promo__exit" onClick={onExit}>✕ Salir del modo</button>
+        </header>
+
+        <div className="promo__body promo__body--success">
+          <div className="promo-success">
+            <div className="promo-success__icon">✅</div>
+            <h2 className="promo-success__title">¡Listo, {lastResult.name.split(' ')[0]}!</h2>
+            <p className="promo-success__sub">El cliente ya está participando del Prode Mundial 2026.</p>
+            <div className="promo-success__pin-label">PIN del cliente</div>
+            <div className="promo-success__pin">{lastResult.pin}</div>
+            <p className="promo-success__hint">📝 Anotalo y entregáselo al cliente. Lo va a necesitar para cargar sus pronósticos.</p>
+            <div className="promo-success__actions">
+              <button className="promo-btn promo-btn--primary" onClick={reset}>🔄 Registrar otro cliente</button>
+              <button className="promo-btn promo-btn--ghost" onClick={onExit}>Salir</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="promo">
+      <header className="promo__header">
+        <div className="promo__brand">
+          <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="promo__logo" />
+          <div>
+            <div className="promo__title">Modo Promotora</div>
+            <div className="promo__sub">Registros hoy: {count}</div>
+          </div>
+        </div>
+        <button className="promo__exit" onClick={onExit}>✕ Salir del modo</button>
+      </header>
+
+      <div className="promo__body">
+        <form className="promo-form" onSubmit={handleSubmit}>
+          <h2 className="promo-form__title">Inscribir cliente al Prode</h2>
+          <p className="promo-form__sub">Cargá los datos básicos. El PIN se genera automáticamente al registrar.</p>
+
+          <label className="promo-label">Nombre y apellido</label>
+          <input
+            className="promo-input"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            placeholder="Ej: Juan Pérez"
+            autoFocus
+            autoCapitalize="words"
+            spellCheck={false}
+          />
+
+          <label className="promo-label">DNI <span className="promo-label__hint">(sin puntos)</span></label>
+          <input
+            className="promo-input"
+            type="tel"
+            inputMode="numeric"
+            maxLength={8}
+            value={dni}
+            onChange={e => setDni(e.target.value.replace(/\D/g, ''))}
+            placeholder="35123456"
+          />
+
+          <label className="promo-label">Teléfono</label>
+          <input
+            className="promo-input"
+            type="tel"
+            inputMode="tel"
+            value={tel}
+            onChange={e => setTel(e.target.value)}
+            placeholder="3435 123456"
+          />
+
+          <label className="promo-label">
+            Email <span className="promo-label__optional">(opcional pero recomendado)</span>
+          </label>
+          <p className="promo-label__why">📧 Sirve para avisarle al cliente si gana y para que pueda recuperar su PIN si lo olvida.</p>
+          <input
+            className="promo-input"
+            type="email"
+            inputMode="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            placeholder="cliente@gmail.com"
+            autoCapitalize="off"
+            spellCheck={false}
+          />
+
+          <label className="promo-check">
+            <input type="checkbox" checked={accept} onChange={e => setAccept(e.target.checked)} />
+            <span>El cliente fue informado y acepta las bases del concurso.</span>
+          </label>
+
+          {error && <div className="promo-error">⚠ {error}</div>}
+          {info && <div className="promo-info">ℹ {info}</div>}
+
+          <button className="promo-btn promo-btn--primary promo-btn--full" disabled={loading}>
+            {loading ? 'Registrando...' : '🎯 Registrar e imprimir PIN'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 // ─── ProdeApp (main) ──────────────────────────────────────────────────────────
 export default function ProdeApp() {
   const [player, setPlayer] = useState(() => {
@@ -1066,6 +1230,21 @@ export default function ProdeApp() {
   const [loading, setLoading] = useState(true)
   const [toast, setToast]     = useState(null)
   const [showAuth, setShowAuth] = useState(false)
+
+  // Modo Promotora — detectado por ?promo=1 en la URL
+  const [promoMode, setPromoMode] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return new URLSearchParams(window.location.search).get('promo') === '1'
+  })
+  function exitPromoMode() {
+    setPromoMode(false)
+    // Limpiar el query param sin recargar
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('promo')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }
 
   const showToast = useCallback((msg, type = 'ok', duration = 3000) => {
     setToast({ msg, type, duration, key: Date.now() })
@@ -1136,6 +1315,11 @@ export default function ProdeApp() {
     { id: 'inicio', label: '🏠 Inicio' },
     { id: 'tabla',  label: '📊 Posiciones' },
   ]
+
+  // Modo promotora — render dedicado, no muestra el resto de la app
+  if (promoMode) {
+    return <PromoMode onExit={exitPromoMode} />
+  }
 
   return (
     <div className="prode-page">
