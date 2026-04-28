@@ -27,20 +27,25 @@ export const loginPlayer = (dni, pin) =>
 // ─── Partidos y pronósticos ───────────────────────────────────────────────────
 export const getMatches = () => api('/api/matches')
 
-export const getMyPredictions = (playerId) =>
-  api(`/api/predictions/${playerId}`)
+export const getMyPredictions = (playerId, token) =>
+  api(`/api/predictions/${playerId}`, { headers: authHeaders(token) })
 
-export const savePrediction = (playerId, matchId, home, away) =>
+export const savePrediction = (token, matchId, home, away) =>
   api('/api/predictions', {
     method: 'POST',
-    body: JSON.stringify({ playerId, matchId, home, away }),
+    headers: authHeaders(token),
+    body: JSON.stringify({ matchId, home, away }),
   })
 
 // Guarda múltiples pronósticos de una vez (un request por partido en paralelo)
-export const savePredictionsBatch = (playerId, preds) =>
+export const savePredictionsBatch = (token, preds) =>
   Promise.all(
     preds.map(({ matchId, home, away }) =>
-      api('/api/predictions', { method: 'POST', body: JSON.stringify({ playerId, matchId, home, away }) })
+      api('/api/predictions', {
+        method: 'POST',
+        headers: authHeaders(token),
+        body: JSON.stringify({ matchId, home, away }),
+      })
     )
   )
 

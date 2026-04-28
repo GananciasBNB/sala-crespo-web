@@ -577,7 +577,7 @@ function PronosticosView({ matches, myPreds, player, onSaved }) {
     setSaving(true)
     setSavedMsg('')
     try {
-      await savePredictionsBatch(player.id, toSave)
+      await savePredictionsBatch(player.token, toSave)
       setLocalPreds(prev => {
         const next = { ...prev }
         toSave.forEach(p => delete next[p.matchId])
@@ -807,10 +807,16 @@ export default function ProdeApp() {
 
   useEffect(() => {
     if (!player) return
-    getMyPredictions(player.id)
+    getMyPredictions(player.id, player.token)
       .then(data => setMyPreds(data || {}))
-      .catch(() => {})
-  }, [player])
+      .catch((err) => {
+        if (String(err.message || '').includes('Token') || String(err.message || '').includes('autoriz')) {
+          localStorage.removeItem('prode_player')
+          setPlayer(null)
+          showToast('Sesión expirada, volvé a entrar')
+        }
+      })
+  }, [player, showToast])
 
   function handleLogin(p) {
     setPlayer(p)
@@ -828,7 +834,7 @@ export default function ProdeApp() {
 
   function refreshPreds() {
     if (!player) return
-    getMyPredictions(player.id).then(d => setMyPreds(d || {})).catch(() => {})
+    getMyPredictions(player.id, player.token).then(d => setMyPreds(d || {})).catch(() => {})
     showToast('Pronóstico guardado ✓')
   }
 

@@ -825,22 +825,22 @@ function AdminsAdmin({ token, currentAdmin, toast }) {
 
 // ─── AdminPanel (main) ────────────────────────────────────────────────────────
 export default function AdminPanel() {
-  // TODO: restaurar antes de producción
-  const [token, setToken]   = useState(() => localStorage.getItem('admin_token') || 'dev-bypass')
-  const [admin, setAdmin]   = useState({ name: 'Dev', email: 'dev' })
-  const [verified, setVerified] = useState(true)
+  const [token, setToken]   = useState(() => localStorage.getItem('admin_token') || '')
+  const [admin, setAdmin]   = useState(() => {
+    try { return JSON.parse(localStorage.getItem('admin_info') || 'null') } catch { return null }
+  })
+  const [verified, setVerified] = useState(false)
   const [tab, setTab]           = useState('prode')
   const toast = useToast()
 
-  // Verificar token existente al cargar
   useEffect(() => {
-    if (!token) return
+    if (!token) { setVerified(false); return }
     adminVerify(token)
       .then(a => { setAdmin(a); setVerified(true) })
       .catch(() => {
         localStorage.removeItem('admin_token')
         localStorage.removeItem('admin_info')
-        setToken(''); setAdmin(null)
+        setToken(''); setAdmin(null); setVerified(false)
       })
   }, [token])
 
@@ -856,10 +856,9 @@ export default function AdminPanel() {
     setToken(''); setAdmin(null); setVerified(false)
   }
 
-  // TODO: re-habilitar auth antes de producción
-  // if (!verified || !token) {
-  //   return <AdminLogin onLogin={handleLogin} />
-  // }
+  if (!verified || !token) {
+    return <AdminLogin onLogin={handleLogin} />
+  }
 
   const TABS = [
     { id: 'prode',    label: '⚽ Prode' },
