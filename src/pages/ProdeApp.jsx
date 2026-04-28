@@ -726,43 +726,240 @@ function PronosticosView({ matches, myPreds, player, onSaved }) {
   )
 }
 
-// ─── Bracket ──────────────────────────────────────────────────────────────────
-function BracketView({ matches }) {
-  const knockout = matches.filter(m => KNOCKOUT_PHASES.includes(m.phase))
+// ─── Fixture (rediseñado con tabs por fase + tabla de grupos) ─────────────────
 
-  if (knockout.length === 0) {
+// Compute group standings from results (PJ, G, E, P, GF, GC, DG, Pts)
+function computeGroupStandings(matches, group) {
+  const groupMatches = matches.filter(m => m.phase === 'group' && m.group === group)
+  const teams = {}
+  // Init from TEAMS_BY_GROUP order to keep canonical order
+  const canonical = TEAMS_BY_GROUP[group] || []
+  canonical.forEach(t => {
+    if (t.name) {
+      teams[t.name] = { name: t.name, pj: 0, g: 0, e: 0, p: 0, gf: 0, gc: 0, dg: 0, pts: 0 }
+    }
+  })
+  groupMatches.forEach(m => {
+    if (!m.result) return
+    const { home, away } = m.result
+    const h = teams[m.homeName]
+    const a = teams[m.awayName]
+    if (!h || !a) return
+    h.pj++; a.pj++
+    h.gf += home; h.gc += away
+    a.gf += away; a.gc += home
+    if (home > away)      { h.g++; a.p++; h.pts += 3 }
+    else if (home < away) { a.g++; h.p++; a.pts += 3 }
+    else                  { h.e++; a.e++; h.pts += 1; a.pts += 1 }
+  })
+  Object.values(teams).forEach(t => { t.dg = t.gf - t.gc })
+  return Object.values(teams).sort((a, b) =>
+    b.pts - a.pts || b.dg - a.dg || b.gf - a.gf || a.name.localeCompare(b.name)
+  )
+}
+
+// Format kickoff time (Buenos Aires)
+function fmtKickoff(dateStr) {
+  if (!dateStr) return null
+  try {
+    const d = new Date(dateStr)
+    return d.toLocaleString('es-AR', {
+      day: '2-digit', month: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+      timeZone: 'America/Argentina/Buenos_Aires',
+    })
+  } catch { return null }
+}
+
+// Match status: 'upcoming' | 'live' | 'done'
+function matchStatus(m) {
+  if (m.result) return 'done'
+  const now = new Date()
+  const start = new Date(m.date)
+  const end = new Date(start.getTime() + 110 * 60 * 1000) // ~110 min hasta probable fin
+  if (now < start) return 'upcoming'
+  if (now < end)   return 'live'
+  return 'past' // sin resultado y ya pasó la ventana — pendiente de carga
+}
+
+// Single match card
+function FixtureMatchCard({ m, showPhase = false }) {
+  const st = matchStatus(m)
+  const kickoff = fmtKickoff(m.date)
+  return (
+    <div className={`fx-match fx-match--${st} ${m.isArgentina ? 'fx-match--arg' : ''}`}>
+      <div className="fx-match__meta">
+        {showPhase && <span className="fx-match__phase">{m.label || PHASE_LABELS[m.phase] || ''}</span>}
+        {kickoff && <span className="fx-match__time">🕒 {kickoff} hs (ARG)</span>}
+        {m.venue && <span className="fx-match__venue">📍 {m.venue}</span>}
+        {st === 'live' && <span className="fx-match__live">● EN VIVO</span>}
+        {st === 'done' && <span className="fx-match__done">✓ Finalizado</span>}
+      </div>
+      <div className="fx-match__teams">
+        <div className="fx-team fx-team--home">
+          <FlagImg name={m.homeName} size={28} className="fx-team__flag" />
+          <span className="fx-team__name">{m.homeName}</span>
+          {m.result && <span className="fx-team__score">{m.result.home}</span>}
+        </div>
+        <div className="fx-match__sep">{m.result ? '—' : 'VS'}</div>
+        <div className="fx-team fx-team--away">
+          {m.result && <span className="fx-team__score">{m.result.away}</span>}
+          <span className="fx-team__name">{m.awayName}</span>
+          <FlagImg name={m.awayName} size={28} className="fx-team__flag" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Grupo card (tabla + partidos)
+function FixtureGroupCard({ group, matches, argFilter }) {
+  const standings = computeGroupStandings(matches, group)
+  const groupMatches = matches
+    .filter(m => m.phase === 'group' && m.group === group)
+    .filter(m => !argFilter || m.isArgentina)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+  if (argFilter && groupMatches.length === 0) return null
+  return (
+    <div className="fx-group">
+      <div className="fx-group__header">
+        <h3 className="fx-group__title">Grupo {group}</h3>
+      </div>
+      <div className="fx-group__table-wrap">
+        <table className="fx-group__table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Equipo</th>
+              <th>PJ</th>
+              <th>G</th>
+              <th>E</th>
+              <th>P</th>
+              <th>GF</th>
+              <th>GC</th>
+              <th>DG</th>
+              <th>Pts</th>
+            </tr>
+          </thead>
+          <tbody>
+            {standings.map((t, i) => (
+              <tr key={t.name} className={i < 2 ? 'fx-group__row--top' : i === 2 ? 'fx-group__row--mid' : ''}>
+                <td>{i + 1}</td>
+                <td className="fx-group__team-cell">
+                  <FlagImg name={t.name} size={20} className="fx-team__flag" />
+                  <span>{t.name}</span>
+                </td>
+                <td>{t.pj}</td>
+                <td>{t.g}</td>
+                <td>{t.e}</td>
+                <td>{t.p}</td>
+                <td>{t.gf}</td>
+                <td>{t.gc}</td>
+                <td>{t.dg > 0 ? '+' + t.dg : t.dg}</td>
+                <td className="fx-group__pts">{t.pts}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="fx-group__matches">
+        {groupMatches.map(m => <FixtureMatchCard key={m.id} m={m} />)}
+      </div>
+    </div>
+  )
+}
+
+// Pestañas de fase
+const FIXTURE_PHASES = [
+  { id: 'group',   label: '📊 Grupos' },
+  { id: 'round32', label: '🔥 16avos' },
+  { id: 'round16', label: '⚔️ Octavos' },
+  { id: 'quarter', label: '🏆 Cuartos' },
+  { id: 'semi',    label: '🥈 Semis' },
+  { id: 'third',   label: '🥉 3° Puesto' },
+  { id: 'final',   label: '👑 Final' },
+]
+
+function FixtureView({ matches }) {
+  // Default: si todavía no terminó fase de grupos, mostrar Grupos. Si ya pasó, 16avos.
+  const now = new Date()
+  const groupsEnd = new Date('2026-06-27T23:59:59-03:00')
+  const defaultPhase = now < groupsEnd ? 'group' : 'round32'
+  const [phase, setPhase] = useState(defaultPhase)
+  const [argFilter, setArgFilter] = useState(false)
+
+  // Solo mostrar tabs de fases que tienen partidos cargados
+  const availablePhases = FIXTURE_PHASES.filter(p =>
+    matches.some(m => m.phase === p.id)
+  )
+
+  // Si la fase elegida no tiene partidos (ej: aún no se cargaron 16avos), saltar a la primera disponible
+  const activePhase = availablePhases.some(p => p.id === phase) ? phase : (availablePhases[0]?.id || 'group')
+
+  if (activePhase === 'group') {
     return (
-      <div className="prode-empty">
-        <div className="prode-empty__icon">🌐</div>
-        <p>Las llaves se definen al terminar la fase de grupos (27 de junio 2026).</p>
+      <div className="fx">
+        <div className="fx-tabs-row">
+          <div className="fx-tabs">
+            {availablePhases.map(p => (
+              <button
+                key={p.id}
+                className={`fx-tab ${activePhase === p.id ? 'fx-tab--active' : ''}`}
+                onClick={() => setPhase(p.id)}
+              >{p.label}</button>
+            ))}
+          </div>
+          <button
+            className={`fx-arg-toggle ${argFilter ? 'fx-arg-toggle--on' : ''}`}
+            onClick={() => setArgFilter(v => !v)}
+            title="Filtrar solo partidos de Argentina"
+          >🇦🇷 {argFilter ? 'Quitar filtro' : 'Solo Argentina'}</button>
+        </div>
+        <div className="fx-groups">
+          {GROUPS.map(g => (
+            <FixtureGroupCard key={g} group={g} matches={matches} argFilter={argFilter} />
+          ))}
+        </div>
       </div>
     )
   }
 
+  // Vistas de eliminatoria
+  const phaseMatches = matches
+    .filter(m => m.phase === activePhase)
+    .filter(m => !argFilter || m.isArgentina)
+    .sort((a, b) => new Date(a.date) - new Date(b.date))
+
   return (
-    <div className="bracket">
-      {KNOCKOUT_PHASES.filter(ph => knockout.some(m => m.phase === ph)).map(phase => (
-        <div key={phase} className="bracket__round">
-          <h3 className="bracket__round-title">{PHASE_LABELS[phase]}</h3>
-          <div className="bracket__matches">
-            {knockout.filter(m => m.phase === phase).map(m => (
-              <div key={m.id} className={`bracket__match ${m.result ? 'bracket__match--done' : ''} ${m.isArgentina ? 'bracket__match--arg' : ''}`}>
-                <div className="bracket__team">
-                  <FlagImg name={m.homeName} size={24} className="bracket__flag-img" />
-                  <span className="bracket__tname">{m.homeName}</span>
-                  {m.result && <span className="bracket__score">{m.result.home}</span>}
-                </div>
-                <div className="bracket__sep">VS</div>
-                <div className="bracket__team">
-                  <FlagImg name={m.awayName} size={24} className="bracket__flag-img" />
-                  <span className="bracket__tname">{m.awayName}</span>
-                  {m.result && <span className="bracket__score">{m.result.away}</span>}
-                </div>
-              </div>
-            ))}
-          </div>
+    <div className="fx">
+      <div className="fx-tabs-row">
+        <div className="fx-tabs">
+          {availablePhases.map(p => (
+            <button
+              key={p.id}
+              className={`fx-tab ${activePhase === p.id ? 'fx-tab--active' : ''}`}
+              onClick={() => setPhase(p.id)}
+            >{p.label}</button>
+          ))}
         </div>
-      ))}
+        <button
+          className={`fx-arg-toggle ${argFilter ? 'fx-arg-toggle--on' : ''}`}
+          onClick={() => setArgFilter(v => !v)}
+        >🇦🇷 {argFilter ? 'Quitar filtro' : 'Solo Argentina'}</button>
+      </div>
+
+      {phaseMatches.length === 0 ? (
+        <div className="prode-empty">
+          <div className="prode-empty__icon">⏳</div>
+          <p>{argFilter
+            ? 'Argentina no juega en esta fase (o aún no se definió).'
+            : `Los partidos de ${PHASE_LABELS[activePhase]} se definen al avanzar el torneo.`}</p>
+        </div>
+      ) : (
+        <div className="fx-knockout">
+          {phaseMatches.map(m => <FixtureMatchCard key={m.id} m={m} showPhase />)}
+        </div>
+      )}
     </div>
   )
 }
@@ -1031,7 +1228,7 @@ export default function ProdeApp() {
             )}
             {tab === 'llaves' && player && (
               <div className="prode-content">
-                <BracketView matches={matches} />
+                <FixtureView matches={matches} />
               </div>
             )}
           </>
