@@ -83,12 +83,14 @@ const KNOCKOUT_PHASES = ['round32','round16','quarter','semi','third','final']
 const GROUPS = ['A','B','C','D','E','F','G','H','I','J','K','L']
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
-function Toast({ msg, type, onDone }) {
+// type: 'ok' | 'err' | 'info' (info no prefija con ✓/✕ — útil cuando msg ya trae emoji)
+function Toast({ msg, type, duration = 3000, onDone }) {
   useEffect(() => {
-    const t = setTimeout(onDone, 3000)
+    const t = setTimeout(onDone, duration)
     return () => clearTimeout(t)
-  }, [onDone])
-  return <div className={`prode-toast prode-toast--${type}`}>{type === 'ok' ? '✓' : '✕'} {msg}</div>
+  }, [onDone, duration])
+  const prefix = type === 'ok' ? '✓ ' : type === 'err' ? '✕ ' : ''
+  return <div className={`prode-toast prode-toast--${type}`}>{prefix}{msg}</div>
 }
 
 // ─── Flag Ticker ──────────────────────────────────────────────────────────────
@@ -859,8 +861,8 @@ export default function ProdeApp() {
   const [toast, setToast]     = useState(null)
   const [showAuth, setShowAuth] = useState(false)
 
-  const showToast = useCallback((msg, type = 'ok') => {
-    setToast({ msg, type, key: Date.now() })
+  const showToast = useCallback((msg, type = 'ok', duration = 3000) => {
+    setToast({ msg, type, duration, key: Date.now() })
   }, [])
 
   useEffect(() => {
@@ -887,7 +889,22 @@ export default function ProdeApp() {
     setPlayer(p)
     setShowAuth(false)
     setTab('pronosticos')
-    showToast(`¡Bienvenido, ${p.name}! 🎉`)
+    const firstName = (p.name || '').split(' ')[0] || ''
+    const stat = p.stat || {}
+    let msg
+    if (p.isEmployee && stat.position && stat.total) {
+      msg = `🏢 ¡Hola ${firstName}! Vas ${stat.position}° de ${stat.total} en la tabla interna`
+    } else if (stat.position && stat.total) {
+      msg = `🏆 ¡Hola ${firstName}! Vas en el puesto ${stat.position} de ${stat.total}`
+    } else if (stat.total > 0) {
+      // El jugador no jugó aún o no tiene resultados procesados
+      msg = `👋 ¡Hola ${firstName}! Cargá tu primer pronóstico para entrar al ranking`
+    } else {
+      // Sin más jugadores o sin partidos jugados — fallback simple
+      msg = `🎉 ¡Bienvenido, ${firstName}!`
+    }
+    // type 'info' (sin prefijo ✓) + 4.5s para que dé tiempo de leer
+    showToast(msg, 'info', 4500)
   }
 
   function handleLogout() {
@@ -959,7 +976,7 @@ export default function ProdeApp() {
       </nav>
 
       {/* Toast */}
-      {toast && <Toast key={toast.key} msg={toast.msg} type={toast.type} onDone={() => setToast(null)} />}
+      {toast && <Toast key={toast.key} msg={toast.msg} type={toast.type} duration={toast.duration} onDone={() => setToast(null)} />}
 
       {/* Auth Modal */}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onLogin={handleLogin} />}
