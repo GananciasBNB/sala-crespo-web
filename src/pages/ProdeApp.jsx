@@ -1057,6 +1057,13 @@ function PublicHome({ player, onParticipa }) {
 
 // ─── Modo Promotora ───────────────────────────────────────────────────────────
 // URL ?promo=1 — pantalla full pensada para tablet, registro rápido por la promotora
+
+// TODO: validar/actualizar URL del Google Form de inscripción al torneo de máquinas
+const TOURNAMENT_DATE_LABEL = '21 de mayo · 2026'
+const TOURNAMENT_FORM_URL   = 'https://forms.gle/REEMPLAZAR' // ⚠ pegar URL real
+const INSTAGRAM_HANDLE      = '@saladejuegoscrespo'
+const INSTAGRAM_URL         = 'https://instagram.com/saladejuegoscrespo'
+
 function PromoMode({ onExit }) {
   const [step, setStep] = useState('form') // 'form' | 'success'
   const [name, setName] = useState('')
@@ -1147,6 +1154,34 @@ function PromoMode({ onExit }) {
             <div className="promo-success__pin-label">PIN del cliente</div>
             <div className="promo-success__pin">{lastResult.pin}</div>
             <p className="promo-success__hint">📝 Anotalo y entregáselo al cliente. Lo va a necesitar para cargar sus pronósticos.</p>
+
+            {/* Acciones secundarias destacadas */}
+            <div className="promo-extras">
+              <div className="promo-extras__title">Aprovechá que tenés al cliente acá 👇</div>
+              <div className="promo-extras__grid">
+                <a
+                  className="promo-extra promo-extra--tournament"
+                  href={TOURNAMENT_FORM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="promo-extra__icon">🎰</div>
+                  <div className="promo-extra__label">Inscribir al torneo de máquinas</div>
+                  <div className="promo-extra__sub">{TOURNAMENT_DATE_LABEL}</div>
+                </a>
+                <a
+                  className="promo-extra promo-extra--instagram"
+                  href={INSTAGRAM_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="promo-extra__icon">📸</div>
+                  <div className="promo-extra__label">Que nos siga en Instagram</div>
+                  <div className="promo-extra__sub">{INSTAGRAM_HANDLE}</div>
+                </a>
+              </div>
+            </div>
+
             <div className="promo-success__actions">
               <button className="promo-btn promo-btn--primary" onClick={reset}>🔄 Registrar otro cliente</button>
               <button className="promo-btn promo-btn--ghost" onClick={onExit}>Salir</button>
@@ -1173,7 +1208,16 @@ function PromoMode({ onExit }) {
       <div className="promo__body">
         <form className="promo-form" onSubmit={handleSubmit}>
           <h2 className="promo-form__title">Inscribir cliente al Prode</h2>
-          <p className="promo-form__sub">Cargá los datos básicos. El PIN se genera automáticamente al registrar.</p>
+          <p className="promo-form__sub">Cargá los datos básicos. Después de registrar al cliente vas a poder inscribirlo también al torneo de máquinas.</p>
+
+          {/* Recordatorios para la promotora — siempre visibles */}
+          <div className="promo-reminders">
+            <div className="promo-reminders__title">📌 Antes de soltar al cliente acordate de:</div>
+            <ul className="promo-reminders__list">
+              <li>📋 Inscribirlo también al <strong>torneo de máquinas</strong> ({TOURNAMENT_DATE_LABEL})</li>
+              <li>📸 Pedirle que nos siga en Instagram <strong>{INSTAGRAM_HANDLE}</strong> (mostrale el QR si no encuentra)</li>
+            </ul>
+          </div>
 
           <label className="promo-label">Nombre y apellido</label>
           <input
