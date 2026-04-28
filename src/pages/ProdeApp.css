@@ -206,9 +206,9 @@
 /* ─── Body / Content ──────────────────────────────────────────── */
 .prode-body { min-height: calc(100vh - 100px); }
 .prode-content {
-  max-width: 800px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: 24px 20px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1444,8 +1444,6 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  max-width: 1100px;
-  margin: 0 auto;
   width: 100%;
 }
 
