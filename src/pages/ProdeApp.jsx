@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  registerPlayer, loginPlayer,
+  registerPlayer, loginPlayer, forgotPin,
   getMatches, getMyPredictions, savePrediction, savePredictionsBatch,
   getLeaderboard,
 } from '../api/client'
@@ -290,26 +290,45 @@ function AuthModal({ onClose, onLogin }) {
   const [name, setName]         = useState('')
   const [dni, setDni]           = useState('')
   const [tel, setTel]           = useState('')
+  const [email, setEmail]       = useState('')
   const [pin, setPin]           = useState('')
   const [pinConfirm, setPinConfirm] = useState('')
   const [showPin, setShowPin]   = useState(true)
   const [mascota, setMascota]   = useState('cocodrilo')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
+  const [info, setInfo]         = useState('')
 
   async function handleRegister(e) {
     e.preventDefault()
-    setError('')
+    setError(''); setInfo('')
     if (!name.trim())            return setError('Ingresá tu nombre.')
     if (!/^\d{7,8}$/.test(dni))  return setError(`Revisá tu DNI: ingresaste ${dni.length} ${dni.length === 1 ? 'número' : 'números'}, deberían ser 7 u 8 (sin puntos).`)
     if (!/^[\d\s\-\+\(\)]{8,15}$/.test(tel.trim())) return setError('Ingresá un teléfono válido (ej: 3435 123456).')
+    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError('Email inválido. Dejalo en blanco si no querés cargarlo.')
     if (!/^\d{4}$/.test(pin))    return setError('El PIN debe tener exactamente 4 dígitos.')
     if (pin !== pinConfirm)      return setError('Los PINs no coinciden. Volvé a escribirlo.')
     setLoading(true)
     try {
-      const player = await registerPlayer(name.trim(), dni, tel.trim(), pin, mascota)
+      const player = await registerPlayer(name.trim(), dni, tel.trim(), pin, mascota, email.trim() || null)
       localStorage.setItem('prode_player', JSON.stringify(player))
       onLogin(player)
+    } catch (err) {
+      setError(err.message)
+    }
+    setLoading(false)
+  }
+
+  async function handleForgot() {
+    setError(''); setInfo('')
+    if (!/^\d{7,8}$/.test(dni)) return setError('Ingresá primero tu DNI arriba.')
+    const e = prompt('Ingresá el email que registraste para enviarte un PIN nuevo:')
+    if (!e) return
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim())) return setError('Email inválido.')
+    setLoading(true)
+    try {
+      const r = await forgotPin(dni, e.trim())
+      setInfo(r.message || 'Te enviamos un email con tu nuevo PIN.')
     } catch (err) {
       setError(err.message)
     }
@@ -351,6 +370,7 @@ function AuthModal({ onClose, onLogin }) {
         </div>
 
         {error && <div className="modal__error">⚠️ {error}</div>}
+        {info && <div className="modal__info">✓ {info}</div>}
 
         {tab === 'login' ? (
           <form className="modal__form" onSubmit={handleLogin}>
@@ -385,6 +405,9 @@ function AuthModal({ onClose, onLogin }) {
             <button className="modal__submit" disabled={loading}>
               {loading ? 'Ingresando...' : 'Ingresar →'}
             </button>
+            <button type="button" className="modal__link" onClick={handleForgot} disabled={loading}>
+              ¿Olvidaste tu PIN?
+            </button>
           </form>
         ) : (
           <form className="modal__form" onSubmit={handleRegister}>
@@ -417,6 +440,17 @@ function AuthModal({ onClose, onLogin }) {
               onChange={e => setTel(e.target.value)}
               placeholder="Ej: 3435 123456"
               maxLength={15}
+            />
+            <label className="modal__label">Email <span className="modal__label-opt">(opcional, para recuperar tu PIN si lo olvidás)</span></label>
+            <input
+              className="modal__input"
+              type="email"
+              inputMode="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="tucorreo@ejemplo.com"
+              maxLength={120}
+              autoComplete="email"
             />
             <label className="modal__label">Elegí tu PIN (4 dígitos)</label>
             <div className="modal__pin-row">

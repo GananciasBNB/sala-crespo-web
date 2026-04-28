@@ -18,11 +18,14 @@ function authHeaders(token) {
 }
 
 // ─── Jugadores ────────────────────────────────────────────────────────────────
-export const registerPlayer = (name, dni, tel, pin, mascota = 'toro') =>
-  api('/api/register', { method: 'POST', body: JSON.stringify({ name, dni, tel, pin, mascota }) })
+export const registerPlayer = (name, dni, tel, pin, mascota = 'toro', email = null) =>
+  api('/api/register', { method: 'POST', body: JSON.stringify({ name, dni, tel, pin, mascota, email }) })
 
 export const loginPlayer = (dni, pin) =>
   api('/api/login', { method: 'POST', body: JSON.stringify({ dni, pin }) })
+
+export const forgotPin = (dni, email) =>
+  api('/api/forgot-pin', { method: 'POST', body: JSON.stringify({ dni, email }) })
 
 // ─── Partidos y pronósticos ───────────────────────────────────────────────────
 export const getMatches = () => api('/api/matches')
@@ -87,6 +90,9 @@ export const adminDeletePlayer = (token, id) =>
 
 export const adminEditPlayer = (token, id, data) =>
   api(`/api/admin/player/${id}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(data) })
+
+export const adminResetPin = (token, id) =>
+  api(`/api/admin/player/${id}/reset-pin`, { method: 'POST', headers: authHeaders(token) })
 
 // ─── Admin: shows ─────────────────────────────────────────────────────────────
 export const adminCreateShow = (token, show) =>
