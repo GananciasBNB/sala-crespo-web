@@ -1440,7 +1440,14 @@
 /* ═══════════════════════════════════════════════════════════════ */
 /* ─── Fixture (rediseñado) ───────────────────────────────────── */
 /* ═══════════════════════════════════════════════════════════════ */
-.fx { display: flex; flex-direction: column; gap: 18px; }
+.fx {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
 
 /* Tabs row + filtro Argentina */
 .fx-tabs-row {
@@ -1451,21 +1458,19 @@
   position: sticky;
   top: 0;
   background: var(--wc-bg, #0a0d12);
-  padding: 8px 0 12px;
+  padding: 10px 0 12px;
   z-index: 10;
   border-bottom: 1px solid var(--wc-border);
 }
+/* Desktop: tabs envuelven naturalmente, sin scroll horizontal */
 .fx-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  overflow-x: auto;
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
-  scrollbar-width: thin;
-  -webkit-overflow-scrolling: touch;
 }
-.fx-tabs::-webkit-scrollbar { height: 6px; }
-.fx-tabs::-webkit-scrollbar-thumb { background: var(--wc-border); border-radius: 999px; }
+.fx-tabs::-webkit-scrollbar { display: none; }
 .fx-tab {
   flex-shrink: 0;
   padding: 8px 14px;
@@ -1701,6 +1706,16 @@
   .fx-match__meta { font-size: 10px; gap: 6px; }
   .fx-arg-toggle { padding: 6px 10px; font-size: 11px; }
   .fx-tab { padding: 7px 11px; font-size: 12px; }
-  .fx-tabs-row { flex-direction: column; align-items: stretch; }
+  .fx-tabs-row { flex-direction: column; align-items: stretch; gap: 8px; }
+  /* En mobile, los tabs van en línea con scroll horizontal invisible */
+  .fx-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 2px;
+  }
+  .fx-tabs::-webkit-scrollbar { display: none; }
   .fx-arg-toggle { align-self: flex-start; }
 }
