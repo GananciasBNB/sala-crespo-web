@@ -3235,26 +3235,46 @@
 .sp-arg { color: #74ACDF !important; font-size: 14px; padding-top: 4px; border-top: 1px dashed rgba(116,172,223,.3); }
 
 .staff-portal__ctas {
-  display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
-  margin: 36px 0;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin: 32px 0;
 }
 .staff-portal__cta {
-  border: none; padding: 16px 28px; border-radius: 12px;
-  font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1.5px;
+  border: none; padding: 18px 36px; border-radius: 12px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 2px;
   text-transform: uppercase; cursor: pointer;
   transition: transform .15s ease, box-shadow .15s ease;
 }
 .staff-portal__cta--primary {
   background: linear-gradient(135deg, #C41E3A, #ff3556); color: #fff;
-  box-shadow: 0 8px 22px rgba(196,30,58,.5);
-  flex: 1; min-width: 280px;
+  box-shadow: 0 10px 28px rgba(196,30,58,.55);
+  min-width: 320px;
 }
-.staff-portal__cta--primary:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(196,30,58,.65); }
-.staff-portal__cta--secondary {
-  background: rgba(255,255,255,.06); color: #E8EDF5;
-  border: 1px solid rgba(255,255,255,.18);
+.staff-portal__cta--primary:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(196,30,58,.7); }
+.staff-portal__cta-link {
+  background: transparent; border: none; color: #B0B8C4;
+  font-size: 14px; cursor: pointer; padding: 6px 12px;
+  text-decoration: underline; text-underline-offset: 4px;
+  transition: color .15s ease;
 }
-.staff-portal__cta--secondary:hover { background: rgba(255,255,255,.12); }
+.staff-portal__cta-link:hover { color: #FFD250; }
+
+/* Variante CTA inline (dentro de la sección de premios) */
+.staff-portal__cta--inline {
+  margin-top: 22px; padding: 14px 28px; font-size: 18px;
+  background: linear-gradient(135deg, #FFD250, #C9A84C); color: #0c0606;
+  border: none; border-radius: 10px; cursor: pointer;
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 1.5px; text-transform: uppercase;
+  box-shadow: 0 6px 18px rgba(255,210,80,.3);
+  transition: transform .15s ease;
+}
+.staff-portal__cta--inline:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(255,210,80,.5); }
+/* CTA temprano (al final del hook): mismo botón pero con menos margen vertical para no romper el flow */
+.staff-portal__ctas--early { margin: 22px 0 0; }
+
+@media (max-width: 600px) {
+  .staff-portal__cta--primary { min-width: 0; width: 100%; font-size: 18px; padding: 16px 22px; }
+  .staff-portal__cta--inline  { width: 100%; }
+}
 
 /* Nota motivadora antes del form */
 .staff-portal__note {

@@ -1841,6 +1841,21 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
                 </div>
               </div>
             </div>
+            {/* CTA temprano: el que ya quiere anotarse, lo hace acá */}
+            {!isLoggedIn && (
+              <div className="staff-portal__ctas staff-portal__ctas--early">
+                <button className="staff-portal__cta staff-portal__cta--primary" onClick={() => { setShowRegister(true); setShowLogin(false) }}>
+                  ANOTARME AL PRODE →
+                </button>
+                <button
+                  type="button"
+                  className="staff-portal__cta-link"
+                  onClick={() => { setShowLogin(true); setShowRegister(false) }}
+                >
+                  ¿Ya tenés cuenta? Ingresá acá
+                </button>
+              </div>
+            )}
           </section>
         )}
 
@@ -1985,21 +2000,33 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
               <div className="sp-prize__amount">$20.000</div>
             </div>
           </div>
+          {!isLoggedIn && (
+            <button
+              className="staff-portal__cta staff-portal__cta--inline"
+              onClick={() => { setShowRegister(true); setShowLogin(false) }}
+            >
+              QUIERO ANOTARME →
+            </button>
+          )}
         </section>
 
-        {/* CTAs principales */}
+        {/* CTA principal — uno solo, grande, centrado */}
         <div className="staff-portal__ctas">
           {isLoggedIn ? (
             <button className="staff-portal__cta staff-portal__cta--primary" onClick={onExit}>
-              🎯 IR AL PRODE →
+              IR AL PRODE →
             </button>
           ) : (
             <>
               <button className="staff-portal__cta staff-portal__cta--primary" onClick={() => { setShowRegister(true); setShowLogin(false) }}>
-                🏢 ANOTARME COMO EMPLEADO →
+                ANOTARME AL PRODE →
               </button>
-              <button className="staff-portal__cta staff-portal__cta--secondary" onClick={() => { setShowLogin(true); setShowRegister(false) }}>
-                Ya tengo cuenta · Ingresar
+              <button
+                type="button"
+                className="staff-portal__cta-link"
+                onClick={() => { setShowLogin(true); setShowRegister(false) }}
+              >
+                ¿Ya tenés cuenta? Ingresá acá
               </button>
             </>
           )}
