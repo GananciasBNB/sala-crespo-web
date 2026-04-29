@@ -2958,25 +2958,45 @@
 }
 .sp-stat__label { color: #B0B8C4; font-size: 12px; margin-top: 4px; line-height: 1.3; }
 
-/* Hook narrativo */
+/* Hook nuevo: headline gigante + 3 cards (qué/qué se gana/por qué vos) */
 .staff-portal__hook {
-  background: linear-gradient(135deg, rgba(116,172,223,.08), rgba(116,172,223,.02));
-  border-left: 3px solid #74ACDF; border-radius: 8px;
-  padding: 22px 26px; margin-bottom: 32px;
+  margin-bottom: 32px;
 }
-.staff-portal__hook p {
-  margin: 0 0 14px; color: #E8EDF5; font-size: 15px; line-height: 1.6;
-  max-width: 760px;
+.staff-portal__hook-headline {
+  font-family: 'Bebas Neue', sans-serif; font-size: 38px; letter-spacing: 1px;
+  color: #fff; text-align: center; line-height: 1.1; margin: 8px 0 22px;
+  text-transform: none;
+  background: linear-gradient(135deg, #fff 0%, #FFD250 60%, #ff8597 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(255,210,80,.18));
 }
-.staff-portal__hook p:last-child { margin-bottom: 0; }
-.staff-portal__hook-what {
-  font-size: 16px !important;
-  background: rgba(255,210,80,.06);
-  border-left: 2px solid rgba(255,210,80,.4);
-  padding: 12px 16px; border-radius: 6px;
+.staff-portal__hook-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
 }
-.staff-portal__hook-what em {
-  color: #FFD250; font-style: italic;
+.sp-hook-card {
+  background: linear-gradient(155deg, rgba(255,255,255,.05), rgba(255,255,255,.01));
+  border: 1px solid rgba(255,210,80,.22); border-radius: 14px;
+  padding: 20px 20px 22px;
+  transition: transform .2s ease, border-color .2s ease;
+}
+.sp-hook-card:hover { transform: translateY(-3px); border-color: rgba(255,210,80,.45); }
+.sp-hook-card__icon {
+  font-size: 32px; line-height: 1; margin-bottom: 10px;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.3));
+}
+.sp-hook-card__title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px;
+  color: #FFD250; text-transform: uppercase; margin-bottom: 8px; line-height: 1.1;
+}
+.sp-hook-card__text {
+  color: #E8EDF5; font-size: 14px; line-height: 1.55;
+}
+.sp-hook-card__text em { color: #FFD250; font-style: italic; }
+.sp-hook-card__text strong { color: #fff; }
+
+@media (max-width: 760px) {
+  .staff-portal__hook-headline { font-size: 30px; }
+  .staff-portal__hook-grid     { grid-template-columns: 1fr; }
 }
 
 /* Cómo funciona — 3 cards */
