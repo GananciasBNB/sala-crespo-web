@@ -160,23 +160,138 @@ const CATEGORY_LABEL = {
   meta:       'Coleccionista',
 }
 
-// Icono pictográfico por categoría (SVG inline simple, estilo trazo limpio)
+// Iconos pictográficos: uno único por medalla (slug). Fallback a categoría si no existe.
+// Estilo: line-art trazo limpio, 24x24 viewBox, stroke-width 1.8, currentColor.
+const SVG_PROPS = { width: 36, height: 36, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
+
+const SLUG_GLYPH = {
+  // Pronóstico / acierto
+  bautismo: (
+    <svg {...SVG_PROPS}>
+      {/* Cabecita del bebé */}
+      <circle cx="12" cy="7" r="3.5" />
+      {/* Mechón / rulito */}
+      <path d="M11 4.2c.5-.6 1.5-.6 2 0" />
+      {/* Cuerpo con pañal (línea de cinta del pañal) */}
+      <path d="M7 14c0-1.7 2.2-3 5-3s5 1.3 5 3v3c0 1.7-2.2 3-5 3s-5-1.3-5-3z" />
+      <path d="M7 16h10" />
+      {/* Bracitos */}
+      <path d="M5 12.5l2 1" />
+      <path d="M19 12.5l-2 1" />
+    </svg>
+  ),
+  'fixture-completo': (
+    <svg {...SVG_PROPS}><rect x="4" y="4" width="16" height="16" rx="2" /><path d="M8 9l2 2 4-4" /><path d="M8 14h8" /><path d="M8 17h5" /></svg>
+  ),
+  'tirador-certero': (
+    <svg {...SVG_PROPS}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="1.2" fill="currentColor" /><path d="M19 5l-5 5" /><path d="M16 4h3v3" /></svg>
+  ),
+  'triple-corona': (
+    <svg {...SVG_PROPS}><path d="M3 8l3 8h12l3-8-4 3-3-5-3 5-3-5-3 5z" /><circle cx="6" cy="7" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="18" cy="7" r="1" /><path d="M6 19h12" /></svg>
+  ),
+  'pronosticador-del-dia': (
+    <svg {...SVG_PROPS}><rect x="4" y="5" width="16" height="15" rx="2" /><path d="M4 9h16" /><path d="M9 3v4" /><path d="M15 3v4" /><path d="M11 13h2v5" /><path d="M11 18h3" /></svg>
+  ),
+  'hat-trick': (
+    <svg {...SVG_PROPS}>
+      {/* 3 pelotas de fútbol: 2 abajo, 1 arriba (triángulo) */}
+      {/* Pelota 1 — arriba centro */}
+      <circle cx="12" cy="6.5" r="3.2" />
+      <path d="M12 3.5l1.5 1L13 6l-2 0-.5-1z" />
+      <path d="M12 9.5l-1-1.5M12 9.5l1-1.5" />
+      {/* Pelota 2 — abajo izquierda */}
+      <circle cx="6.5" cy="16.5" r="3.2" />
+      <path d="M6.5 13.5l1.5 1L7.5 16l-2 0-.5-1z" />
+      <path d="M6.5 19.5l-1-1.5M6.5 19.5l1-1.5" />
+      {/* Pelota 3 — abajo derecha */}
+      <circle cx="17.5" cy="16.5" r="3.2" />
+      <path d="M17.5 13.5l1.5 1L18.5 16l-2 0-.5-1z" />
+      <path d="M17.5 19.5l-1-1.5M17.5 19.5l1-1.5" />
+    </svg>
+  ),
+  imparable: (
+    <svg {...SVG_PROPS}><path d="M3 12h13" /><path d="M12 6l6 6-6 6" /><path d="M3 8h6" /><path d="M3 16h6" /></svg>
+  ),
+  cuadrangular: (
+    <svg {...SVG_PROPS}><rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" /><rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" /><path d="M7 7l1 1 1.5-2" /><path d="M16 7l1 1 1.5-2" /><path d="M7 16l1 1 1.5-2" /><path d="M16 16l1 1 1.5-2" /></svg>
+  ),
+  'toque-al-palo': (
+    <svg {...SVG_PROPS}><rect x="3" y="6" width="18" height="11" rx="0.5" /><path d="M3 17h18" /><path d="M3 6L1 17" /><path d="M21 6l2 11" /><path d="M3 10h18" /><circle cx="12" cy="14" r="2" /></svg>
+  ),
+  goleadita: (
+    <svg {...SVG_PROPS}>
+      {/* Red del arco — perspectiva con líneas verticales y horizontales */}
+      <path d="M3 7l2-2h14l2 2v13l-2 1H5l-2-1z" />
+      <path d="M5 5v15M19 5v15M3 11h18M3 15h18M9 5v15M15 5v15" />
+      {/* Pelota grande clavada en la red — el "golazo" */}
+      <circle cx="12" cy="13" r="2.6" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="13" r="2.6" />
+    </svg>
+  ),
+
+  // Engagement (3 niveles de llama)
+  'visitante-regular': (
+    <svg {...SVG_PROPS}><path d="M12 6c-1 3-3 4-3 7a3 3 0 0 0 6 0c0-2-1.5-3-3-7z" /></svg>
+  ),
+  'hincha-leal': (
+    <svg {...SVG_PROPS}><path d="M12 3c-2 4-5 6-5 10a5 5 0 0 0 10 0c0-3-2-5-5-10z" /><path d="M12 11c-1 1.5-2 2.5-2 4a2 2 0 0 0 4 0c0-1-0.8-2-2-4z" fill="currentColor" /></svg>
+  ),
+  leyenda: (
+    <svg {...SVG_PROPS}><path d="M12 2c-3 5-6 7-6 12a6 6 0 0 0 12 0c0-3-2-6-6-12z" /><path d="M12 10c-2 2-3.5 3.5-3.5 6a3.5 3.5 0 0 0 7 0c0-1.5-1.2-3-3.5-6z" fill="currentColor" /><path d="M3 13l-2-1M21 13l2-1M5 7l-2 1M19 7l2 1" /></svg>
+  ),
+
+  // Mundial específicos
+  patriota: (
+    <svg {...SVG_PROPS}><path d="M5 3v18" /><path d="M5 4h13l-2 5 2 5H5" /><circle cx="11" cy="9" r="1.7" /><path d="M11 6.5v.8M11 11v.8M14 9h-.8M8 9h.8M13.1 7l-.6.6M9.5 10.4l-.6.6M13.1 11l-.6-.6M9.5 7.6l-.6-.6" /></svg>
+  ),
+  globetrotter: (
+    <svg {...SVG_PROPS}><circle cx="12" cy="12" r="9" /><path d="M3 12h18" /><path d="M12 3c3 3 4.5 6 4.5 9s-1.5 6-4.5 9c-3-3-4.5-6-4.5-9s1.5-6 4.5-9z" /></svg>
+  ),
+  profeta: (
+    <svg {...SVG_PROPS}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3.2" /><circle cx="12" cy="12" r="1" fill="currentColor" /><path d="M12 4v1.5M12 18.5v1.5M4 12h-1.5M21.5 12H20" /></svg>
+  ),
+
+  // Social
+  embajador: (
+    <svg {...SVG_PROPS}>
+      {/* Apretón de manos: dos brazos saliendo de cada lado, manos chocando al centro */}
+      <path d="M2 13l3-1.5 3 1 3.5 1.5h1l3.5-1.5 3-1L22 13" />
+      <path d="M9 14l3-1 3 1" />
+      {/* Antebrazos */}
+      <path d="M2 13v3l3-1v-3.5" />
+      <path d="M22 13v3l-3-1v-3.5" />
+      {/* Pulgares apretándose */}
+      <path d="M11 13.5l1-1 1 1" />
+    </svg>
+  ),
+
+  // Meta-medallas (1, 2, 3 estrellas)
+  coleccionista: (
+    <svg {...SVG_PROPS}><path d="M12 3l2.5 6 6.5.5-5 4.5 1.5 6.5L12 17l-5.5 3.5L8 14l-5-4.5L9.5 9z" /></svg>
+  ),
+  'maestro-coleccionista': (
+    <svg {...SVG_PROPS}><path d="M7 6l1.6 4 4.4.3-3.4 3 1 4.4L7 16l-3.6 1.7L4.4 13.3 1 10.3l4.4-.3z" /><path d="M17 6l1.6 4 4.4.3-3.4 3 1 4.4L17 16l-3.6 1.7L14.4 13.3 11 10.3l4.4-.3z" /><path d="M9 22h6" /></svg>
+  ),
+  'vitrina-llena': (
+    <svg {...SVG_PROPS}><path d="M5 5l1 3 3 .3-2.5 2.2.8 3-2.3-1.5-2.3 1.5.8-3L1 8.3l3-.3z" /><path d="M19 5l1 3 3 .3-2.5 2.2.8 3-2.3-1.5-2.3 1.5.8-3L15 8.3l3-.3z" /><path d="M12 11l1.4 4 4.1.3-3.2 2.7L15.5 23 12 20.5 8.5 23l1.2-4.7L6.5 15.3l4.1-.3z" /></svg>
+  ),
+}
+
+const CATEGORY_FALLBACK = {
+  pronostico: (<svg {...SVG_PROPS}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /></svg>),
+  engagement: (<svg {...SVG_PROPS}><path d="M12 3c0 4-4 5-4 9a4 4 0 0 0 8 0c0-2-1-3-2-4 0 2-1 3-2 3 0-3 2-5 0-8z" /></svg>),
+  mundial:    (<svg {...SVG_PROPS}><path d="M12 2l2.5 5 5.5.8-4 4 1 5.5L12 14.8 7 17.3 8 11.8 4 7.8l5.5-.8L12 2z" /></svg>),
+  social:     (<svg {...SVG_PROPS}><circle cx="9" cy="9" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M3 19c0-3 3-5 6-5s6 2 6 5" /><path d="M14 14c2 0 5 1.5 5 4" /></svg>),
+  meta:       (<svg {...SVG_PROPS}><path d="M12 2l2.5 7h7l-5.7 4.5L18 21l-6-4.5L6 21l2.2-7.5L2.5 9h7L12 2z" /></svg>),
+}
+
+function AchievementGlyph({ slug, category }) {
+  return SLUG_GLYPH[slug] || CATEGORY_FALLBACK[category] || null
+}
+
+// Compatibilidad — ChampionPickCard sigue usando CategoryGlyph
 function CategoryGlyph({ category }) {
-  const props = { width: 36, height: 36, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
-  switch (category) {
-    case 'pronostico':
-      return (<svg {...props}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /></svg>)
-    case 'engagement':
-      return (<svg {...props}><path d="M12 3c0 4-4 5-4 9a4 4 0 0 0 8 0c0-2-1-3-2-4 0 2-1 3-2 3 0-3 2-5 0-8z" /></svg>)
-    case 'mundial':
-      return (<svg {...props}><path d="M12 2l2.5 5 5.5.8-4 4 1 5.5L12 14.8 7 17.3 8 11.8 4 7.8l5.5-.8L12 2z" /></svg>)
-    case 'social':
-      return (<svg {...props}><circle cx="9" cy="9" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M3 19c0-3 3-5 6-5s6 2 6 5" /><path d="M14 14c2 0 5 1.5 5 4" /></svg>)
-    case 'meta':
-      return (<svg {...props}><path d="M12 2l2.5 7h7l-5.7 4.5L18 21l-6-4.5L6 21l2.2-7.5L2.5 9h7L12 2z" /></svg>)
-    default:
-      return null
-  }
+  return CATEGORY_FALLBACK[category] || null
 }
 
 // Componente reusable: una medalla individual (lockeada = silueta gris, desbloqueada = a color)
@@ -186,8 +301,10 @@ function AchievementBadge({ achievement, unlocked, size = 88, onClick }) {
   const grayEnd   = '#1a1d24'
   const fillStart = unlocked ? start : grayStart
   const fillEnd   = unlocked ? end   : grayEnd
-  const stroke    = unlocked ? '#FFD250' : '#444a55'
+  const stroke    = unlocked ? '#FFD250' : '#3a4150'
   const glow      = unlocked ? `drop-shadow(0 0 12px ${end}88)` : 'none'
+  // Silueta del ícono cuando está locked: gris claro sólido (forma nítida pero sin tier color)
+  const iconColor = unlocked ? '#fff' : '#a5afbf'
   return (
     <button
       type="button"
@@ -206,8 +323,8 @@ function AchievementBadge({ achievement, unlocked, size = 88, onClick }) {
         <polygon points="50,2 60,12 50,16 40,12" fill={fillStart} opacity={unlocked ? 0.9 : 0.5} />
         <circle cx="50" cy="55" r="38" fill={`url(#grad-${achievement.slug})`} stroke={stroke} strokeWidth="2.5" />
         <circle cx="50" cy="55" r="32" fill="none" stroke={stroke} strokeWidth="0.7" opacity="0.6" />
-        <g transform="translate(32, 38)" color={unlocked ? '#fff' : '#525866'} opacity={unlocked ? 1 : 0.55}>
-          <CategoryGlyph category={achievement.category} />
+        <g transform="translate(32, 37)" color={iconColor}>
+          <AchievementGlyph slug={achievement.slug} category={achievement.category} />
         </g>
       </svg>
       <div className="badge__name">{achievement.name}</div>
