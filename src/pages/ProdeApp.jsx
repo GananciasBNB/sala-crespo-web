@@ -1676,6 +1676,32 @@ const FALLBACK_TOURNAMENT_URL  = 'https://docs.google.com/forms/d/1sOfBSy8FXm-nc
 // ─── Staff Portal ─────────────────────────────────────────────────────────────
 // Activado por ?staff=CODIGO en la URL. Pantalla dedicada que vende la idea +
 // permite registrarse como empleado + recibe sugerencias del staff.
+// Iconos SVG line-art para reemplazar emojis del portal (más premium, sin emojis)
+function SPIcon({ name, size = 28 }) {
+  const p = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true }
+  switch (name) {
+    case 'ball':     return (<svg {...p}><circle cx="12" cy="12" r="9" /><path d="M12 3l3 5-3 4-3-4z" /><path d="M12 12l4 3-1.5 5h-5L8 15z" /></svg>)
+    case 'target':   return (<svg {...p}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none" /></svg>)
+    case 'trophy':   return (<svg {...p}><path d="M7 4h10v4a5 5 0 0 1-10 0V4z" /><path d="M7 6H4a3 3 0 0 0 3 5" /><path d="M17 6h3a3 3 0 0 1-3 5" /><path d="M9 14h6v3l-1 4h-4l-1-4z" /><path d="M8 21h8" /></svg>)
+    case 'star':     return (<svg {...p}><path d="M12 2.5l2.6 6 6.4.5-4.9 4.2 1.5 6.3L12 16.3 6.4 19.5l1.5-6.3L3 9l6.4-.5z" /></svg>)
+    case 'gift':     return (<svg {...p}><rect x="3" y="9" width="18" height="11" rx="1.5" /><path d="M3 13h18" /><path d="M12 9v11" /><path d="M12 9c-2-3-5-3-5-1 0 2 3 1 5 1zm0 0c2-3 5-3 5-1 0 2-3 1-5 1z" /></svg>)
+    case 'medal':    return (<svg {...p}><circle cx="12" cy="14" r="6" /><path d="M9 8L7 3h4l1.5 4M15 8l2-5h-4l-1.5 4" /><path d="M12 11.5L13 14h2.5l-2 1.5.7 2.5L12 16.5 9.8 18l.7-2.5L8.5 14H11z" /></svg>)
+    case 'crystal':  return (<svg {...p}><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3.2" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /></svg>)
+    case 'warning':  return (<svg {...p}><path d="M12 3l10 17H2z" /><path d="M12 9v5" /><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none" /></svg>)
+    case 'wave':     return (<svg {...p}><path d="M9 11V4a1.5 1.5 0 0 1 3 0v6" /><path d="M12 5a1.5 1.5 0 0 1 3 0v6" /><path d="M15 7a1.5 1.5 0 0 1 3 0v8a6 6 0 0 1-12 0v-3a1.5 1.5 0 0 1 3 0" /></svg>)
+    case 'showcase': return (<svg {...p}><rect x="3" y="3" width="18" height="14" rx="1.5" /><path d="M3 8h18" /><circle cx="8" cy="13" r="1.5" /><circle cx="16" cy="13" r="1.5" /><path d="M8 21l1-4M16 21l-1-4" /></svg>)
+    case 'sparkles': return (<svg {...p}><path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5z" /><path d="M19 14l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z" /><path d="M5 17l.5 1.5L7 19l-1.5.5L5 21l-.5-1.5L3 19l1.5-.5z" /></svg>)
+    case 'bulb':     return (<svg {...p}><path d="M9 18h6" /><path d="M10 21h4" /><path d="M9 15c-2-1-3-3-3-5a6 6 0 0 1 12 0c0 2-1 4-3 5" /><path d="M9 15h6" /></svg>)
+    case 'bug':      return (<svg {...p}><ellipse cx="12" cy="13" rx="5" ry="6" /><path d="M12 7v12M7 13H3M21 13h-4M5 8l2 2M5 18l2-2M19 8l-2 2M19 18l-2-2M9 4l1 2M15 4l-1 2" /></svg>)
+    case 'question': return (<svg {...p}><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.4-1 1-1 1.7" /><circle cx="12" cy="17" r=".8" fill="currentColor" stroke="none" /></svg>)
+    case 'pencil':   return (<svg {...p}><path d="M16 3l5 5-12 12H4v-5z" /><path d="M14 5l5 5" /></svg>)
+    case 'arm':      return (<svg {...p}><path d="M5 11c0-3 2-5 5-5h3v3l-2 1c0 2 1 4 3 4 2 0 3-1 3-3" /><path d="M14 14c0 3-2 5-5 5H6v-3" /></svg>)
+    case 'paperclip':return (<svg {...p}><path d="M21 11l-9 9a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8" /></svg>)
+    case 'check':    return (<svg {...p}><circle cx="12" cy="12" r="9" /><path d="M8 12.5l3 3 5-6" /></svg>)
+    default: return null
+  }
+}
+
 function StaffPortal({ staffCode, player, onLogin, onExit }) {
   const [showRegister, setShowRegister] = useState(false)
   const [showLogin, setShowLogin]       = useState(false)
@@ -1761,11 +1787,24 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <p className="staff-portal__subtitle">Sala de Juegos Crespo · Acceso exclusivo para el staff</p>
         </header>
 
+        {/* Aviso compacto al tope: solo para staff, no compartir */}
+        {isLoggedIn ? (
+          <div className="staff-portal__bar staff-portal__bar--ok">
+            <SPIcon name="wave" size={18} />
+            <span>Hola, <strong>{firstName}</strong>. Bienvenido al Prode. El form de sugerencias está al final.</span>
+          </div>
+        ) : (
+          <div className="staff-portal__bar staff-portal__bar--warn">
+            <SPIcon name="warning" size={18} />
+            <span>Acceso exclusivo para colaboradores de Sala Crespo. <strong>No compartas este link con clientes.</strong></span>
+          </div>
+        )}
+
         {/* Hook: invitación cálida al staff + 3 cards con beneficios concretos */}
         {!isLoggedIn && (
           <section className="staff-portal__hook">
             <h2 className="staff-portal__hook-headline">
-              ⚽ Se acerca el Mundial y, como colaborador de Sala Crespo, queremos invitarte a participar del Prode 2026.
+              Se acerca el Mundial y, como colaborador de Sala Crespo, queremos invitarte a participar del Prode 2026.
             </h2>
             <p className="staff-portal__hook-intro">
               En unos días arrancamos el <strong>Prode Mundial 2026</strong> para nuestros clientes.
@@ -1793,34 +1832,16 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
                 </div>
               </div>
               <div className="sp-hook-card">
-                <div className="sp-hook-card__icon">💪</div>
+                <div className="sp-hook-card__icon">🎉</div>
                 <div className="sp-hook-card__title">¿Por qué te queremos adentro?</div>
                 <div className="sp-hook-card__text">
-                  Tu mirada nos importa. Mientras jugás, si ves algo raro o tenés ideas para mejorar,
-                  mandanos. <strong>Tu feedback va a definir cómo abrimos esto al público.</strong>
+                  Antes que nada, <strong>queremos que la pases bien</strong>: que vivas el Mundial
+                  con tu equipo, sumes medallas y compitas por los premios.
+                  Si en el camino tenés ideas o ves algo raro, mandanos — pero lo primero es divertirse.
                 </div>
               </div>
             </div>
           </section>
-        )}
-
-        {/* Banner — varía si está logueado o no */}
-        {isLoggedIn ? (
-          <div className="staff-portal__welcome">
-            <div className="staff-portal__welcome-icon">👋</div>
-            <div>
-              <strong>Hola, {firstName}.</strong>
-              <p>Ya estás dentro del Prode. Si querés mandarnos una sugerencia, el form está al final. O entrá al Prode a cargar pronósticos.</p>
-            </div>
-          </div>
-        ) : (
-          <div className="staff-portal__warn">
-            <div className="staff-portal__warn-icon">⚠️</div>
-            <div>
-              <strong>Este link es solo para empleados de Sala de Juegos Crespo.</strong>
-              <p>La competencia para clientes abre en los próximos días. <strong>Por favor no lo compartas con nadie de afuera</strong> — esta versión es para que ustedes la prueben primero.</p>
-            </div>
-          </div>
         )}
 
         {/* Stats hero — números grandes que llaman la atención */}
@@ -1835,7 +1856,10 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           </div>
           <div className="sp-stat">
             <div className="sp-stat__num">×2</div>
-            <div className="sp-stat__label">en partidos de Argentina ⭐</div>
+            <div className="sp-stat__label">
+              en partidos de Argentina
+              <img src="https://flagcdn.com/w40/ar.png" alt="" className="sp-stat__flag" />
+            </div>
           </div>
         </div>
 
@@ -1879,8 +1903,9 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           </div>
         </div>
         <div className="staff-portal__arg">
-          <span className="staff-portal__arg-icon">⭐</span>
+          <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="staff-portal__arg-flag" />
           <div><strong>Los partidos de Argentina valen el doble.</strong> Cada gol que metan los nuestros suma más en tu cuenta.</div>
+          <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="staff-portal__arg-flag" />
         </div>
 
         {/* Profeta hero */}
