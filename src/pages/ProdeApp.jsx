@@ -1879,7 +1879,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <div className="sp-step">
             <div className="sp-step__num">3</div>
             <div className="sp-step__title">Sumás puntos</div>
-            <div className="sp-step__text">Cuanto mejor acertaste, más puntos sumás.</div>
+            <div className="sp-step__text">Cuanto mejor predecís, más puntos sumás.</div>
           </div>
         </div>
 
