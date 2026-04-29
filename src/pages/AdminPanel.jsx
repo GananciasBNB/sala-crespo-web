@@ -833,7 +833,15 @@ function labelToDatetime(label) {
   if (!label) return ''
   // si ya viene en formato datetime-local, devolverlo tal cual
   if (/^\d{4}-\d{2}-\d{2}T/.test(label)) return label
-  return ''
+  // Parseo del label "26 de Marzo · 21:30 hs"
+  const meses = { enero:'01',febrero:'02',marzo:'03',abril:'04',mayo:'05',junio:'06',julio:'07',agosto:'08',septiembre:'09',octubre:'10',noviembre:'11',diciembre:'12' }
+  const m = label.match(/^(\d{1,2})\s+de\s+([A-Za-zÁÉÍÓÚáéíóú]+)\s*·\s*(\d{1,2}):(\d{2})/)
+  if (!m) return ''
+  const [, dia, mesNombre, hh, mm] = m
+  const mes = meses[mesNombre.toLowerCase()]
+  if (!mes) return ''
+  const year = new Date().getFullYear()
+  return `${year}-${mes}-${String(dia).padStart(2, '0')}T${String(hh).padStart(2, '0')}:${mm}`
 }
 // Convierte "2026-03-26T21:30" → "26 de Marzo · 21:30 hs"
 function datetimeToLabel(dt) {
@@ -848,31 +856,42 @@ function datetimeToLabel(dt) {
   return `${dia} de ${mes} · ${hh}:${mm} hs`
 }
 
+// Componente dedicado para fechas: state interno en formato datetime-local
+// (yyyy-MM-ddTHH:mm) y label generado solo al guardar.
+function DatetimeField({ field, value, saving, onSave }) {
+  const [dt, setDt] = useState(() => labelToDatetime(value))
+  // Si el valor cargado desde DB cambia (al volver a la pestaña), re-sincronizamos
+  useEffect(() => { setDt(labelToDatetime(value)) }, [value])
+
+  const previewLabel = datetimeToLabel(dt)
+  return (
+    <div className="ap-content-field">
+      <label className="ap-label">{field.label}</label>
+      <input
+        className="ap-input"
+        type="datetime-local"
+        value={dt}
+        onChange={e => setDt(e.target.value)}
+      />
+      {previewLabel && <p className="ap-field-preview">Se mostrará como: <strong>{previewLabel}</strong></p>}
+      <button
+        className="ap-btn ap-btn--primary ap-btn--sm"
+        onClick={() => onSave(previewLabel || dt)}
+        disabled={saving || !dt}
+      >
+        {saving ? 'Guardando...' : '✓ Guardar fecha'}
+      </button>
+    </div>
+  )
+}
+
 function ContentField({ field, value, saving, onSave }) {
   const [val, setVal] = useState(value)
   useEffect(() => setVal(value), [value])
 
   // Tipo datetime — date picker + preview del texto generado
   if (field.type === 'datetime') {
-    const dtVal = labelToDatetime(val) || ''
-    return (
-      <div className="ap-content-field">
-        <label className="ap-label">{field.label}</label>
-        <input
-          className="ap-input"
-          type="datetime-local"
-          value={dtVal}
-          onChange={e => {
-            const label = datetimeToLabel(e.target.value)
-            setVal(label)
-          }}
-        />
-        {val && <p className="ap-field-preview">Se mostrará como: <strong>{val}</strong></p>}
-        <button className="ap-btn ap-btn--primary ap-btn--sm" onClick={() => onSave(val)} disabled={saving}>
-          {saving ? 'Guardando...' : '✓ Guardar fecha'}
-        </button>
-      </div>
-    )
+    return <DatetimeField field={field} value={value} saving={saving} onSave={onSave} />
   }
 
   // Tipo toggle — switch on/off
