@@ -295,7 +295,7 @@ function CategoryGlyph({ category }) {
 }
 
 // Componente reusable: una medalla individual (lockeada = silueta gris, desbloqueada = a color)
-function AchievementBadge({ achievement, unlocked, size = 88, onClick }) {
+function AchievementBadge({ achievement, unlocked, size = 88, onClick, showName = true }) {
   const [start, end] = TIER_GRAD[achievement.tier] || TIER_GRAD.bronze
   const grayStart = '#2a2f3a'
   const grayEnd   = '#1a1d24'
@@ -311,7 +311,7 @@ function AchievementBadge({ achievement, unlocked, size = 88, onClick }) {
       className={`badge ${unlocked ? 'badge--unlocked' : 'badge--locked'} badge--${achievement.tier}`}
       onClick={onClick}
       aria-label={achievement.name}
-      style={{ width: size, height: size + 22, filter: glow }}
+      style={{ width: size, height: showName ? size + 22 : size, filter: glow }}
     >
       <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
         <defs>
@@ -327,12 +327,12 @@ function AchievementBadge({ achievement, unlocked, size = 88, onClick }) {
           <AchievementGlyph slug={achievement.slug} category={achievement.category} />
         </g>
       </svg>
-      <div className="badge__name">{achievement.name}</div>
+      {showName && <div className="badge__name">{achievement.name}</div>}
     </button>
   )
 }
 
-// Card para tab Inicio: resumen con preview de las primeras 6 medallas + CTA "Ver todas"
+// Card para tab Inicio: hero con última medalla + grilla de próximas con descripción
 function MedalleroCard({ player, onOpenFull }) {
   const [data, setData] = useState(null)
   useEffect(() => {
@@ -340,33 +340,78 @@ function MedalleroCard({ player, onOpenFull }) {
     getMyAchievements(player.token).then(setData).catch(() => setData(null))
   }, [player?.token])
   if (!data) return null
-  const { catalog, totalUnlocked, totalCatalog } = data
-  const unlockedSet = new Set((data.unlocked || []).map(u => u.slug))
-  // Preview: primero las desbloqueadas, después las pendientes (sombreadas)
-  const sorted = [...catalog].sort((a, b) => (unlockedSet.has(b.slug) ? 1 : 0) - (unlockedSet.has(a.slug) ? 1 : 0))
-  const preview = sorted.slice(0, 6)
+  const { catalog, unlocked = [], totalUnlocked, totalCatalog } = data
+  const unlockedMap = Object.fromEntries(unlocked.map(u => [u.slug, u.unlockedAt]))
+  // Última desbloqueada (más reciente). Si no hay, marcamos null.
+  const lastUnlocked = unlocked.length > 0
+    ? catalog.find(a => a.slug === unlocked[0].slug)
+    : null
+  // Próximas 4 a desbloquear (las primeras locked del catálogo)
+  const nextUp = catalog.filter(a => !unlockedMap[a.slug]).slice(0, 4)
+  const pct = Math.round((totalUnlocked / Math.max(totalCatalog, 1)) * 100)
   return (
     <div className="medallero-card">
       <div className="medallero-card__head">
         <div>
           <h2 className="medallero-card__title">Tu Medallero</h2>
-          <p className="medallero-card__sub">{totalUnlocked} de {totalCatalog} medallas desbloqueadas</p>
+          <p className="medallero-card__sub">{totalUnlocked} de {totalCatalog} medallas · {pct}% completado</p>
         </div>
         <button className="medallero-card__cta" onClick={onOpenFull}>Ver todas →</button>
       </div>
       <div className="medallero-card__progress">
-        <div className="medallero-card__progress-fill" style={{ width: `${Math.round((totalUnlocked / Math.max(totalCatalog, 1)) * 100)}%` }} />
+        <div className="medallero-card__progress-fill" style={{ width: `${pct}%` }} />
       </div>
-      <div className="medallero-card__grid">
-        {preview.map(a => (
-          <AchievementBadge key={a.slug} achievement={a} unlocked={unlockedSet.has(a.slug)} size={72} onClick={onOpenFull} />
-        ))}
+
+      <div className="medallero-card__layout">
+        {/* HERO — última medalla obtenida o "estás por arrancar" */}
+        <div className="medallero-card__hero">
+          {lastUnlocked ? (
+            <>
+              <div className="medallero-card__hero-label">Última medalla</div>
+              <AchievementBadge achievement={lastUnlocked} unlocked={true} size={140} onClick={onOpenFull} showName={false} />
+              <div className="medallero-card__hero-name">{lastUnlocked.name}</div>
+              <div className="medallero-card__hero-desc">{lastUnlocked.description}</div>
+            </>
+          ) : (
+            <>
+              <div className="medallero-card__hero-label">Tu vitrina está vacía</div>
+              <div className="medallero-card__hero-empty-glyph">
+                <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#FFD250" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" opacity=".5">
+                  <path d="M12 2l2.5 7h7l-5.7 4.5L18 21l-6-4.5L6 21l2.2-7.5L2.5 9h7L12 2z" />
+                </svg>
+              </div>
+              <div className="medallero-card__hero-name">Tu primera medalla te espera</div>
+              <div className="medallero-card__hero-desc">Cargá tu primer pronóstico y desbloqueá la medalla "Bautismo" para arrancar la colección.</div>
+            </>
+          )}
+        </div>
+
+        {/* COLUMNA DERECHA — próximas a desbloquear, con descripción visible */}
+        <div className="medallero-card__upcoming">
+          <div className="medallero-card__upcoming-label">Próximas a desbloquear</div>
+          <div className="medallero-card__upcoming-list">
+            {nextUp.map(a => (
+              <button
+                key={a.slug}
+                type="button"
+                className="medallero-card__upcoming-item"
+                onClick={onOpenFull}
+              >
+                <AchievementBadge achievement={a} unlocked={false} size={64} showName={false} />
+                <div className="medallero-card__upcoming-text">
+                  <div className="medallero-card__upcoming-name">{a.name}</div>
+                  <div className="medallero-card__upcoming-desc">{a.description}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )
 }
 
-// Modal con el grid completo del medallero, agrupado por categoría
+// Modal con el grid completo del medallero — cards horizontales con descripción visible
 function MedalleroFull({ player, onClose }) {
   const [data, setData] = useState(null)
   const [selected, setSelected] = useState(null)
@@ -379,25 +424,74 @@ function MedalleroFull({ player, onClose }) {
   const byCat = {}
   for (const a of data.catalog) (byCat[a.category] ||= []).push(a)
   const order = ['pronostico', 'mundial', 'engagement', 'social', 'meta']
+  const TIER_LABEL = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', special: 'Especial' }
+  const pct = Math.round((data.totalUnlocked / Math.max(data.totalCatalog, 1)) * 100)
   return (
     <div className="medallero-modal" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="medallero-modal__inner">
         <button className="medallero-modal__close" onClick={onClose}>✕</button>
-        <h2 className="medallero-modal__title">Medallero</h2>
-        <p className="medallero-modal__sub">{data.totalUnlocked} de {data.totalCatalog} desbloqueadas. Tocá una medalla para ver el detalle.</p>
+        <div className="medallero-modal__header">
+          <div>
+            <div className="medallero-modal__eyebrow">Vitrina personal</div>
+            <h2 className="medallero-modal__title">Medallero</h2>
+            <p className="medallero-modal__sub">{data.totalUnlocked} de {data.totalCatalog} desbloqueadas · {pct}% completado</p>
+          </div>
+          <div className="medallero-modal__progress-wrap">
+            <svg viewBox="0 0 120 120" width="120" height="120" aria-hidden="true">
+              <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="9" />
+              <circle
+                cx="60" cy="60" r="50" fill="none"
+                stroke="url(#progressGrad)" strokeWidth="9" strokeLinecap="round"
+                strokeDasharray={`${(pct / 100) * Math.PI * 100} ${Math.PI * 100}`}
+                transform="rotate(-90 60 60)"
+              />
+              <defs>
+                <linearGradient id="progressGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%"  stopColor="#C41E3A" />
+                  <stop offset="100%" stopColor="#FFD250" />
+                </linearGradient>
+              </defs>
+              <text x="60" y="58" textAnchor="middle" fill="#FFD250" fontSize="26" fontFamily="'Bebas Neue', sans-serif" fontWeight="700">{data.totalUnlocked}</text>
+              <text x="60" y="76" textAnchor="middle" fill="#B0B8C4" fontSize="11">de {data.totalCatalog}</text>
+            </svg>
+          </div>
+        </div>
+
         {order.map(cat => byCat[cat] ? (
           <div key={cat} className="medallero-modal__section">
-            <h3 className="medallero-modal__section-title">{CATEGORY_LABEL[cat]}</h3>
+            <div className="medallero-modal__section-head">
+              <span className="medallero-modal__section-bar" />
+              <h3 className="medallero-modal__section-title">{CATEGORY_LABEL[cat]}</h3>
+              <span className="medallero-modal__section-count">
+                {byCat[cat].filter(a => unlockedMap[a.slug]).length} / {byCat[cat].length}
+              </span>
+            </div>
             <div className="medallero-modal__grid">
-              {byCat[cat].map(a => (
-                <AchievementBadge
-                  key={a.slug}
-                  achievement={a}
-                  unlocked={!!unlockedMap[a.slug]}
-                  size={84}
-                  onClick={() => setSelected({ ...a, unlockedAt: unlockedMap[a.slug] })}
-                />
-              ))}
+              {byCat[cat].map(a => {
+                const isUnlocked = !!unlockedMap[a.slug]
+                return (
+                  <button
+                    key={a.slug}
+                    type="button"
+                    className={`mm-card ${isUnlocked ? 'mm-card--unlocked' : 'mm-card--locked'} mm-card--${a.tier}`}
+                    onClick={() => setSelected({ ...a, unlockedAt: unlockedMap[a.slug] })}
+                  >
+                    <AchievementBadge achievement={a} unlocked={isUnlocked} size={76} showName={false} />
+                    <div className="mm-card__body">
+                      <div className="mm-card__top">
+                        <span className="mm-card__name">{a.name}</span>
+                        <span className={`mm-card__tier mm-card__tier--${a.tier}`}>{TIER_LABEL[a.tier]}</span>
+                      </div>
+                      <div className="mm-card__desc">{a.description}</div>
+                      <div className="mm-card__status">
+                        {isUnlocked
+                          ? <span className="mm-card__status-pill mm-card__status-pill--ok">✓ Desbloqueada</span>
+                          : <span className="mm-card__status-pill mm-card__status-pill--locked">Por desbloquear</span>}
+                      </div>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </div>
         ) : null)}
@@ -405,7 +499,7 @@ function MedalleroFull({ player, onClose }) {
           <div className="medallero-modal__detail" onClick={() => setSelected(null)}>
             <div className="medallero-modal__detail-card" onClick={e => e.stopPropagation()}>
               <button className="medallero-modal__close" onClick={() => setSelected(null)}>✕</button>
-              <AchievementBadge achievement={selected} unlocked={!!selected.unlockedAt} size={140} />
+              <AchievementBadge achievement={selected} unlocked={!!selected.unlockedAt} size={160} showName={false} />
               <h3 className="medallero-modal__detail-name">{selected.name}</h3>
               <p className="medallero-modal__detail-desc">{selected.description}</p>
               {selected.unlockedAt

@@ -2437,15 +2437,82 @@
 
 .medallero-card__progress {
   height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden;
-  margin: 4px 0 14px;
+  margin: 4px 0 18px;
 }
 .medallero-card__progress-fill {
   height: 100%; background: linear-gradient(90deg, #C41E3A, #FFD250);
   border-radius: 3px; transition: width .6s ease;
 }
-.medallero-card__grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
-  gap: 16px 8px; justify-items: center;
+
+/* Layout 2 columnas: hero | upcoming list */
+.medallero-card__layout {
+  display: grid; grid-template-columns: minmax(280px, 1fr) 2fr;
+  gap: 24px; align-items: stretch;
+}
+
+/* Columna izquierda: hero con la última medalla obtenida */
+.medallero-card__hero {
+  background: linear-gradient(160deg, rgba(255,210,80,.08), rgba(196,30,58,.06));
+  border: 1px solid rgba(255,210,80,.22);
+  border-radius: 14px;
+  padding: 20px 18px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; gap: 10px;
+  position: relative; overflow: hidden;
+}
+.medallero-card__hero::before {
+  content: ''; position: absolute; inset: -20%;
+  background: radial-gradient(circle at 50% 0%, rgba(255,210,80,.18), transparent 60%);
+  pointer-events: none;
+}
+.medallero-card__hero > * { position: relative; }
+.medallero-card__hero-label {
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px;
+  color: #FFD250; font-size: 13px; text-transform: uppercase;
+}
+.medallero-card__hero-name {
+  font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+  letter-spacing: 1px; color: #fff; text-transform: uppercase;
+  line-height: 1; margin-top: 4px;
+}
+.medallero-card__hero-desc {
+  color: #c8d0dc; font-size: 13px; line-height: 1.4; max-width: 240px;
+}
+.medallero-card__hero-empty-glyph {
+  display: flex; align-items: center; justify-content: center;
+  width: 140px; height: 140px;
+  border: 2px dashed rgba(255,210,80,.35); border-radius: 50%;
+  margin: 6px 0;
+}
+
+/* Columna derecha: lista de próximas a desbloquear con descripción */
+.medallero-card__upcoming {
+  display: flex; flex-direction: column; gap: 10px; min-width: 0;
+}
+.medallero-card__upcoming-label {
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 2px;
+  color: #B0B8C4; font-size: 13px; text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.medallero-card__upcoming-list { display: flex; flex-direction: column; gap: 8px; }
+.medallero-card__upcoming-item {
+  display: flex; align-items: center; gap: 14px;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px; padding: 10px 14px; cursor: pointer;
+  transition: all .2s ease; text-align: left; color: inherit;
+}
+.medallero-card__upcoming-item:hover {
+  background: rgba(255,210,80,.06); border-color: rgba(255,210,80,.3);
+  transform: translateX(3px);
+}
+.medallero-card__upcoming-text { flex: 1; min-width: 0; }
+.medallero-card__upcoming-name {
+  font-family: 'Bebas Neue', sans-serif; font-size: 18px;
+  letter-spacing: .8px; color: #fff; text-transform: uppercase;
+  line-height: 1.1;
+}
+.medallero-card__upcoming-desc {
+  color: #B0B8C4; font-size: 12.5px; line-height: 1.35; margin-top: 3px;
 }
 
 /* Una medalla individual (badge) */
@@ -2481,21 +2548,95 @@
   display: flex; align-items: center; justify-content: center;
 }
 .medallero-modal__close:hover { background: rgba(255,255,255,.12); }
+.medallero-modal__header {
+  display: flex; gap: 24px; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; margin-bottom: 28px;
+  padding-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.medallero-modal__eyebrow {
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 3px;
+  color: #C41E3A; font-size: 13px; text-transform: uppercase; margin-bottom: 4px;
+}
 .medallero-modal__title {
-  font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1.5px;
-  margin: 0; color: #FFD250; text-transform: uppercase;
+  font-family: 'Bebas Neue', sans-serif; font-size: 44px; letter-spacing: 2px;
+  margin: 0; color: #FFD250; text-transform: uppercase; line-height: 1;
 }
-.medallero-modal__sub { color: #B0B8C4; font-size: 14px; margin: 6px 0 24px; }
-.medallero-modal__section { margin-bottom: 28px; }
+.medallero-modal__sub { color: #B0B8C4; font-size: 14px; margin: 8px 0 0; }
+.medallero-modal__progress-wrap {
+  flex-shrink: 0; filter: drop-shadow(0 0 18px rgba(255,210,80,.15));
+}
+
+.medallero-modal__section { margin-bottom: 32px; }
+.medallero-modal__section-head {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 16px;
+}
+.medallero-modal__section-bar {
+  width: 4px; height: 22px; border-radius: 2px;
+  background: linear-gradient(180deg, #C41E3A, #FFD250);
+}
 .medallero-modal__section-title {
-  font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px;
-  color: #C41E3A; margin: 0 0 14px 0; text-transform: uppercase;
-  border-left: 3px solid #C41E3A; padding-left: 10px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 24px; letter-spacing: 1.5px;
+  color: #fff; margin: 0; text-transform: uppercase; flex: 1;
 }
+.medallero-modal__section-count {
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px;
+  color: #FFD250; font-size: 16px;
+  background: rgba(255,210,80,.1); padding: 4px 10px; border-radius: 6px;
+}
+
 .medallero-modal__grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 18px 12px; justify-items: center;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
 }
+
+/* Card individual del modal — horizontal: medalla + texto + descripción + status */
+.mm-card {
+  display: flex; gap: 14px; align-items: center;
+  background: linear-gradient(135deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+  border: 1px solid rgba(255,255,255,.08); border-radius: 12px;
+  padding: 12px 14px; cursor: pointer;
+  text-align: left; color: inherit; transition: all .2s ease;
+  position: relative; overflow: hidden;
+}
+.mm-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: rgba(255,255,255,.1); transition: background .2s ease;
+}
+.mm-card--unlocked::before          { background: linear-gradient(180deg, #FFD250, #C41E3A); }
+.mm-card--unlocked.mm-card--special::before { background: linear-gradient(180deg, #ff3556, #C41E3A); }
+.mm-card:hover {
+  border-color: rgba(255,210,80,.35); transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(0,0,0,.35);
+}
+.mm-card--unlocked {
+  background: linear-gradient(135deg, rgba(255,210,80,.06), rgba(196,30,58,.04));
+  border-color: rgba(255,210,80,.28);
+}
+.mm-card--locked { opacity: .85; }
+.mm-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.mm-card__top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mm-card__name {
+  font-family: 'Bebas Neue', sans-serif; font-size: 19px; letter-spacing: .8px;
+  color: #fff; text-transform: uppercase; line-height: 1; flex: 1; min-width: 0;
+}
+.mm-card__tier {
+  font-family: 'Bebas Neue', sans-serif; font-size: 11px; letter-spacing: 1.2px;
+  padding: 2px 8px; border-radius: 4px; text-transform: uppercase;
+}
+.mm-card__tier--bronze  { background: rgba(201,146,63,.18); color: #d4a35e; }
+.mm-card__tier--silver  { background: rgba(182,192,208,.14); color: #c4cad6; }
+.mm-card__tier--gold    { background: rgba(255,210,80,.18); color: #FFD250; }
+.mm-card__tier--special { background: rgba(196,30,58,.20); color: #ff7585; }
+.mm-card__desc {
+  color: #c8d0dc; font-size: 12.5px; line-height: 1.4;
+}
+.mm-card__status { margin-top: 2px; }
+.mm-card__status-pill {
+  display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 10px;
+  font-weight: 600;
+}
+.mm-card__status-pill--ok     { background: rgba(0,177,64,.15); color: #6FE198; }
+.mm-card__status-pill--locked { background: rgba(255,255,255,.05); color: #6c7585; font-style: italic; }
 .medallero-modal__detail {
   position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 5500;
   display: flex; align-items: center; justify-content: center; padding: 24px;
@@ -2623,12 +2764,17 @@
 .profeta-card__submit:disabled { opacity: .5; cursor: not-allowed; }
 .profeta-card__err { color: #ff6b7a; font-size: 13px; margin-top: 10px; }
 
+@media (max-width: 860px) {
+  .medallero-card__layout     { grid-template-columns: 1fr; }
+  .medallero-card__hero       { padding: 18px 14px; }
+}
 @media (max-width: 600px) {
-  .medallero-card__grid       { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 12px 6px; }
-  .medallero-modal__grid      { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 14px 8px; }
+  .medallero-modal__grid      { grid-template-columns: 1fr; }
   .medallero-modal__inner     { padding: 22px 16px; }
-  .medallero-modal__title     { font-size: 28px; }
+  .medallero-modal__title     { font-size: 32px; }
+  .medallero-modal__progress-wrap svg { width: 90px; height: 90px; }
   .profeta-card               { flex-direction: column; gap: 12px; }
   .profeta-card__form         { flex-direction: column; }
   .unlock-modal__name         { font-size: 30px; }
+  .mm-card__name              { font-size: 17px; }
 }
