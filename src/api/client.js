@@ -112,6 +112,12 @@ export const adminRedeemPrize = (token, id, ticketCode, notes) =>
 export const adminRevokePrize = (token, id) =>
   api(`/api/admin/prizes/${id}/revoke`, { method: 'POST', headers: authHeaders(token) })
 
+// ─── Racha del Hincha ─────────────────────────────────────────────────────────
+export const getMyStreak = (token) =>
+  api('/api/me/streak', { headers: authHeaders(token) })
+export const getTopStreaks = () =>
+  api('/api/streaks/top')
+
 export const adminGetPlayers = (token) =>
   api('/api/admin/players', { headers: authHeaders(token) })
 

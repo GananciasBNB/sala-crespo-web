@@ -1696,6 +1696,187 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════ */
+/* ─── Racha del Hincha (StreakCard) ──────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════ */
+.streak-section {
+  max-width: 900px;
+  margin: 32px auto 0;
+  padding: 0 20px;
+  text-align: center;
+}
+.streak-section__title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 2px;
+  color: var(--wc-gold);
+  margin: 0 0 6px;
+  line-height: 1.1;
+}
+.streak-section__sub {
+  font-size: 14px;
+  color: var(--wc-muted);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.streak-card {
+  --streak-color: #8B9BB4;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 28px;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid var(--streak-color);
+  border-radius: 16px;
+  padding: 28px 32px;
+  text-align: left;
+  transition: border-color .2s, box-shadow .2s;
+  position: relative;
+  overflow: hidden;
+}
+.streak-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top right, var(--streak-color) 0%, transparent 50%);
+  opacity: 0.05;
+  pointer-events: none;
+}
+.streak-card--leyenda {
+  border-color: var(--streak-color);
+  box-shadow: 0 0 40px rgba(255, 215, 0, 0.15);
+}
+.streak-card--idolo,
+.streak-card--leyenda {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(196,30,58,0.06) 100%);
+}
+
+/* Visual: anillo + número central */
+.streak-card__visual {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+.streak-card__ring {
+  width: 100%;
+  height: 100%;
+}
+.streak-card__ring-bg {
+  fill: none;
+  stroke: rgba(255,255,255,0.06);
+  stroke-width: 8;
+}
+.streak-card__ring-fg {
+  fill: none;
+  stroke: var(--streak-color);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1);
+  filter: drop-shadow(0 0 8px var(--streak-color));
+}
+.streak-card__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.streak-card__number {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 64px;
+  letter-spacing: -1px;
+  color: #fff;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.streak-card--leyenda .streak-card__number {
+  color: var(--streak-color);
+  text-shadow: 0 0 20px var(--streak-color);
+}
+.streak-card__unit {
+  font-size: 12px;
+  color: var(--wc-muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* Info derecha */
+.streak-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.streak-card__rank {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  letter-spacing: 2px;
+  color: var(--streak-color);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.streak-card__sub {
+  font-size: 14px;
+  color: var(--wc-text);
+  margin: 0;
+  line-height: 1.5;
+}
+.streak-card__sub strong { color: var(--wc-gold); }
+
+.streak-card__progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.streak-card__progress-track {
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.streak-card__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--streak-color) 0%, var(--wc-gold) 100%);
+  border-radius: 999px;
+  transition: width 1s ease;
+}
+.streak-card__progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--wc-muted);
+}
+.streak-card__progress-label strong { color: var(--wc-text); }
+
+.streak-card__best {
+  font-size: 12px;
+  color: var(--wc-muted);
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .streak-card {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 22px 18px;
+    text-align: center;
+  }
+  .streak-card__visual { width: 140px; height: 140px; margin: 0 auto; }
+  .streak-card__number { font-size: 54px; }
+  .streak-card__rank { font-size: 26px; }
+  .streak-card__progress-label { font-size: 11px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════ */
 /* ─── Modo Promotora — pantalla dedicada para tablet ──────────── */
 /* ═══════════════════════════════════════════════════════════════ */
 .promo {

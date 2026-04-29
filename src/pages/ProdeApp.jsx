@@ -4,7 +4,7 @@ import {
   registerPlayer, loginPlayer, forgotPin,
   getMatches, getMyPredictions, savePrediction, savePredictionsBatch,
   getLeaderboard, getEmployeesLeaderboard, getRegistrationStatus,
-  getContent,
+  getContent, getMyStreak,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -144,6 +144,93 @@ function GroupsGrid() {
 }
 
 // ─── Prize Cards ──────────────────────────────────────────────────────────────
+// ─── Racha del Hincha ─────────────────────────────────────────────────────────
+function StreakCard({ player }) {
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!player?.token) { setLoading(false); return }
+    getMyStreak(player.token)
+      .then(setData)
+      .catch(() => setData(null))
+      .finally(() => setLoading(false))
+  }, [player?.token])
+
+  if (loading || !data) return null
+
+  const { current, best, rank, next, daysToNext, activeToday } = data
+  const isActive = current > 0
+  // Cálculo del progreso al siguiente rango
+  let progress = 0
+  if (next && rank) {
+    const span = next.min - rank.min
+    const done  = current - rank.min
+    progress = span > 0 ? Math.max(0, Math.min(100, (done / span) * 100)) : 100
+  } else if (!next) {
+    progress = 100
+  }
+
+  // Círculo SVG: 88 radio, perímetro = 553
+  const RADIUS = 78
+  const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+  const dashOffset = CIRCUMFERENCE * (1 - progress / 100)
+
+  return (
+    <div className={`streak-card streak-card--${rank.id}`} style={{ '--streak-color': rank.color }}>
+      <div className="streak-card__visual">
+        <svg className="streak-card__ring" viewBox="0 0 200 200" aria-hidden="true">
+          <circle className="streak-card__ring-bg" cx="100" cy="100" r={RADIUS} />
+          {isActive && (
+            <circle
+              className="streak-card__ring-fg"
+              cx="100" cy="100" r={RADIUS}
+              strokeDasharray={CIRCUMFERENCE}
+              strokeDashoffset={dashOffset}
+              transform="rotate(-90 100 100)"
+            />
+          )}
+        </svg>
+        <div className="streak-card__center">
+          <div className="streak-card__number">{current}</div>
+          <div className="streak-card__unit">{current === 1 ? 'día' : 'días'}</div>
+        </div>
+      </div>
+
+      <div className="streak-card__info">
+        <div className="streak-card__rank">{rank.label}</div>
+        {isActive ? (
+          <p className="streak-card__sub">
+            {activeToday
+              ? `Ya cargaste hoy. Volvé mañana para sumar otro día.`
+              : `Cargá un pronóstico antes de medianoche para no romper la racha.`}
+          </p>
+        ) : best > 0 ? (
+          <p className="streak-card__sub">Tu mejor racha fue de <strong>{best}</strong> {best === 1 ? 'día' : 'días'}. Empezá una nueva hoy.</p>
+        ) : (
+          <p className="streak-card__sub">Cargá tu primer pronóstico para arrancar tu racha.</p>
+        )}
+
+        {next && isActive && (
+          <div className="streak-card__progress">
+            <div className="streak-card__progress-track">
+              <div className="streak-card__progress-fill" style={{ width: `${progress}%` }} />
+            </div>
+            <div className="streak-card__progress-label">
+              <span>Próximo: <strong>{next.label}</strong></span>
+              <span>Faltan {daysToNext} {daysToNext === 1 ? 'día' : 'días'}</span>
+            </div>
+          </div>
+        )}
+
+        {best > current && (
+          <div className="streak-card__best">Récord personal: {best} días</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function PrizeCards() {
   const tiers = [
     {
@@ -1000,6 +1087,15 @@ function PublicHome({ player, onParticipa }) {
         </div>
         <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
       </div>
+
+      {/* Racha del Hincha — solo para player logueado */}
+      {player && (
+        <div className="streak-section">
+          <h2 className="streak-section__title">Racha del Hincha</h2>
+          <p className="streak-section__sub">Días consecutivos cargando pronósticos. No la rompas.</p>
+          <StreakCard player={player} />
+        </div>
+      )}
 
       {/* Info — al tope para que sea lo primero que lean */}
       <div className="pub-info">
