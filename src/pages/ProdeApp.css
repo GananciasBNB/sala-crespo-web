@@ -2832,7 +2832,7 @@
 }
 .staff-portal__inner {
   position: relative; z-index: 1;
-  max-width: 1080px; margin: 0 auto; padding: 32px 24px 60px;
+  max-width: 1200px; margin: 0 auto; padding: 32px 18px 60px;
 }
 
 .staff-portal__header {
@@ -2842,9 +2842,9 @@
   position: relative; overflow: hidden;
 }
 .staff-portal__logo {
-  width: 110px; height: 110px;
+  width: 140px; height: 140px;
   filter: drop-shadow(0 4px 14px rgba(196,30,58,.4)) drop-shadow(0 0 20px rgba(255,210,80,.25));
-  margin-bottom: 6px; position: relative; z-index: 2;
+  margin-bottom: 8px; position: relative; z-index: 2;
   animation: sp-logo-pulse 3.6s ease-in-out infinite;
 }
 @keyframes sp-logo-pulse {
@@ -2909,15 +2909,15 @@
   to   { transform: rotate(360deg) translateX(150px) rotate(-360deg); }
 }
 .staff-portal__eyebrow {
-  font-family: 'Bebas Neue', sans-serif; letter-spacing: 4px;
-  color: #C41E3A; font-size: 14px; text-transform: uppercase;
-  font-weight: 700; margin-bottom: 4px;
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 5px;
+  color: #C41E3A; font-size: 16px; text-transform: uppercase;
+  font-weight: 700; margin-bottom: 6px;
 }
 .staff-portal__title {
-  font-family: 'Bebas Neue', sans-serif; font-size: 44px; letter-spacing: 2px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 60px; letter-spacing: 2px;
   margin: 0; color: #FFD250; text-transform: uppercase; line-height: 1;
 }
-.staff-portal__subtitle { color: #B0B8C4; font-size: 14px; margin: 6px 0 0; letter-spacing: .3px; }
+.staff-portal__subtitle { color: #B0B8C4; font-size: 16px; margin: 10px 0 0; letter-spacing: .5px; }
 
 /* Barra fina compacta al tope (sustituye los banners grandes) */
 .staff-portal__bar {
@@ -3030,12 +3030,11 @@
   border-radius: 12px; padding: 20px 18px; text-align: center;
 }
 .sp-step__num {
-  font-family: 'Bebas Neue', sans-serif; font-size: 32px;
-  width: 64px; height: 64px; line-height: 64px;
-  background: url('/pelota.svg') center/contain no-repeat;
-  color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.7), 0 0 10px rgba(0,0,0,.5);
-  margin: 0 auto 12px;
-  filter: drop-shadow(0 6px 14px rgba(0,0,0,.45));
+  font-family: 'Bebas Neue', sans-serif; font-size: 36px;
+  width: 56px; height: 56px; line-height: 56px;
+  background: linear-gradient(135deg, #C41E3A, #ff3556); color: #fff;
+  border-radius: 50%; margin: 0 auto 12px;
+  box-shadow: 0 6px 14px rgba(196,30,58,.4);
 }
 .sp-step__title {
   font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px;
@@ -3389,7 +3388,8 @@
   .staff-portal__split         { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
-  .staff-portal__title           { font-size: 32px; }
+  .staff-portal__title           { font-size: 42px; }
+  .staff-portal__logo            { width: 110px; height: 110px; }
   .staff-portal__h2              { font-size: 22px; }
   .staff-portal__cta             { width: 100%; }
   .staff-portal__inner           { padding: 24px 16px 50px; }
