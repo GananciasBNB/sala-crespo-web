@@ -1983,17 +1983,6 @@ export default function ProdeApp() {
     return new URLSearchParams(window.location.search).get('promo') === '1'
   })
 
-  // Modo Staff — el tab "Tabla interna" solo aparece si ?staff=1 está en la URL
-  // (persiste en sessionStorage para que sobreviva navegación durante la sesión)
-  const [staffMode, setStaffMode] = useState(() => {
-    if (typeof window === 'undefined') return false
-    const fromUrl = new URLSearchParams(window.location.search).get('staff') === '1'
-    if (fromUrl) {
-      try { sessionStorage.setItem('prode_staff_mode', '1') } catch (e) {}
-      return true
-    }
-    try { return sessionStorage.getItem('prode_staff_mode') === '1' } catch { return false }
-  })
   function exitPromoMode() {
     setPromoMode(false)
     // Limpiar el query param sin recargar
@@ -2090,8 +2079,8 @@ export default function ProdeApp() {
     { id: 'inicio',      label: '🏠 Inicio' },
     { id: 'pronosticos', label: '🎯 Mis pronósticos' },
     { id: 'tabla',       label: '📊 Mi posición' },
-    // Tab interno: solo visible para empleados Y solo si llegaron con ?staff=1 (link interno)
-    ...(player.isEmployee && staffMode ? [{ id: 'tabla-interna', label: '🏢 Tabla interna' }] : []),
+    // Tab interno: visible automáticamente para empleados (el backend marca is_employee)
+    ...(player.isEmployee ? [{ id: 'tabla-interna', label: '🏢 Tabla interna' }] : []),
     { id: 'llaves',      label: '🗓️ Fixture' },
   ] : [
     { id: 'inicio', label: '🏠 Inicio' },
@@ -2181,7 +2170,7 @@ export default function ProdeApp() {
                 <LeaderboardView myId={player?.id} />
               </div>
             )}
-            {tab === 'tabla-interna' && player?.isEmployee && staffMode && (
+            {tab === 'tabla-interna' && player?.isEmployee && (
               <div className="prode-content">
                 <div style={{ background: 'rgba(155,31,31,0.12)', border: '1px solid rgba(155,31,31,0.4)', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
                   <div style={{ fontSize: 12, color: '#FF8888', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 'bold', marginBottom: 6 }}>🏢 Concurso Interno</div>
