@@ -1486,11 +1486,130 @@ function FixtureView({ matches }) {
 }
 
 // ─── Home Pública ─────────────────────────────────────────────────────────────
+// Hero compacto para usuario logueado: saludo + countdown + CTA, sin scroll de bienvenida
+function LoggedInBanner({ player, onParticipa }) {
+  const firstName = (player.name || '').split(' ')[0] || ''
+  return (
+    <div className="logged-banner">
+      <div className="logged-banner__bg" />
+      <div className="logged-banner__inner">
+        <div className="logged-banner__greet">
+          <div className="logged-banner__hi">Hola, <span>{firstName}</span></div>
+          <div className="logged-banner__sub">Bienvenido al Prode Mundial 2026</div>
+        </div>
+        <div className="logged-banner__countdown">
+          <MundialCountdown variant="inline" />
+        </div>
+        <button className="logged-banner__cta" onClick={onParticipa}>
+          🎯 Cargar mis pronósticos
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function PublicHome({ player, onParticipa }) {
   const [showMedalleroFull, setShowMedalleroFull] = useState(false)
+
+  // Bloques reutilizables (mismo render para ambos paths) para mantener un solo source of truth
+  const argBanner = (
+    <div className="arg-banner">
+      <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
+      <div className="arg-banner__text">
+        <strong>¡LOS PARTIDOS DE NUESTRA SELECCIÓN SUMAN DOBLE!</strong>
+        <span>Cada partido de Argentina vale el doble de puntos. ¡Dale Albiceleste!</span>
+      </div>
+      <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
+    </div>
+  )
+
+  const infoCards = (
+    <div className="pub-info">
+      <div className="pub-info__card">
+        <div className="pub-info__icon">🎯</div>
+        <h3>¿Cómo jugar?</h3>
+        <p>Registrate con tu DNI y un PIN de 4 dígitos. Pronosticá el marcador de cada partido antes de que empiece.</p>
+      </div>
+      <div className="pub-info__card">
+        <div className="pub-info__icon">⭐</div>
+        <h3>Sistema de puntos</h3>
+        <div className="pub-info__pts">
+          <div><span className="pts-badge pts-badge--gold">10 pts</span> Marcador exacto</div>
+          <div><span className="pts-badge pts-badge--silver">5 pts</span> Ganador o empate correcto</div>
+          <div><span className="pts-badge pts-badge--bronze">1 pt</span> Total de goles correcto</div>
+          <div className="pts-arg"><span>⭐ ×2</span> en partidos de Argentina</div>
+        </div>
+      </div>
+      <div className="pub-info__card">
+        <div className="pub-info__icon">🎁</div>
+        <h3>¿Cómo cobrar?</h3>
+        <p>Los premios son en tickets promocionales de Sala Crespo. El admin verifica identidad con DNI al finalizar la fase.</p>
+      </div>
+    </div>
+  )
+
+  const leaderboardBlock = (
+    <div className="pub-lb">
+      <div className="pub-lb__header">
+        <h2 className="pub-lb__title">🏆 Tabla de Posiciones</h2>
+        <p className="pub-lb__sub">{player ? 'Tu posición resaltada' : 'Actualizada en tiempo real'}</p>
+      </div>
+      <LeaderboardView myId={player?.id || null} />
+      <div className="pub-lb__cta">
+        {player ? (
+          <>
+            <p>Estás dentro del concurso 🎯</p>
+            <button className="pub-lb__btn" onClick={onParticipa}>Cargar mis pronósticos →</button>
+          </>
+        ) : (
+          <>
+            <p>¿Querés aparecer acá?</p>
+            <button className="pub-lb__btn" onClick={onParticipa}>Registrarme y jugar →</button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+
+  // ─── LAYOUT LOGUEADO: progreso primero, info al final ────────────────────────
+  if (player) {
+    return (
+      <div className="pub-home">
+        <LoggedInBanner player={player} onParticipa={onParticipa} />
+
+        {/* Profeta + Medallero — la información de valor para el que ya juega */}
+        <div className="medallero-section">
+          <ChampionPickCard player={player} />
+        </div>
+        <div className="medallero-section">
+          <MedalleroCard player={player} onOpenFull={() => setShowMedalleroFull(true)} />
+        </div>
+        {showMedalleroFull && (
+          <MedalleroFull player={player} onClose={() => setShowMedalleroFull(false)} />
+        )}
+
+        {/* Tabla — ego boost (su posición resaltada) */}
+        {leaderboardBlock}
+
+        {/* Premios — recordatorio de qué se gana */}
+        <PrizeCards />
+
+        {/* Banner Argentina — motivación */}
+        {argBanner}
+
+        {/* Grupos — referencia */}
+        <GroupsGrid />
+
+        {/* Cómo jugar — al final, ya lo sabe */}
+        {infoCards}
+      </div>
+    )
+  }
+
+  // ─── LAYOUT NO LOGUEADO: hero comercial + premios + info para convencer ───────
   return (
     <div className="pub-home">
-      {/* Hero */}
+      {/* Hero completo */}
       <div className="pub-hero">
         <div className="pub-hero__bg" />
         <div className="pub-hero__content">
@@ -1503,92 +1622,27 @@ function PublicHome({ player, onParticipa }) {
           <p className="pub-hero__sub">104 partidos · Premios reales · Gratis para todos los clientes</p>
           <MundialCountdown variant="hero" />
           <FlagTicker />
-          <button className="pub-hero__cta" onClick={onParticipa}>
-            {player ? `🎯 Cargar mis pronósticos` : '⚽ PARTICIPÁ AQUÍ'}
-          </button>
+          <button className="pub-hero__cta" onClick={onParticipa}>⚽ PARTICIPÁ AQUÍ</button>
         </div>
         <div className="pub-hero__balls">
           {['⚽','🌎','⚽','🌎','⚽'].map((e,i) => <span key={i} className={`pub-hero__ball pub-hero__ball--${i}`}>{e}</span>)}
         </div>
       </div>
 
-      {/* Banner Argentina */}
-      <div className="arg-banner">
-        <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
-        <div className="arg-banner__text">
-          <strong>¡LOS PARTIDOS DE NUESTRA SELECCIÓN SUMAN DOBLE!</strong>
-          <span>Cada partido de Argentina vale el doble de puntos. ¡Dale Albiceleste!</span>
-        </div>
-        <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
-      </div>
-
-      {/* Info — al tope para que sea lo primero que lean los nuevos */}
-      <div className="pub-info">
-        <div className="pub-info__card">
-          <div className="pub-info__icon">🎯</div>
-          <h3>¿Cómo jugar?</h3>
-          <p>Registrate con tu DNI y un PIN de 4 dígitos. Pronosticá el marcador de cada partido antes de que empiece.</p>
-        </div>
-        <div className="pub-info__card">
-          <div className="pub-info__icon">⭐</div>
-          <h3>Sistema de puntos</h3>
-          <div className="pub-info__pts">
-            <div><span className="pts-badge pts-badge--gold">10 pts</span> Marcador exacto</div>
-            <div><span className="pts-badge pts-badge--silver">5 pts</span> Ganador o empate correcto</div>
-            <div><span className="pts-badge pts-badge--bronze">1 pt</span> Total de goles correcto</div>
-            <div className="pts-arg"><span>⭐ ×2</span> en partidos de Argentina</div>
-          </div>
-        </div>
-        <div className="pub-info__card">
-          <div className="pub-info__icon">🎁</div>
-          <h3>¿Cómo cobrar?</h3>
-          <p>Los premios son en tickets promocionales de Sala Crespo. El admin verifica identidad con DNI al finalizar la fase.</p>
-        </div>
-      </div>
-
-      {/* Profeta + Medallero — solo para player logueado */}
-      {player && (
-        <>
-          <div className="medallero-section">
-            <ChampionPickCard player={player} />
-          </div>
-          <div className="medallero-section">
-            <MedalleroCard player={player} onOpenFull={() => setShowMedalleroFull(true)} />
-          </div>
-        </>
-      )}
-
-      {showMedalleroFull && player && (
-        <MedalleroFull player={player} onClose={() => setShowMedalleroFull(false)} />
-      )}
-
-      {/* Premios */}
+      {/* Premios — gancho monetario */}
       <PrizeCards />
 
-      {/* 48 equipos */}
-      <GroupsGrid />
+      {/* Cómo jugar — instrucciones */}
+      {infoCards}
 
-      {/* Tabla */}
-      <div className="pub-lb">
-        <div className="pub-lb__header">
-          <h2 className="pub-lb__title">🏆 Tabla de Posiciones</h2>
-          <p className="pub-lb__sub">Actualizada en tiempo real</p>
-        </div>
-        <LeaderboardView myId={player?.id || null} />
-        <div className="pub-lb__cta">
-          {player ? (
-            <>
-              <p>Estás dentro del concurso 🎯</p>
-              <button className="pub-lb__btn" onClick={onParticipa}>Cargar mis pronósticos →</button>
-            </>
-          ) : (
-            <>
-              <p>¿Querés aparecer acá?</p>
-              <button className="pub-lb__btn" onClick={onParticipa}>Registrarme y jugar →</button>
-            </>
-          )}
-        </div>
-      </div>
+      {/* Banner Argentina */}
+      {argBanner}
+
+      {/* Tabla — social proof */}
+      {leaderboardBlock}
+
+      {/* Grupos */}
+      <GroupsGrid />
     </div>
   )
 }
@@ -1928,6 +1982,18 @@ export default function ProdeApp() {
     if (typeof window === 'undefined') return false
     return new URLSearchParams(window.location.search).get('promo') === '1'
   })
+
+  // Modo Staff — el tab "Tabla interna" solo aparece si ?staff=1 está en la URL
+  // (persiste en sessionStorage para que sobreviva navegación durante la sesión)
+  const [staffMode, setStaffMode] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const fromUrl = new URLSearchParams(window.location.search).get('staff') === '1'
+    if (fromUrl) {
+      try { sessionStorage.setItem('prode_staff_mode', '1') } catch (e) {}
+      return true
+    }
+    try { return sessionStorage.getItem('prode_staff_mode') === '1' } catch { return false }
+  })
   function exitPromoMode() {
     setPromoMode(false)
     // Limpiar el query param sin recargar
@@ -2024,7 +2090,8 @@ export default function ProdeApp() {
     { id: 'inicio',      label: '🏠 Inicio' },
     { id: 'pronosticos', label: '🎯 Mis pronósticos' },
     { id: 'tabla',       label: '📊 Mi posición' },
-    ...(player.isEmployee ? [{ id: 'tabla-interna', label: '🏢 Tabla interna' }] : []),
+    // Tab interno: solo visible para empleados Y solo si llegaron con ?staff=1 (link interno)
+    ...(player.isEmployee && staffMode ? [{ id: 'tabla-interna', label: '🏢 Tabla interna' }] : []),
     { id: 'llaves',      label: '🗓️ Fixture' },
   ] : [
     { id: 'inicio', label: '🏠 Inicio' },
@@ -2114,7 +2181,7 @@ export default function ProdeApp() {
                 <LeaderboardView myId={player?.id} />
               </div>
             )}
-            {tab === 'tabla-interna' && player?.isEmployee && (
+            {tab === 'tabla-interna' && player?.isEmployee && staffMode && (
               <div className="prode-content">
                 <div style={{ background: 'rgba(155,31,31,0.12)', border: '1px solid rgba(155,31,31,0.4)', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
                   <div style={{ fontSize: 12, color: '#FF8888', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 'bold', marginBottom: 6 }}>🏢 Concurso Interno</div>

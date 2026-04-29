@@ -2415,6 +2415,45 @@
 /* ─── Medallero ───────────────────────────────────────────────────────── */
 .medallero-section { margin: 24px auto; max-width: 1100px; padding: 0 16px; }
 
+/* Banner del usuario logueado — reemplaza el hero gigante para reducir scroll inicial */
+.logged-banner {
+  position: relative; max-width: 1100px; margin: 18px auto 8px; padding: 0 16px;
+}
+.logged-banner__bg {
+  position: absolute; inset: 0; margin: 0 16px;
+  background: linear-gradient(135deg, rgba(196,30,58,.18), rgba(255,210,80,.10));
+  border: 1px solid rgba(255,210,80,.25); border-radius: 16px;
+  z-index: 0;
+}
+.logged-banner__inner {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 1fr auto auto; align-items: center;
+  gap: 20px; padding: 18px 24px;
+}
+.logged-banner__greet { min-width: 0; }
+.logged-banner__hi {
+  font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: 1px;
+  color: #fff; line-height: 1; text-transform: uppercase;
+}
+.logged-banner__hi span { color: #FFD250; }
+.logged-banner__sub { color: #c8d0dc; font-size: 13px; margin-top: 4px; letter-spacing: .3px; }
+.logged-banner__countdown { display: flex; align-items: center; }
+.logged-banner__cta {
+  background: linear-gradient(135deg, #C41E3A, #ff3556); color: #fff;
+  border: none; padding: 12px 22px; border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 1px;
+  text-transform: uppercase; cursor: pointer; white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(196,30,58,.45);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.logged-banner__cta:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(196,30,58,.6); }
+
+@media (max-width: 760px) {
+  .logged-banner__inner { grid-template-columns: 1fr; gap: 14px; padding: 16px 18px; }
+  .logged-banner__hi    { font-size: 30px; }
+  .logged-banner__cta   { width: 100%; }
+}
+
 .medallero-card {
   background: linear-gradient(135deg, rgba(196,30,58,.06), rgba(255,210,80,.04));
   border: 1px solid rgba(255,210,80,.18);
