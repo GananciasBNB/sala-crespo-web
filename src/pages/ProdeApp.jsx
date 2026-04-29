@@ -4,7 +4,8 @@ import {
   registerPlayer, loginPlayer, forgotPin,
   getMatches, getMyPredictions, savePrediction, savePredictionsBatch,
   getLeaderboard, getEmployeesLeaderboard, getRegistrationStatus,
-  getContent, getMyStreak,
+  getContent,
+  getMyAchievements, dailyCheckin, getChampionPick, setChampionPick,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -143,89 +144,294 @@ function GroupsGrid() {
   )
 }
 
-// ─── Prize Cards ──────────────────────────────────────────────────────────────
-// ─── Racha del Hincha ─────────────────────────────────────────────────────────
-function StreakCard({ player }) {
-  const [data, setData] = useState(null)
-  const [loading, setLoading] = useState(true)
+// ─── Medallero (achievements) ─────────────────────────────────────────────────
+// Colores por tier (silueta vs color desbloqueada)
+const TIER_GRAD = {
+  bronze:  ['#7a4f1f', '#c9923f'],
+  silver:  ['#5a6678', '#b6c0d0'],
+  gold:    ['#7a6620', '#f0c945'],
+  special: ['#7a1010', '#e63946'],
+}
+const CATEGORY_LABEL = {
+  pronostico: 'Pronóstico',
+  engagement: 'Fidelidad',
+  mundial:    'Mundial',
+  social:     'Social',
+  meta:       'Coleccionista',
+}
 
-  useEffect(() => {
-    if (!player?.token) { setLoading(false); return }
-    getMyStreak(player.token)
-      .then(setData)
-      .catch(() => setData(null))
-      .finally(() => setLoading(false))
-  }, [player?.token])
-
-  if (loading || !data) return null
-
-  const { current, best, rank, next, daysToNext, activeToday } = data
-  const isActive = current > 0
-  // Cálculo del progreso al siguiente rango
-  let progress = 0
-  if (next && rank) {
-    const span = next.min - rank.min
-    const done  = current - rank.min
-    progress = span > 0 ? Math.max(0, Math.min(100, (done / span) * 100)) : 100
-  } else if (!next) {
-    progress = 100
+// Icono pictográfico por categoría (SVG inline simple, estilo trazo limpio)
+function CategoryGlyph({ category }) {
+  const props = { width: 36, height: 36, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' }
+  switch (category) {
+    case 'pronostico':
+      return (<svg {...props}><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" fill="currentColor" /></svg>)
+    case 'engagement':
+      return (<svg {...props}><path d="M12 3c0 4-4 5-4 9a4 4 0 0 0 8 0c0-2-1-3-2-4 0 2-1 3-2 3 0-3 2-5 0-8z" /></svg>)
+    case 'mundial':
+      return (<svg {...props}><path d="M12 2l2.5 5 5.5.8-4 4 1 5.5L12 14.8 7 17.3 8 11.8 4 7.8l5.5-.8L12 2z" /></svg>)
+    case 'social':
+      return (<svg {...props}><circle cx="9" cy="9" r="3" /><circle cx="17" cy="9" r="2.5" /><path d="M3 19c0-3 3-5 6-5s6 2 6 5" /><path d="M14 14c2 0 5 1.5 5 4" /></svg>)
+    case 'meta':
+      return (<svg {...props}><path d="M12 2l2.5 7h7l-5.7 4.5L18 21l-6-4.5L6 21l2.2-7.5L2.5 9h7L12 2z" /></svg>)
+    default:
+      return null
   }
+}
 
-  // Círculo SVG: 88 radio, perímetro = 553
-  const RADIUS = 78
-  const CIRCUMFERENCE = 2 * Math.PI * RADIUS
-  const dashOffset = CIRCUMFERENCE * (1 - progress / 100)
-
+// Componente reusable: una medalla individual (lockeada = silueta gris, desbloqueada = a color)
+function AchievementBadge({ achievement, unlocked, size = 88, onClick }) {
+  const [start, end] = TIER_GRAD[achievement.tier] || TIER_GRAD.bronze
+  const grayStart = '#2a2f3a'
+  const grayEnd   = '#1a1d24'
+  const fillStart = unlocked ? start : grayStart
+  const fillEnd   = unlocked ? end   : grayEnd
+  const stroke    = unlocked ? '#FFD250' : '#444a55'
+  const glow      = unlocked ? `drop-shadow(0 0 12px ${end}88)` : 'none'
   return (
-    <div className={`streak-card streak-card--${rank.id}`} style={{ '--streak-color': rank.color }}>
-      <div className="streak-card__visual">
-        <svg className="streak-card__ring" viewBox="0 0 200 200" aria-hidden="true">
-          <circle className="streak-card__ring-bg" cx="100" cy="100" r={RADIUS} />
-          {isActive && (
-            <circle
-              className="streak-card__ring-fg"
-              cx="100" cy="100" r={RADIUS}
-              strokeDasharray={CIRCUMFERENCE}
-              strokeDashoffset={dashOffset}
-              transform="rotate(-90 100 100)"
-            />
-          )}
-        </svg>
-        <div className="streak-card__center">
-          <div className="streak-card__number">{current}</div>
-          <div className="streak-card__unit">{current === 1 ? 'día' : 'días'}</div>
+    <button
+      type="button"
+      className={`badge ${unlocked ? 'badge--unlocked' : 'badge--locked'} badge--${achievement.tier}`}
+      onClick={onClick}
+      aria-label={achievement.name}
+      style={{ width: size, height: size + 22, filter: glow }}
+    >
+      <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden="true">
+        <defs>
+          <linearGradient id={`grad-${achievement.slug}`} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%"  stopColor={fillEnd} />
+            <stop offset="100%" stopColor={fillStart} />
+          </linearGradient>
+        </defs>
+        <polygon points="50,2 60,12 50,16 40,12" fill={fillStart} opacity={unlocked ? 0.9 : 0.5} />
+        <circle cx="50" cy="55" r="38" fill={`url(#grad-${achievement.slug})`} stroke={stroke} strokeWidth="2.5" />
+        <circle cx="50" cy="55" r="32" fill="none" stroke={stroke} strokeWidth="0.7" opacity="0.6" />
+        <g transform="translate(32, 38)" color={unlocked ? '#fff' : '#525866'} opacity={unlocked ? 1 : 0.55}>
+          <CategoryGlyph category={achievement.category} />
+        </g>
+      </svg>
+      <div className="badge__name">{achievement.name}</div>
+    </button>
+  )
+}
+
+// Card para tab Inicio: resumen con preview de las primeras 6 medallas + CTA "Ver todas"
+function MedalleroCard({ player, onOpenFull }) {
+  const [data, setData] = useState(null)
+  useEffect(() => {
+    if (!player?.token) return
+    getMyAchievements(player.token).then(setData).catch(() => setData(null))
+  }, [player?.token])
+  if (!data) return null
+  const { catalog, totalUnlocked, totalCatalog } = data
+  const unlockedSet = new Set((data.unlocked || []).map(u => u.slug))
+  // Preview: primero las desbloqueadas, después las pendientes (sombreadas)
+  const sorted = [...catalog].sort((a, b) => (unlockedSet.has(b.slug) ? 1 : 0) - (unlockedSet.has(a.slug) ? 1 : 0))
+  const preview = sorted.slice(0, 6)
+  return (
+    <div className="medallero-card">
+      <div className="medallero-card__head">
+        <div>
+          <h2 className="medallero-card__title">Tu Medallero</h2>
+          <p className="medallero-card__sub">{totalUnlocked} de {totalCatalog} medallas desbloqueadas</p>
         </div>
+        <button className="medallero-card__cta" onClick={onOpenFull}>Ver todas →</button>
       </div>
+      <div className="medallero-card__progress">
+        <div className="medallero-card__progress-fill" style={{ width: `${Math.round((totalUnlocked / Math.max(totalCatalog, 1)) * 100)}%` }} />
+      </div>
+      <div className="medallero-card__grid">
+        {preview.map(a => (
+          <AchievementBadge key={a.slug} achievement={a} unlocked={unlockedSet.has(a.slug)} size={72} onClick={onOpenFull} />
+        ))}
+      </div>
+    </div>
+  )
+}
 
-      <div className="streak-card__info">
-        <div className="streak-card__rank">{rank.label}</div>
-        {isActive ? (
-          <p className="streak-card__sub">
-            {activeToday
-              ? `Ya cargaste hoy. Volvé mañana para sumar otro día.`
-              : `Cargá un pronóstico antes de medianoche para no romper la racha.`}
-          </p>
-        ) : best > 0 ? (
-          <p className="streak-card__sub">Tu mejor racha fue de <strong>{best}</strong> {best === 1 ? 'día' : 'días'}. Empezá una nueva hoy.</p>
-        ) : (
-          <p className="streak-card__sub">Cargá tu primer pronóstico para arrancar tu racha.</p>
-        )}
-
-        {next && isActive && (
-          <div className="streak-card__progress">
-            <div className="streak-card__progress-track">
-              <div className="streak-card__progress-fill" style={{ width: `${progress}%` }} />
+// Modal con el grid completo del medallero, agrupado por categoría
+function MedalleroFull({ player, onClose }) {
+  const [data, setData] = useState(null)
+  const [selected, setSelected] = useState(null)
+  useEffect(() => {
+    if (!player?.token) return
+    getMyAchievements(player.token).then(setData).catch(() => setData(null))
+  }, [player?.token])
+  if (!data) return null
+  const unlockedMap = Object.fromEntries((data.unlocked || []).map(u => [u.slug, u.unlockedAt]))
+  const byCat = {}
+  for (const a of data.catalog) (byCat[a.category] ||= []).push(a)
+  const order = ['pronostico', 'mundial', 'engagement', 'social', 'meta']
+  return (
+    <div className="medallero-modal" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="medallero-modal__inner">
+        <button className="medallero-modal__close" onClick={onClose}>✕</button>
+        <h2 className="medallero-modal__title">Medallero</h2>
+        <p className="medallero-modal__sub">{data.totalUnlocked} de {data.totalCatalog} desbloqueadas. Tocá una medalla para ver el detalle.</p>
+        {order.map(cat => byCat[cat] ? (
+          <div key={cat} className="medallero-modal__section">
+            <h3 className="medallero-modal__section-title">{CATEGORY_LABEL[cat]}</h3>
+            <div className="medallero-modal__grid">
+              {byCat[cat].map(a => (
+                <AchievementBadge
+                  key={a.slug}
+                  achievement={a}
+                  unlocked={!!unlockedMap[a.slug]}
+                  size={84}
+                  onClick={() => setSelected({ ...a, unlockedAt: unlockedMap[a.slug] })}
+                />
+              ))}
             </div>
-            <div className="streak-card__progress-label">
-              <span>Próximo: <strong>{next.label}</strong></span>
-              <span>Faltan {daysToNext} {daysToNext === 1 ? 'día' : 'días'}</span>
+          </div>
+        ) : null)}
+        {selected && (
+          <div className="medallero-modal__detail" onClick={() => setSelected(null)}>
+            <div className="medallero-modal__detail-card" onClick={e => e.stopPropagation()}>
+              <button className="medallero-modal__close" onClick={() => setSelected(null)}>✕</button>
+              <AchievementBadge achievement={selected} unlocked={!!selected.unlockedAt} size={140} />
+              <h3 className="medallero-modal__detail-name">{selected.name}</h3>
+              <p className="medallero-modal__detail-desc">{selected.description}</p>
+              {selected.unlockedAt
+                ? <p className="medallero-modal__detail-date">Desbloqueada el {new Date(selected.unlockedAt).toLocaleDateString('es-AR')}</p>
+                : <p className="medallero-modal__detail-locked">Aún no desbloqueada</p>}
             </div>
           </div>
         )}
+      </div>
+    </div>
+  )
+}
 
-        {best > current && (
-          <div className="streak-card__best">Récord personal: {best} días</div>
-        )}
+// Modal celebratorio con confeti — se muestra cuando se desbloquea una medalla
+function UnlockModal({ achievements, onClose }) {
+  const [idx, setIdx] = useState(0)
+  useEffect(() => {
+    let cancelled = false
+    import('canvas-confetti').then(({ default: confetti }) => {
+      if (cancelled) return
+      const colors = ['#C41E3A', '#FFD250', '#ffffff', '#74ACDF']
+      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors })
+      setTimeout(() => !cancelled && confetti({ particleCount: 50, spread: 100, origin: { x: 0, y: 0.7 }, angle: 60, colors }), 250)
+      setTimeout(() => !cancelled && confetti({ particleCount: 50, spread: 100, origin: { x: 1, y: 0.7 }, angle: 120, colors }), 500)
+    }).catch(() => {})
+    return () => { cancelled = true }
+  }, [idx])
+  if (!achievements || achievements.length === 0) return null
+  const current = achievements[idx]
+  const hasMore = idx < achievements.length - 1
+  const shareText = `🏆 Gané la medalla "${current.name}" en el Prode Mundial 2026 de Sala de Juegos Crespo. ¿Te animás a competir? https://saladejuegoscrespo.ar/prode`
+  const shareUrl  = 'https://saladejuegoscrespo.ar/prode'
+  const handleShare = (network) => {
+    const enc = encodeURIComponent(shareText)
+    if (network === 'wa')  window.open(`https://wa.me/?text=${enc}`, '_blank')
+    if (network === 'tw')  window.open(`https://twitter.com/intent/tweet?text=${enc}`, '_blank')
+    if (network === 'fb')  window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${enc}`, '_blank')
+    if (network === 'native' && navigator.share) navigator.share({ title: current.name, text: shareText, url: shareUrl }).catch(() => {})
+  }
+  return (
+    <div className="unlock-modal" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="unlock-modal__card">
+        <div className="unlock-modal__ribbon">¡Nueva medalla!</div>
+        <div className="unlock-modal__badge-wrap">
+          <AchievementBadge achievement={current} unlocked={true} size={160} />
+        </div>
+        <h2 className="unlock-modal__name">{current.name}</h2>
+        <p className="unlock-modal__desc">{current.description}</p>
+        <p className="unlock-modal__hint">¡Felicitaciones! La sumaste a tu vitrina personal.</p>
+        <div className="unlock-modal__share">
+          <span className="unlock-modal__share-label">Compartir:</span>
+          <button className="unlock-modal__share-btn unlock-modal__share-btn--wa" onClick={() => handleShare('wa')} aria-label="WhatsApp">WhatsApp</button>
+          <button className="unlock-modal__share-btn unlock-modal__share-btn--tw" onClick={() => handleShare('tw')} aria-label="X / Twitter">Twitter</button>
+          <button className="unlock-modal__share-btn unlock-modal__share-btn--fb" onClick={() => handleShare('fb')} aria-label="Facebook">Facebook</button>
+        </div>
+        <div className="unlock-modal__actions">
+          {hasMore && (
+            <button className="unlock-modal__next" onClick={() => setIdx(idx + 1)}>
+              Siguiente medalla ({idx + 2} / {achievements.length}) →
+            </button>
+          )}
+          <button className="unlock-modal__close-btn" onClick={onClose}>Cerrar</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Profeta — pre-Mundial champion pick ──────────────────────────────────────
+const TEAMS_FOR_PICK = [
+  { code: 'ARG', name: 'Argentina' }, { code: 'BRA', name: 'Brasil' }, { code: 'FRA', name: 'Francia' },
+  { code: 'ESP', name: 'España' }, { code: 'ENG', name: 'Inglaterra' }, { code: 'POR', name: 'Portugal' },
+  { code: 'GER', name: 'Alemania' }, { code: 'NED', name: 'Países Bajos' }, { code: 'BEL', name: 'Bélgica' },
+  { code: 'CRO', name: 'Croacia' }, { code: 'ITA', name: 'Italia' }, { code: 'URU', name: 'Uruguay' },
+  { code: 'COL', name: 'Colombia' }, { code: 'MEX', name: 'México' }, { code: 'USA', name: 'Estados Unidos' },
+  { code: 'CAN', name: 'Canadá' }, { code: 'JPN', name: 'Japón' }, { code: 'KOR', name: 'Corea del Sur' },
+  { code: 'AUS', name: 'Australia' }, { code: 'MAR', name: 'Marruecos' }, { code: 'SEN', name: 'Senegal' },
+  { code: 'EGY', name: 'Egipto' }, { code: 'NGA', name: 'Nigeria' }, { code: 'CIV', name: 'Costa de Marfil' },
+  { code: 'CHI', name: 'Chile' }, { code: 'PAR', name: 'Paraguay' }, { code: 'ECU', name: 'Ecuador' },
+  { code: 'VEN', name: 'Venezuela' }, { code: 'SUI', name: 'Suiza' }, { code: 'POL', name: 'Polonia' },
+  { code: 'DEN', name: 'Dinamarca' }, { code: 'SRB', name: 'Serbia' },
+]
+
+function ChampionPickCard({ player }) {
+  const [state, setState] = useState({ pick: null, locked: false, lockAt: null })
+  const [selected, setSelected] = useState('')
+  const [saving, setSaving]     = useState(false)
+  const [err, setErr]           = useState('')
+  useEffect(() => {
+    if (!player?.token) return
+    getChampionPick(player.token).then(setState).catch(() => {})
+  }, [player?.token])
+  async function handleSave() {
+    setErr('')
+    if (!selected) return setErr('Elegí una selección.')
+    const team = TEAMS_FOR_PICK.find(t => t.code === selected)
+    if (!team) return setErr('Selección inválida.')
+    setSaving(true)
+    try {
+      const r = await setChampionPick(player.token, team.code, team.name)
+      setState(s => ({ ...s, pick: r.pick }))
+    } catch (e) { setErr(e.message) }
+    setSaving(false)
+  }
+  if (state.pick) {
+    return (
+      <div className="profeta-card profeta-card--locked">
+        <div className="profeta-card__icon"><CategoryGlyph category="mundial" /></div>
+        <div className="profeta-card__body">
+          <h3 className="profeta-card__title">Tu profecía</h3>
+          <p className="profeta-card__sub">Elegiste a <strong>{state.pick.teamName}</strong> como campeón del Mundial 2026.</p>
+          <p className="profeta-card__note">Si acertás → +20 pts al ranking + medalla "Profeta". La elección no se puede modificar.</p>
+        </div>
+      </div>
+    )
+  }
+  if (state.locked) {
+    return (
+      <div className="profeta-card profeta-card--closed">
+        <div className="profeta-card__icon"><CategoryGlyph category="mundial" /></div>
+        <div className="profeta-card__body">
+          <h3 className="profeta-card__title">Profecía cerrada</h3>
+          <p className="profeta-card__sub">La elección del campeón cerró al iniciar el Mundial.</p>
+        </div>
+      </div>
+    )
+  }
+  return (
+    <div className="profeta-card">
+      <div className="profeta-card__icon"><CategoryGlyph category="mundial" /></div>
+      <div className="profeta-card__body">
+        <h3 className="profeta-card__title">Sé un Profeta</h3>
+        <p className="profeta-card__sub">Elegí ahora quién va a ganar el Mundial. Si acertás, ganás <strong>+20 pts</strong> al ranking y la medalla <strong>Profeta</strong>. La elección cierra cuando arranque el Mundial.</p>
+        <div className="profeta-card__form">
+          <select className="profeta-card__select" value={selected} onChange={e => setSelected(e.target.value)} disabled={saving}>
+            <option value="">— Elegí tu campeón —</option>
+            {TEAMS_FOR_PICK.map(t => <option key={t.code} value={t.code}>{t.name}</option>)}
+          </select>
+          <button className="profeta-card__submit" onClick={handleSave} disabled={saving || !selected}>
+            {saving ? 'Guardando...' : 'Confirmar profecía'}
+          </button>
+        </div>
+        {err && <div className="profeta-card__err">⚠️ {err}</div>}
       </div>
     </div>
   )
@@ -692,7 +898,7 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
 }
 
 // ─── Vista Pronósticos ────────────────────────────────────────────────────────
-function PronosticosView({ matches, myPreds, player, onSaved }) {
+function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
   const [phase, setPhase]       = useState('group')
   const [group, setGroup]       = useState('J')
   const [localPreds, setLocalPreds] = useState({}) // { matchId: { home, away } }
@@ -732,7 +938,16 @@ function PronosticosView({ matches, myPreds, player, onSaved }) {
     setSaving(true)
     setSavedMsg('')
     try {
-      await savePredictionsBatch(player.token, toSave)
+      const responses = await savePredictionsBatch(player.token, toSave)
+      // Unión de medallas únicas que vinieron en cualquier respuesta del batch
+      const allNew = []
+      const seen = new Set()
+      for (const r of responses) {
+        for (const a of (r?.unlockedAchievements || [])) {
+          if (!seen.has(a.slug)) { seen.add(a.slug); allNew.push(a) }
+        }
+      }
+      if (allNew.length > 0) onUnlocked?.(allNew)
       setLocalPreds(prev => {
         const next = { ...prev }
         toSave.forEach(p => delete next[p.matchId])
@@ -1057,6 +1272,7 @@ function FixtureView({ matches }) {
 
 // ─── Home Pública ─────────────────────────────────────────────────────────────
 function PublicHome({ player, onParticipa }) {
+  const [showMedalleroFull, setShowMedalleroFull] = useState(false)
   return (
     <div className="pub-home">
       {/* Hero */}
@@ -1091,16 +1307,7 @@ function PublicHome({ player, onParticipa }) {
         <img src="https://flagcdn.com/w80/ar.png" alt="Argentina" className="arg-banner__flag" width="48" height="32" />
       </div>
 
-      {/* Racha del Hincha — solo para player logueado */}
-      {player && (
-        <div className="streak-section">
-          <h2 className="streak-section__title">Racha del Hincha</h2>
-          <p className="streak-section__sub">Días consecutivos cargando pronósticos. No la rompas.</p>
-          <StreakCard player={player} />
-        </div>
-      )}
-
-      {/* Info — al tope para que sea lo primero que lean */}
+      {/* Info — al tope para que sea lo primero que lean los nuevos */}
       <div className="pub-info">
         <div className="pub-info__card">
           <div className="pub-info__icon">🎯</div>
@@ -1123,6 +1330,22 @@ function PublicHome({ player, onParticipa }) {
           <p>Los premios son en tickets promocionales de Sala Crespo. El admin verifica identidad con DNI al finalizar la fase.</p>
         </div>
       </div>
+
+      {/* Profeta + Medallero — solo para player logueado */}
+      {player && (
+        <>
+          <div className="medallero-section">
+            <ChampionPickCard player={player} />
+          </div>
+          <div className="medallero-section">
+            <MedalleroCard player={player} onOpenFull={() => setShowMedalleroFull(true)} />
+          </div>
+        </>
+      )}
+
+      {showMedalleroFull && player && (
+        <MedalleroFull player={player} onClose={() => setShowMedalleroFull(false)} />
+      )}
 
       {/* Premios */}
       <PrizeCards />
@@ -1483,6 +1706,7 @@ export default function ProdeApp() {
   const [loading, setLoading] = useState(true)
   const [toast, setToast]     = useState(null)
   const [showAuth, setShowAuth] = useState(false)
+  const [unlockedQueue, setUnlockedQueue] = useState([])
 
   // Modo Promotora — detectado por ?promo=1 en la URL
   const [promoMode, setPromoMode] = useState(() => {
@@ -1523,10 +1747,33 @@ export default function ProdeApp() {
       })
   }, [player, showToast])
 
+  // Check-in diario al montar si ya hay sesión guardada (no solo al fresh login).
+  // Una vez por carga de página — si vuelve a abrir la app el día siguiente, registra otro día.
+  useEffect(() => {
+    if (!player?.token) return
+    let cancelled = false
+    dailyCheckin(player.token)
+      .then(r => { if (!cancelled) enqueueUnlocked(r?.unlockedAchievements || []) })
+      .catch(() => {})
+    return () => { cancelled = true }
+    // Solo al montar / cuando cambia el player.id (no en cada render)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [player?.id])
+
+  // Cuando savePrediction o checkin devuelve medallas, las apilamos para mostrar el modal celebratorio
+  const enqueueUnlocked = useCallback((achievements) => {
+    if (!achievements || achievements.length === 0) return
+    setUnlockedQueue(prev => [...prev, ...achievements])
+  }, [])
+
   function handleLogin(p) {
     setPlayer(p)
     setShowAuth(false)
     setTab('pronosticos')
+    // Check-in diario al loguearse: registra visita + dispara medallas de fidelidad
+    dailyCheckin(p.token)
+      .then(r => enqueueUnlocked(r.unlockedAchievements || []))
+      .catch(() => {})
     const firstName = (p.name || '').split(' ')[0] || ''
     const stat = p.stat || {}
     let msg
@@ -1624,6 +1871,14 @@ export default function ProdeApp() {
       {/* Auth Modal */}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onLogin={handleLogin} />}
 
+      {/* Modal celebratorio cuando se desbloquea una o varias medallas */}
+      {unlockedQueue.length > 0 && (
+        <UnlockModal
+          achievements={unlockedQueue}
+          onClose={() => setUnlockedQueue([])}
+        />
+      )}
+
       {/* Body */}
       <div className="prode-body">
         {loading ? (
@@ -1660,6 +1915,7 @@ export default function ProdeApp() {
                   myPreds={myPreds}
                   player={player}
                   onSaved={refreshPreds}
+                  onUnlocked={enqueueUnlocked}
                 />
               </div>
             )}

@@ -112,11 +112,23 @@ export const adminRedeemPrize = (token, id, ticketCode, notes) =>
 export const adminRevokePrize = (token, id) =>
   api(`/api/admin/prizes/${id}/revoke`, { method: 'POST', headers: authHeaders(token) })
 
-// ─── Racha del Hincha ─────────────────────────────────────────────────────────
-export const getMyStreak = (token) =>
-  api('/api/me/streak', { headers: authHeaders(token) })
-export const getTopStreaks = () =>
-  api('/api/streaks/top')
+// ─── Medallero / Achievements ─────────────────────────────────────────────────
+export const getMyAchievements = (token) =>
+  api('/api/me/achievements', { headers: authHeaders(token) })
+
+export const dailyCheckin = (token) =>
+  api('/api/me/checkin', { method: 'POST', headers: authHeaders(token) })
+
+// ─── Profeta — elección del campeón pre-Mundial ──────────────────────────────
+export const getChampionPick = (token) =>
+  api('/api/me/champion-pick', { headers: authHeaders(token) })
+
+export const setChampionPick = (token, teamCode, teamName) =>
+  api('/api/me/champion-pick', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ teamCode, teamName }),
+  })
 
 export const adminGetPlayers = (token) =>
   api('/api/admin/players', { headers: authHeaders(token) })
