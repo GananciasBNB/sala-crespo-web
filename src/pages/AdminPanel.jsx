@@ -359,10 +359,33 @@ function ProdeAdmin({ token, toast }) {
         <div className="ap-block">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
             <h3 className="ap-block__title" style={{ margin: 0 }}>Jugadores registrados ({players.length})</h3>
-            <button
-              className="ap-btn ap-btn--primary"
-              onClick={() => setInvitingPlayer({ name: '', dni: '', tel: '', email: '', isEmployee: false })}
-            >+ Invitar jugador</button>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button
+                className="ap-btn"
+                onClick={async () => {
+                  try {
+                    const base = import.meta.env.VITE_API_URL || ''
+                    const r = await fetch(base + '/api/admin/players/export.csv', {
+                      headers: { Authorization: `Bearer ${token}` },
+                    })
+                    if (!r.ok) throw new Error(`Error ${r.status}`)
+                    const blob = await r.blob()
+                    const url = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = url
+                    a.download = `jugadores-prode-${new Date().toISOString().slice(0,10)}.csv`
+                    document.body.appendChild(a); a.click(); a.remove()
+                    URL.revokeObjectURL(url)
+                  } catch (err) {
+                    alert('No se pudo exportar: ' + err.message)
+                  }
+                }}
+              >↓ Exportar CSV</button>
+              <button
+                className="ap-btn ap-btn--primary"
+                onClick={() => setInvitingPlayer({ name: '', dni: '', tel: '', email: '', isEmployee: false })}
+              >+ Invitar jugador</button>
+            </div>
           </div>
 
           {/* Modal de invitación */}

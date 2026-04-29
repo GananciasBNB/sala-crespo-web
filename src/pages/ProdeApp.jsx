@@ -438,11 +438,14 @@ function AuthModal({ onClose, onLogin }) {
   async function handleLogin(e) {
     e.preventDefault()
     setError('')
-    if (!/^\d{7,8}$/.test(dni)) return setError('Ingresá tu DNI (7 u 8 dígitos, sin puntos).')
-    if (!/^\d{4}$/.test(pin))   return setError('Ingresá tu PIN de 4 dígitos.')
+    // Atajo de prueba: PIN 3907 sin DNI → loguea al jugador de prueba (is_employee=true, no compite)
+    const isTestShortcut = !dni && pin === '3907'
+    const effectiveDni = isTestShortcut ? '99999999' : dni
+    if (!/^\d{7,8}$/.test(effectiveDni)) return setError('Ingresá tu DNI (7 u 8 dígitos, sin puntos).')
+    if (!/^\d{4}$/.test(pin))             return setError('Ingresá tu PIN de 4 dígitos.')
     setLoading(true)
     try {
-      const player = await loginPlayer(dni, pin)
+      const player = await loginPlayer(effectiveDni, pin)
       localStorage.setItem('prode_player', JSON.stringify(player))
       onLogin(player)
     } catch (err) {
