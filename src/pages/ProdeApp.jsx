@@ -1751,12 +1751,12 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           </div>
         </div>
 
-        {/* Hook narrativo corto */}
+        {/* Hook narrativo: el "porqué" antes del "qué" */}
         <section className="staff-portal__hook">
           <p>
-            Lo de siempre: el Mundial empieza, todos en la mesa familiar discutiendo qué selección gana,
-            quién mete más goles, si Messi llega bien… <strong>Bueno, esto es eso, pero compitiendo entre ustedes</strong>.
-            Cada partido vale puntos. El que más sabe de fútbol, gana.
+            Estamos por lanzar el <strong>Prode Mundial 2026</strong> para nuestros clientes,
+            pero antes de abrirlo al público queríamos que <strong>ustedes lo prueben primero</strong>.
+            Para que se diviertan, compitan entre el equipo de la sala — y, de paso, nos cuenten qué pueden mejorar.
           </p>
         </section>
 
