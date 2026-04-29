@@ -3094,12 +3094,19 @@
   background: rgba(0,0,0,.35); border: 1px solid rgba(255,210,80,.35);
   border-radius: 12px; padding: 14px 22px; min-width: 180px;
 }
+.sp-reward {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
 .sp-reward__num {
   font-family: 'Bebas Neue', sans-serif; font-size: 38px;
   color: #FFD250; line-height: 1;
 }
 .sp-reward__icon { font-size: 36px; line-height: 1; }
-.sp-reward__label { color: #B0B8C4; font-size: 12px; margin-top: 4px; line-height: 1.3; }
+.sp-reward__badge {
+  display: flex; align-items: center; justify-content: center;
+  height: 38px; margin-bottom: 6px;
+}
+.sp-reward__label { color: #B0B8C4; font-size: 12px; margin-top: 4px; line-height: 1.3; text-align: center; }
 .staff-portal__profeta-foot {
   color: #B0B8C4; font-size: 13px; font-style: italic; margin: 8px 0 0;
 }

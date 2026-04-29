@@ -1922,7 +1922,14 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
               <div className="sp-reward__label">puntos extra al ranking</div>
             </div>
             <div className="sp-reward">
-              <div className="sp-reward__icon">🏅</div>
+              <div className="sp-reward__badge">
+                <AchievementBadge
+                  achievement={{ slug: 'profeta', name: 'Profeta', category: 'mundial', tier: 'special' }}
+                  unlocked={true}
+                  size={70}
+                  showName={false}
+                />
+              </div>
               <div className="sp-reward__label">medalla exclusiva "Profeta"</div>
             </div>
           </div>
