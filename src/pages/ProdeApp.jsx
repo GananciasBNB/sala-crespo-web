@@ -1945,8 +1945,8 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
             <h3>Tu vitrina personal</h3>
             <p>
               Vas ganando <strong>medallas</strong> por logros: el primer pronóstico, 5 aciertos al hilo,
-              acertar un 0-0 raro, terminar el fixture entero. Cada medalla cae con animación de
-              papelitos y la podés compartir en <strong>WhatsApp, Instagram o Facebook</strong>.
+              acertar un 0-0 raro, terminar el fixture entero. Cada una queda guardada en tu perfil
+              y la podés compartir en <strong>WhatsApp, Instagram o Facebook</strong>.
             </p>
           </div>
           <div className="staff-portal__split-card">
