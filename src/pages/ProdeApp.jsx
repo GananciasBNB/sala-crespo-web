@@ -1935,7 +1935,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <p className="staff-portal__prizes-sub">
             Órdenes de compra en <strong>Supermercado Clauser</strong>
           </p>
-          <img src="/clauser-logo.png" alt="Supermercado Clauser" className="staff-portal__prizes-logo" />
+          <img src="/clauser-logo.jpg" alt="Supermercado Clauser" className="staff-portal__prizes-logo" />
           <div className="staff-portal__prizes-grid">
             <div className="sp-prize sp-prize--gold">
               <div className="sp-prize__medal">🥇</div>
