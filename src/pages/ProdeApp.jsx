@@ -1761,13 +1761,24 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <p className="staff-portal__subtitle">Sala de Juegos Crespo · Acceso exclusivo para el staff</p>
         </header>
 
-        {/* Hook narrativo: lo PRIMERO que leen al entrar — el porqué */}
+        {/* Hook narrativo: arranca explicando qué es un Prode */}
         {!isLoggedIn && (
           <section className="staff-portal__hook">
+            <p className="staff-portal__hook-what">
+              Un <strong>Prode</strong> es el clásico juego de pronósticos del Mundial. Funciona así:
+              antes de cada partido decís cómo creés que va a terminar (por ejemplo,
+              <em> "Argentina le gana 2-1 a México"</em>). Si acertás, sumás puntos.
+              <strong> Cuanto mejor predecís, más alto subís en el ranking de la sala.</strong>
+            </p>
             <p>
-              Estamos por lanzar el <strong>Prode Mundial 2026</strong> para nuestros clientes,
-              pero antes de abrirlo al público queríamos que <strong>ustedes lo prueben primero</strong>.
-              Para que se diviertan, compitan entre el equipo de la sala — y, de paso, nos cuenten qué pueden mejorar.
+              Acá lo armamos en versión digital: con animación, medallero personal,
+              ranking en vivo y premios reales para los que más le peguen.
+            </p>
+            <p>
+              Lo vamos a lanzar para nuestros clientes en los próximos días — pero antes queríamos
+              que <strong>ustedes lo prueben primero</strong>: que jueguen, compitan entre el staff,
+              y nos cuenten qué se puede mejorar. Si a ustedes les resulta fácil, vamos a poder
+              enseñarle a cualquier cliente.
             </p>
           </section>
         )}
@@ -1817,13 +1828,13 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           </div>
           <div className="sp-step">
             <div className="sp-step__num">2</div>
-            <div className="sp-step__title">Tirás tu apuesta</div>
-            <div className="sp-step__text">Antes del pitazo inicial, decís cómo termina el partido.</div>
+            <div className="sp-step__title">Tirás tu pronóstico</div>
+            <div className="sp-step__text">Antes del pitazo inicial, marcás cómo creés que va a terminar el partido.</div>
           </div>
           <div className="sp-step">
             <div className="sp-step__num">3</div>
             <div className="sp-step__title">Sumás puntos</div>
-            <div className="sp-step__text">Cuanto más cerca de la pegaste, más puntos te llevás.</div>
+            <div className="sp-step__text">Cuanto mejor le pegaste al resultado, más puntos te llevás.</div>
           </div>
         </div>
 
@@ -1833,17 +1844,17 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <div className="sp-point sp-point--gold">
             <div className="sp-point__pts">10</div>
             <div className="sp-point__label">PUNTOS</div>
-            <div className="sp-point__desc">Si pegaste el marcador exacto. Ej: dijiste 2-1, salió 2-1.</div>
+            <div className="sp-point__desc">Le pegaste al marcador exacto. Ej: pronosticaste 2-1 y el partido terminó 2-1.</div>
           </div>
           <div className="sp-point sp-point--silver">
             <div className="sp-point__pts">5</div>
             <div className="sp-point__label">PUNTOS</div>
-            <div className="sp-point__desc">Si acertaste solo el ganador (o que empataban), pero no el marcador.</div>
+            <div className="sp-point__desc">Acertaste quién ganó (o si fue empate), pero no el marcador exacto.</div>
           </div>
           <div className="sp-point sp-point--bronze">
             <div className="sp-point__pts">1</div>
             <div className="sp-point__label">PUNTO</div>
-            <div className="sp-point__desc">Si acertaste el total de goles del partido (ej: dijiste que iban a ser 3 goles y fueron 3).</div>
+            <div className="sp-point__desc">Acertaste cuántos goles se hicieron en total. Ej: pronosticaste un partido con 3 goles y fueron 3 (no importa el marcador).</div>
           </div>
         </div>
         <div className="staff-portal__arg">
