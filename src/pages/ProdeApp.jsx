@@ -310,10 +310,14 @@ function UnlockModal({ achievements, onClose }) {
     import('canvas-confetti').then(({ default: confetti }) => {
       if (cancelled) return
       const colors = ['#C41E3A', '#FFD250', '#ffffff', '#74ACDF']
-      confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors })
-      setTimeout(() => !cancelled && confetti({ particleCount: 50, spread: 100, origin: { x: 0, y: 0.7 }, angle: 60, colors }), 250)
-      setTimeout(() => !cancelled && confetti({ particleCount: 50, spread: 100, origin: { x: 1, y: 0.7 }, angle: 120, colors }), 500)
-    }).catch(() => {})
+      // zIndex 9999 para quedar por encima del modal (que está en 6000)
+      const base = { zIndex: 9999, colors }
+      confetti({ ...base, particleCount: 100, spread: 80, origin: { y: 0.6 }, startVelocity: 45 })
+      setTimeout(() => !cancelled && confetti({ ...base, particleCount: 60, spread: 110, origin: { x: 0, y: 0.7 }, angle: 60, startVelocity: 50 }), 200)
+      setTimeout(() => !cancelled && confetti({ ...base, particleCount: 60, spread: 110, origin: { x: 1, y: 0.7 }, angle: 120, startVelocity: 50 }), 400)
+      // Lluvia más larga estilo final de partido (~2s)
+      setTimeout(() => !cancelled && confetti({ ...base, particleCount: 80, spread: 160, origin: { y: 0.3 }, gravity: 0.6, ticks: 300 }), 700)
+    }).catch(err => console.warn('[confetti] failed to load:', err?.message))
     return () => { cancelled = true }
   }, [idx])
   if (!achievements || achievements.length === 0) return null
