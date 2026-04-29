@@ -1761,36 +1761,43 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <p className="staff-portal__subtitle">Sala de Juegos Crespo · Acceso exclusivo para el staff</p>
         </header>
 
-        {/* Hook: 1 frase de gancho + 3 bloques con el qué/qué se gana/por qué vos */}
+        {/* Hook: invitación cálida al staff + 3 cards con beneficios concretos */}
         {!isLoggedIn && (
           <section className="staff-portal__hook">
             <h2 className="staff-portal__hook-headline">
-              ⚽ El Mundial está a la vuelta. Pronosticá con nosotros.
+              ⚽ Antes de abrirlo al público, los queríamos a ustedes.
             </h2>
+            <p className="staff-portal__hook-intro">
+              En unos días arrancamos el <strong>Prode Mundial 2026</strong> para nuestros clientes.
+              Pero antes de eso, <strong>no queríamos dejar de armar algo para el equipo</strong> que hace
+              que la sala funcione todos los días. Esta es nuestra invitación —
+              un concurso <strong>exclusivo para el staff</strong>, con su propia tabla y sus propios premios.
+            </p>
             <div className="staff-portal__hook-grid">
               <div className="sp-hook-card">
                 <div className="sp-hook-card__icon">🎯</div>
                 <div className="sp-hook-card__title">¿De qué se trata?</div>
                 <div className="sp-hook-card__text">
-                  Antes de cada partido del Mundial 2026 predecís cómo creés que va a terminar
-                  (ej: <em>"2-1 a Argentina"</em>). Si le pegás al resultado, sumás puntos. Cuanto mejor
-                  jugás, más alto vas en la tabla.
+                  Un Prode es predecir cómo van a terminar los partidos del Mundial 2026
+                  <em> antes de que se jueguen</em>. Si le pegás al resultado, sumás puntos.
+                  Cuanto mejor predecís, más alto vas en la tabla.
                 </div>
               </div>
               <div className="sp-hook-card">
                 <div className="sp-hook-card__icon">🏆</div>
-                <div className="sp-hook-card__title">¿Qué se gana?</div>
+                <div className="sp-hook-card__title">¿Qué te llevás?</div>
                 <div className="sp-hook-card__text">
-                  <strong>Premios reales exclusivos para el staff.</strong> Los anunciamos en los próximos días.
-                  Aparte sumás medallas en tu vitrina personal y peleás por ser el #1 de la sala.
+                  <strong>Premios reales exclusivos para el staff</strong> — los anunciamos en los próximos
+                  días. Sumás medallas en tu vitrina personal por cada logro. Y peleás por ser
+                  el <strong>#1 de la sala</strong>, contra tus compañeros.
                 </div>
               </div>
               <div className="sp-hook-card">
                 <div className="sp-hook-card__icon">💪</div>
-                <div className="sp-hook-card__title">¿Por qué vos primero?</div>
+                <div className="sp-hook-card__title">¿Por qué te queremos adentro?</div>
                 <div className="sp-hook-card__text">
-                  Vamos a lanzar esto al público en los próximos días, pero <strong>antes queremos que
-                  el equipo lo pruebe</strong>. Tu feedback va a definir cómo lo abrimos a los clientes.
+                  Tu mirada nos importa. Mientras jugás, si ves algo raro o tenés ideas para mejorar,
+                  mandanos. <strong>Tu feedback va a definir cómo abrimos esto al público.</strong>
                 </div>
               </div>
             </div>
