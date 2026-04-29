@@ -2050,7 +2050,7 @@ export default function ProdeApp() {
   function handleLogin(p) {
     setPlayer(p)
     setShowAuth(false)
-    setTab('pronosticos')
+    setTab('inicio')
     // Check-in diario al loguearse: registra visita + dispara medallas de fidelidad
     dailyCheckin(p.token)
       .then(r => enqueueUnlocked(r.unlockedAchievements || []))
