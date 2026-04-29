@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
-  adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer,
+  adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
   adminCreateShow, adminUpdateShow, adminDeleteShow,
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
@@ -199,6 +199,20 @@ function ProdeAdmin({ token, toast }) {
       })
       setInvitingPlayer(null)
       setInvitedPin({ name: inv.name.trim(), pin: res.pin, isEmployee: !!inv.isEmployee, emailSent: res.emailSent })
+      adminGetPlayers(token).then(setPlayers)
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  async function handleToggleEmployee(player) {
+    const next = !player.isEmployee
+    const verb = next ? 'marcar como empleado' : 'desmarcar como empleado'
+    const ok = confirm(`¿${verb.charAt(0).toUpperCase() + verb.slice(1)} a ${player.name}?\n\n${next ? 'Pasará a la tabla interna y dejará de aparecer en el ranking público.' : 'Volverá a aparecer en el ranking público.'}`)
+    if (!ok) return
+    try {
+      await adminTogglePlayerEmployee(token, player.id, next)
+      toast.show(`✓ ${player.name} ${next ? 'marcado como empleado' : 'quitado de empleados'}`)
       adminGetPlayers(token).then(setPlayers)
     } catch (err) {
       toast.show(err.message, 'err')
@@ -505,6 +519,11 @@ function ProdeAdmin({ token, toast }) {
                         onClick={() => handleResetPin(p)}
                         title="Generar PIN nuevo"
                       >🔑 Reset PIN</button>
+                      <button
+                        className="ap-btn ap-btn--sm"
+                        onClick={() => handleToggleEmployee(p)}
+                        title={p.isEmployee ? 'Quitar como empleado' : 'Marcar como empleado'}
+                      >{p.isEmployee ? '👤 Quitar empleado' : '🏢 Marcar empleado'}</button>
                       <button
                         className="ap-btn ap-btn--danger ap-btn--sm"
                         onClick={() => handleDeletePlayer(p.id)}

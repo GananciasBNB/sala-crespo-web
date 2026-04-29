@@ -6,6 +6,7 @@ import {
   getLeaderboard, getEmployeesLeaderboard, getRegistrationStatus,
   getContent,
   getMyAchievements, dailyCheckin, getChampionPick, setChampionPick,
+  submitStaffSuggestion,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -802,12 +803,12 @@ function PlayerAvatar({ mascotId, size = 36, name = '' }) {
   return <img src={m.src} alt={m.label || name} width={size} height={size} className="player-avatar" style={{ flexShrink: 0 }} />
 }
 
-function AuthModal({ onClose, onLogin }) {
+function AuthModal({ onClose, onLogin, staffSignupCode = null, initialTab = null }) {
   const [registrationClosed, setRegistrationClosed] = useState(false)
   useEffect(() => {
     getRegistrationStatus().then(s => setRegistrationClosed(!!s.closed)).catch(() => {})
   }, [])
-  const [tab, setTab]           = useState(registrationClosed ? 'login' : 'registro')
+  const [tab, setTab]           = useState(initialTab || (registrationClosed ? 'login' : 'registro'))
   const [name, setName]         = useState('')
   const [dni, setDni]           = useState('')
   const [tel, setTel]           = useState('')
@@ -831,7 +832,7 @@ function AuthModal({ onClose, onLogin }) {
     if (pin !== pinConfirm)      return setError('Los PINs no coinciden. Volvé a escribirlo.')
     setLoading(true)
     try {
-      const player = await registerPlayer(name.trim(), dni, tel.trim(), pin, mascota, email.trim() || null)
+      const player = await registerPlayer(name.trim(), dni, tel.trim(), pin, mascota, email.trim() || null, staffSignupCode || null)
       localStorage.setItem('prode_player', JSON.stringify(player))
       onLogin(player)
     } catch (err) {
@@ -940,6 +941,20 @@ function AuthModal({ onClose, onLogin }) {
           </form>
         ) : (
           <form className="modal__form" onSubmit={handleRegister}>
+            {staffSignupCode && (
+              <div style={{
+                background: 'linear-gradient(135deg, rgba(196,30,58,.15), rgba(255,210,80,.08))',
+                border: '1px solid rgba(196,30,58,.5)',
+                borderRadius: 10,
+                padding: '12px 16px',
+                marginBottom: 16,
+                color: '#FFD250',
+                fontSize: 13,
+                lineHeight: 1.5,
+              }}>
+                🏢 <strong>Registro de personal interno</strong> — al confirmar quedarás marcado como <strong>empleado de Sala de Juegos Crespo</strong> y verás la tabla interna.
+              </div>
+            )}
             <label className="modal__label">Tu nombre (aparecerá en la tabla)</label>
             <input
               className="modal__input"
@@ -1658,6 +1673,187 @@ const INSTAGRAM_URL    = 'https://www.instagram.com/salajuegoscrespo/'
 const FALLBACK_TOURNAMENT_DATE = '21 de mayo · 2026'
 const FALLBACK_TOURNAMENT_URL  = 'https://docs.google.com/forms/d/1sOfBSy8FXm-ncMuQGU6GqbP60zP08DADbb0DrqGBG8g/edit'
 
+// ─── Staff Portal ─────────────────────────────────────────────────────────────
+// Activado por ?staff=CODIGO en la URL. Pantalla dedicada que vende la idea +
+// permite registrarse como empleado + recibe sugerencias del staff.
+function StaffPortal({ staffCode, onLogin, onExit }) {
+  const [showRegister, setShowRegister] = useState(false)
+  const [showLogin, setShowLogin]       = useState(false)
+  const [sugName, setSugName]   = useState('')
+  const [sugEmail, setSugEmail] = useState('')
+  const [sugText, setSugText]   = useState('')
+  const [sugSent, setSugSent]   = useState(false)
+  const [sugErr,  setSugErr]    = useState('')
+  const [sugLoad, setSugLoad]   = useState(false)
+
+  async function handleSuggestion(e) {
+    e.preventDefault()
+    setSugErr('')
+    if (sugText.trim().length < 8) { setSugErr('Escribí al menos 8 caracteres.'); return }
+    setSugLoad(true)
+    try {
+      await submitStaffSuggestion(sugName.trim(), sugEmail.trim(), sugText.trim())
+      setSugSent(true)
+      setSugName(''); setSugEmail(''); setSugText('')
+    } catch (err) {
+      setSugErr(err.message || 'No pudimos enviar la sugerencia.')
+    }
+    setSugLoad(false)
+  }
+
+  return (
+    <div className="staff-portal">
+      <div className="staff-portal__bg" />
+      <div className="staff-portal__inner">
+
+        {/* Header */}
+        <header className="staff-portal__header">
+          <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="staff-portal__logo" />
+          <div>
+            <div className="staff-portal__eyebrow">PORTAL DE PERSONAL</div>
+            <h1 className="staff-portal__title">Prode Mundial 2026</h1>
+            <p className="staff-portal__subtitle">Sala de Juegos Crespo · Solo para staff</p>
+          </div>
+        </header>
+
+        {/* Banner advertencia */}
+        <div className="staff-portal__warn">
+          <div className="staff-portal__warn-icon">⚠️</div>
+          <div>
+            <strong>Este link es exclusivo para empleados de Sala de Juegos Crespo.</strong>
+            <p>La competencia para clientes se habilita en breve. <strong>Por favor no lo compartas con clientes</strong> — esta versión es para que ustedes la prueben primero.</p>
+          </div>
+        </div>
+
+        {/* ¿De qué se trata? */}
+        <section className="staff-portal__section">
+          <h2 className="staff-portal__h2">¿De qué se trata?</h2>
+          <p>
+            Mientras preparamos el Prode Mundial 2026 para nuestros clientes, queremos que <strong>ustedes lo prueben primero</strong>.
+            Es un concurso de pronósticos: vas adivinando los marcadores de los partidos del Mundial 2026 (México · USA · Canadá)
+            y sumás puntos cada vez que acertás.
+          </p>
+        </section>
+
+        {/* ¿Cómo se juega? */}
+        <section className="staff-portal__section">
+          <h2 className="staff-portal__h2">¿Cómo se juega?</h2>
+          <ol className="staff-portal__list">
+            <li>Te anotás con tu DNI y un PIN de 4 dígitos.</li>
+            <li>Antes de cada partido, predecís el resultado.</li>
+            <li>Sumás puntos según lo que acertás:</li>
+          </ol>
+          <div className="staff-portal__pts">
+            <div><span className="sp-pill sp-pill--gold">10 pts</span> Marcador exacto (ej: 2-1)</div>
+            <div><span className="sp-pill sp-pill--silver">5 pts</span> Solo el ganador o empate</div>
+            <div><span className="sp-pill sp-pill--bronze">1 pt</span> Total de goles del partido</div>
+            <div className="sp-arg">⭐ <strong>Los partidos de Argentina valen el doble</strong></div>
+          </div>
+        </section>
+
+        {/* Vitrina personal */}
+        <section className="staff-portal__section">
+          <h2 className="staff-portal__h2">Tu vitrina personal de logros</h2>
+          <p>
+            Mientras jugás vas ganando <strong>medallas</strong> por distintos logros: tu primera predicción,
+            acertar 5 partidos seguidos, completar todo el fixture, acertar un 0-0 raro, y muchas más.
+            Las medallas quedan en tu perfil con animación de papelitos cuando las desbloqueás,
+            y las podés <strong>compartir en WhatsApp, Instagram o Facebook</strong> para hacerla larga.
+          </p>
+        </section>
+
+        {/* Profeta */}
+        <section className="staff-portal__section staff-portal__section--accent">
+          <h2 className="staff-portal__h2">🔮 La gran apuesta: ser un Profeta</h2>
+          <p>
+            Antes de que arranque el Mundial (<strong>11 de junio de 2026</strong>),
+            elegís a la selección que pensás que va a ganarlo todo. Una sola elección, sin posibilidad de cambiar.
+          </p>
+          <p>
+            Si acertás al final del torneo → te llevás <strong>20 puntos extra al ranking</strong> + la medalla
+            <strong> "Profeta"</strong> en tu vitrina. La elección se cierra el día del partido inaugural.
+          </p>
+        </section>
+
+        {/* Tabla aparte */}
+        <section className="staff-portal__section">
+          <h2 className="staff-portal__h2">🏆 Tabla aparte para el staff</h2>
+          <p>
+            Ustedes compiten <strong>entre ustedes</strong>, no mezclados con clientes. Su propio ranking,
+            su propia pelea por ser el #1 de la sala.
+          </p>
+        </section>
+
+        {/* Premios */}
+        <section className="staff-portal__section staff-portal__section--prizes">
+          <h2 className="staff-portal__h2">🎁 Premios exclusivos para el staff</h2>
+          <p>Los anunciamos en los próximos días. Vayan acomodando sus apuestas.</p>
+        </section>
+
+        {/* CTAs principales */}
+        <div className="staff-portal__ctas">
+          <button className="staff-portal__cta staff-portal__cta--primary" onClick={() => { setShowRegister(true); setShowLogin(false) }}>
+            🏢 ANOTARME COMO EMPLEADO →
+          </button>
+          <button className="staff-portal__cta staff-portal__cta--secondary" onClick={() => { setShowLogin(true); setShowRegister(false) }}>
+            Ya tengo cuenta · Ingresar
+          </button>
+        </div>
+
+        {(showRegister || showLogin) && (
+          <AuthModal
+            onClose={() => { setShowRegister(false); setShowLogin(false) }}
+            onLogin={(p) => { setShowRegister(false); setShowLogin(false); onLogin(p) }}
+            staffSignupCode={showRegister ? staffCode : null}
+            initialTab={showRegister ? 'registro' : 'login'}
+          />
+        )}
+
+        {/* Sugerencias */}
+        <section className="staff-portal__section staff-portal__suggestions">
+          <h2 className="staff-portal__h2">💡 Tus sugerencias suman</h2>
+          <p>
+            Lo están probando antes que nadie. Si encontrás algo raro, algo que no se entiende,
+            o tenés una idea para que la app sea mejor, mandanos: lo que digas va a definir
+            cómo lo lanzamos al público.
+          </p>
+          {sugSent ? (
+            <div className="staff-portal__sug-ok">✓ ¡Gracias! Recibimos tu sugerencia.</div>
+          ) : (
+            <form className="staff-portal__sug-form" onSubmit={handleSuggestion}>
+              <input
+                type="text" placeholder="Tu nombre (opcional)"
+                value={sugName} onChange={e => setSugName(e.target.value)}
+                className="staff-portal__input" maxLength={80}
+              />
+              <input
+                type="email" placeholder="Tu email (opcional, por si querés que te respondamos)"
+                value={sugEmail} onChange={e => setSugEmail(e.target.value)}
+                className="staff-portal__input" maxLength={120}
+              />
+              <textarea
+                placeholder="Contanos qué pensás..."
+                value={sugText} onChange={e => setSugText(e.target.value)}
+                className="staff-portal__textarea" rows={5} maxLength={4000}
+              />
+              {sugErr && <div className="staff-portal__sug-err">⚠️ {sugErr}</div>}
+              <button type="submit" className="staff-portal__sug-btn" disabled={sugLoad}>
+                {sugLoad ? 'Enviando...' : 'Enviar sugerencia →'}
+              </button>
+            </form>
+          )}
+        </section>
+
+        <footer className="staff-portal__footer">
+          <button className="staff-portal__exit" onClick={onExit}>
+            ← Salir del portal de staff
+          </button>
+        </footer>
+      </div>
+    </div>
+  )
+}
+
 function PromoMode({ onExit }) {
   const [step, setStep] = useState('form') // 'form' | 'success' | 'extras'
   const [name, setName] = useState('')
@@ -1993,6 +2189,20 @@ export default function ProdeApp() {
     }
   }
 
+  // Modo Staff Portal — detectado por ?staff=CODIGO en la URL
+  const [staffPortalCode, setStaffPortalCode] = useState(() => {
+    if (typeof window === 'undefined') return null
+    return new URLSearchParams(window.location.search).get('staff')
+  })
+  function exitStaffPortal() {
+    setStaffPortalCode(null)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('staff')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }
+
   const showToast = useCallback((msg, type = 'ok', duration = 3000) => {
     setToast({ msg, type, duration, key: Date.now() })
   }, [])
@@ -2090,6 +2300,11 @@ export default function ProdeApp() {
   // Modo promotora — render dedicado, no muestra el resto de la app
   if (promoMode) {
     return <PromoMode onExit={exitPromoMode} />
+  }
+
+  // Portal de staff — solo si no hay sesión activa. Si ya está logueado, va al flow normal.
+  if (staffPortalCode && !player) {
+    return <StaffPortal staffCode={staffPortalCode} onLogin={handleLogin} onExit={exitStaffPortal} />
   }
 
   return (

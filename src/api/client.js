@@ -18,8 +18,8 @@ function authHeaders(token) {
 }
 
 // ─── Jugadores ────────────────────────────────────────────────────────────────
-export const registerPlayer = (name, dni, tel, pin, mascota = 'toro', email = null) =>
-  api('/api/register', { method: 'POST', body: JSON.stringify({ name, dni, tel, pin, mascota, email }) })
+export const registerPlayer = (name, dni, tel, pin, mascota = 'toro', email = null, staffSignupCode = null) =>
+  api('/api/register', { method: 'POST', body: JSON.stringify({ name, dni, tel, pin, mascota, email, staffSignupCode }) })
 
 export const loginPlayer = (dni, pin) =>
   api('/api/login', { method: 'POST', body: JSON.stringify({ dni, pin }) })
@@ -119,6 +119,13 @@ export const getMyAchievements = (token) =>
 export const dailyCheckin = (token) =>
   api('/api/me/checkin', { method: 'POST', headers: authHeaders(token) })
 
+// ─── Portal de staff — sugerencias ────────────────────────────────────────────
+export const submitStaffSuggestion = (name, email, text) =>
+  api('/api/staff/suggestion', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, text }),
+  })
+
 // ─── Profeta — elección del campeón pre-Mundial ──────────────────────────────
 export const getChampionPick = (token) =>
   api('/api/me/champion-pick', { headers: authHeaders(token) })
@@ -138,6 +145,13 @@ export const adminDeletePlayer = (token, id) =>
 
 export const adminEditPlayer = (token, id, data) =>
   api(`/api/admin/player/${id}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(data) })
+
+export const adminTogglePlayerEmployee = (token, id, isEmployee) =>
+  api(`/api/admin/player/${id}/employee`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify({ isEmployee }),
+  })
 
 export const adminResetPin = (token, id) =>
   api(`/api/admin/player/${id}/reset-pin`, { method: 'POST', headers: authHeaders(token) })
