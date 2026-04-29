@@ -1826,8 +1826,8 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
                 <div className="sp-hook-card__icon">🏆</div>
                 <div className="sp-hook-card__title">¿Qué te llevás?</div>
                 <div className="sp-hook-card__text">
-                  <strong>Premios reales exclusivos para el staff</strong> — los anunciamos en los próximos
-                  días. Sumás medallas en tu vitrina personal por cada logro. Y peleás por ser
+                  <strong>$100.000 en órdenes de compra de Supermercado Clauser</strong>, repartidos
+                  entre los tres primeros puestos. Sumás medallas por cada logro y peleás por ser
                   el <strong>#1 de la sala</strong>, contra tus compañeros.
                 </div>
               </div>
