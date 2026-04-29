@@ -3030,11 +3030,12 @@
   border-radius: 12px; padding: 20px 18px; text-align: center;
 }
 .sp-step__num {
-  font-family: 'Bebas Neue', sans-serif; font-size: 36px;
-  width: 56px; height: 56px; line-height: 56px;
-  background: linear-gradient(135deg, #C41E3A, #ff3556); color: #fff;
-  border-radius: 50%; margin: 0 auto 12px;
-  box-shadow: 0 6px 14px rgba(196,30,58,.4);
+  font-family: 'Bebas Neue', sans-serif; font-size: 32px;
+  width: 64px; height: 64px; line-height: 64px;
+  background: url('/pelota.svg') center/contain no-repeat;
+  color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,.7), 0 0 10px rgba(0,0,0,.5);
+  margin: 0 auto 12px;
+  filter: drop-shadow(0 6px 14px rgba(0,0,0,.45));
 }
 .sp-step__title {
   font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px;
