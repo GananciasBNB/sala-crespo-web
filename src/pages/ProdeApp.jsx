@@ -1837,7 +1837,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
                 <div className="sp-hook-card__text">
                   Antes que nada, <strong>queremos que la pases bien</strong>: que vivas el Mundial
                   con tu equipo, sumes medallas y compitas por los premios.
-                  Si en el camino tenés ideas o ves algo raro, mandanos — pero lo primero es divertirse.
+                  Si en el camino tenés ideas o ves algo raro, contanos en el form de abajo — pero lo primero es divertirse.
                 </div>
               </div>
             </div>
