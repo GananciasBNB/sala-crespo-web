@@ -1708,8 +1708,22 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
       <div className="staff-portal__bg" />
       <div className="staff-portal__inner">
 
-        {/* Header centrado */}
+        {/* Header centrado con pelotas + banderas Mundialeras flotando — bien vivo */}
         <header className="staff-portal__header">
+          <div className="staff-portal__deco staff-portal__deco--left" aria-hidden="true">
+            <span className="sp-deco sp-deco--ball sp-deco--1">⚽</span>
+            <img src="https://flagcdn.com/w40/ar.png" alt="" className="sp-deco sp-deco--flag sp-deco--2" />
+            <span className="sp-deco sp-deco--ball sp-deco--3">⚽</span>
+            <img src="https://flagcdn.com/w40/br.png" alt="" className="sp-deco sp-deco--flag sp-deco--4" />
+            <span className="sp-deco sp-deco--world sp-deco--5">🏆</span>
+          </div>
+          <div className="staff-portal__deco staff-portal__deco--right" aria-hidden="true">
+            <span className="sp-deco sp-deco--ball sp-deco--6">⚽</span>
+            <img src="https://flagcdn.com/w40/ar.png" alt="" className="sp-deco sp-deco--flag sp-deco--7" />
+            <img src="https://flagcdn.com/w40/fr.png" alt="" className="sp-deco sp-deco--flag sp-deco--8" />
+            <span className="sp-deco sp-deco--world sp-deco--9">🌎</span>
+            <span className="sp-deco sp-deco--ball sp-deco--10">⚽</span>
+          </div>
           <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="staff-portal__logo" />
           <div className="staff-portal__eyebrow">PORTAL DE PERSONAL</div>
           <h1 className="staff-portal__title">Prode Mundial 2026</h1>
