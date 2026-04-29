@@ -1676,10 +1676,12 @@ const FALLBACK_TOURNAMENT_URL  = 'https://docs.google.com/forms/d/1sOfBSy8FXm-nc
 // ─── Staff Portal ─────────────────────────────────────────────────────────────
 // Activado por ?staff=CODIGO en la URL. Pantalla dedicada que vende la idea +
 // permite registrarse como empleado + recibe sugerencias del staff.
-function StaffPortal({ staffCode, onLogin, onExit }) {
+function StaffPortal({ staffCode, player, onLogin, onExit }) {
   const [showRegister, setShowRegister] = useState(false)
   const [showLogin, setShowLogin]       = useState(false)
-  const [sugName, setSugName]   = useState('')
+  const isLoggedIn = !!player
+  const firstName = (player?.name || '').split(' ')[0] || ''
+  const [sugName, setSugName]   = useState(player?.name || '')
   const [sugEmail, setSugEmail] = useState('')
   const [sugText, setSugText]   = useState('')
   const [sugSent, setSugSent]   = useState(false)
@@ -1706,98 +1708,170 @@ function StaffPortal({ staffCode, onLogin, onExit }) {
       <div className="staff-portal__bg" />
       <div className="staff-portal__inner">
 
-        {/* Header */}
+        {/* Header centrado */}
         <header className="staff-portal__header">
           <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="staff-portal__logo" />
-          <div>
-            <div className="staff-portal__eyebrow">PORTAL DE PERSONAL</div>
-            <h1 className="staff-portal__title">Prode Mundial 2026</h1>
-            <p className="staff-portal__subtitle">Sala de Juegos Crespo · Solo para staff</p>
-          </div>
+          <div className="staff-portal__eyebrow">PORTAL DE PERSONAL</div>
+          <h1 className="staff-portal__title">Prode Mundial 2026</h1>
+          <p className="staff-portal__subtitle">Sala de Juegos Crespo · Acceso exclusivo para el staff</p>
         </header>
 
-        {/* Banner advertencia */}
-        <div className="staff-portal__warn">
-          <div className="staff-portal__warn-icon">⚠️</div>
-          <div>
-            <strong>Este link es exclusivo para empleados de Sala de Juegos Crespo.</strong>
-            <p>La competencia para clientes se habilita en breve. <strong>Por favor no lo compartas con clientes</strong> — esta versión es para que ustedes la prueben primero.</p>
+        {/* Banner — varía si está logueado o no */}
+        {isLoggedIn ? (
+          <div className="staff-portal__welcome">
+            <div className="staff-portal__welcome-icon">👋</div>
+            <div>
+              <strong>Hola, {firstName}.</strong>
+              <p>Ya estás dentro del Prode. Si querés mandarnos una sugerencia, el form está al final. O entrá al Prode a cargar pronósticos.</p>
+            </div>
+          </div>
+        ) : (
+          <div className="staff-portal__warn">
+            <div className="staff-portal__warn-icon">⚠️</div>
+            <div>
+              <strong>Este link es solo para empleados de Sala de Juegos Crespo.</strong>
+              <p>La competencia para clientes abre en los próximos días. <strong>Por favor no lo compartas con nadie de afuera</strong> — esta versión es para que ustedes la prueben primero.</p>
+            </div>
+          </div>
+        )}
+
+        {/* Stats hero — números grandes que llaman la atención */}
+        <div className="staff-portal__stats">
+          <div className="sp-stat">
+            <div className="sp-stat__num">104</div>
+            <div className="sp-stat__label">partidos para pronosticar</div>
+          </div>
+          <div className="sp-stat">
+            <div className="sp-stat__num">20</div>
+            <div className="sp-stat__label">medallas por desbloquear</div>
+          </div>
+          <div className="sp-stat">
+            <div className="sp-stat__num">×2</div>
+            <div className="sp-stat__label">en partidos de Argentina ⭐</div>
           </div>
         </div>
 
-        {/* ¿De qué se trata? */}
-        <section className="staff-portal__section">
-          <h2 className="staff-portal__h2">¿De qué se trata?</h2>
+        {/* Hook narrativo corto */}
+        <section className="staff-portal__hook">
           <p>
-            Mientras preparamos el Prode Mundial 2026 para nuestros clientes, queremos que <strong>ustedes lo prueben primero</strong>.
-            Es un concurso de pronósticos: vas adivinando los marcadores de los partidos del Mundial 2026 (México · USA · Canadá)
-            y sumás puntos cada vez que acertás.
+            Lo de siempre: el Mundial empieza, todos en la mesa familiar discutiendo qué selección gana,
+            quién mete más goles, si Messi llega bien… <strong>Bueno, esto es eso, pero compitiendo entre ustedes</strong>.
+            Cada partido vale puntos. El que más sabe de fútbol, gana.
           </p>
         </section>
 
-        {/* ¿Cómo se juega? */}
-        <section className="staff-portal__section">
-          <h2 className="staff-portal__h2">¿Cómo se juega?</h2>
-          <ol className="staff-portal__list">
-            <li>Te anotás con tu DNI y un PIN de 4 dígitos.</li>
-            <li>Antes de cada partido, predecís el resultado.</li>
-            <li>Sumás puntos según lo que acertás:</li>
-          </ol>
-          <div className="staff-portal__pts">
-            <div><span className="sp-pill sp-pill--gold">10 pts</span> Marcador exacto (ej: 2-1)</div>
-            <div><span className="sp-pill sp-pill--silver">5 pts</span> Solo el ganador o empate</div>
-            <div><span className="sp-pill sp-pill--bronze">1 pt</span> Total de goles del partido</div>
-            <div className="sp-arg">⭐ <strong>Los partidos de Argentina valen el doble</strong></div>
+        {/* Cómo se juega — 3 cards visuales */}
+        <h2 className="staff-portal__h2 staff-portal__h2--center">Cómo funciona</h2>
+        <div className="staff-portal__how">
+          <div className="sp-step">
+            <div className="sp-step__num">1</div>
+            <div className="sp-step__title">Te anotás</div>
+            <div className="sp-step__text">Tu DNI + un PIN de 4 dígitos. 30 segundos.</div>
           </div>
-        </section>
+          <div className="sp-step">
+            <div className="sp-step__num">2</div>
+            <div className="sp-step__title">Tirás tu apuesta</div>
+            <div className="sp-step__text">Antes del pitazo inicial, decís cómo termina el partido.</div>
+          </div>
+          <div className="sp-step">
+            <div className="sp-step__num">3</div>
+            <div className="sp-step__title">Sumás puntos</div>
+            <div className="sp-step__text">Cuanto más cerca de la pegaste, más puntos te llevás.</div>
+          </div>
+        </div>
 
-        {/* Vitrina personal */}
-        <section className="staff-portal__section">
-          <h2 className="staff-portal__h2">Tu vitrina personal de logros</h2>
-          <p>
-            Mientras jugás vas ganando <strong>medallas</strong> por distintos logros: tu primera predicción,
-            acertar 5 partidos seguidos, completar todo el fixture, acertar un 0-0 raro, y muchas más.
-            Las medallas quedan en tu perfil con animación de papelitos cuando las desbloqueás,
-            y las podés <strong>compartir en WhatsApp, Instagram o Facebook</strong> para hacerla larga.
-          </p>
-        </section>
+        {/* Sistema de puntos */}
+        <h2 className="staff-portal__h2 staff-portal__h2--center">Sistema de puntos</h2>
+        <div className="staff-portal__points-grid">
+          <div className="sp-point sp-point--gold">
+            <div className="sp-point__pts">10</div>
+            <div className="sp-point__label">PUNTOS</div>
+            <div className="sp-point__desc">Si pegaste el marcador exacto. Ej: dijiste 2-1, salió 2-1.</div>
+          </div>
+          <div className="sp-point sp-point--silver">
+            <div className="sp-point__pts">5</div>
+            <div className="sp-point__label">PUNTOS</div>
+            <div className="sp-point__desc">Si acertaste solo el ganador (o que empataban), pero no el marcador.</div>
+          </div>
+          <div className="sp-point sp-point--bronze">
+            <div className="sp-point__pts">1</div>
+            <div className="sp-point__label">PUNTO</div>
+            <div className="sp-point__desc">Si acertaste el total de goles del partido (ej: dijiste que iban a ser 3 goles y fueron 3).</div>
+          </div>
+        </div>
+        <div className="staff-portal__arg">
+          <span className="staff-portal__arg-icon">⭐</span>
+          <div><strong>Los partidos de Argentina valen el doble.</strong> Cada gol que metan los nuestros suma más en tu cuenta.</div>
+        </div>
 
-        {/* Profeta */}
-        <section className="staff-portal__section staff-portal__section--accent">
-          <h2 className="staff-portal__h2">🔮 La gran apuesta: ser un Profeta</h2>
-          <p>
-            Antes de que arranque el Mundial (<strong>11 de junio de 2026</strong>),
-            elegís a la selección que pensás que va a ganarlo todo. Una sola elección, sin posibilidad de cambiar.
+        {/* Profeta hero */}
+        <div className="staff-portal__profeta">
+          <div className="staff-portal__profeta-eyebrow">🔮 La gran apuesta</div>
+          <h2 className="staff-portal__profeta-title">Sé un Profeta</h2>
+          <p className="staff-portal__profeta-text">
+            Antes de que ruede la pelota el <strong>11 de junio</strong>, elegís quién creés que se lleva el Mundial.
+            Una sola selección. Sin chance de arrepentirte.
           </p>
-          <p>
-            Si acertás al final del torneo → te llevás <strong>20 puntos extra al ranking</strong> + la medalla
-            <strong> "Profeta"</strong> en tu vitrina. La elección se cierra el día del partido inaugural.
+          <div className="staff-portal__profeta-reward">
+            <div className="sp-reward">
+              <div className="sp-reward__num">+20</div>
+              <div className="sp-reward__label">puntos extra al ranking</div>
+            </div>
+            <div className="sp-reward">
+              <div className="sp-reward__icon">🏅</div>
+              <div className="sp-reward__label">medalla exclusiva "Profeta"</div>
+            </div>
+          </div>
+          <p className="staff-portal__profeta-foot">
+            Si pegás al campeón, te llevás los dos. Si te equivocaste, sigue siendo un golazo haberte animado.
           </p>
-        </section>
+        </div>
 
-        {/* Tabla aparte */}
-        <section className="staff-portal__section">
-          <h2 className="staff-portal__h2">🏆 Tabla aparte para el staff</h2>
-          <p>
-            Ustedes compiten <strong>entre ustedes</strong>, no mezclados con clientes. Su propio ranking,
-            su propia pelea por ser el #1 de la sala.
-          </p>
-        </section>
+        {/* Vitrina + tabla — 2 columnas */}
+        <div className="staff-portal__split">
+          <div className="staff-portal__split-card">
+            <div className="staff-portal__split-icon">🏅</div>
+            <h3>Tu vitrina personal</h3>
+            <p>
+              Vas ganando <strong>medallas</strong> por logros: el primer pronóstico, 5 aciertos al hilo,
+              acertar un 0-0 raro, terminar el fixture entero. Cada medalla cae con animación de
+              papelitos y la podés compartir en <strong>WhatsApp, Instagram o Facebook</strong>.
+            </p>
+          </div>
+          <div className="staff-portal__split-card">
+            <div className="staff-portal__split-icon">🏆</div>
+            <h3>Compiten entre ustedes</h3>
+            <p>
+              Tienen su propia tabla, separada de la pública.
+              <strong> No están mezclados con clientes</strong> — la pelea por el #1 es entre el staff.
+              Vas a ver quién manda en la sala.
+            </p>
+          </div>
+        </div>
 
         {/* Premios */}
-        <section className="staff-portal__section staff-portal__section--prizes">
-          <h2 className="staff-portal__h2">🎁 Premios exclusivos para el staff</h2>
+        <section className="staff-portal__prizes">
+          <div className="staff-portal__prizes-icon">🎁</div>
+          <h2>Premios exclusivos para el staff</h2>
           <p>Los anunciamos en los próximos días. Vayan acomodando sus apuestas.</p>
         </section>
 
         {/* CTAs principales */}
         <div className="staff-portal__ctas">
-          <button className="staff-portal__cta staff-portal__cta--primary" onClick={() => { setShowRegister(true); setShowLogin(false) }}>
-            🏢 ANOTARME COMO EMPLEADO →
-          </button>
-          <button className="staff-portal__cta staff-portal__cta--secondary" onClick={() => { setShowLogin(true); setShowRegister(false) }}>
-            Ya tengo cuenta · Ingresar
-          </button>
+          {isLoggedIn ? (
+            <button className="staff-portal__cta staff-portal__cta--primary" onClick={onExit}>
+              🎯 IR AL PRODE →
+            </button>
+          ) : (
+            <>
+              <button className="staff-portal__cta staff-portal__cta--primary" onClick={() => { setShowRegister(true); setShowLogin(false) }}>
+                🏢 ANOTARME COMO EMPLEADO →
+              </button>
+              <button className="staff-portal__cta staff-portal__cta--secondary" onClick={() => { setShowLogin(true); setShowRegister(false) }}>
+                Ya tengo cuenta · Ingresar
+              </button>
+            </>
+          )}
         </div>
 
         {(showRegister || showLogin) && (
@@ -2302,9 +2376,10 @@ export default function ProdeApp() {
     return <PromoMode onExit={exitPromoMode} />
   }
 
-  // Portal de staff — solo si no hay sesión activa. Si ya está logueado, va al flow normal.
-  if (staffPortalCode && !player) {
-    return <StaffPortal staffCode={staffPortalCode} onLogin={handleLogin} onExit={exitStaffPortal} />
+  // Portal de staff — accesible siempre con el link, también para empleados ya logueados
+  // (así pueden volver a mandar sugerencias). El componente cambia el render según haya o no player.
+  if (staffPortalCode) {
+    return <StaffPortal staffCode={staffPortalCode} player={player} onLogin={handleLogin} onExit={exitStaffPortal} />
   }
 
   return (

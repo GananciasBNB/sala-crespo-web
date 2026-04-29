@@ -2836,13 +2836,14 @@
 }
 
 .staff-portal__header {
-  display: flex; align-items: center; gap: 18px;
-  padding-bottom: 26px; margin-bottom: 28px;
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  gap: 10px; padding-bottom: 28px; margin-bottom: 28px;
   border-bottom: 2px solid rgba(255,210,80,.25);
 }
 .staff-portal__logo {
-  width: 84px; height: 84px; flex-shrink: 0;
+  width: 96px; height: 96px;
   filter: drop-shadow(0 4px 14px rgba(196,30,58,.4));
+  margin-bottom: 6px;
 }
 .staff-portal__eyebrow {
   font-family: 'Bebas Neue', sans-serif; letter-spacing: 4px;
@@ -2865,6 +2866,171 @@
 .staff-portal__warn strong { color: #ff8597; font-size: 15px; display: block; }
 .staff-portal__warn p     { margin: 6px 0 0; color: #E8EDF5; font-size: 14px; line-height: 1.5; }
 .staff-portal__warn p strong { display: inline; color: #ff8597; }
+
+/* Variante para usuario YA logueado: banner verde de bienvenida */
+.staff-portal__welcome {
+  display: flex; gap: 14px; align-items: flex-start;
+  background: linear-gradient(135deg, rgba(0,177,64,.12), rgba(255,210,80,.05));
+  border: 1.5px solid rgba(0,177,64,.45); border-radius: 12px;
+  padding: 16px 20px; margin-bottom: 32px;
+}
+.staff-portal__welcome-icon { font-size: 24px; line-height: 1; flex-shrink: 0; }
+.staff-portal__welcome strong { color: #6FE198; font-size: 16px; display: block; }
+.staff-portal__welcome p     { margin: 6px 0 0; color: #E8EDF5; font-size: 14px; line-height: 1.5; }
+
+/* Stats hero — números grandes */
+.staff-portal__stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-bottom: 24px;
+}
+.sp-stat {
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,210,80,.18);
+  border-radius: 12px; padding: 18px 12px; text-align: center;
+}
+.sp-stat__num {
+  font-family: 'Bebas Neue', sans-serif; font-size: 48px;
+  color: #FFD250; line-height: 1; letter-spacing: -1px;
+  background: linear-gradient(180deg, #FFD250, #C9A84C);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.sp-stat__label { color: #B0B8C4; font-size: 12px; margin-top: 4px; line-height: 1.3; }
+
+/* Hook narrativo */
+.staff-portal__hook {
+  background: linear-gradient(135deg, rgba(116,172,223,.08), rgba(116,172,223,.02));
+  border-left: 3px solid #74ACDF; border-radius: 8px;
+  padding: 18px 22px; margin-bottom: 32px;
+}
+.staff-portal__hook p {
+  margin: 0; color: #E8EDF5; font-size: 15px; line-height: 1.6;
+}
+
+/* Cómo funciona — 3 cards */
+.staff-portal__h2--center { text-align: center; margin-bottom: 18px; }
+.staff-portal__how {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-bottom: 36px;
+}
+.sp-step {
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px; padding: 20px 18px; text-align: center;
+}
+.sp-step__num {
+  font-family: 'Bebas Neue', sans-serif; font-size: 36px;
+  width: 56px; height: 56px; line-height: 56px;
+  background: linear-gradient(135deg, #C41E3A, #ff3556); color: #fff;
+  border-radius: 50%; margin: 0 auto 12px;
+  box-shadow: 0 6px 14px rgba(196,30,58,.4);
+}
+.sp-step__title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 1px;
+  color: #FFD250; text-transform: uppercase; margin-bottom: 6px;
+}
+.sp-step__text { color: #B0B8C4; font-size: 13px; line-height: 1.4; }
+
+/* Sistema de puntos — 3 cards distribuidos */
+.staff-portal__points-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  margin-bottom: 14px;
+}
+.sp-point {
+  background: rgba(255,255,255,.03); border: 1.5px solid;
+  border-radius: 12px; padding: 18px 16px; text-align: center;
+}
+.sp-point--gold   { border-color: rgba(255,210,80,.5); background: linear-gradient(180deg, rgba(255,210,80,.08), transparent); }
+.sp-point--silver { border-color: rgba(176,184,196,.4); }
+.sp-point--bronze { border-color: rgba(201,146,63,.4); }
+.sp-point__pts {
+  font-family: 'Bebas Neue', sans-serif; font-size: 56px;
+  line-height: 1; letter-spacing: -2px;
+}
+.sp-point--gold   .sp-point__pts { color: #FFD250; }
+.sp-point--silver .sp-point__pts { color: #c4cad6; }
+.sp-point--bronze .sp-point__pts { color: #c9923f; }
+.sp-point__label {
+  font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 2px;
+  color: #B0B8C4; margin: 4px 0 10px; text-transform: uppercase;
+}
+.sp-point__desc { color: #E8EDF5; font-size: 13px; line-height: 1.4; }
+
+/* Banner Argentina */
+.staff-portal__arg {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(90deg, rgba(116,172,223,.12), rgba(255,255,255,.04));
+  border: 1px solid rgba(116,172,223,.35); border-radius: 10px;
+  padding: 14px 18px; margin-bottom: 36px;
+}
+.staff-portal__arg-icon { font-size: 28px; }
+.staff-portal__arg div  { color: #E8EDF5; font-size: 14px; line-height: 1.5; }
+.staff-portal__arg strong { color: #74ACDF; }
+
+/* Profeta hero */
+.staff-portal__profeta {
+  background: linear-gradient(135deg, rgba(196,30,58,.18), rgba(255,210,80,.10));
+  border: 2px solid rgba(255,210,80,.45); border-radius: 16px;
+  padding: 28px 26px; margin-bottom: 28px; text-align: center;
+  box-shadow: 0 12px 32px rgba(196,30,58,.18);
+}
+.staff-portal__profeta-eyebrow {
+  font-family: 'Bebas Neue', sans-serif; letter-spacing: 3px;
+  color: #FFD250; font-size: 14px; margin-bottom: 6px;
+}
+.staff-portal__profeta-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 48px; letter-spacing: 2px;
+  color: #fff; text-transform: uppercase; margin: 0 0 10px; line-height: 1;
+}
+.staff-portal__profeta-text {
+  color: #E8EDF5; font-size: 15px; line-height: 1.55; margin: 0 0 18px;
+  max-width: 580px; margin-left: auto; margin-right: auto;
+}
+.staff-portal__profeta-reward {
+  display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+  margin: 18px 0;
+}
+.sp-reward {
+  background: rgba(0,0,0,.35); border: 1px solid rgba(255,210,80,.35);
+  border-radius: 12px; padding: 14px 22px; min-width: 180px;
+}
+.sp-reward__num {
+  font-family: 'Bebas Neue', sans-serif; font-size: 38px;
+  color: #FFD250; line-height: 1;
+}
+.sp-reward__icon { font-size: 36px; line-height: 1; }
+.sp-reward__label { color: #B0B8C4; font-size: 12px; margin-top: 4px; line-height: 1.3; }
+.staff-portal__profeta-foot {
+  color: #B0B8C4; font-size: 13px; font-style: italic; margin: 8px 0 0;
+}
+
+/* Split: vitrina + tabla en 2 columnas */
+.staff-portal__split {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  margin-bottom: 28px;
+}
+.staff-portal__split-card {
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px; padding: 22px 22px;
+}
+.staff-portal__split-icon { font-size: 36px; margin-bottom: 10px; line-height: 1; }
+.staff-portal__split-card h3 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px;
+  color: #FFD250; text-transform: uppercase; margin: 0 0 8px;
+}
+.staff-portal__split-card p {
+  color: #E8EDF5; font-size: 14px; line-height: 1.55; margin: 0;
+}
+
+/* Premios — banner destacado */
+.staff-portal__prizes {
+  background: linear-gradient(135deg, rgba(0,177,64,.12), rgba(255,210,80,.06));
+  border: 2px dashed rgba(0,177,64,.5); border-radius: 14px;
+  padding: 26px 22px; margin-bottom: 28px; text-align: center;
+}
+.staff-portal__prizes-icon { font-size: 44px; line-height: 1; margin-bottom: 8px; }
+.staff-portal__prizes h2 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px;
+  color: #6FE198; text-transform: uppercase; margin: 0 0 6px;
+}
+.staff-portal__prizes p { color: #E8EDF5; margin: 0; font-size: 15px; }
 
 .staff-portal__section {
   background: rgba(255,255,255,.02);
@@ -2961,10 +3127,18 @@
 }
 .staff-portal__exit:hover { color: #FFD250; }
 
+@media (max-width: 700px) {
+  .staff-portal__stats         { grid-template-columns: 1fr; }
+  .staff-portal__how           { grid-template-columns: 1fr; }
+  .staff-portal__points-grid   { grid-template-columns: 1fr; }
+  .staff-portal__split         { grid-template-columns: 1fr; }
+}
 @media (max-width: 600px) {
-  .staff-portal__title    { font-size: 32px; }
-  .staff-portal__header   { flex-direction: column; text-align: center; gap: 12px; }
-  .staff-portal__h2       { font-size: 22px; }
-  .staff-portal__cta      { width: 100%; }
-  .staff-portal__inner    { padding: 24px 16px 50px; }
+  .staff-portal__title           { font-size: 32px; }
+  .staff-portal__h2              { font-size: 22px; }
+  .staff-portal__cta             { width: 100%; }
+  .staff-portal__inner           { padding: 24px 16px 50px; }
+  .staff-portal__profeta-title   { font-size: 36px; }
+  .sp-stat__num                  { font-size: 40px; }
+  .sp-point__pts                 { font-size: 48px; }
 }
