@@ -1716,6 +1716,17 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <p className="staff-portal__subtitle">Sala de Juegos Crespo · Acceso exclusivo para el staff</p>
         </header>
 
+        {/* Hook narrativo: lo PRIMERO que leen al entrar — el porqué */}
+        {!isLoggedIn && (
+          <section className="staff-portal__hook">
+            <p>
+              Estamos por lanzar el <strong>Prode Mundial 2026</strong> para nuestros clientes,
+              pero antes de abrirlo al público queríamos que <strong>ustedes lo prueben primero</strong>.
+              Para que se diviertan, compitan entre el equipo de la sala — y, de paso, nos cuenten qué pueden mejorar.
+            </p>
+          </section>
+        )}
+
         {/* Banner — varía si está logueado o no */}
         {isLoggedIn ? (
           <div className="staff-portal__welcome">
@@ -1750,15 +1761,6 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
             <div className="sp-stat__label">en partidos de Argentina ⭐</div>
           </div>
         </div>
-
-        {/* Hook narrativo: el "porqué" antes del "qué" */}
-        <section className="staff-portal__hook">
-          <p>
-            Estamos por lanzar el <strong>Prode Mundial 2026</strong> para nuestros clientes,
-            pero antes de abrirlo al público queríamos que <strong>ustedes lo prueben primero</strong>.
-            Para que se diviertan, compitan entre el equipo de la sala — y, de paso, nos cuenten qué pueden mejorar.
-          </p>
-        </section>
 
         {/* Cómo se juega — 3 cards visuales */}
         <h2 className="staff-portal__h2 staff-portal__h2--center">Cómo funciona</h2>
