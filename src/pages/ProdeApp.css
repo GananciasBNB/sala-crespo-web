@@ -3119,18 +3119,59 @@
   color: #E8EDF5; font-size: 14px; line-height: 1.55; margin: 0;
 }
 
-/* Premios — banner destacado */
+/* Premios — sección con podio + logo Clauser */
 .staff-portal__prizes {
   background: linear-gradient(135deg, rgba(0,177,64,.12), rgba(255,210,80,.06));
-  border: 2px dashed rgba(0,177,64,.5); border-radius: 14px;
-  padding: 26px 22px; margin-bottom: 28px; text-align: center;
+  border: 2px solid rgba(0,177,64,.45); border-radius: 16px;
+  padding: 32px 24px; margin-bottom: 28px; text-align: center;
+  box-shadow: 0 12px 36px rgba(0,177,64,.10);
 }
 .staff-portal__prizes-icon { font-size: 44px; line-height: 1; margin-bottom: 8px; }
 .staff-portal__prizes h2 {
-  font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 32px; letter-spacing: 1px;
   color: #6FE198; text-transform: uppercase; margin: 0 0 6px;
 }
-.staff-portal__prizes p { color: #E8EDF5; margin: 0; font-size: 15px; }
+.staff-portal__prizes-sub {
+  color: #E8EDF5; margin: 0 0 14px; font-size: 16px;
+}
+.staff-portal__prizes-sub strong { color: #C41E3A; }
+.staff-portal__prizes-logo {
+  max-width: 220px; height: auto; margin: 6px auto 22px;
+  display: block;
+  background: #fff; padding: 10px 18px; border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+}
+.staff-portal__prizes-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+  max-width: 720px; margin: 0 auto;
+}
+.sp-prize {
+  background: rgba(0,0,0,.35); border: 2px solid;
+  border-radius: 14px; padding: 22px 18px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  transition: transform .2s ease;
+}
+.sp-prize:hover { transform: translateY(-3px); }
+.sp-prize--gold   { border-color: #FFD250; background: linear-gradient(180deg, rgba(255,210,80,.16), rgba(0,0,0,.4)); }
+.sp-prize--silver { border-color: #c4cad6; background: linear-gradient(180deg, rgba(196,202,214,.12), rgba(0,0,0,.4)); }
+.sp-prize--bronze { border-color: #c9923f; background: linear-gradient(180deg, rgba(201,146,63,.14), rgba(0,0,0,.4)); }
+.sp-prize__medal { font-size: 42px; line-height: 1; }
+.sp-prize__pos {
+  font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px;
+  color: #B0B8C4; text-transform: uppercase; margin-top: 6px;
+}
+.sp-prize__amount {
+  font-family: 'Bebas Neue', sans-serif; font-size: 36px; letter-spacing: -.5px;
+  line-height: 1.05; margin-top: 4px;
+}
+.sp-prize--gold   .sp-prize__amount { color: #FFD250; }
+.sp-prize--silver .sp-prize__amount { color: #fff; }
+.sp-prize--bronze .sp-prize__amount { color: #e0a965; }
+
+@media (max-width: 600px) {
+  .staff-portal__prizes-grid { grid-template-columns: 1fr; }
+  .sp-prize__amount          { font-size: 32px; }
+}
 
 .staff-portal__section {
   background: rgba(255,255,255,.02);

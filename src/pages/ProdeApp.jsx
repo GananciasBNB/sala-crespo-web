@@ -1779,7 +1779,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
                 <div className="sp-hook-card__title">¿De qué se trata?</div>
                 <div className="sp-hook-card__text">
                   Un Prode es predecir cómo van a terminar los partidos del Mundial 2026
-                  <em> antes de que se jueguen</em>. Si le pegás al resultado, sumás puntos.
+                  <em> antes de que se jueguen</em>. Si acertás el resultado, sumás puntos.
                   Cuanto mejor predecís, más alto vas en la tabla.
                 </div>
               </div>
@@ -1855,7 +1855,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <div className="sp-step">
             <div className="sp-step__num">3</div>
             <div className="sp-step__title">Sumás puntos</div>
-            <div className="sp-step__text">Cuanto mejor le pegaste al resultado, más puntos te llevás.</div>
+            <div className="sp-step__text">Cuanto mejor acertaste, más puntos sumás.</div>
           </div>
         </div>
 
@@ -1865,7 +1865,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           <div className="sp-point sp-point--gold">
             <div className="sp-point__pts">10</div>
             <div className="sp-point__label">PUNTOS</div>
-            <div className="sp-point__desc">Le pegaste al marcador exacto. Ej: pronosticaste 2-1 y el partido terminó 2-1.</div>
+            <div className="sp-point__desc">Acertaste el marcador exacto. Ej: pronosticaste 2-1 y el partido terminó 2-1.</div>
           </div>
           <div className="sp-point sp-point--silver">
             <div className="sp-point__pts">5</div>
@@ -1902,7 +1902,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
             </div>
           </div>
           <p className="staff-portal__profeta-foot">
-            Si pegás al campeón, te llevás los dos. Si te equivocaste, sigue siendo un golazo haberte animado.
+            Si acertás al campeón, te llevás los dos. Si no, sigue siendo un golazo haberte animado.
           </p>
         </div>
 
@@ -1928,11 +1928,31 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           </div>
         </div>
 
-        {/* Premios */}
+        {/* Premios concretos para el staff */}
         <section className="staff-portal__prizes">
           <div className="staff-portal__prizes-icon">🎁</div>
           <h2>Premios exclusivos para el staff</h2>
-          <p>Los anunciamos en los próximos días. Vayan acomodando sus apuestas.</p>
+          <p className="staff-portal__prizes-sub">
+            Órdenes de compra en <strong>Supermercado Clauser</strong>
+          </p>
+          <img src="/clauser-logo.png" alt="Supermercado Clauser" className="staff-portal__prizes-logo" />
+          <div className="staff-portal__prizes-grid">
+            <div className="sp-prize sp-prize--gold">
+              <div className="sp-prize__medal">🥇</div>
+              <div className="sp-prize__pos">1er puesto</div>
+              <div className="sp-prize__amount">$50.000</div>
+            </div>
+            <div className="sp-prize sp-prize--silver">
+              <div className="sp-prize__medal">🥈</div>
+              <div className="sp-prize__pos">2do puesto</div>
+              <div className="sp-prize__amount">$30.000</div>
+            </div>
+            <div className="sp-prize sp-prize--bronze">
+              <div className="sp-prize__medal">🥉</div>
+              <div className="sp-prize__pos">3er puesto</div>
+              <div className="sp-prize__amount">$20.000</div>
+            </div>
+          </div>
         </section>
 
         {/* CTAs principales */}
