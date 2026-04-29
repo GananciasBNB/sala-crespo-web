@@ -1765,7 +1765,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
         {!isLoggedIn && (
           <section className="staff-portal__hook">
             <h2 className="staff-portal__hook-headline">
-              ⚽ Antes de abrirlo al público, los queríamos a ustedes.
+              ⚽ Se acerca el Mundial y, como colaborador de Sala Crespo, queremos invitarte a participar del Prode 2026.
             </h2>
             <p className="staff-portal__hook-intro">
               En unos días arrancamos el <strong>Prode Mundial 2026</strong> para nuestros clientes.
