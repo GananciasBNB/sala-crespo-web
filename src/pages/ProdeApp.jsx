@@ -1684,9 +1684,39 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
   const [sugName, setSugName]   = useState(player?.name || '')
   const [sugEmail, setSugEmail] = useState('')
   const [sugText, setSugText]   = useState('')
+  const [sugKind, setSugKind]   = useState('propuesta')
+  const [sugFiles, setSugFiles] = useState([]) // [{ name, type, data, preview }]
   const [sugSent, setSugSent]   = useState(false)
   const [sugErr,  setSugErr]    = useState('')
   const [sugLoad, setSugLoad]   = useState(false)
+
+  // Lee archivos seleccionados, los convierte a base64 y los suma a sugFiles
+  function handleFilePick(e) {
+    const files = Array.from(e.target.files || [])
+    if (files.length === 0) return
+    const remaining = 3 - sugFiles.length
+    if (remaining <= 0) { setSugErr('Máximo 3 imágenes.'); return }
+    const toRead = files.slice(0, remaining)
+    let pending = toRead.length
+    const newOnes = []
+    toRead.forEach(f => {
+      if (!f.type.startsWith('image/')) { pending--; return }
+      if (f.size > 5 * 1024 * 1024) { setSugErr(`"${f.name}" supera 5MB.`); pending--; return }
+      const reader = new FileReader()
+      reader.onload = () => {
+        newOnes.push({ name: f.name, type: f.type, data: reader.result, preview: reader.result })
+        pending--
+        if (pending <= 0) setSugFiles(prev => [...prev, ...newOnes].slice(0, 3))
+      }
+      reader.onerror = () => { pending--; }
+      reader.readAsDataURL(f)
+    })
+    e.target.value = '' // permitir re-seleccionar el mismo archivo
+  }
+
+  function removeFile(idx) {
+    setSugFiles(prev => prev.filter((_, i) => i !== idx))
+  }
 
   async function handleSuggestion(e) {
     e.preventDefault()
@@ -1694,9 +1724,10 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
     if (sugText.trim().length < 8) { setSugErr('Escribí al menos 8 caracteres.'); return }
     setSugLoad(true)
     try {
-      await submitStaffSuggestion(sugName.trim(), sugEmail.trim(), sugText.trim())
+      const attachments = sugFiles.map(f => ({ name: f.name, type: f.type, data: f.data }))
+      await submitStaffSuggestion(sugName.trim(), sugEmail.trim(), sugText.trim(), sugKind, attachments)
       setSugSent(true)
-      setSugName(''); setSugEmail(''); setSugText('')
+      setSugName(''); setSugEmail(''); setSugText(''); setSugKind('propuesta'); setSugFiles([])
     } catch (err) {
       setSugErr(err.message || 'No pudimos enviar la sugerencia.')
     }
@@ -1899,36 +1930,101 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           />
         )}
 
+        {/* Nota — cierre cálido y motivador para el staff antes del form */}
+        <section className="staff-portal__note">
+          <div className="staff-portal__note-icon">💪</div>
+          <div>
+            <strong>Te toca ser embajador del Prode.</strong>
+            <p>
+              Si esto te resulta fácil de usar, vas a poder explicarle a los clientes cómo participar —
+              porque el proceso para ellos va a ser <strong>idéntico al tuyo</strong>: registro, pronósticos, medallas, todo igual.
+              Si algo te traba a vos, seguro le va a trabar a un cliente. Por eso tu feedback vale oro.
+            </p>
+          </div>
+        </section>
+
         {/* Sugerencias */}
         <section className="staff-portal__section staff-portal__suggestions">
           <h2 className="staff-portal__h2">💡 Tus sugerencias suman</h2>
           <p>
-            Lo están probando antes que nadie. Si encontrás algo raro, algo que no se entiende,
-            o tenés una idea para que la app sea mejor, mandanos: lo que digas va a definir
-            cómo lo lanzamos al público.
+            Lo están probando antes que nadie. Lo que digas va a definir cómo lo lanzamos al público.
           </p>
           {sugSent ? (
-            <div className="staff-portal__sug-ok">✓ ¡Gracias! Recibimos tu sugerencia.</div>
+            <div className="staff-portal__sug-ok">✓ ¡Gracias! Recibimos tu sugerencia. Te respondemos a la brevedad si dejaste tu mail.</div>
           ) : (
             <form className="staff-portal__sug-form" onSubmit={handleSuggestion}>
-              <input
-                type="text" placeholder="Tu nombre (opcional)"
-                value={sugName} onChange={e => setSugName(e.target.value)}
-                className="staff-portal__input" maxLength={80}
-              />
-              <input
-                type="email" placeholder="Tu email (opcional, por si querés que te respondamos)"
-                value={sugEmail} onChange={e => setSugEmail(e.target.value)}
-                className="staff-portal__input" maxLength={120}
-              />
+              {/* Selector de tipo */}
+              <div className="staff-portal__sug-kinds">
+                {[
+                  { id: 'propuesta', label: '💡 Propuesta', desc: 'Idea para mejorar' },
+                  { id: 'fallo',     label: '🐛 Fallo',     desc: 'Algo no funciona' },
+                  { id: 'pregunta',  label: '❓ Pregunta',  desc: 'No entiendo algo' },
+                  { id: 'otro',      label: '✏️ Otro',      desc: 'Cualquier cosa' },
+                ].map(k => (
+                  <button
+                    key={k.id} type="button"
+                    onClick={() => setSugKind(k.id)}
+                    className={`sp-kind ${sugKind === k.id ? 'sp-kind--on' : ''}`}
+                  >
+                    <span className="sp-kind__label">{k.label}</span>
+                    <span className="sp-kind__desc">{k.desc}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="staff-portal__sug-row">
+                <input
+                  type="text" placeholder="Tu nombre (opcional)"
+                  value={sugName} onChange={e => setSugName(e.target.value)}
+                  className="staff-portal__input" maxLength={80}
+                />
+                <input
+                  type="email" placeholder="Tu email (opcional, por si querés respuesta)"
+                  value={sugEmail} onChange={e => setSugEmail(e.target.value)}
+                  className="staff-portal__input" maxLength={120}
+                />
+              </div>
+
               <textarea
-                placeholder="Contanos qué pensás..."
+                placeholder={
+                  sugKind === 'fallo'     ? 'Contanos qué falla. ¿Qué hiciste? ¿Qué esperabas que pasara?' :
+                  sugKind === 'propuesta' ? '¿Qué se podría mejorar? ¿Qué le falta?' :
+                  sugKind === 'pregunta'  ? '¿Qué no entendiste?' :
+                  'Contanos lo que sea...'
+                }
                 value={sugText} onChange={e => setSugText(e.target.value)}
                 className="staff-portal__textarea" rows={5} maxLength={4000}
               />
+
+              {/* Adjuntar imágenes */}
+              <div className="staff-portal__sug-attach">
+                <label className="sp-attach-btn">
+                  📎 Adjuntar capturas {sugFiles.length > 0 && `(${sugFiles.length}/3)`}
+                  <input
+                    type="file" accept="image/*" multiple
+                    onChange={handleFilePick}
+                    style={{ display: 'none' }}
+                    disabled={sugFiles.length >= 3}
+                  />
+                </label>
+                <span className="sp-attach-hint">Hasta 3 imágenes, máx. 5MB cada una</span>
+              </div>
+
+              {sugFiles.length > 0 && (
+                <div className="staff-portal__sug-previews">
+                  {sugFiles.map((f, i) => (
+                    <div key={i} className="sp-thumb">
+                      <img src={f.preview} alt={f.name} />
+                      <button type="button" className="sp-thumb__rm" onClick={() => removeFile(i)} aria-label="Quitar">✕</button>
+                      <span className="sp-thumb__name">{f.name}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {sugErr && <div className="staff-portal__sug-err">⚠️ {sugErr}</div>}
               <button type="submit" className="staff-portal__sug-btn" disabled={sugLoad}>
-                {sugLoad ? 'Enviando...' : 'Enviar sugerencia →'}
+                {sugLoad ? 'Enviando...' : 'Enviar →'}
               </button>
             </form>
           )}

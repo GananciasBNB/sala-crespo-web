@@ -120,10 +120,10 @@ export const dailyCheckin = (token) =>
   api('/api/me/checkin', { method: 'POST', headers: authHeaders(token) })
 
 // ─── Portal de staff — sugerencias ────────────────────────────────────────────
-export const submitStaffSuggestion = (name, email, text) =>
+export const submitStaffSuggestion = (name, email, text, kind = 'otro', attachments = []) =>
   api('/api/staff/suggestion', {
     method: 'POST',
-    body: JSON.stringify({ name, email, text }),
+    body: JSON.stringify({ name, email, text, kind, attachments }),
   })
 
 // ─── Profeta — elección del campeón pre-Mundial ──────────────────────────────
