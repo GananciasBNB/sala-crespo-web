@@ -126,6 +126,13 @@ export const submitStaffSuggestion = (name, email, text, kind = 'otro', attachme
     body: JSON.stringify({ name, email, text, kind, attachments }),
   })
 
+// ─── Contacto público (dudas / sugerencias / reclamos) ───────────────────────
+export const submitContact = (name, email, kind, text) =>
+  api('/api/contact', {
+    method: 'POST',
+    body: JSON.stringify({ name, email, kind, text }),
+  })
+
 // ─── Profeta — elección del campeón pre-Mundial ──────────────────────────────
 export const getChampionPick = (token) =>
   api('/api/me/champion-pick', { headers: authHeaders(token) })

@@ -1,0 +1,132 @@
+.contacto-page { min-height: 100vh; background: #0a0d12; color: #E8EDF5; }
+
+.contacto-hero {
+  background: linear-gradient(180deg, rgba(196,30,58,.15) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 24px 16px 36px;
+}
+.contacto-hero__inner { max-width: 1080px; margin: 0 auto; }
+.contacto-back {
+  color: #B0B8C4; font-size: 14px; text-decoration: none;
+  display: inline-block; margin-bottom: 16px; transition: color .15s;
+}
+.contacto-back:hover { color: #FFD250; }
+.contacto-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 52px; letter-spacing: 1.5px;
+  color: #FFD250; margin: 0; line-height: 1; text-transform: uppercase;
+}
+.contacto-sub { color: #B0B8C4; font-size: 16px; margin: 10px 0 0; }
+
+.contacto-main { padding: 36px 16px 48px; }
+.contacto-grid {
+  max-width: 1080px; margin: 0 auto;
+  display: grid; grid-template-columns: 320px 1fr; gap: 28px;
+}
+.contacto-side { position: sticky; top: 16px; align-self: start; }
+.contacto-card {
+  background: linear-gradient(155deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+  border: 1px solid rgba(255,210,80,.22); border-radius: 14px;
+  padding: 22px;
+}
+.contacto-card h3 {
+  font-family: 'Bebas Neue', sans-serif; font-size: 26px; letter-spacing: 1px;
+  color: #FFD250; margin: 0 0 4px; text-transform: uppercase;
+}
+.contacto-card__addr { color: #B0B8C4; font-size: 13px; margin: 0 0 22px; }
+
+.contacto-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px; margin-bottom: 8px;
+  background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
+  border-radius: 10px; color: #E8EDF5; text-decoration: none;
+  transition: all .15s;
+}
+.contacto-link:hover { background: rgba(255,210,80,.06); border-color: rgba(255,210,80,.3); transform: translateX(2px); }
+.contacto-link svg { color: #B0B8C4; flex-shrink: 0; }
+.contacto-link strong { display: block; color: #fff; font-size: 13px; margin-bottom: 2px; }
+.contacto-link span { color: #B0B8C4; font-size: 13px; }
+.contacto-link--wa svg { color: #25D366; }
+
+.contacto-form-wrap {
+  background: rgba(255,255,255,.02);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  padding: 28px;
+}
+.contacto-form-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 1px;
+  color: #fff; margin: 0 0 22px; text-transform: uppercase;
+}
+.contacto-form { display: flex; flex-direction: column; gap: 14px; }
+.contacto-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.contacto-form label { display: flex; flex-direction: column; gap: 6px; }
+.contacto-form label span,
+.contacto-label {
+  font-size: 13px; color: #B0B8C4; font-weight: 600; letter-spacing: .3px;
+}
+.contacto-form input, .contacto-form textarea {
+  background: rgba(0,0,0,.45); color: #E8EDF5;
+  border: 1px solid rgba(255,255,255,.12); border-radius: 8px;
+  padding: 12px 14px; font-size: 14px; font-family: inherit;
+  transition: border-color .15s;
+}
+.contacto-form input:focus, .contacto-form textarea:focus {
+  outline: none; border-color: rgba(255,210,80,.5);
+}
+.contacto-form textarea { resize: vertical; min-height: 120px; }
+
+.contacto-kinds { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.contacto-kind {
+  background: rgba(255,255,255,.04); border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 10px; padding: 10px 8px; cursor: pointer;
+  color: #E8EDF5; font-weight: 600; font-size: 13px;
+  transition: all .15s;
+}
+.contacto-kind:hover { background: rgba(255,255,255,.08); }
+.contacto-kind--on {
+  background: linear-gradient(135deg, rgba(196,30,58,.18), rgba(255,210,80,.08));
+  border-color: #C41E3A; color: #FFD250;
+  box-shadow: 0 4px 12px rgba(196,30,58,.25);
+}
+
+.contacto-btn {
+  align-self: flex-end;
+  background: linear-gradient(135deg, #C41E3A, #ff3556); color: #fff;
+  border: none; padding: 13px 28px; border-radius: 10px;
+  font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 1.5px;
+  text-transform: uppercase; cursor: pointer;
+  box-shadow: 0 6px 18px rgba(196,30,58,.4);
+  transition: transform .15s, box-shadow .15s;
+}
+.contacto-btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(196,30,58,.55); }
+.contacto-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.contacto-err {
+  color: #ff8597; font-size: 13px;
+  background: rgba(196,30,58,.08); border: 1px solid rgba(196,30,58,.3);
+  border-radius: 8px; padding: 10px 14px;
+}
+.contacto-fineprint { font-size: 12px; color: #7A8AA0; margin: 4px 0 0; }
+
+.contacto-ok {
+  background: linear-gradient(135deg, rgba(0,177,64,.12), rgba(255,210,80,.05));
+  border: 1.5px solid rgba(0,177,64,.45); border-radius: 12px;
+  padding: 22px 24px; text-align: center;
+}
+.contacto-ok strong { color: #6FE198; font-size: 18px; display: block; margin-bottom: 6px; }
+.contacto-ok p      { color: #E8EDF5; margin: 0 0 16px; font-size: 14px; }
+.contacto-btn-secondary {
+  background: rgba(255,255,255,.06); color: #E8EDF5;
+  border: 1px solid rgba(255,255,255,.18); border-radius: 8px;
+  padding: 9px 18px; font-size: 13px; cursor: pointer;
+}
+.contacto-btn-secondary:hover { background: rgba(255,255,255,.12); }
+
+@media (max-width: 760px) {
+  .contacto-grid    { grid-template-columns: 1fr; }
+  .contacto-side    { position: static; }
+  .contacto-row     { grid-template-columns: 1fr; }
+  .contacto-kinds   { grid-template-columns: repeat(2, 1fr); }
+  .contacto-title   { font-size: 38px; }
+  .contacto-btn     { width: 100%; }
+}
