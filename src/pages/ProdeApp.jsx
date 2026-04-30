@@ -538,7 +538,7 @@ function ShareCardModal({ player, onClose }) {
         await navigator.share({
           files: [file],
           title: 'Mi cartón Prode Mundial 2026',
-          text: '¡Vení a jugar el Prode Mundial 2026 en Sala de Juegos Crespo! 🏆⚽\n\nhttps://saladejuegoscrespo.ar/prode',
+          text: '¡Vení a jugar el Prode Mundial 2026 en Sala de Juegos Crespo! 🏆⚽',
           url: 'https://saladejuegoscrespo.ar/prode',
         })
         setMsg('✓ Compartido')
