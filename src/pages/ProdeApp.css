@@ -2721,7 +2721,6 @@
 .share-card__brand { display: flex; align-items: center; gap: 18px; line-height: 1; }
 .share-card__logo {
   width: 110px; height: 110px; object-fit: contain;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
   flex-shrink: 0;
 }
 .share-card__brand-text { display: flex; flex-direction: column; line-height: 1; }

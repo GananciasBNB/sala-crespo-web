@@ -479,13 +479,24 @@ function ShareCardModal({ player, onClose }) {
         await new Promise(resolve => {
           const img = new Image()
           img.onload = () => resolve()
-          img.onerror = () => resolve() // si falla, seguimos sin logo
+          img.onerror = () => resolve()
           img.src = '/logo-sin-fondo.png'
-          // safety timeout
           setTimeout(resolve, 2000)
         })
         // Esperar 2 RAF para asegurar layout completo del DOM off-screen
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+        // Esperar que TODAS las imágenes del cartón estén complete=true (decode listo)
+        if (cardRef.current) {
+          const imgs = cardRef.current.querySelectorAll('img')
+          await Promise.all(Array.from(imgs).map(img => {
+            if (img.complete && img.naturalWidth > 0) return Promise.resolve()
+            return new Promise(res => {
+              img.addEventListener('load', res, { once: true })
+              img.addEventListener('error', res, { once: true })
+              setTimeout(res, 1500)
+            })
+          }))
+        }
         if (cancelled || !cardRef.current) return
         const { default: html2canvas } = await import('html2canvas-pro')
         const canvas = await html2canvas(cardRef.current, {
@@ -608,7 +619,8 @@ function ShareCardModal({ player, onClose }) {
                   src="/logo-sin-fondo.png"
                   alt=""
                   className="share-card__logo"
-                  crossOrigin="anonymous"
+                  loading="eager"
+                  decoding="sync"
                   onError={(e) => { e.currentTarget.style.display = 'none' }}
                 />
                 <div className="share-card__brand-text">
