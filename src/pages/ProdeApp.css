@@ -2621,6 +2621,123 @@
 .medallero-card__share:hover { background: rgba(0,200,150,.22); transform: translateY(-1px); }
 
 /* ═══════════════════════════════════════════════════════════════
+   ONBOARDING WIZARD (primer login)
+═══════════════════════════════════════════════════════════════ */
+.ob-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.78);
+  z-index: 1100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  animation: ob-fade .25s ease-out;
+}
+.ob-modal {
+  position: relative;
+  background: linear-gradient(160deg, #161B26 0%, #0f1219 100%);
+  border: 1.5px solid rgba(255,210,80,.3);
+  border-radius: 18px;
+  max-width: 440px; width: 100%;
+  padding: 30px 26px 24px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7);
+  animation: ob-slide .3s cubic-bezier(.2,.9,.3,1.1);
+}
+.ob-skip {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: #B0B8C4;
+  font-size: 13px; cursor: pointer;
+  padding: 4px 8px; border-radius: 6px;
+}
+.ob-skip:hover { color: #fff; background: rgba(255,255,255,.06); }
+.ob-icon {
+  width: 80px; height: 80px;
+  margin: 0 auto 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(196,30,58,.2), rgba(255,210,80,.12));
+  border: 1.5px solid rgba(255,210,80,.45);
+  display: flex; align-items: center; justify-content: center;
+  color: #FFD250;
+  box-shadow: 0 6px 20px rgba(196,30,58,.3);
+  animation: ob-icon-pop .35s cubic-bezier(.2,1.5,.3,1);
+}
+.ob-icon svg { width: 44px; height: 44px; }
+.ob-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px; letter-spacing: 1.5px;
+  color: #FFD250;
+  text-align: center; margin: 0 0 10px;
+  text-transform: uppercase;
+}
+.ob-body {
+  text-align: center; color: #E8EDF5;
+  font-size: 15px; line-height: 1.5;
+  margin: 0 0 22px;
+}
+.ob-bullets { list-style: none; padding: 0; margin: 0 0 24px; display: flex; flex-direction: column; gap: 12px; }
+.ob-bullet {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.ob-bullet__check {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: rgba(0,200,150,.18);
+  color: #6FE198;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+}
+.ob-bullet__strong { color: #fff; font-weight: 700; font-size: 14px; margin-bottom: 2px; }
+.ob-bullet__desc { color: #B0B8C4; font-size: 13px; line-height: 1.4; }
+.ob-dots {
+  display: flex; justify-content: center; gap: 8px; margin-bottom: 18px;
+}
+.ob-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: rgba(255,255,255,.18);
+  border: none; cursor: pointer;
+  padding: 0;
+  transition: all .2s;
+}
+.ob-dot:hover { background: rgba(255,255,255,.3); }
+.ob-dot--done { background: rgba(0,200,150,.6); }
+.ob-dot--active { background: #FFD250; width: 24px; border-radius: 4px; }
+.ob-actions { display: flex; gap: 8px; justify-content: space-between; }
+.ob-btn {
+  flex: 1;
+  border: none; border-radius: 10px;
+  padding: 13px 18px;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  transition: transform .15s;
+  letter-spacing: .3px;
+}
+.ob-btn--primary {
+  background: linear-gradient(135deg, #C41E3A, #ff3556);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(196,30,58,.4);
+}
+.ob-btn--primary:hover { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(196,30,58,.55); }
+.ob-btn--ghost {
+  flex: 0 0 auto;
+  background: rgba(255,255,255,.06);
+  color: var(--wc-text);
+  border: 1px solid rgba(255,255,255,.15);
+}
+.ob-btn--ghost:hover { background: rgba(255,255,255,.12); }
+@keyframes ob-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes ob-slide {
+  from { opacity: 0; transform: translateY(20px) scale(.96) }
+  to   { opacity: 1; transform: translateY(0) scale(1) }
+}
+@keyframes ob-icon-pop {
+  from { transform: scale(.4); opacity: 0 }
+  to   { transform: scale(1); opacity: 1 }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    SHARE CARD MODAL (cartón compartible 1080×1920)
 ═══════════════════════════════════════════════════════════════ */
 .share-modal {

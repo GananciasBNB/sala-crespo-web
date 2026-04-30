@@ -420,6 +420,128 @@ function MedalleroCard({ player, onOpenFull, onShare }) {
   )
 }
 
+// ─── Onboarding Wizard (primer login) ────────────────────────────────────────
+const ONBOARDING_SLIDES = [
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 2a14.5 14.5 0 0 0 0 20a14.5 14.5 0 0 0 0-20"/>
+        <path d="M2 12h20"/>
+      </svg>
+    ),
+    title: 'Bienvenido al Prode',
+    body: 'Pronosticá los resultados de los 104 partidos del Mundial 2026 y competí por premios reales.',
+    bullets: [
+      { strong: 'Arranca el 11 de junio 2026', desc: 'Tenés tiempo para cargar todo de a poco.' },
+      { strong: 'Inscripción gratis', desc: 'Cargá tus pronósticos antes del kickoff de cada partido.' },
+    ],
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M12 1v6m0 10v6M4.22 4.22l4.24 4.24m7.08 7.08 4.24 4.24M1 12h6m10 0h6M4.22 19.78l4.24-4.24m7.08-7.08 4.24-4.24"/>
+      </svg>
+    ),
+    title: 'Cómo se puntúa',
+    body: 'Cuanto mejor predecís, más puntos sumás.',
+    bullets: [
+      { strong: '5 pts · Resultado exacto', desc: 'Acertaste el marcador completo (ej. 2-1 → 2-1).' },
+      { strong: '2 pts · Acertaste ganador', desc: 'Predijiste quién gana o empata, aunque el marcador exacto no.' },
+      { strong: '×2 · Argentina', desc: 'Cada partido de la Selección suma el doble de puntos.' },
+    ],
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2 14.5 9 22 9 16 13.5 18.5 21 12 16.5 5.5 21 8 13.5 2 9 9.5 9z"/>
+      </svg>
+    ),
+    title: 'Sé Profeta del Mundial',
+    body: 'Antes del primer partido, elegí tu campeón. Si acertás, te llevás bonus.',
+    bullets: [
+      { strong: '+20 puntos extra', desc: 'Si tu seleccionado gana el Mundial.' },
+      { strong: 'Medalla "Profeta" exclusiva', desc: 'Solo la consiguen los que lo clavaron desde el primer día.' },
+    ],
+  },
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="9" r="6"/>
+        <path d="M9 14l-2 8 5-3 5 3-2-8"/>
+      </svg>
+    ),
+    title: 'Coleccioná 20 medallas',
+    body: 'Cada acción que hagas desbloquea logros. Mostralos en tu perfil y compartí tu cartón.',
+    bullets: [
+      { strong: 'Bautismo, Triplete, Hat Trick, Profeta…', desc: 'Hay medallas para todos los estilos.' },
+      { strong: 'Cartón compartible', desc: 'Mostrale a tus amigos cómo vas y desafialos.' },
+    ],
+  },
+]
+
+function OnboardingWizard({ player, onClose }) {
+  const [step, setStep] = useState(0)
+  const total = ONBOARDING_SLIDES.length
+  const slide = ONBOARDING_SLIDES[step]
+  const isLast = step === total - 1
+
+  function finish() {
+    try { localStorage.setItem(`prode_onboarding_seen_${player.id}`, '1') } catch {}
+    onClose()
+  }
+
+  return (
+    <div className="ob-overlay" role="dialog" aria-modal="true">
+      <div className="ob-modal">
+        <button className="ob-skip" onClick={finish} aria-label="Saltar">Saltar</button>
+
+        <div className="ob-icon">{slide.icon}</div>
+        <h2 className="ob-title">{slide.title}</h2>
+        <p className="ob-body">{slide.body}</p>
+
+        <ul className="ob-bullets">
+          {slide.bullets.map((b, i) => (
+            <li key={i} className="ob-bullet">
+              <div className="ob-bullet__check">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <div>
+                <div className="ob-bullet__strong">{b.strong}</div>
+                <div className="ob-bullet__desc">{b.desc}</div>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <div className="ob-dots">
+          {ONBOARDING_SLIDES.map((_, i) => (
+            <button
+              key={i}
+              type="button"
+              className={`ob-dot ${i === step ? 'ob-dot--active' : ''} ${i < step ? 'ob-dot--done' : ''}`}
+              onClick={() => setStep(i)}
+              aria-label={`Ir al paso ${i + 1}`}
+            />
+          ))}
+        </div>
+
+        <div className="ob-actions">
+          {step > 0 && (
+            <button className="ob-btn ob-btn--ghost" onClick={() => setStep(s => s - 1)}>← Atrás</button>
+          )}
+          {isLast ? (
+            <button className="ob-btn ob-btn--primary" onClick={finish}>¡Empezar a jugar! →</button>
+          ) : (
+            <button className="ob-btn ob-btn--primary" onClick={() => setStep(s => s + 1)}>Siguiente →</button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Cartón compartible (1080×1920 — Stories / WhatsApp) ─────────────────────
 function ShareCardModal({ player, onClose }) {
   const cardRef = useRef(null)
@@ -2939,6 +3061,7 @@ export default function ProdeApp() {
   const [toast, setToast]     = useState(null)
   const [showAuth, setShowAuth] = useState(false)
   const [unlockedQueue, setUnlockedQueue] = useState([])
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   // Modo Promotora — detectado por ?promo=1 en la URL
   const [promoMode, setPromoMode] = useState(() => {
@@ -3017,6 +3140,12 @@ export default function ProdeApp() {
     setPlayer(p)
     setShowAuth(false)
     setTab('inicio')
+    // Mostrar onboarding si es la primera vez que este jugador entra
+    try {
+      if (p?.id && !localStorage.getItem(`prode_onboarding_seen_${p.id}`)) {
+        setTimeout(() => setShowOnboarding(true), 600)
+      }
+    } catch {}
     // Scroll al tope para que vean el banner de bienvenida con el CTA grande,
     // si no quedan en mitad de pantalla donde estaba el modal y se pierde el CTA
     if (typeof window !== 'undefined') {
@@ -3119,6 +3248,9 @@ export default function ProdeApp() {
 
       {/* Auth Modal */}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} onLogin={handleLogin} />}
+      {showOnboarding && player && (
+        <OnboardingWizard player={player} onClose={() => setShowOnboarding(false)} />
+      )}
 
       {/* Modal celebratorio cuando se desbloquea una o varias medallas */}
       {unlockedQueue.length > 0 && (
