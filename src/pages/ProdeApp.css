@@ -1333,20 +1333,20 @@
 .pronosticos__groups {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  gap: 8px;
+  margin: 14px 0 18px;
+  padding-bottom: 18px;
   border-bottom: 1px solid var(--wc-border);
 }
 .pronosticos__group-btn {
   background: rgba(255,255,255,.05);
-  border: 1px solid var(--wc-border);
+  border: 1.5px solid var(--wc-border);
   color: var(--wc-muted);
-  width: 40px;
-  height: 36px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 700;
+  width: 52px;
+  height: 48px;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: 800;
   cursor: pointer;
   transition: all .2s;
 }
@@ -1428,13 +1428,32 @@
 @media (max-width: 600px) {
   .prode-header__sub { display: none; }
   .pub-hero__cta { padding: 14px 28px; font-size: 16px; }
-  .mc__name { font-size: 12px; }
   .mc__flag { font-size: 22px; }
-  .mc__flag-img { width: 28px; height: 18px; }
   .mc__input { width: 44px; font-size: 20px; }
   .modal { padding: 24px 20px; }
   .arg-banner { gap: 10px; }
   .arg-banner__flag { width: 36px; height: 24px; }
+
+  /* Selector de grupos en mobile: tamaño aún más grande para fácil tap */
+  .pronosticos__groups     { gap: 10px; padding-bottom: 16px; }
+  .pronosticos__group-btn  { width: 54px; height: 52px; font-size: 20px; }
+
+  /* MatchCard mobile: stack vertical para evitar que el "?" se pise con nombres */
+  .mc__teams {
+    grid-template-columns: 1fr;
+    grid-template-areas: 'home' 'score' 'away';
+    gap: 14px;
+    padding: 16px 12px;
+  }
+  .mc__team--home { grid-area: home; justify-content: center; }
+  .mc__team--away { grid-area: away; justify-content: center; flex-direction: row-reverse; }
+  .mc__score      { grid-area: score; min-width: 0; width: 100%; }
+  .mc__name       { font-size: 14px; }
+  .mc__flag-img   { width: 32px; height: 22px; }
+  .mc__inputs     { gap: 16px; justify-content: center; }
+  .mc__stepper    { flex-shrink: 0; }
+  .mc__step-val   { font-size: 28px; min-width: 40px; }
+  .mc__vs         { font-size: 14px; }
 }
 
 /* ═══════════════════════════════════════════════════════════════ */

@@ -1510,13 +1510,13 @@ function LoggedInBanner({ player, onParticipa }) {
       <div className="logged-banner__inner">
         <div className="logged-banner__greet">
           <div className="logged-banner__hi">Hola, <span>{firstName}</span></div>
-          <div className="logged-banner__sub">Bienvenido al Prode Mundial 2026</div>
+          <div className="logged-banner__sub">¡Bienvenido al Prode Mundial 2026! Cargá ya tu primer pronóstico.</div>
         </div>
         <div className="logged-banner__countdown">
           <MundialCountdown variant="inline" />
         </div>
         <button className="logged-banner__cta" onClick={onParticipa}>
-          🎯 Cargar mis pronósticos
+          🎯 Cargar mis pronósticos →
         </button>
       </div>
     </div>
@@ -2547,6 +2547,11 @@ export default function ProdeApp() {
     setPlayer(p)
     setShowAuth(false)
     setTab('inicio')
+    // Scroll al tope para que vean el banner de bienvenida con el CTA grande,
+    // si no quedan en mitad de pantalla donde estaba el modal y se pierde el CTA
+    if (typeof window !== 'undefined') {
+      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
+    }
     // Check-in diario al loguearse: registra visita + dispara medallas de fidelidad
     dailyCheckin(p.token)
       .then(r => enqueueUnlocked(r.unlockedAchievements || []))
