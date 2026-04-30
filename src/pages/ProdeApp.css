@@ -2718,9 +2718,15 @@
   display: flex; justify-content: space-between; align-items: flex-start;
   margin-bottom: 50px;
 }
-.share-card__brand { display: flex; flex-direction: column; line-height: 1; }
-.share-card__brand-line { font-size: 26px; letter-spacing: 6px; color: #B0B8C4; font-weight: 600; font-family: 'Inter', sans-serif; }
-.share-card__brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 92px; letter-spacing: 6px; color: #FFD250; margin-top: 6px; }
+.share-card__brand { display: flex; align-items: center; gap: 18px; line-height: 1; }
+.share-card__logo {
+  width: 110px; height: 110px; object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+  flex-shrink: 0;
+}
+.share-card__brand-text { display: flex; flex-direction: column; line-height: 1; }
+.share-card__brand-line { font-size: 22px; letter-spacing: 5px; color: #B0B8C4; font-weight: 600; font-family: 'Inter', sans-serif; }
+.share-card__brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 78px; letter-spacing: 5px; color: #FFD250; margin-top: 6px; }
 .share-card__cup {
   display: inline-flex; align-items: center; gap: 10px;
   font-family: 'Bebas Neue', sans-serif; font-size: 30px;

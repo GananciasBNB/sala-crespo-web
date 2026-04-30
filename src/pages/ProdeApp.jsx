@@ -426,6 +426,7 @@ function ShareCardModal({ player, onClose }) {
   const [achData, setAchData] = useState(null)
   const [position, setPosition] = useState(null)
   const [points, setPoints] = useState(null)
+  const [predsCount, setPredsCount] = useState(0)
   const [previewUrl, setPreviewUrl] = useState(null)
   const [previewBlob, setPreviewBlob] = useState(null)
   const [generating, setGenerating] = useState(true)
@@ -437,7 +438,8 @@ function ShareCardModal({ player, onClose }) {
     Promise.all([
       getMyAchievements(player.token),
       getLeaderboard('all').catch(() => []),
-    ]).then(([ach, lb]) => {
+      getMyPredictions(player.id, player.token).catch(() => ({})),
+    ]).then(([ach, lb, preds]) => {
       setAchData(ach)
       const me = (lb || []).findIndex(p => p.id === player.id)
       if (me >= 0) {
@@ -447,6 +449,11 @@ function ShareCardModal({ player, onClose }) {
         setPosition(null)
         setPoints(0)
       }
+      // Contar pronósticos completos (con home y away cargados)
+      const count = Object.values(preds || {}).filter(
+        p => p && p.home !== undefined && p.home !== '' && p.away !== undefined && p.away !== ''
+      ).length
+      setPredsCount(count)
     }).catch(() => {})
   }, [player?.token, player?.id])
 
@@ -468,6 +475,15 @@ function ShareCardModal({ player, onClose }) {
         if (typeof document !== 'undefined' && document.fonts?.ready) {
           await document.fonts.ready
         }
+        // Pre-cargar el logo para que html2canvas no capture en blanco
+        await new Promise(resolve => {
+          const img = new Image()
+          img.onload = () => resolve()
+          img.onerror = () => resolve() // si falla, seguimos sin logo
+          img.src = '/logo-sin-fondo.png'
+          // safety timeout
+          setTimeout(resolve, 2000)
+        })
         // Esperar 2 RAF para asegurar layout completo del DOM off-screen
         await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
         if (cancelled || !cardRef.current) return
@@ -585,11 +601,20 @@ function ShareCardModal({ player, onClose }) {
             <div className="share-card__bg" />
             <div className="share-card__noise" />
 
-            {/* TOP — brand */}
+            {/* TOP — brand con logo + cup */}
             <div className="share-card__top">
               <div className="share-card__brand">
-                <div className="share-card__brand-line">SALA DE JUEGOS</div>
-                <div className="share-card__brand-name">CRESPO</div>
+                <img
+                  src="/logo-sin-fondo.png"
+                  alt=""
+                  className="share-card__logo"
+                  crossOrigin="anonymous"
+                  onError={(e) => { e.currentTarget.style.display = 'none' }}
+                />
+                <div className="share-card__brand-text">
+                  <div className="share-card__brand-line">SALA DE JUEGOS</div>
+                  <div className="share-card__brand-name">CRESPO</div>
+                </div>
               </div>
               <div className="share-card__cup">
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/><path d="M6 9a6 6 0 0 0 12 0V3H6v6z"/><path d="M9 21h6"/><path d="M12 17v4"/></svg>
@@ -621,18 +646,18 @@ function ShareCardModal({ player, onClose }) {
             {/* STATS — 3 números clave */}
             <div className="share-card__stats">
               <div className="share-card__stat">
+                <div className="share-card__stat-num">{predsCount}</div>
+                <div className="share-card__stat-label">pronósticos cargados</div>
+              </div>
+              <div className="share-card__stat-divider" />
+              <div className="share-card__stat">
                 <div className="share-card__stat-num">{totalUnlocked}</div>
                 <div className="share-card__stat-label">de {totalCatalog} medallas</div>
               </div>
               <div className="share-card__stat-divider" />
               <div className="share-card__stat">
-                <div className="share-card__stat-num">{isPreMundial ? '104' : (points ?? 0)}</div>
-                <div className="share-card__stat-label">{isPreMundial ? 'partidos por jugar' : 'puntos sumados'}</div>
-              </div>
-              <div className="share-card__stat-divider" />
-              <div className="share-card__stat">
                 <div className="share-card__stat-num">{position ? `#${position}` : daysUntilMundial}</div>
-                <div className="share-card__stat-label">{position ? 'posición' : 'días para el Mundial'}</div>
+                <div className="share-card__stat-label">{position ? `posición · ${points ?? 0} pts` : 'días para arrancar'}</div>
               </div>
             </div>
 
