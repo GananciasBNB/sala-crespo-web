@@ -473,7 +473,8 @@ function ShareCardModal({ player, onClose }) {
         await navigator.share({
           files: [file],
           title: 'Mi cartón Prode Mundial 2026',
-          text: '¡Vení a jugar el Prode Mundial 2026 en Sala de Juegos Crespo! 🏆⚽',
+          text: '¡Vení a jugar el Prode Mundial 2026 en Sala de Juegos Crespo! 🏆⚽\n\nhttps://saladejuegoscrespo.ar/prode',
+          url: 'https://saladejuegoscrespo.ar/prode',
         })
         setMsg('✓ Compartido')
       } else {
@@ -503,6 +504,9 @@ function ShareCardModal({ player, onClose }) {
         <button className="share-modal__close" onClick={onClose} aria-label="Cerrar">×</button>
         <h2 className="share-modal__title">Compartí tu cartón</h2>
         <p className="share-modal__sub">Descargalo o mandalo directo por WhatsApp / Stories</p>
+        <p className="share-modal__hint">
+          ℹ️ La vista previa está reducida — la imagen final sale en alta calidad (1080×1920).
+        </p>
 
         {/* Preview con escala visual */}
         <div className="share-modal__preview-wrap">

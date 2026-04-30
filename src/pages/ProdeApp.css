@@ -2652,7 +2652,12 @@
   font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px;
   color: #FFD250; margin: 0 0 4px; text-transform: uppercase;
 }
-.share-modal__sub { color: #B0B8C4; font-size: 13px; margin: 0 0 18px; }
+.share-modal__sub { color: #B0B8C4; font-size: 13px; margin: 0 0 8px; }
+.share-modal__hint {
+  color: #FFD250; font-size: 12px; margin: 0 0 14px;
+  background: rgba(255,210,80,.08); border: 1px solid rgba(255,210,80,.25);
+  border-radius: 8px; padding: 8px 12px; line-height: 1.4;
+}
 
 /* El preview escala visualmente el cartón 1080×1920 al ancho del modal */
 .share-modal__preview-wrap {
@@ -2674,6 +2679,10 @@
   color: #fff;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow: hidden;
+  /* Mejorar rendering del preview escalado */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  image-rendering: -webkit-optimize-contrast;
 }
 @media (min-width: 460px) {
   .share-card { transform: scale(calc(384px / 1080)); }
