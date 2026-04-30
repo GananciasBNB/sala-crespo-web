@@ -7,6 +7,7 @@ import {
   getContent,
   getMyAchievements, dailyCheckin, getChampionPick, setChampionPick,
   submitStaffSuggestion,
+  getMyLeagues, createLeague, joinLeague, getLeagueLeaderboard, leaveLeague, deleteLeague,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -3105,6 +3106,352 @@ function PromoMode({ onExit }) {
   )
 }
 
+// ─── Vista Mini-Ligas privadas ────────────────────────────────────────────────
+const LEAGUE_EMOJI_OPTIONS = ['🏆','⚽','🍻','🔥','⭐','🎯','🏟️','🏠','💼','🎉']
+
+function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
+  const [list, setList] = useState(null)
+  const [selected, setSelected] = useState(null)  // code de la liga abierta
+  const [showCreate, setShowCreate] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+  const [info, setInfo] = useState('')
+
+  function refresh() {
+    if (!player?.token) return
+    getMyLeagues(player.token).then(setList).catch(() => setList([]))
+  }
+  useEffect(refresh, [player?.token])
+
+  // Auto-join si vino con ?liga=CODE en la URL
+  useEffect(() => {
+    if (!autoJoinCode || !player?.token) return
+    setBusy(true)
+    setErr('')
+    joinLeague(player.token, autoJoinCode)
+      .then(r => {
+        setInfo(`✓ Te uniste a "${r.league.name}"`)
+        setSelected(r.league.code)
+        refresh()
+      })
+      .catch(e => setErr(e.message || 'No se pudo unir.'))
+      .finally(() => {
+        setBusy(false)
+        onAutoJoinHandled?.()
+      })
+  }, [autoJoinCode, player?.token])
+
+  async function handleJoinByCode(e) {
+    e?.preventDefault()
+    setErr('')
+    setInfo('')
+    const code = joinCode.trim().toUpperCase()
+    if (code.length < 4) return setErr('Ingresá un código válido.')
+    setBusy(true)
+    try {
+      const r = await joinLeague(player.token, code)
+      setInfo(`✓ Te uniste a "${r.league.name}"`)
+      setJoinCode('')
+      setSelected(r.league.code)
+      refresh()
+    } catch (e) {
+      setErr(e.message || 'No se pudo unir.')
+    }
+    setBusy(false)
+  }
+
+  if (selected) {
+    return <LeagueDetail
+      player={player}
+      code={selected}
+      onBack={() => { setSelected(null); refresh() }}
+    />
+  }
+
+  return (
+    <div className="leagues">
+      <div className="leagues__intro">
+        <div className="leagues__hero">
+          <div className="leagues__hero-icon">🏆</div>
+          <h2 className="leagues__title">Tu propia liga del Mundial</h2>
+          <p className="leagues__sub">
+            Armala con tus <strong>amigos</strong>, la <strong>familia</strong>, los <strong>compañeros del laburo</strong>.
+            Compitan entre ustedes, sin importar el ranking general.
+          </p>
+        </div>
+        <div className="leagues__perks">
+          <div className="leagues__perk">
+            <div className="leagues__perk-icon">📲</div>
+            <div className="leagues__perk-text"><strong>Invitás con un link.</strong> Lo pegás en el grupo de WhatsApp y listo.</div>
+          </div>
+          <div className="leagues__perk">
+            <div className="leagues__perk-icon">🔒</div>
+            <div className="leagues__perk-text"><strong>Privada.</strong> Solo ven la tabla los que estén adentro con tu código.</div>
+          </div>
+          <div className="leagues__perk">
+            <div className="leagues__perk-icon">🎉</div>
+            <div className="leagues__perk-text"><strong>Apuesten lo que quieran entre ustedes.</strong> El asado, un café, lo que arreglen — cuestión interna del grupo.</div>
+          </div>
+        </div>
+        <div className="leagues__legal">
+          ⚠️ Solo para mayores de 18 años. Las apuestas internas del grupo no son responsabilidad de Sala de Juegos Crespo.
+        </div>
+      </div>
+
+      {err && <div className="leagues__msg leagues__msg--err">⚠️ {err}</div>}
+      {info && <div className="leagues__msg leagues__msg--ok">{info}</div>}
+
+      <div className="leagues__actions">
+        <button
+          className="leagues__btn leagues__btn--primary"
+          onClick={() => setShowCreate(true)}
+          disabled={busy}
+        >
+          + Crear mi mini-liga
+        </button>
+        <form className="leagues__join" onSubmit={handleJoinByCode}>
+          <input
+            type="text"
+            className="leagues__join-input"
+            placeholder="¿Te invitaron? Pegá el código"
+            value={joinCode}
+            onChange={e => setJoinCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))}
+            maxLength={8}
+          />
+          <button
+            type="submit"
+            className="leagues__btn leagues__btn--ghost"
+            disabled={busy || joinCode.trim().length < 4}
+          >
+            Unirme
+          </button>
+        </form>
+      </div>
+
+      <div className="leagues__list">
+        {list === null && <div className="leagues__loading">Cargando…</div>}
+        {list && list.length === 0 && (
+          <div className="leagues__empty">
+            <div className="leagues__empty-icon">🏆</div>
+            <p><strong>Todavía no estás en ninguna mini-liga.</strong></p>
+            <p>Creá una para invitar a tus amigos, o pegá un código que te hayan compartido.</p>
+          </div>
+        )}
+        {list && list.map(lg => (
+          <button
+            key={lg.code}
+            type="button"
+            className="leagues__card"
+            onClick={() => setSelected(lg.code)}
+          >
+            <div className="leagues__card-emoji">{lg.emoji || '🏆'}</div>
+            <div className="leagues__card-info">
+              <div className="leagues__card-name">{lg.name}</div>
+              <div className="leagues__card-meta">
+                {lg.memberCount} {lg.memberCount === 1 ? 'jugador' : 'jugadores'}
+                {lg.isOwner && <span className="leagues__card-owner"> · sos el creador</span>}
+              </div>
+            </div>
+            <div className="leagues__card-arrow">→</div>
+          </button>
+        ))}
+      </div>
+
+      {showCreate && (
+        <CreateLeagueModal
+          player={player}
+          onClose={() => setShowCreate(false)}
+          onCreated={(lg) => {
+            setShowCreate(false)
+            setInfo(`✓ Liga "${lg.name}" creada. Compartí el código con tu grupo.`)
+            setSelected(lg.code)
+            refresh()
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+function CreateLeagueModal({ player, onClose, onCreated }) {
+  const [name, setName] = useState('')
+  const [emoji, setEmoji] = useState('🏆')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setErr('')
+    if (!name.trim() || name.trim().length < 2) return setErr('Ponele un nombre a tu liga.')
+    setBusy(true)
+    try {
+      const r = await createLeague(player.token, name.trim(), emoji)
+      onCreated(r.league)
+    } catch (e) {
+      setErr(e.message || 'No se pudo crear la liga.')
+    }
+    setBusy(false)
+  }
+
+  return (
+    <div className="lg-modal" onClick={onClose}>
+      <div className="lg-modal__inner" onClick={e => e.stopPropagation()}>
+        <button className="lg-modal__close" onClick={onClose}>×</button>
+        <h2 className="lg-modal__title">Crear mini-liga</h2>
+        <p className="lg-modal__sub">Compartí el código con tu grupo y compitan entre ustedes.</p>
+        <form onSubmit={handleSubmit} className="lg-modal__form">
+          <label className="lg-modal__label">Nombre de la liga</label>
+          <input
+            type="text"
+            value={name}
+            onChange={e => setName(e.target.value.slice(0, 40))}
+            maxLength={40}
+            placeholder="Los chicos del barrio"
+            className="lg-modal__input"
+            autoFocus
+          />
+          <label className="lg-modal__label">Elegí un emoji</label>
+          <div className="lg-modal__emojis">
+            {LEAGUE_EMOJI_OPTIONS.map(e => (
+              <button
+                key={e}
+                type="button"
+                className={`lg-modal__emoji ${emoji === e ? 'lg-modal__emoji--on' : ''}`}
+                onClick={() => setEmoji(e)}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
+          {err && <div className="lg-modal__err">⚠️ {err}</div>}
+          <button className="lg-modal__btn" disabled={busy}>
+            {busy ? 'Creando…' : 'Crear liga →'}
+          </button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function LeagueDetail({ player, code, onBack }) {
+  const [data, setData] = useState(null)
+  const [err, setErr] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  function refresh() {
+    if (!player?.token) return
+    getLeagueLeaderboard(player.token, code)
+      .then(setData)
+      .catch(e => setErr(e.message || 'No se pudo cargar la liga.'))
+  }
+  useEffect(refresh, [player?.token, code])
+
+  async function handleShare() {
+    if (!data) return
+    const text = `🏆 Te invito a "${data.league.name}", mi mini-liga del Prode Mundial 2026 ⚽\n\nCódigo: ${data.league.code}\nSumate: https://saladejuegoscrespo.ar/prode?liga=${data.league.code}`
+    if (navigator.share) {
+      try { await navigator.share({ title: data.league.name, text }) } catch {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(text)
+        alert('Invitación copiada. Pegala en WhatsApp.')
+      } catch {
+        alert(text)
+      }
+    }
+  }
+
+  async function handleLeave() {
+    if (!confirm(`¿Querés salir de "${data?.league?.name}"? Podés volver a unirte usando el código.`)) return
+    setBusy(true)
+    try {
+      await leaveLeague(player.token, code)
+      onBack()
+    } catch (e) { alert(e.message || 'No se pudo salir.') }
+    setBusy(false)
+  }
+
+  async function handleDelete() {
+    if (!confirm(`¿Eliminar la liga "${data?.league?.name}" para todos? Esta acción no se puede deshacer.`)) return
+    setBusy(true)
+    try {
+      await deleteLeague(player.token, code)
+      onBack()
+    } catch (e) { alert(e.message || 'No se pudo eliminar.') }
+    setBusy(false)
+  }
+
+  if (err) {
+    return (
+      <div className="leagues">
+        <button className="leagues__back" onClick={onBack}>← Volver a mis ligas</button>
+        <div className="leagues__msg leagues__msg--err">⚠️ {err}</div>
+      </div>
+    )
+  }
+  if (!data) return <div className="leagues__loading">Cargando liga…</div>
+
+  const { league, leaderboard } = data
+
+  return (
+    <div className="leagues">
+      <button className="leagues__back" onClick={onBack}>← Volver a mis ligas</button>
+
+      <div className="lg-detail__head">
+        <div className="lg-detail__emoji">{league.emoji || '🏆'}</div>
+        <div className="lg-detail__info">
+          <h2 className="lg-detail__name">{league.name}</h2>
+          <div className="lg-detail__meta">
+            {league.memberCount} {league.memberCount === 1 ? 'jugador' : 'jugadores'}
+            {league.isOwner && <span className="lg-detail__owner"> · creador</span>}
+          </div>
+        </div>
+      </div>
+
+      <div className="lg-detail__code-card">
+        <div className="lg-detail__code-label">Código de invitación</div>
+        <div className="lg-detail__code">{league.code}</div>
+        <button className="lg-detail__share" onClick={handleShare}>
+          📲 Compartir invitación
+        </button>
+      </div>
+
+      <h3 className="lg-detail__lb-title">Tabla</h3>
+      {leaderboard.length === 0 ? (
+        <div className="prode-empty"><p>Sin partidos jugados todavía. ¡Cargá tus pronósticos!</p></div>
+      ) : (
+        <table className="lb__table">
+          <thead>
+            <tr><th>#</th><th>Jugador</th><th>Pts</th></tr>
+          </thead>
+          <tbody>
+            {leaderboard.map((p, i) => (
+              <tr key={p.id} className={`lb__row ${p.id === player.id ? 'lb__row--me' : ''} ${i < 3 ? 'lb__row--top' : ''}`}>
+                <td className="lb__pos">{i + 1}</td>
+                <td>{p.name}{p.id === player.id && <span className="lb__you"> (vos)</span>}</td>
+                <td className="lb__pts">{p.total}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <div className="lg-detail__actions">
+        {league.isOwner ? (
+          <button className="lg-detail__btn lg-detail__btn--danger" onClick={handleDelete} disabled={busy}>
+            🗑️ Eliminar liga
+          </button>
+        ) : (
+          <button className="lg-detail__btn lg-detail__btn--ghost" onClick={handleLeave} disabled={busy}>
+            Salir de la liga
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 // ─── ProdeApp (main) ──────────────────────────────────────────────────────────
 export default function ProdeApp() {
   const [player, setPlayer] = useState(() => {
@@ -3140,6 +3487,18 @@ export default function ProdeApp() {
     if (typeof window === 'undefined') return null
     return new URLSearchParams(window.location.search).get('staff')
   })
+  const [autoJoinLeagueCode, setAutoJoinLeagueCode] = useState(() => {
+    if (typeof window === 'undefined') return null
+    return new URLSearchParams(window.location.search).get('liga')
+  })
+  function clearAutoJoinLeague() {
+    setAutoJoinLeagueCode(null)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('liga')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }
   function exitStaffPortal() {
     setStaffPortalCode(null)
     if (typeof window !== 'undefined') {
@@ -3195,7 +3554,8 @@ export default function ProdeApp() {
   function handleLogin(p) {
     setPlayer(p)
     setShowAuth(false)
-    setTab('inicio')
+    // Si vino con ?liga=CODE, lo llevo directo a la pestaña de ligas
+    setTab(autoJoinLeagueCode ? 'ligas' : 'inicio')
     // Mostrar onboarding al primer login.
     // Force-show con ?onboarding=1 o si es el jugador de prueba (DNI 99999999).
     try {
@@ -3253,6 +3613,7 @@ export default function ProdeApp() {
     { id: 'inicio',      label: '🏠 Inicio' },
     { id: 'pronosticos', label: '🎯 Mis pronósticos' },
     { id: 'tabla',       label: '📊 Mi posición' },
+    { id: 'ligas',       label: '🏆 Mis ligas' },
     { id: 'llaves',      label: '🗓️ Fixture' },
   ] : [
     { id: 'inicio', label: '🏠 Inicio' },
@@ -3348,6 +3709,15 @@ export default function ProdeApp() {
                   myId={player?.id}
                   audience={player?.isEmployee ? 'employees' : 'public'}
                   token={player?.token}
+                />
+              </div>
+            )}
+            {tab === 'ligas' && player && (
+              <div className="prode-content">
+                <LeaguesView
+                  player={player}
+                  autoJoinCode={autoJoinLeagueCode}
+                  onAutoJoinHandled={clearAutoJoinLeague}
                 />
               </div>
             )}

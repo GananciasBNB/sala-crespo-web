@@ -144,6 +144,39 @@ export const setChampionPick = (token, teamCode, teamName) =>
     body: JSON.stringify({ teamCode, teamName }),
   })
 
+// ─── Mini-ligas privadas ─────────────────────────────────────────────────────
+export const getMyLeagues = (token) =>
+  api('/api/me/leagues', { headers: authHeaders(token) })
+
+export const createLeague = (token, name, emoji) =>
+  api('/api/leagues', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ name, emoji }),
+  })
+
+export const joinLeague = (token, code) =>
+  api('/api/leagues/join', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ code }),
+  })
+
+export const getLeagueLeaderboard = (token, code) =>
+  api(`/api/leagues/${encodeURIComponent(code)}/leaderboard`, { headers: authHeaders(token) })
+
+export const leaveLeague = (token, code) =>
+  api(`/api/leagues/${encodeURIComponent(code)}/leave`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+
+export const deleteLeague = (token, code) =>
+  api(`/api/leagues/${encodeURIComponent(code)}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+
 export const adminGetPlayers = (token) =>
   api('/api/admin/players', { headers: authHeaders(token) })
 

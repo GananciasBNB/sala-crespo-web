@@ -4078,3 +4078,306 @@
   .sp-deco--3, .sp-deco--4, .sp-deco--5,
   .sp-deco--8, .sp-deco--9, .sp-deco--10 { display: none; }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   MINI-LIGAS PRIVADAS
+═══════════════════════════════════════════════════════════════ */
+.leagues { padding: 4px 0 24px; }
+.leagues__back {
+  background: rgba(255,255,255,.06);
+  color: var(--wc-text);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 8px; padding: 8px 14px;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  margin-bottom: 16px;
+}
+.leagues__back:hover { background: rgba(255,255,255,.12); }
+
+.leagues__intro {
+  background: linear-gradient(155deg, rgba(196,30,58,.18) 0%, rgba(255,210,80,.06) 100%);
+  border: 1.5px solid rgba(255,210,80,.35);
+  border-radius: 18px;
+  padding: 28px 22px 22px;
+  margin-bottom: 22px;
+  position: relative;
+  overflow: hidden;
+}
+.leagues__hero { text-align: center; margin-bottom: 22px; }
+.leagues__hero-icon {
+  font-size: 56px; line-height: 1;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 4px 14px rgba(255,210,80,.4));
+}
+.leagues__title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 36px; letter-spacing: 1.5px;
+  color: var(--wc-gold);
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.leagues__sub {
+  color: var(--wc-text);
+  font-size: 14px; line-height: 1.5;
+  margin: 0;
+  max-width: 480px;
+  margin-left: auto; margin-right: auto;
+}
+.leagues__perks {
+  display: flex; flex-direction: column; gap: 10px;
+  background: rgba(0,0,0,.25);
+  border-radius: 12px;
+  padding: 14px;
+}
+.leagues__perk {
+  display: flex; gap: 12px; align-items: flex-start;
+}
+.leagues__perk-icon { font-size: 20px; flex-shrink: 0; }
+.leagues__perk-text { color: var(--wc-text); font-size: 13px; line-height: 1.4; }
+.leagues__perk-text strong { color: var(--wc-gold); }
+.leagues__legal {
+  margin-top: 14px; text-align: center;
+  font-size: 11px; color: var(--wc-muted);
+  padding: 8px 12px;
+  background: rgba(255,157,58,.06);
+  border: 1px solid rgba(255,157,58,.25);
+  border-radius: 8px;
+  line-height: 1.4;
+}
+
+.leagues__msg {
+  padding: 12px 16px; border-radius: 10px; margin-bottom: 14px;
+  font-size: 14px; font-weight: 600;
+}
+.leagues__msg--err { background: rgba(196,30,58,.12); color: #ff8597; border: 1px solid rgba(196,30,58,.4); }
+.leagues__msg--ok  { background: rgba(0,200,150,.12); color: #6FE198; border: 1px solid rgba(0,200,150,.4); }
+
+.leagues__actions {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  margin-bottom: 20px;
+}
+.leagues__btn {
+  border: none; border-radius: 10px;
+  padding: 12px 18px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: transform .15s, opacity .15s;
+  letter-spacing: .3px;
+}
+.leagues__btn:disabled { opacity: .45; cursor: not-allowed; }
+.leagues__btn--primary {
+  background: linear-gradient(135deg, #C41E3A, #ff3556);
+  color: #fff;
+  box-shadow: 0 6px 18px rgba(196,30,58,.35);
+}
+.leagues__btn--primary:hover:not(:disabled) { transform: translateY(-1px); }
+.leagues__btn--ghost {
+  background: rgba(255,210,80,.12);
+  color: var(--wc-gold);
+  border: 1px solid rgba(255,210,80,.4);
+}
+.leagues__btn--ghost:hover:not(:disabled) { background: rgba(255,210,80,.22); }
+.leagues__join { display: flex; gap: 6px; }
+.leagues__join-input {
+  flex: 1; min-width: 0;
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 12px 14px; font-size: 14px;
+  color: var(--wc-text);
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+.leagues__join-input:focus { outline: none; border-color: rgba(255,210,80,.5); }
+
+.leagues__list { display: flex; flex-direction: column; gap: 10px; }
+.leagues__loading { color: var(--wc-muted); text-align: center; padding: 30px 0; }
+.leagues__empty {
+  background: rgba(255,255,255,.04);
+  border: 1px dashed rgba(255,255,255,.15);
+  border-radius: 14px;
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--wc-text);
+}
+.leagues__empty-icon { font-size: 48px; margin-bottom: 12px; }
+.leagues__empty p { margin: 6px 0; font-size: 14px; }
+.leagues__empty p:last-child { color: var(--wc-muted); }
+
+.leagues__card {
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(155deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all .15s;
+  text-align: left;
+  width: 100%;
+  font-family: inherit;
+  color: var(--wc-text);
+}
+.leagues__card:hover { background: rgba(255,210,80,.08); border-color: rgba(255,210,80,.4); transform: translateX(2px); }
+.leagues__card-emoji {
+  font-size: 36px; line-height: 1;
+  width: 56px; height: 56px;
+  background: rgba(0,0,0,.3); border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.leagues__card-info { flex: 1; min-width: 0; }
+.leagues__card-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: .5px;
+  color: #fff; line-height: 1.1;
+  margin-bottom: 4px;
+}
+.leagues__card-meta { color: var(--wc-muted); font-size: 12px; }
+.leagues__card-owner { color: var(--wc-gold); }
+.leagues__card-arrow { color: var(--wc-gold); font-size: 22px; opacity: .6; }
+
+@media (max-width: 480px) {
+  .leagues__actions { grid-template-columns: 1fr; }
+  .leagues__title { font-size: 30px; }
+}
+
+/* Modal crear liga */
+.lg-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.78);
+  z-index: 1100;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+  animation: lg-fade .2s;
+}
+.lg-modal__inner {
+  background: #161B26;
+  border: 1.5px solid rgba(255,210,80,.3);
+  border-radius: 16px;
+  padding: 26px 22px 22px;
+  max-width: 420px; width: 100%;
+  position: relative;
+  animation: lg-slide .25s;
+}
+.lg-modal__close {
+  position: absolute; top: 10px; right: 14px;
+  background: none; border: none; color: var(--wc-muted);
+  font-size: 26px; cursor: pointer;
+}
+.lg-modal__title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px; letter-spacing: 1px;
+  color: var(--wc-gold); margin: 0 0 6px;
+  text-transform: uppercase;
+}
+.lg-modal__sub { color: var(--wc-muted); font-size: 13px; margin: 0 0 18px; }
+.lg-modal__form { display: flex; flex-direction: column; gap: 12px; }
+.lg-modal__label { font-size: 12px; color: var(--wc-muted); font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.lg-modal__input {
+  background: rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px; color: var(--wc-text);
+  font-family: inherit;
+}
+.lg-modal__input:focus { outline: none; border-color: rgba(255,210,80,.5); }
+.lg-modal__emojis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.lg-modal__emoji {
+  background: rgba(255,255,255,.04);
+  border: 1.5px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 10px 0; font-size: 24px; cursor: pointer;
+  transition: all .15s;
+}
+.lg-modal__emoji:hover { background: rgba(255,255,255,.1); }
+.lg-modal__emoji--on { background: rgba(255,210,80,.18); border-color: var(--wc-gold); transform: scale(1.05); }
+.lg-modal__err { color: #ff8597; font-size: 13px; padding: 8px 12px; background: rgba(196,30,58,.1); border-radius: 8px; }
+.lg-modal__btn {
+  margin-top: 6px;
+  background: linear-gradient(135deg, #C41E3A, #ff3556);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 13px 18px; font-size: 15px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 6px 18px rgba(196,30,58,.4);
+  transition: transform .15s;
+}
+.lg-modal__btn:hover:not(:disabled) { transform: translateY(-1px); }
+.lg-modal__btn:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Detalle de liga */
+.lg-detail__head {
+  display: flex; gap: 16px; align-items: center;
+  margin-bottom: 18px;
+}
+.lg-detail__emoji {
+  font-size: 48px;
+  width: 76px; height: 76px;
+  background: rgba(255,210,80,.12);
+  border: 1.5px solid rgba(255,210,80,.4);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.lg-detail__name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30px; letter-spacing: .5px;
+  color: #fff; margin: 0 0 4px;
+  line-height: 1;
+}
+.lg-detail__meta { color: var(--wc-muted); font-size: 13px; }
+.lg-detail__owner { color: var(--wc-gold); }
+
+.lg-detail__code-card {
+  background: linear-gradient(135deg, rgba(0,200,150,.1), rgba(255,210,80,.06));
+  border: 1.5px solid rgba(0,200,150,.4);
+  border-radius: 14px;
+  padding: 18px;
+  text-align: center;
+  margin-bottom: 22px;
+}
+.lg-detail__code-label {
+  font-size: 11px; color: var(--wc-muted);
+  text-transform: uppercase; letter-spacing: 2px; font-weight: 700;
+  margin-bottom: 6px;
+}
+.lg-detail__code {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 42px; letter-spacing: 6px;
+  color: var(--wc-gold);
+  margin-bottom: 12px;
+  user-select: all;
+}
+.lg-detail__share {
+  background: linear-gradient(135deg, #00C896, #00a87e);
+  color: #fff; border: none; border-radius: 10px;
+  padding: 11px 22px; font-size: 14px; font-weight: 700;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(0,200,150,.35);
+  transition: transform .15s;
+}
+.lg-detail__share:hover { transform: translateY(-1px); }
+
+.lg-detail__lb-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 1px;
+  color: var(--wc-gold); margin: 14px 0 10px;
+  text-transform: uppercase;
+}
+.lg-detail__actions { margin-top: 20px; display: flex; justify-content: center; }
+.lg-detail__btn {
+  border: none; border-radius: 10px;
+  padding: 11px 22px; font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: opacity .15s;
+}
+.lg-detail__btn:disabled { opacity: .5; cursor: not-allowed; }
+.lg-detail__btn--ghost {
+  background: rgba(255,255,255,.06); color: var(--wc-muted);
+  border: 1px solid rgba(255,255,255,.15);
+}
+.lg-detail__btn--ghost:hover { color: var(--wc-text); }
+.lg-detail__btn--danger {
+  background: rgba(196,30,58,.15); color: #ff8597;
+  border: 1px solid rgba(196,30,58,.45);
+}
+.lg-detail__btn--danger:hover { background: rgba(196,30,58,.25); }
+
+@keyframes lg-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes lg-slide { from { opacity: 0; transform: translateY(20px) scale(.96) } to { opacity: 1; transform: translateY(0) scale(1) } }
