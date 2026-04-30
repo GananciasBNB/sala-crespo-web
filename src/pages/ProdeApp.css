@@ -2609,6 +2609,182 @@
   transition: all .2s; white-space: nowrap;
 }
 .medallero-card__cta:hover { background: rgba(255,210,80,.22); transform: translateX(2px); }
+.medallero-card__head-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.medallero-card__share {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(0,200,150,.12); color: #6FE198;
+  border: 1px solid rgba(0,200,150,.4);
+  border-radius: 8px; padding: 8px 12px;
+  font-weight: 600; font-size: 13px; cursor: pointer;
+  transition: all .15s; white-space: nowrap;
+}
+.medallero-card__share:hover { background: rgba(0,200,150,.22); transform: translateY(-1px); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARE CARD MODAL (cartón compartible 1080×1920)
+═══════════════════════════════════════════════════════════════ */
+.share-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 1000;
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  animation: share-modal-fade .2s ease-out;
+}
+.share-modal__inner {
+  background: #0f1219;
+  border: 1px solid rgba(255,210,80,.25);
+  border-radius: 18px;
+  max-width: 420px; width: 100%;
+  padding: 22px 18px 24px;
+  position: relative;
+  animation: share-modal-slide .25s cubic-bezier(.2,.9,.3,1.1);
+}
+.share-modal__close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; color: #B0B8C4;
+  font-size: 28px; line-height: 1; cursor: pointer;
+  width: 32px; height: 32px;
+}
+.share-modal__close:hover { color: #fff; }
+.share-modal__title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 1px;
+  color: #FFD250; margin: 0 0 4px; text-transform: uppercase;
+}
+.share-modal__sub { color: #B0B8C4; font-size: 13px; margin: 0 0 18px; }
+
+/* El preview escala visualmente el cartón 1080×1920 al ancho del modal */
+.share-modal__preview-wrap {
+  width: 100%; aspect-ratio: 1080 / 1920;
+  border-radius: 12px; overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.6);
+  position: relative;
+  background: #0a0d12;
+}
+.share-card {
+  width: 1080px; height: 1920px;
+  transform-origin: top left;
+  transform: scale(calc((100vw - 68px) / 1080));
+  position: absolute; top: 0; left: 0;
+  background: #0a0d12;
+  display: flex; flex-direction: column;
+  padding: 80px 64px;
+  color: #fff;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+@media (min-width: 460px) {
+  .share-card { transform: scale(calc(384px / 1080)); }
+}
+.share-card__bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% 0%, rgba(196,30,58,0.45) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(255,210,80,0.18) 0%, transparent 60%),
+    linear-gradient(180deg, #0a0d12 0%, #131826 100%);
+  z-index: 0;
+}
+.share-card > *:not(.share-card__bg) { position: relative; z-index: 1; }
+
+.share-card__top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 60px; }
+.share-card__brand { display: flex; flex-direction: column; line-height: 1; }
+.share-card__brand-line { font-size: 22px; letter-spacing: 4px; color: #B0B8C4; font-weight: 600; }
+.share-card__brand-name { font-family: 'Bebas Neue', sans-serif; font-size: 96px; letter-spacing: 4px; color: #FFD250; margin-top: 4px; }
+.share-card__cup {
+  font-family: 'Bebas Neue', sans-serif; font-size: 28px;
+  background: rgba(255,210,80,0.12); border: 1.5px solid rgba(255,210,80,0.45);
+  color: #FFD250; padding: 10px 18px; border-radius: 999px;
+  letter-spacing: 2px;
+}
+
+.share-card__user { text-align: center; margin: 20px 0 60px; }
+.share-card__avatar {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #C41E3A, #FFD250);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif; font-size: 130px; color: #fff;
+  margin: 0 auto 28px;
+  box-shadow: 0 16px 48px rgba(196,30,58,0.5);
+}
+.share-card__name {
+  font-family: 'Bebas Neue', sans-serif; font-size: 76px; letter-spacing: 1.5px;
+  color: #fff; margin-bottom: 32px; text-transform: uppercase;
+}
+.share-card__pos {
+  display: inline-flex; flex-direction: column; align-items: center;
+  background: rgba(0,0,0,0.35); border: 1.5px solid rgba(255,210,80,0.4);
+  padding: 24px 64px; border-radius: 24px;
+  min-width: 320px;
+}
+.share-card__pos-label { font-size: 22px; color: #B0B8C4; letter-spacing: 4px; font-weight: 600; }
+.share-card__pos-num { font-family: 'Bebas Neue', sans-serif; font-size: 130px; color: #FFD250; line-height: 1; margin: 8px 0 4px; }
+.share-card__pos-pts { font-size: 28px; color: #6FE198; font-weight: 700; }
+.share-card__pos--soon .share-card__pos-num { color: #FFD250; font-size: 64px; }
+
+.share-card__medals {
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,210,80,0.3);
+  border-radius: 24px;
+  padding: 36px 28px;
+  text-align: center;
+  margin-bottom: 50px;
+}
+.share-card__medals-label { font-size: 22px; color: #FFD250; letter-spacing: 3px; font-weight: 700; margin-bottom: 28px; }
+.share-card__medals-row { display: flex; justify-content: center; gap: 32px; margin-bottom: 24px; }
+.share-card__medal { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 200px; }
+.share-card__medal-glyph {
+  width: 140px; height: 140px;
+  background: linear-gradient(135deg, rgba(255,210,80,0.2), rgba(196,30,58,0.15));
+  border: 2px solid rgba(255,210,80,0.5);
+  border-radius: 24px;
+  display: flex; align-items: center; justify-content: center;
+  color: #FFD250;
+}
+.share-card__medal-name { font-size: 22px; color: #fff; font-weight: 700; line-height: 1.2; }
+.share-card__medals-empty { font-size: 24px; color: #B0B8C4; font-weight: 600; padding: 24px 0; }
+.share-card__medals-count { font-size: 24px; color: #B0B8C4; }
+
+.share-card__cta {
+  text-align: center; margin-top: auto;
+  padding: 36px 28px;
+  background: linear-gradient(135deg, rgba(196,30,58,0.18), rgba(255,210,80,0.08));
+  border: 2px solid rgba(196,30,58,0.5);
+  border-radius: 24px;
+}
+.share-card__cta-line { font-family: 'Bebas Neue', sans-serif; font-size: 56px; letter-spacing: 3px; color: #fff; }
+.share-card__cta-url { font-family: 'Bebas Neue', sans-serif; font-size: 44px; color: #FFD250; margin: 12px 0; letter-spacing: 1px; }
+.share-card__cta-prizes { font-size: 26px; color: #6FE198; font-weight: 700; }
+
+.share-modal__actions {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.share-modal__btn {
+  border: none; border-radius: 10px;
+  padding: 14px 20px; font-size: 15px; font-weight: 700;
+  cursor: pointer; transition: transform .15s, opacity .15s;
+}
+.share-modal__btn:disabled { opacity: .5; cursor: not-allowed; }
+.share-modal__btn--primary {
+  background: linear-gradient(135deg, #00C896, #00a87e);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(0,200,150,.35);
+}
+.share-modal__btn--primary:hover:not(:disabled) { transform: translateY(-1px); }
+.share-modal__btn--secondary {
+  background: rgba(255,210,80,.12); color: #FFD250;
+  border: 1px solid rgba(255,210,80,.4);
+}
+.share-modal__btn--secondary:hover:not(:disabled) { background: rgba(255,210,80,.2); }
+.share-modal__msg { margin-top: 12px; text-align: center; color: #6FE198; font-size: 14px; font-weight: 600; }
+
+@keyframes share-modal-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes share-modal-slide {
+  from { opacity: 0; transform: translateY(20px) }
+  to   { opacity: 1; transform: translateY(0) }
+}
 
 .medallero-card__progress {
   height: 6px; background: rgba(255,255,255,.06); border-radius: 3px; overflow: hidden;

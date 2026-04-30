@@ -334,7 +334,7 @@ function AchievementBadge({ achievement, unlocked, size = 88, onClick, showName 
 }
 
 // Card para tab Inicio: hero con última medalla + grilla de próximas con descripción
-function MedalleroCard({ player, onOpenFull }) {
+function MedalleroCard({ player, onOpenFull, onShare }) {
   const [data, setData] = useState(null)
   useEffect(() => {
     if (!player?.token) return
@@ -357,7 +357,15 @@ function MedalleroCard({ player, onOpenFull }) {
           <h2 className="medallero-card__title">Tu Medallero</h2>
           <p className="medallero-card__sub">{totalUnlocked} de {totalCatalog} medallas · {pct}% completado</p>
         </div>
-        <button className="medallero-card__cta" onClick={onOpenFull}>Ver todas →</button>
+        <div className="medallero-card__head-actions">
+          {onShare && (
+            <button className="medallero-card__share" onClick={onShare} aria-label="Compartir mi cartón">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+              Compartir
+            </button>
+          )}
+          <button className="medallero-card__cta" onClick={onOpenFull}>Ver todas →</button>
+        </div>
       </div>
       <div className="medallero-card__progress">
         <div className="medallero-card__progress-fill" style={{ width: `${pct}%` }} />
@@ -407,6 +415,172 @@ function MedalleroCard({ player, onOpenFull }) {
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Cartón compartible (1080×1920 — Stories / WhatsApp) ─────────────────────
+function ShareCardModal({ player, onClose }) {
+  const cardRef = useRef(null)
+  const [achData, setAchData] = useState(null)
+  const [position, setPosition] = useState(null)
+  const [points, setPoints] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  useEffect(() => {
+    if (!player?.token) return
+    Promise.all([
+      getMyAchievements(player.token),
+      getLeaderboard('all').catch(() => []),
+    ]).then(([ach, lb]) => {
+      setAchData(ach)
+      const me = (lb || []).findIndex(p => p.id === player.id)
+      if (me >= 0) {
+        setPosition(me + 1)
+        setPoints(lb[me]?.total ?? 0)
+      } else {
+        setPosition(null)
+        setPoints(0)
+      }
+    }).catch(() => {})
+  }, [player?.token, player?.id])
+
+  const topAch = (achData?.unlocked || [])
+    .map(u => achData.catalog.find(a => a.slug === u.slug))
+    .filter(Boolean)
+    .slice(0, 3)
+  const totalUnlocked = achData?.totalUnlocked ?? 0
+  const totalCatalog  = achData?.totalCatalog  ?? 20
+
+  async function handleExport(action) {
+    if (!cardRef.current) return
+    setBusy(true)
+    setMsg('')
+    try {
+      const { default: html2canvas } = await import('html2canvas-pro')
+      const canvas = await html2canvas(cardRef.current, {
+        backgroundColor: '#0a0d12',
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      })
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'))
+      if (!blob) throw new Error('No se pudo generar la imagen')
+      const file = new File([blob], `prode-${player.name.toLowerCase().replace(/\s+/g, '-')}.png`, { type: 'image/png' })
+      if (action === 'share' && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Mi cartón Prode Mundial 2026',
+          text: '¡Vení a jugar el Prode Mundial 2026 en Sala de Juegos Crespo! 🏆⚽',
+        })
+        setMsg('✓ Compartido')
+      } else {
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = file.name
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        setMsg('✓ Imagen descargada')
+      }
+    } catch (e) {
+      console.error(e)
+      setMsg('No se pudo generar el cartón. Probá de nuevo.')
+    }
+    setBusy(false)
+  }
+
+  const canShare = typeof navigator !== 'undefined' && !!navigator.canShare
+  const shareUrl = 'saladejuegoscrespo.ar/prode'
+
+  return (
+    <div className="share-modal" onClick={onClose}>
+      <div className="share-modal__inner" onClick={e => e.stopPropagation()}>
+        <button className="share-modal__close" onClick={onClose} aria-label="Cerrar">×</button>
+        <h2 className="share-modal__title">Compartí tu cartón</h2>
+        <p className="share-modal__sub">Descargalo o mandalo directo por WhatsApp / Stories</p>
+
+        {/* Preview con escala visual */}
+        <div className="share-modal__preview-wrap">
+          <div className="share-card" ref={cardRef}>
+            <div className="share-card__bg" />
+            <div className="share-card__top">
+              <div className="share-card__brand">
+                <span className="share-card__brand-line">SALA DE JUEGOS</span>
+                <span className="share-card__brand-name">CRESPO</span>
+              </div>
+              <div className="share-card__cup">PRODE MUNDIAL 2026</div>
+            </div>
+
+            <div className="share-card__user">
+              <div className="share-card__avatar">
+                {player.name?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="share-card__name">{player.name}</div>
+              {position ? (
+                <div className="share-card__pos">
+                  <span className="share-card__pos-label">POSICIÓN</span>
+                  <span className="share-card__pos-num">#{position}</span>
+                  <span className="share-card__pos-pts">{points ?? 0} pts</span>
+                </div>
+              ) : (
+                <div className="share-card__pos share-card__pos--soon">
+                  <span className="share-card__pos-label">El Mundial arranca el</span>
+                  <span className="share-card__pos-num" style={{fontSize: 56, marginTop: 8}}>11/JUN</span>
+                </div>
+              )}
+            </div>
+
+            <div className="share-card__medals">
+              <div className="share-card__medals-label">
+                {totalUnlocked > 0
+                  ? `MIS ${Math.min(topAch.length, 3)} ÚLTIMAS MEDALLAS`
+                  : 'COLECCIONÁ 20 MEDALLAS'}
+              </div>
+              {topAch.length > 0 ? (
+                <div className="share-card__medals-row">
+                  {topAch.map(a => (
+                    <div key={a.slug} className="share-card__medal">
+                      <div className="share-card__medal-glyph">
+                        <AchievementGlyph slug={a.slug} category={a.category} size={64} />
+                      </div>
+                      <div className="share-card__medal-name">{a.name}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="share-card__medals-empty">
+                  Bautismo · Profeta · Triplete · y 17 más
+                </div>
+              )}
+              <div className="share-card__medals-count">
+                {totalUnlocked} / {totalCatalog} desbloqueadas
+              </div>
+            </div>
+
+            <div className="share-card__cta">
+              <div className="share-card__cta-line">VENÍ A JUGAR</div>
+              <div className="share-card__cta-url">{shareUrl}</div>
+              <div className="share-card__cta-prizes">$100.000 en Clauser para los ganadores</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="share-modal__actions">
+          {canShare && (
+            <button className="share-modal__btn share-modal__btn--primary" onClick={() => handleExport('share')} disabled={busy}>
+              {busy ? 'Generando…' : '📲 Compartir'}
+            </button>
+          )}
+          <button className="share-modal__btn share-modal__btn--secondary" onClick={() => handleExport('download')} disabled={busy}>
+            {busy ? 'Generando…' : '⬇ Descargar imagen'}
+          </button>
+        </div>
+        {msg && <div className="share-modal__msg">{msg}</div>}
       </div>
     </div>
   )
@@ -1654,6 +1828,7 @@ function LoggedInBanner({ player, onParticipa }) {
 
 function PublicHome({ player, onParticipa }) {
   const [showMedalleroFull, setShowMedalleroFull] = useState(false)
+  const [showShare, setShowShare] = useState(false)
 
   // Bloques reutilizables (mismo render para ambos paths) para mantener un solo source of truth
   const argBanner = (
@@ -1726,10 +1901,17 @@ function PublicHome({ player, onParticipa }) {
           <ChampionPickCard player={player} />
         </div>
         <div className="medallero-section">
-          <MedalleroCard player={player} onOpenFull={() => setShowMedalleroFull(true)} />
+          <MedalleroCard
+            player={player}
+            onOpenFull={() => setShowMedalleroFull(true)}
+            onShare={() => setShowShare(true)}
+          />
         </div>
         {showMedalleroFull && (
           <MedalleroFull player={player} onClose={() => setShowMedalleroFull(false)} />
+        )}
+        {showShare && (
+          <ShareCardModal player={player} onClose={() => setShowShare(false)} />
         )}
 
         {/* Tabla — ego boost (su posición resaltada) */}
