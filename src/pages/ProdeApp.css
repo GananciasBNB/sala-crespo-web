@@ -1445,8 +1445,9 @@
     gap: 14px;
     padding: 16px 12px;
   }
-  .mc__team--home { grid-area: home; justify-content: center; }
-  .mc__team--away { grid-area: away; justify-content: center; flex-direction: row-reverse; }
+  /* Local pegado a la izquierda (flag + nombre), visitante a la derecha (nombre + flag) */
+  .mc__team--home { grid-area: home; justify-content: flex-start; }
+  .mc__team--away { grid-area: away; justify-content: flex-end; }
   .mc__score      { grid-area: score; min-width: 0; width: 100%; }
   .mc__name       { font-size: 14px; }
   .mc__flag-img   { width: 32px; height: 22px; }
