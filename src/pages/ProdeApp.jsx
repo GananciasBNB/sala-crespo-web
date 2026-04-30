@@ -463,7 +463,7 @@ const ONBOARDING_SLIDES = [
     body: 'Antes del primer partido, elegí tu campeón. Si acertás, te llevás bonus.',
     bullets: [
       { strong: '+20 puntos extra', desc: 'Si tu seleccionado gana el Mundial.' },
-      { strong: 'Medalla "Profeta" exclusiva', desc: 'Solo la consiguen los que la pegaron desde el primer día.' },
+      { strong: 'Medalla "Profeta" exclusiva', desc: 'Solo la consiguen los que acertaron al campeón antes del primer partido.' },
     ],
   },
   {
@@ -1703,7 +1703,6 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
         return next
       })
       setSavedMsg(`✓ ${toSave.length} pronóstico${toSave.length > 1 ? 's' : ''} guardado${toSave.length > 1 ? 's' : ''}`)
-      setTimeout(() => setSavedMsg(''), 3000)
       onSaved?.()
     } catch (e) {
       setSavedMsg('Error al guardar. Intentá de nuevo.')
@@ -1758,27 +1757,83 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
       </div>
 
       {/* Botón guardar grupo — visible siempre que haya partidos abiertos */}
-      {player && openMatches.length > 0 && (
+      {player && openMatches.length > 0 && !savedMsg && (
         <div className="pronosticos__batch-save">
-          {savedMsg ? (
-            <span className="pronosticos__batch-ok">{savedMsg}</span>
-          ) : (
-            <button
-              className={`pronosticos__batch-btn ${dirtyCount > 0 ? 'pronosticos__batch-btn--dirty' : ''}`}
-              onClick={handleSaveGroup}
-              disabled={saving || toSave.length === 0}
-            >
-              {saving
-                ? 'Guardando…'
-                : dirtyCount > 0
-                  ? `Guardar ${dirtyCount} cambio${dirtyCount > 1 ? 's' : ''} sin guardar`
-                  : toSave.length === openMatches.length
-                    ? `Guardar los ${toSave.length} pronósticos del Grupo ${group}`
-                    : `Guardar ${toSave.length} de ${openMatches.length} pronósticos del Grupo ${group}`}
-            </button>
-          )}
+          <button
+            className={`pronosticos__batch-btn ${dirtyCount > 0 ? 'pronosticos__batch-btn--dirty' : ''}`}
+            onClick={handleSaveGroup}
+            disabled={saving || toSave.length === 0}
+          >
+            {saving
+              ? 'Guardando…'
+              : dirtyCount > 0
+                ? `Guardar ${dirtyCount} cambio${dirtyCount > 1 ? 's' : ''} sin guardar`
+                : toSave.length === openMatches.length
+                  ? `Guardar los ${toSave.length} pronósticos del Grupo ${group}`
+                  : `Guardar ${toSave.length} de ${openMatches.length} pronósticos del Grupo ${group}`}
+          </button>
         </div>
       )}
+
+      {/* Panel post-guardado: ¿y ahora qué? — flechas siguiente/anterior + subir */}
+      {savedMsg && (() => {
+        const availableGroups = GROUPS.filter(g => matches.some(m => m.phase === 'group' && m.group === g))
+        const idx = availableGroups.indexOf(group)
+        const prevG = idx > 0 ? availableGroups[idx - 1] : null
+        const nextG = idx >= 0 && idx < availableGroups.length - 1 ? availableGroups[idx + 1] : null
+        function jumpTo(g) {
+          setGroup(g)
+          setSavedMsg('')
+          setTimeout(() => {
+            const el = document.querySelector('.pronosticos__phases')
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            else window.scrollTo({ top: 0, behavior: 'smooth' })
+          }, 50)
+        }
+        function backToTop() {
+          setSavedMsg('')
+          const el = document.querySelector('.pronosticos__phases')
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          else window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+        return (
+          <div className="pn-saved">
+            <div className="pn-saved__icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div className="pn-saved__title">{savedMsg}</div>
+            {phase === 'group' && (
+              <>
+                <div className="pn-saved__sub">¿Y ahora?</div>
+                <div className="pn-saved__nav">
+                  <button
+                    className="pn-saved__btn pn-saved__btn--ghost"
+                    onClick={() => prevG && jumpTo(prevG)}
+                    disabled={!prevG}
+                  >
+                    ← Grupo {prevG || ''}
+                  </button>
+                  <button className="pn-saved__btn pn-saved__btn--ghost" onClick={backToTop}>
+                    ↑ Selector
+                  </button>
+                  <button
+                    className="pn-saved__btn pn-saved__btn--primary"
+                    onClick={() => nextG && jumpTo(nextG)}
+                    disabled={!nextG}
+                  >
+                    {nextG ? `Grupo ${nextG} →` : '✓ Listo'}
+                  </button>
+                </div>
+              </>
+            )}
+            {phase !== 'group' && (
+              <button className="pn-saved__btn pn-saved__btn--primary" onClick={backToTop} style={{marginTop: 14}}>
+                ↑ Volver arriba
+              </button>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Modal: confirmar al cambiar de grupo/fase con cambios sin guardar */}
       {pendingNav && (
