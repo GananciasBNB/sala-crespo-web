@@ -547,6 +547,15 @@ function ShareCardModal({ player, onClose }) {
     ? 'Pronósticos cargados. Listos para arrancar.'
     : `Posición #${position} · ${points ?? 0} pts acumulados`
 
+  // Días hasta el Mundial (11 de junio 2026)
+  const daysUntilMundial = (() => {
+    const kickoff = new Date('2026-06-11T00:00:00-03:00')
+    const today = new Date()
+    const ms = kickoff - today
+    const days = Math.ceil(ms / (1000 * 60 * 60 * 24))
+    return Math.max(0, days)
+  })()
+
   return (
     <div className="share-modal" onClick={onClose}>
       <div className="share-modal__inner" onClick={e => e.stopPropagation()}>
@@ -622,8 +631,8 @@ function ShareCardModal({ player, onClose }) {
               </div>
               <div className="share-card__stat-divider" />
               <div className="share-card__stat">
-                <div className="share-card__stat-num">{position ? `#${position}` : 'X'}</div>
-                <div className="share-card__stat-label">{position ? 'posición' : 'arrancamos pronto'}</div>
+                <div className="share-card__stat-num">{position ? `#${position}` : daysUntilMundial}</div>
+                <div className="share-card__stat-label">{position ? 'posición' : 'días para el Mundial'}</div>
               </div>
             </div>
 
