@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   registerPlayer, loginPlayer, forgotPin,
@@ -693,6 +693,65 @@ function PrizeCards() {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// ─── Nav con hint de scroll en mobile ─────────────────────────────────────────
+function ProdeNav({ tabs, activeTab, onTabChange }) {
+  const navRef = useRef(null)
+  const [hasOverflow, setHasOverflow] = useState(false)
+  const [atEnd, setAtEnd] = useState(false)
+
+  useEffect(() => {
+    const el = navRef.current
+    if (!el) return
+    const update = () => {
+      const overflow = el.scrollWidth > el.clientWidth + 4
+      setHasOverflow(overflow)
+      setAtEnd(el.scrollLeft + el.clientWidth >= el.scrollWidth - 4)
+    }
+    update()
+    el.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      el.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+    }
+  }, [tabs.length])
+
+  useEffect(() => {
+    const el = navRef.current
+    if (!el) return
+    const btn = el.querySelector('.prode-nav__btn--active')
+    if (btn) btn.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
+  }, [activeTab])
+
+  const showHint = hasOverflow && !atEnd
+
+  return (
+    <div className={`prode-nav-wrap ${showHint ? 'prode-nav-wrap--hint' : ''}`}>
+      <nav className="prode-nav" ref={navRef}>
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            className={`prode-nav__btn ${activeTab === t.id ? 'prode-nav__btn--active' : ''}`}
+            onClick={() => onTabChange(t.id)}
+          >
+            {t.label}
+          </button>
+        ))}
+      </nav>
+      {showHint && (
+        <button
+          type="button"
+          className="prode-nav__hint"
+          aria-label="Ver más opciones"
+          onClick={() => navRef.current?.scrollBy({ left: 160, behavior: 'smooth' })}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      )}
     </div>
   )
 }
@@ -2642,17 +2701,7 @@ export default function ProdeApp() {
       </header>
 
       {/* Nav */}
-      <nav className="prode-nav">
-        {TABS.map(t => (
-          <button
-            key={t.id}
-            className={`prode-nav__btn ${tab === t.id ? 'prode-nav__btn--active' : ''}`}
-            onClick={() => setTab(t.id)}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
+      <ProdeNav tabs={TABS} activeTab={tab} onTabChange={setTab} />
 
       {/* Toast */}
       {toast && <Toast key={toast.key} msg={toast.msg} type={toast.type} duration={toast.duration} onDone={() => setToast(null)} />}
