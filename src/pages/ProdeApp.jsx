@@ -447,9 +447,10 @@ const ONBOARDING_SLIDES = [
     title: 'Cómo se puntúa',
     body: 'Cuanto mejor predecís, más puntos sumás.',
     bullets: [
-      { strong: '5 pts · Resultado exacto', desc: 'Acertaste el marcador completo (ej. 2-1 → 2-1).' },
-      { strong: '2 pts · Acertaste ganador', desc: 'Predijiste quién gana o empata, aunque el marcador exacto no.' },
-      { strong: '×2 · Argentina', desc: 'Cada partido de la Selección suma el doble de puntos.' },
+      { strong: '10 pts · Resultado exacto', desc: 'Acertaste el marcador completo (ej. 2-1 → 2-1).' },
+      { strong: '5 pts · Acertaste ganador', desc: 'Predijiste quién gana o el empate, aunque no el marcador.' },
+      { strong: '1 pt · Acertaste total de goles', desc: 'No acertaste el resultado, pero sí cuántos goles hubo.' },
+      { strong: '×2 · Argentina', desc: 'Cada partido de la Selección suma el doble.' },
     ],
   },
   {
