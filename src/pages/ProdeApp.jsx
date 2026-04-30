@@ -1115,7 +1115,7 @@ function formatTeamName(name) {
 
 // ─── Match Card ───────────────────────────────────────────────────────────────
 // MatchCard en modo batch: inputs controlados desde el padre, sin botón propio
-function MatchCard({ match, myPred, localPred, onLocalChange }) {
+function MatchCard({ match, myPred, localPred, onLocalChange, saveStatus }) {
   const locked    = match.locked
   const hasResult = !!match.result
   const isArg     = match.isArgentina
@@ -1132,14 +1132,17 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
     (localPred.home !== (myPred?.home ?? '') || localPred.away !== (myPred?.away ?? ''))
 
   return (
-    <div className={`mc ${locked ? 'mc--locked' : ''} ${hasResult ? 'mc--result' : ''} ${isArg ? 'mc--argentina' : ''} ${isDirty ? 'mc--dirty' : ''}`}>
+    <div className={`mc ${locked ? 'mc--locked' : ''} ${hasResult ? 'mc--result' : ''} ${isArg ? 'mc--argentina' : ''} ${isDirty ? 'mc--dirty' : ''} ${saveStatus ? `mc--${saveStatus}` : ''}`}>
       {isArg && <div className="mc__arg-banner">⭐ DOBLE PUNTOS — Partido de Argentina</div>}
       <div className="mc__meta">
         <span className="mc__date">{dateStr} · {timeStr}</span>
         <span className="mc__group">{match.phase === 'group' ? `Grupo ${match.group}` : PHASE_LABELS[match.phase]}</span>
         {locked && !hasResult && <span className="mc__badge mc__badge--closed">Cerrado</span>}
         {hasResult && <span className="mc__badge mc__badge--done">Finalizado</span>}
-        {!locked && <span className="mc__badge mc__badge--open">Abierto</span>}
+        {!locked && !saveStatus     && <span className="mc__badge mc__badge--open">Abierto</span>}
+        {!locked && saveStatus === 'saving' && <span className="mc__badge mc__badge--saving">Guardando…</span>}
+        {!locked && saveStatus === 'saved'  && <span className="mc__badge mc__badge--saved">✓ Guardado</span>}
+        {!locked && saveStatus === 'error'  && <span className="mc__badge mc__badge--error">⚠ Error — reintentá</span>}
       </div>
 
       <div className="mc__teams">
@@ -1193,6 +1196,13 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
   const [localPreds, setLocalPreds] = useState({}) // { matchId: { home, away } }
   const [saving, setSaving]     = useState(false)
   const [savedMsg, setSavedMsg] = useState('')
+  const [matchStatus, setMatchStatus] = useState({}) // { matchId: 'saving' | 'saved' | 'error' }
+  const saveTimers = useRef({})
+
+  // Cleanup de timers al desmontar
+  useEffect(() => () => {
+    Object.values(saveTimers.current).forEach(clearTimeout)
+  }, [])
 
   const phases = [...new Set(matches.map(m => m.phase))]
     .sort((a, b) => PHASE_ORDER.indexOf(a) - PHASE_ORDER.indexOf(b))
@@ -1204,11 +1214,47 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
   // Partidos abiertos del grupo actual
   const openMatches = filtered.filter(m => !m.locked && !m.result)
 
+  async function doSaveOne(matchId, home, away) {
+    if (!player) return
+    setMatchStatus(s => ({ ...s, [matchId]: 'saving' }))
+    try {
+      const r = await savePrediction(player.token, matchId, home, away)
+      if (r?.unlockedAchievements?.length) onUnlocked?.(r.unlockedAchievements)
+      setMatchStatus(s => ({ ...s, [matchId]: 'saved' }))
+      setLocalPreds(prev => {
+        const next = { ...prev }
+        delete next[matchId]
+        return next
+      })
+      onSaved?.()
+      // Limpiar el badge "Guardado" después de 2s
+      setTimeout(() => {
+        setMatchStatus(s => {
+          if (s[matchId] !== 'saved') return s
+          const next = { ...s }
+          delete next[matchId]
+          return next
+        })
+      }, 2000)
+    } catch (e) {
+      setMatchStatus(s => ({ ...s, [matchId]: 'error' }))
+    }
+  }
+
   function handleLocalChange(matchId, side, val) {
-    setLocalPreds(prev => ({
-      ...prev,
-      [matchId]: { ...(prev[matchId] ?? { home: myPreds?.[matchId]?.home ?? '', away: myPreds?.[matchId]?.away ?? '' }), [side]: val }
-    }))
+    setLocalPreds(prev => {
+      const cur = prev[matchId] ?? { home: myPreds?.[matchId]?.home ?? '', away: myPreds?.[matchId]?.away ?? '' }
+      const next = { ...cur, [side]: val }
+      // Auto-guardado debounced si home y away están completos
+      if (next.home !== '' && next.away !== '' && player) {
+        clearTimeout(saveTimers.current[matchId])
+        saveTimers.current[matchId] = setTimeout(() => {
+          doSaveOne(matchId, next.home, next.away)
+        }, 600)
+        // Mientras tanto, mostrar "saving" suave (lo dispara el timer cuando arranca)
+      }
+      return { ...prev, [matchId]: next }
+    })
   }
 
   // Pronósticos del grupo listos para guardar (home y away completos)
@@ -1293,28 +1339,28 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
             myPred={myPreds?.[m.id]}
             localPred={localPreds[m.id]}
             onLocalChange={player ? handleLocalChange : undefined}
+            saveStatus={matchStatus[m.id]}
           />
         ))}
       </div>
 
-      {/* Botón guardar grupo — solo si hay partidos abiertos y usuario logueado */}
+      {/* Fallback: botón "Guardar pendientes" solo si quedó algo sin sincronizar (ej. red caída) */}
       {player && openMatches.length > 0 && (
         <div className="pronosticos__batch-save">
-          {savedMsg ? (
-            <span className="pronosticos__batch-ok">{savedMsg}</span>
-          ) : (
+          {toSave.length > 0 ? (
             <button
               className="pronosticos__batch-btn"
               onClick={handleSaveGroup}
-              disabled={saving || toSave.length === 0}
+              disabled={saving}
             >
-              {saving
-                ? 'Guardando...'
-                : toSave.length === openMatches.length
-                  ? `Guardar los ${toSave.length} pronósticos del Grupo ${group}`
-                  : `Guardar ${toSave.length} de ${openMatches.length} pronósticos del Grupo ${group}`}
+              {saving ? 'Guardando…' : `Guardar ${toSave.length} pronóstico${toSave.length > 1 ? 's' : ''} pendiente${toSave.length > 1 ? 's' : ''}`}
             </button>
+          ) : (
+            <span className="pronosticos__autosave-note">
+              ✓ Tus pronósticos se guardan automáticamente
+            </span>
           )}
+          {savedMsg && <span className="pronosticos__batch-ok" style={{marginLeft: 12}}>{savedMsg}</span>}
         </div>
       )}
     </div>

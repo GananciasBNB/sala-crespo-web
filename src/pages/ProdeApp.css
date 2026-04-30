@@ -1165,6 +1165,13 @@
 .mc__badge--open   { background: rgba(0,177,64,.15);  color: var(--wc-green); }
 .mc__badge--closed { background: rgba(90,106,128,.15); color: var(--wc-muted); }
 .mc__badge--done   { background: rgba(201,168,76,.15); color: var(--wc-gold); }
+.mc__badge--saving { background: rgba(255,210,80,.18); color: var(--wc-gold); animation: mc-badge-pulse 1s ease-in-out infinite; }
+.mc__badge--saved  { background: rgba(0,177,64,.18);  color: var(--wc-green); animation: mc-badge-fade 2s ease-out; }
+.mc__badge--error  { background: rgba(196,30,58,.18); color: #ff6478; }
+@keyframes mc-badge-pulse { 0%,100% { opacity: .6 } 50% { opacity: 1 } }
+@keyframes mc-badge-fade { 0% { transform: scale(1.15) } 30% { transform: scale(1) } 100% { transform: scale(1) } }
+.mc--saved { box-shadow: 0 0 0 1px rgba(0,177,64,.35) inset; }
+.mc--error { box-shadow: 0 0 0 1px rgba(196,30,58,.45) inset; }
 
 .mc__teams {
   display: grid;
@@ -1330,6 +1337,16 @@
   font-size: 15px;
   font-weight: 700;
   padding: 14px 0;
+}
+.pronosticos__autosave-note {
+  color: #00C896;
+  background: rgba(0,200,150,.08);
+  border: 1px solid rgba(0,200,150,.25);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .3px;
 }
 
 /* ═══════════════════════════════════════════════════════════════
