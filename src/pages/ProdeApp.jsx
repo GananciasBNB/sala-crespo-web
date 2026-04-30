@@ -1115,7 +1115,7 @@ function formatTeamName(name) {
 
 // ─── Match Card ───────────────────────────────────────────────────────────────
 // MatchCard en modo batch: inputs controlados desde el padre, sin botón propio
-function MatchCard({ match, myPred, localPred, onLocalChange, saveStatus }) {
+function MatchCard({ match, myPred, localPred, onLocalChange }) {
   const locked    = match.locked
   const hasResult = !!match.result
   const isArg     = match.isArgentina
@@ -1132,17 +1132,15 @@ function MatchCard({ match, myPred, localPred, onLocalChange, saveStatus }) {
     (localPred.home !== (myPred?.home ?? '') || localPred.away !== (myPred?.away ?? ''))
 
   return (
-    <div className={`mc ${locked ? 'mc--locked' : ''} ${hasResult ? 'mc--result' : ''} ${isArg ? 'mc--argentina' : ''} ${isDirty ? 'mc--dirty' : ''} ${saveStatus ? `mc--${saveStatus}` : ''}`}>
+    <div className={`mc ${locked ? 'mc--locked' : ''} ${hasResult ? 'mc--result' : ''} ${isArg ? 'mc--argentina' : ''} ${isDirty ? 'mc--dirty' : ''}`}>
       {isArg && <div className="mc__arg-banner">⭐ DOBLE PUNTOS — Partido de Argentina</div>}
       <div className="mc__meta">
         <span className="mc__date">{dateStr} · {timeStr}</span>
         <span className="mc__group">{match.phase === 'group' ? `Grupo ${match.group}` : PHASE_LABELS[match.phase]}</span>
         {locked && !hasResult && <span className="mc__badge mc__badge--closed">Cerrado</span>}
         {hasResult && <span className="mc__badge mc__badge--done">Finalizado</span>}
-        {!locked && !saveStatus     && <span className="mc__badge mc__badge--open">Abierto</span>}
-        {!locked && saveStatus === 'saving' && <span className="mc__badge mc__badge--saving">Guardando…</span>}
-        {!locked && saveStatus === 'saved'  && <span className="mc__badge mc__badge--saved">✓ Guardado</span>}
-        {!locked && saveStatus === 'error'  && <span className="mc__badge mc__badge--error">⚠ Error — reintentá</span>}
+        {!locked && !isDirty && <span className="mc__badge mc__badge--open">Abierto</span>}
+        {!locked && isDirty  && <span className="mc__badge mc__badge--dirty">● Sin guardar</span>}
       </div>
 
       <div className="mc__teams">
@@ -1193,16 +1191,21 @@ function MatchCard({ match, myPred, localPred, onLocalChange, saveStatus }) {
 function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
   const [phase, setPhase]       = useState('group')
   const [group, setGroup]       = useState('J')
-  const [localPreds, setLocalPreds] = useState({}) // { matchId: { home, away } }
+  const lsKey = player ? `prode_local_preds_${player.id}` : null
+  // Hidratar desde localStorage para no perder cambios sin guardar al cerrar el browser
+  const [localPreds, setLocalPreds] = useState(() => {
+    if (!lsKey) return {}
+    try { return JSON.parse(localStorage.getItem(lsKey) || '{}') } catch { return {} }
+  })
   const [saving, setSaving]     = useState(false)
   const [savedMsg, setSavedMsg] = useState('')
-  const [matchStatus, setMatchStatus] = useState({}) // { matchId: 'saving' | 'saved' | 'error' }
-  const saveTimers = useRef({})
+  const [pendingNav, setPendingNav] = useState(null) // { type: 'phase' | 'group', value }
 
-  // Cleanup de timers al desmontar
-  useEffect(() => () => {
-    Object.values(saveTimers.current).forEach(clearTimeout)
-  }, [])
+  // Persistir cada cambio
+  useEffect(() => {
+    if (!lsKey) return
+    try { localStorage.setItem(lsKey, JSON.stringify(localPreds)) } catch {}
+  }, [lsKey, localPreds])
 
   const phases = [...new Set(matches.map(m => m.phase))]
     .sort((a, b) => PHASE_ORDER.indexOf(a) - PHASE_ORDER.indexOf(b))
@@ -1214,47 +1217,28 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
   // Partidos abiertos del grupo actual
   const openMatches = filtered.filter(m => !m.locked && !m.result)
 
-  async function doSaveOne(matchId, home, away) {
-    if (!player) return
-    setMatchStatus(s => ({ ...s, [matchId]: 'saving' }))
-    try {
-      const r = await savePrediction(player.token, matchId, home, away)
-      if (r?.unlockedAchievements?.length) onUnlocked?.(r.unlockedAchievements)
-      setMatchStatus(s => ({ ...s, [matchId]: 'saved' }))
-      setLocalPreds(prev => {
-        const next = { ...prev }
-        delete next[matchId]
-        return next
-      })
-      onSaved?.()
-      // Limpiar el badge "Guardado" después de 2s
-      setTimeout(() => {
-        setMatchStatus(s => {
-          if (s[matchId] !== 'saved') return s
-          const next = { ...s }
-          delete next[matchId]
-          return next
-        })
-      }, 2000)
-    } catch (e) {
-      setMatchStatus(s => ({ ...s, [matchId]: 'error' }))
-    }
+  function handleLocalChange(matchId, side, val) {
+    setLocalPreds(prev => ({
+      ...prev,
+      [matchId]: { ...(prev[matchId] ?? { home: myPreds?.[matchId]?.home ?? '', away: myPreds?.[matchId]?.away ?? '' }), [side]: val }
+    }))
   }
 
-  function handleLocalChange(matchId, side, val) {
-    setLocalPreds(prev => {
-      const cur = prev[matchId] ?? { home: myPreds?.[matchId]?.home ?? '', away: myPreds?.[matchId]?.away ?? '' }
-      const next = { ...cur, [side]: val }
-      // Auto-guardado debounced si home y away están completos
-      if (next.home !== '' && next.away !== '' && player) {
-        clearTimeout(saveTimers.current[matchId])
-        saveTimers.current[matchId] = setTimeout(() => {
-          doSaveOne(matchId, next.home, next.away)
-        }, 600)
-        // Mientras tanto, mostrar "saving" suave (lo dispara el timer cuando arranca)
-      }
-      return { ...prev, [matchId]: next }
-    })
+  // Cantidad de cambios sin guardar en el grupo actual
+  const dirtyCount = openMatches.reduce((acc, m) => {
+    const lp = localPreds[m.id]
+    if (!lp) return acc
+    const homeChanged = lp.home !== undefined && lp.home !== '' && lp.home !== (myPreds?.[m.id]?.home ?? '')
+    const awayChanged = lp.away !== undefined && lp.away !== '' && lp.away !== (myPreds?.[m.id]?.away ?? '')
+    return acc + (homeChanged || awayChanged ? 1 : 0)
+  }, 0)
+
+  function tryNavigate(navAction) {
+    if (dirtyCount > 0) {
+      setPendingNav({ action: navAction })
+    } else {
+      navAction()
+    }
   }
 
   // Pronósticos del grupo listos para guardar (home y away completos)
@@ -1307,7 +1291,7 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
           <button
             key={ph}
             className={`pronosticos__phase-btn ${phase === ph ? 'pronosticos__phase-btn--active' : ''}`}
-            onClick={() => setPhase(ph)}
+            onClick={() => tryNavigate(() => setPhase(ph))}
           >
             {ph === 'group' ? 'Grupos' : PHASE_LABELS[ph]}
           </button>
@@ -1320,7 +1304,7 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
             <button
               key={g}
               className={`pronosticos__group-btn ${group === g ? 'pronosticos__group-btn--active' : ''} ${g === 'J' ? 'pronosticos__group-btn--arg' : ''}`}
-              onClick={() => setGroup(g)}
+              onClick={() => tryNavigate(() => setGroup(g))}
             >
               {g === 'J' ? (
                 <><img src="https://flagcdn.com/w20/ar.png" alt="AR" width={16} style={{verticalAlign:'middle',marginRight:4,borderRadius:2}} />J</>
@@ -1339,28 +1323,68 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
             myPred={myPreds?.[m.id]}
             localPred={localPreds[m.id]}
             onLocalChange={player ? handleLocalChange : undefined}
-            saveStatus={matchStatus[m.id]}
           />
         ))}
       </div>
 
-      {/* Fallback: botón "Guardar pendientes" solo si quedó algo sin sincronizar (ej. red caída) */}
+      {/* Botón guardar grupo — visible siempre que haya partidos abiertos */}
       {player && openMatches.length > 0 && (
         <div className="pronosticos__batch-save">
-          {toSave.length > 0 ? (
-            <button
-              className="pronosticos__batch-btn"
-              onClick={handleSaveGroup}
-              disabled={saving}
-            >
-              {saving ? 'Guardando…' : `Guardar ${toSave.length} pronóstico${toSave.length > 1 ? 's' : ''} pendiente${toSave.length > 1 ? 's' : ''}`}
-            </button>
+          {savedMsg ? (
+            <span className="pronosticos__batch-ok">{savedMsg}</span>
           ) : (
-            <span className="pronosticos__autosave-note">
-              ✓ Tus pronósticos se guardan automáticamente
-            </span>
+            <button
+              className={`pronosticos__batch-btn ${dirtyCount > 0 ? 'pronosticos__batch-btn--dirty' : ''}`}
+              onClick={handleSaveGroup}
+              disabled={saving || toSave.length === 0}
+            >
+              {saving
+                ? 'Guardando…'
+                : dirtyCount > 0
+                  ? `Guardar ${dirtyCount} cambio${dirtyCount > 1 ? 's' : ''} sin guardar`
+                  : toSave.length === openMatches.length
+                    ? `Guardar los ${toSave.length} pronósticos del Grupo ${group}`
+                    : `Guardar ${toSave.length} de ${openMatches.length} pronósticos del Grupo ${group}`}
+            </button>
           )}
-          {savedMsg && <span className="pronosticos__batch-ok" style={{marginLeft: 12}}>{savedMsg}</span>}
+        </div>
+      )}
+
+      {/* Modal: confirmar al cambiar de grupo/fase con cambios sin guardar */}
+      {pendingNav && (
+        <div className="pn-confirm-overlay" onClick={() => setPendingNav(null)}>
+          <div className="pn-confirm" onClick={e => e.stopPropagation()}>
+            <h3 className="pn-confirm__title">Tenés {dirtyCount} cambio{dirtyCount > 1 ? 's' : ''} sin guardar</h3>
+            <p className="pn-confirm__text">
+              Si cambiás de {phase === 'group' ? 'grupo' : 'fase'} ahora, los cambios siguen acá esperando.
+              Pero recordá guardar antes de que empiecen los partidos.
+            </p>
+            <div className="pn-confirm__actions">
+              <button
+                className="pn-confirm__btn pn-confirm__btn--save"
+                disabled={saving}
+                onClick={async () => {
+                  await handleSaveGroup()
+                  pendingNav.action()
+                  setPendingNav(null)
+                }}
+              >
+                {saving ? 'Guardando…' : 'Guardar y continuar'}
+              </button>
+              <button
+                className="pn-confirm__btn pn-confirm__btn--skip"
+                onClick={() => { pendingNav.action(); setPendingNav(null) }}
+              >
+                Continuar sin guardar
+              </button>
+              <button
+                className="pn-confirm__btn pn-confirm__btn--cancel"
+                onClick={() => setPendingNav(null)}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
