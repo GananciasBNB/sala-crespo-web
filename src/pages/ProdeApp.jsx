@@ -3140,9 +3140,14 @@ export default function ProdeApp() {
     setPlayer(p)
     setShowAuth(false)
     setTab('inicio')
-    // Mostrar onboarding si es la primera vez que este jugador entra
+    // Mostrar onboarding al primer login.
+    // Force-show con ?onboarding=1 o si es el jugador de prueba (DNI 99999999).
     try {
-      if (p?.id && !localStorage.getItem(`prode_onboarding_seen_${p.id}`)) {
+      const forceParam = typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('onboarding') === '1'
+      const isTestPlayer = p?.dni === '99999999' || p?.dniLast3 === '999'
+      const firstTime = p?.id && !localStorage.getItem(`prode_onboarding_seen_${p.id}`)
+      if (forceParam || isTestPlayer || firstTime) {
         setTimeout(() => setShowOnboarding(true), 600)
       }
     } catch {}
