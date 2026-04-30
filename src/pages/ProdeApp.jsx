@@ -463,7 +463,7 @@ const ONBOARDING_SLIDES = [
     body: 'Antes del primer partido, elegí tu campeón. Si acertás, te llevás bonus.',
     bullets: [
       { strong: '+20 puntos extra', desc: 'Si tu seleccionado gana el Mundial.' },
-      { strong: 'Medalla "Profeta" exclusiva', desc: 'Solo la consiguen los que lo clavaron desde el primer día.' },
+      { strong: 'Medalla "Profeta" exclusiva', desc: 'Solo la consiguen los que la pegaron desde el primer día.' },
     ],
   },
   {
