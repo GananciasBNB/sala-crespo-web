@@ -1900,21 +1900,27 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
                 </div>
               </div>
             </div>
-            {/* CTA temprano: el que ya quiere anotarse, lo hace acá */}
-            {!isLoggedIn && (
-              <div className="staff-portal__ctas staff-portal__ctas--early">
-                <button className="staff-portal__cta staff-portal__cta--primary" onClick={() => { setShowRegister(true); setShowLogin(false) }}>
-                  ANOTARME AL PRODE →
+            {/* CTA temprano: el que ya quiere anotarse / cargar pronósticos */}
+            <div className="staff-portal__ctas staff-portal__ctas--early">
+              {isLoggedIn ? (
+                <button className="staff-portal__cta staff-portal__cta--primary" onClick={onExit}>
+                  CARGAR MIS PRONÓSTICOS →
                 </button>
-                <button
-                  type="button"
-                  className="staff-portal__cta-link"
-                  onClick={() => { setShowLogin(true); setShowRegister(false) }}
-                >
-                  ¿Ya tenés cuenta? Ingresá acá
-                </button>
-              </div>
-            )}
+              ) : (
+                <>
+                  <button className="staff-portal__cta staff-portal__cta--primary" onClick={() => { setShowRegister(true); setShowLogin(false) }}>
+                    ANOTARME AL PRODE →
+                  </button>
+                  <button
+                    type="button"
+                    className="staff-portal__cta-link"
+                    onClick={() => { setShowLogin(true); setShowRegister(false) }}
+                  >
+                    ¿Ya tenés cuenta? Ingresá acá
+                  </button>
+                </>
+              )}
+            </div>
           </section>
         )}
 
@@ -2059,7 +2065,14 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
               <div className="sp-prize__amount">$20.000</div>
             </div>
           </div>
-          {!isLoggedIn && (
+          {isLoggedIn ? (
+            <button
+              className="staff-portal__cta staff-portal__cta--inline"
+              onClick={onExit}
+            >
+              CARGAR MIS PRONÓSTICOS →
+            </button>
+          ) : (
             <button
               className="staff-portal__cta staff-portal__cta--inline"
               onClick={() => { setShowRegister(true); setShowLogin(false) }}
@@ -2090,6 +2103,19 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
             </>
           )}
         </div>
+
+        {/* Sticky CTA flotante: solo logueado, siempre visible */}
+        {isLoggedIn && (
+          <button
+            type="button"
+            className="staff-portal__cta-float"
+            onClick={onExit}
+            aria-label="Cargar mis pronósticos"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            <span>Cargar pronósticos</span>
+          </button>
+        )}
 
         {(showRegister || showLogin) && (
           <AuthModal
