@@ -426,6 +426,9 @@ function ShareCardModal({ player, onClose }) {
   const [achData, setAchData] = useState(null)
   const [position, setPosition] = useState(null)
   const [points, setPoints] = useState(null)
+  const [previewUrl, setPreviewUrl] = useState(null)
+  const [previewBlob, setPreviewBlob] = useState(null)
+  const [generating, setGenerating] = useState(true)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
 
@@ -454,21 +457,56 @@ function ShareCardModal({ player, onClose }) {
   const totalUnlocked = achData?.totalUnlocked ?? 0
   const totalCatalog  = achData?.totalCatalog  ?? 20
 
+  // Generar el PNG real apenas tengamos data — WYSIWYG: lo que se muestra ES lo que se comparte
+  useEffect(() => {
+    if (!achData) return
+    let cancelled = false
+    ;(async () => {
+      setGenerating(true)
+      try {
+        // Esperar a que las fonts (Bebas Neue) estén cargadas
+        if (typeof document !== 'undefined' && document.fonts?.ready) {
+          await document.fonts.ready
+        }
+        // Esperar 2 RAF para asegurar layout completo del DOM off-screen
+        await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+        if (cancelled || !cardRef.current) return
+        const { default: html2canvas } = await import('html2canvas-pro')
+        const canvas = await html2canvas(cardRef.current, {
+          backgroundColor: '#0a0d12',
+          scale: 1,
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          width: 1080,
+          height: 1920,
+          windowWidth: 1080,
+          windowHeight: 1920,
+        })
+        if (cancelled) return
+        const blob = await new Promise(r => canvas.toBlob(r, 'image/png', 0.95))
+        if (!blob || cancelled) return
+        const url = URL.createObjectURL(blob)
+        setPreviewBlob(blob)
+        setPreviewUrl(prev => { if (prev) URL.revokeObjectURL(prev); return url })
+      } catch (e) {
+        console.error('Error generando cartón:', e)
+      } finally {
+        if (!cancelled) setGenerating(false)
+      }
+    })()
+    return () => { cancelled = true }
+  }, [achData, position, points])
+
+  // Cleanup del blob al desmontar
+  useEffect(() => () => { if (previewUrl) URL.revokeObjectURL(previewUrl) }, [])
+
   async function handleExport(action) {
-    if (!cardRef.current) return
+    if (!previewBlob) return
     setBusy(true)
     setMsg('')
     try {
-      const { default: html2canvas } = await import('html2canvas-pro')
-      const canvas = await html2canvas(cardRef.current, {
-        backgroundColor: '#0a0d12',
-        scale: 2,
-        useCORS: true,
-        logging: false,
-      })
-      const blob = await new Promise(r => canvas.toBlob(r, 'image/png'))
-      if (!blob) throw new Error('No se pudo generar la imagen')
-      const file = new File([blob], `prode-${player.name.toLowerCase().replace(/\s+/g, '-')}.png`, { type: 'image/png' })
+      const file = new File([previewBlob], `prode-${player.name.toLowerCase().replace(/\s+/g, '-')}.png`, { type: 'image/png' })
       if (action === 'share' && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
@@ -478,19 +516,17 @@ function ShareCardModal({ player, onClose }) {
         })
         setMsg('✓ Compartido')
       } else {
-        const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
-        a.href = url
+        a.href = previewUrl
         a.download = file.name
         document.body.appendChild(a)
         a.click()
         document.body.removeChild(a)
-        URL.revokeObjectURL(url)
         setMsg('✓ Imagen descargada')
       }
     } catch (e) {
       console.error(e)
-      setMsg('No se pudo generar el cartón. Probá de nuevo.')
+      setMsg('No se pudo compartir. Probá de nuevo.')
     }
     setBusy(false)
   }
@@ -498,90 +534,137 @@ function ShareCardModal({ player, onClose }) {
   const canShare = typeof navigator !== 'undefined' && !!navigator.canShare
   const shareUrl = 'saladejuegoscrespo.ar/prode'
 
+  // Mensaje principal según estado
+  const isPreMundial = !position
+  const heroTitle = isPreMundial
+    ? '¡ME ANOTÉ AL PRODE!'
+    : position === 1
+      ? '¡VOY PRIMERO!'
+      : position <= 3
+        ? `TOP ${position} 🔥`
+        : `VOY EN EL TOP`
+  const heroSub = isPreMundial
+    ? 'Pronósticos cargados. Listos para arrancar.'
+    : `Posición #${position} · ${points ?? 0} pts acumulados`
+
   return (
     <div className="share-modal" onClick={onClose}>
       <div className="share-modal__inner" onClick={e => e.stopPropagation()}>
         <button className="share-modal__close" onClick={onClose} aria-label="Cerrar">×</button>
         <h2 className="share-modal__title">Compartí tu cartón</h2>
-        <p className="share-modal__sub">Descargalo o mandalo directo por WhatsApp / Stories</p>
-        <p className="share-modal__hint">
-          ℹ️ La vista previa está reducida — la imagen final sale en alta calidad (1080×1920).
-        </p>
+        <p className="share-modal__sub">Mostrale a todos que jugás el Prode Mundial</p>
 
-        {/* Preview con escala visual */}
+        {/* Preview = imagen real generada (WYSIWYG) */}
         <div className="share-modal__preview-wrap">
+          {generating ? (
+            <div className="share-modal__loading">
+              <div className="prode-spinner" />
+              <span>Armando tu cartón…</span>
+            </div>
+          ) : previewUrl ? (
+            <img src={previewUrl} alt="Tu cartón" className="share-modal__preview-img" />
+          ) : (
+            <div className="share-modal__loading">
+              <span>No se pudo armar el cartón. Cerrá y volvé a abrir.</span>
+            </div>
+          )}
+        </div>
+
+        {/* DOM real off-screen para html2canvas (1080x1920 sin escalar) */}
+        <div className="share-card-stage" aria-hidden="true">
           <div className="share-card" ref={cardRef}>
             <div className="share-card__bg" />
+            <div className="share-card__noise" />
+
+            {/* TOP — brand */}
             <div className="share-card__top">
               <div className="share-card__brand">
-                <span className="share-card__brand-line">SALA DE JUEGOS</span>
-                <span className="share-card__brand-name">CRESPO</span>
+                <div className="share-card__brand-line">SALA DE JUEGOS</div>
+                <div className="share-card__brand-name">CRESPO</div>
               </div>
-              <div className="share-card__cup">PRODE MUNDIAL 2026</div>
+              <div className="share-card__cup">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4a2 2 0 0 1-2-2V5h4"/><path d="M18 9h2a2 2 0 0 0 2-2V5h-4"/><path d="M6 9a6 6 0 0 0 12 0V3H6v6z"/><path d="M9 21h6"/><path d="M12 17v4"/></svg>
+                MUNDIAL 2026
+              </div>
             </div>
 
+            {/* HERO — el grito */}
+            <div className="share-card__hero">
+              <div className="share-card__hero-flag">
+                <span className="share-card__hero-flag-stripe share-card__hero-flag-stripe--blue" />
+                <span className="share-card__hero-flag-stripe share-card__hero-flag-stripe--white" />
+                <span className="share-card__hero-flag-stripe share-card__hero-flag-stripe--blue" />
+              </div>
+              <div className="share-card__hero-title">{heroTitle}</div>
+              <div className="share-card__hero-sub">{heroSub}</div>
+            </div>
+
+            {/* USUARIO — avatar + nombre */}
             <div className="share-card__user">
-              <div className="share-card__avatar">
-                {player.name?.[0]?.toUpperCase() || '?'}
+              <div className="share-card__avatar-ring">
+                <div className="share-card__avatar">
+                  {player.name?.[0]?.toUpperCase() || '?'}
+                </div>
               </div>
               <div className="share-card__name">{player.name}</div>
-              {position ? (
-                <div className="share-card__pos">
-                  <span className="share-card__pos-label">POSICIÓN</span>
-                  <span className="share-card__pos-num">#{position}</span>
-                  <span className="share-card__pos-pts">{points ?? 0} pts</span>
-                </div>
-              ) : (
-                <div className="share-card__pos share-card__pos--soon">
-                  <span className="share-card__pos-label">El Mundial arranca el</span>
-                  <span className="share-card__pos-num" style={{fontSize: 56, marginTop: 8}}>11/JUN</span>
-                </div>
-              )}
             </div>
 
-            <div className="share-card__medals">
-              <div className="share-card__medals-label">
-                {totalUnlocked > 0
-                  ? `MIS ${Math.min(topAch.length, 3)} ÚLTIMAS MEDALLAS`
-                  : 'COLECCIONÁ 20 MEDALLAS'}
+            {/* STATS — 3 números clave */}
+            <div className="share-card__stats">
+              <div className="share-card__stat">
+                <div className="share-card__stat-num">{totalUnlocked}</div>
+                <div className="share-card__stat-label">de {totalCatalog} medallas</div>
               </div>
-              {topAch.length > 0 ? (
+              <div className="share-card__stat-divider" />
+              <div className="share-card__stat">
+                <div className="share-card__stat-num">{isPreMundial ? '104' : (points ?? 0)}</div>
+                <div className="share-card__stat-label">{isPreMundial ? 'partidos por jugar' : 'puntos sumados'}</div>
+              </div>
+              <div className="share-card__stat-divider" />
+              <div className="share-card__stat">
+                <div className="share-card__stat-num">{position ? `#${position}` : 'X'}</div>
+                <div className="share-card__stat-label">{position ? 'posición' : 'arrancamos pronto'}</div>
+              </div>
+            </div>
+
+            {/* MEDALLAS — solo si hay desbloqueadas */}
+            {topAch.length > 0 && (
+              <div className="share-card__medals">
+                <div className="share-card__medals-label">★ Mis medallas más recientes</div>
                 <div className="share-card__medals-row">
                   {topAch.map(a => (
                     <div key={a.slug} className="share-card__medal">
                       <div className="share-card__medal-glyph">
-                        <AchievementGlyph slug={a.slug} category={a.category} size={64} />
+                        <AchievementGlyph slug={a.slug} category={a.category} size={88} />
                       </div>
                       <div className="share-card__medal-name">{a.name}</div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="share-card__medals-empty">
-                  Bautismo · Profeta · Triplete · y 17 más
-                </div>
-              )}
-              <div className="share-card__medals-count">
-                {totalUnlocked} / {totalCatalog} desbloqueadas
               </div>
-            </div>
+            )}
 
+            {/* CTA — el desafío */}
             <div className="share-card__cta">
-              <div className="share-card__cta-line">VENÍ A JUGAR</div>
+              <div className="share-card__cta-challenge">¿PODÉS GANARME?</div>
+              <div className="share-card__cta-line">SUMATE GRATIS</div>
               <div className="share-card__cta-url">{shareUrl}</div>
-              <div className="share-card__cta-prizes">$100.000 en Clauser para los ganadores</div>
+              <div className="share-card__cta-prizes">
+                <div className="share-card__cta-prize-amount">$100.000</div>
+                <div className="share-card__cta-prize-label">en órdenes de Clauser para los ganadores</div>
+              </div>
             </div>
           </div>
         </div>
 
         <div className="share-modal__actions">
           {canShare && (
-            <button className="share-modal__btn share-modal__btn--primary" onClick={() => handleExport('share')} disabled={busy}>
-              {busy ? 'Generando…' : '📲 Compartir'}
+            <button className="share-modal__btn share-modal__btn--primary" onClick={() => handleExport('share')} disabled={busy || generating || !previewBlob}>
+              {busy ? 'Compartiendo…' : '📲 Compartir ahora'}
             </button>
           )}
-          <button className="share-modal__btn share-modal__btn--secondary" onClick={() => handleExport('download')} disabled={busy}>
-            {busy ? 'Generando…' : '⬇ Descargar imagen'}
+          <button className="share-modal__btn share-modal__btn--secondary" onClick={() => handleExport('download')} disabled={busy || generating || !previewBlob}>
+            {busy ? 'Descargando…' : '⬇ Descargar imagen'}
           </button>
         </div>
         {msg && <div className="share-modal__msg">{msg}</div>}
