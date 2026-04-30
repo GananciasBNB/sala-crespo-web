@@ -3247,12 +3247,12 @@ export default function ProdeApp() {
     showToast('Pronóstico guardado ✓')
   }
 
+  // Misma estructura de tabs para clientes y empleados (UX uniforme).
+  // "Mi posición" elige automáticamente la tabla correcta según player.isEmployee.
   const TABS = player ? [
     { id: 'inicio',      label: '🏠 Inicio' },
     { id: 'pronosticos', label: '🎯 Mis pronósticos' },
     { id: 'tabla',       label: '📊 Mi posición' },
-    // Tab interno: visible automáticamente para empleados (el backend marca is_employee)
-    ...(player.isEmployee ? [{ id: 'tabla-interna', label: '🏢 Tabla interna' }] : []),
     { id: 'llaves',      label: '🗓️ Fixture' },
   ] : [
     { id: 'inicio', label: '🏠 Inicio' },
@@ -3338,16 +3338,17 @@ export default function ProdeApp() {
             )}
             {tab === 'tabla' && (
               <div className="prode-content">
-                <LeaderboardView myId={player?.id} />
-              </div>
-            )}
-            {tab === 'tabla-interna' && player?.isEmployee && (
-              <div className="prode-content">
-                <div style={{ background: 'rgba(155,31,31,0.12)', border: '1px solid rgba(155,31,31,0.4)', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
-                  <div style={{ fontSize: 12, color: '#FF8888', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 'bold', marginBottom: 6 }}>🏢 Concurso Interno</div>
-                  <div style={{ color: '#E8EDF5', fontSize: 14, lineHeight: 1.5 }}>Esta tabla es exclusiva del staff de Electric Line SRL. Premios y bases independientes del concurso público.</div>
-                </div>
-                <LeaderboardView myId={player?.id} audience="employees" token={player?.token} />
+                {player?.isEmployee && (
+                  <div style={{ background: 'rgba(155,31,31,0.12)', border: '1px solid rgba(155,31,31,0.4)', borderRadius: 12, padding: '16px 20px', marginBottom: 16 }}>
+                    <div style={{ fontSize: 12, color: '#FF8888', textTransform: 'uppercase', letterSpacing: 2, fontWeight: 'bold', marginBottom: 6 }}>🏢 Concurso Interno</div>
+                    <div style={{ color: '#E8EDF5', fontSize: 14, lineHeight: 1.5 }}>Como sos parte del staff de Electric Line SRL, ves la tabla interna. Premios y bases independientes del concurso público.</div>
+                  </div>
+                )}
+                <LeaderboardView
+                  myId={player?.id}
+                  audience={player?.isEmployee ? 'employees' : 'public'}
+                  token={player?.token}
+                />
               </div>
             )}
             {tab === 'pronosticos' && player && (
