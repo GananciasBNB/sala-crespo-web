@@ -447,12 +447,12 @@ const ONBOARDING_SLIDES = [
       </svg>
     ),
     title: 'Cómo se puntúa',
-    body: 'Cuanto mejor predecís, más puntos sumás.',
+    body: 'Más aciertos, más puntos.',
     bullets: [
-      { strong: '10 pts · Resultado exacto', desc: 'Acertaste el marcador completo (ej. 2-1 → 2-1).' },
-      { strong: '5 pts · Acertaste ganador', desc: 'Predijiste quién gana o el empate, aunque no el marcador.' },
-      { strong: '1 pt · Acertaste total de goles', desc: 'No acertaste el resultado, pero sí cuántos goles hubo.' },
-      { strong: '×2 · Argentina', desc: 'Cada partido de la Selección suma el doble.' },
+      { strong: '10 pts · Marcador exacto', desc: 'Ej: 2-1 y salió 2-1.' },
+      { strong: '5 pts · Ganador o empate', desc: 'Acertás quién gana, pero no el marcador.' },
+      { strong: '1 pt · Total de goles', desc: 'La suma coincide aunque el resultado no.' },
+      { strong: '×2 · Partidos de Argentina', desc: 'Doble puntos para todos.' },
     ],
   },
   {
@@ -713,7 +713,7 @@ function ShareCardModal({ player, onClose }) {
       <div className="share-modal__inner" onClick={e => e.stopPropagation()}>
         <button className="share-modal__close" onClick={onClose} aria-label="Cerrar">×</button>
         <h2 className="share-modal__title">Compartí tu cartón</h2>
-        <p className="share-modal__sub">Mostrale a todos que jugás el Prode Mundial</p>
+        <p className="share-modal__sub">Por WhatsApp, Stories, donde quieras.</p>
 
         {/* Preview = imagen real generada (WYSIWYG) */}
         <div className="share-modal__preview-wrap">
@@ -2469,40 +2469,32 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
         {!isLoggedIn && (
           <section className="staff-portal__hook">
             <h2 className="staff-portal__hook-headline">
-              Se acerca el Mundial y, como colaborador de Sala Crespo, queremos invitarte a participar del Prode 2026.
+              Prode Mundial 2026 — exclusivo para el staff.
             </h2>
             <p className="staff-portal__hook-intro">
-              En unos días arrancamos el <strong>Prode Mundial 2026</strong> para nuestros clientes.
-              Pero antes de eso, <strong>no queríamos dejar de armar algo para el equipo</strong> que hace
-              que la sala funcione todos los días. Esta es nuestra invitación —
-              un concurso <strong>exclusivo para el staff</strong>, con su propia tabla y sus propios premios.
+              Antes de abrirlo al público, te invitamos a vos.
+              Tabla aparte, premios aparte.
             </p>
             <div className="staff-portal__hook-grid">
               <div className="sp-hook-card">
                 <div className="sp-hook-card__icon">🎯</div>
-                <div className="sp-hook-card__title">¿De qué se trata?</div>
+                <div className="sp-hook-card__title">Cómo se juega</div>
                 <div className="sp-hook-card__text">
-                  Un Prode es predecir cómo van a terminar los partidos del Mundial 2026
-                  <em> antes de que se jueguen</em>. Si acertás el resultado, sumás puntos.
-                  Cuanto mejor predecís, más alto vas en la tabla.
+                  Predecís los resultados antes del partido. Más aciertos, más puntos en la tabla.
                 </div>
               </div>
               <div className="sp-hook-card">
                 <div className="sp-hook-card__icon">🏆</div>
-                <div className="sp-hook-card__title">¿Qué te llevás?</div>
+                <div className="sp-hook-card__title">Qué te llevás</div>
                 <div className="sp-hook-card__text">
-                  <strong>$100.000 en órdenes de compra de Supermercado Clauser</strong>, repartidos
-                  entre los tres primeros puestos. Sumás medallas por cada logro y peleás por ser
-                  el <strong>#1 de la sala</strong>, contra tus compañeros.
+                  <strong>$100.000 en órdenes de Clauser</strong> para el podio + medallas por logros.
                 </div>
               </div>
               <div className="sp-hook-card">
                 <div className="sp-hook-card__icon">🎉</div>
-                <div className="sp-hook-card__title">¿Por qué te queremos adentro?</div>
+                <div className="sp-hook-card__title">Por qué primero ustedes</div>
                 <div className="sp-hook-card__text">
-                  Antes que nada, <strong>queremos que la pases bien</strong>: que vivas el Mundial
-                  con tu equipo, sumes medallas y compitas por los premios.
-                  Si en el camino tenés ideas o ves algo raro, contanos en el form de abajo — pero lo primero es divertirse.
+                  Queremos que la pasen bien y que después puedan explicárselo a los clientes. Si algo no cierra, contanos abajo.
                 </div>
               </div>
             </div>
