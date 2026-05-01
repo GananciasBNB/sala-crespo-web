@@ -133,7 +133,7 @@ export default function Contacto() {
                   {loading ? 'Enviando...' : 'Enviar mensaje →'}
                 </button>
 
-                <p className="contacto-fineprint">* Campos obligatorios. Tus datos solo se usan para respondernos.</p>
+                <p className="contacto-fineprint">* Campos obligatorios.</p>
               </form>
             )}
           </section>

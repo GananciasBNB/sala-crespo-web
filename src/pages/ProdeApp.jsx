@@ -3231,22 +3231,21 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
           <div className="leagues__hero-icon">🏆</div>
           <h2 className="leagues__title">Tu propia liga del Mundial</h2>
           <p className="leagues__sub">
-            Armala con tus <strong>amigos</strong>, la <strong>familia</strong>, los <strong>compañeros del laburo</strong>.
-            Compitan entre ustedes, sin importar el ranking general.
+            Competí con tus amigos, familia o compañeros de trabajo, aparte del ranking general.
           </p>
         </div>
         <div className="leagues__perks">
           <div className="leagues__perk">
             <div className="leagues__perk-icon">📲</div>
-            <div className="leagues__perk-text"><strong>Invitás con un link.</strong> Lo pegás en el grupo de WhatsApp y listo.</div>
+            <div className="leagues__perk-text"><strong>Invitás por link.</strong> Lo pegás en WhatsApp.</div>
           </div>
           <div className="leagues__perk">
             <div className="leagues__perk-icon">🔒</div>
-            <div className="leagues__perk-text"><strong>Privada.</strong> Solo ven la tabla los que estén adentro con tu código.</div>
+            <div className="leagues__perk-text"><strong>Privada.</strong> Solo ven la tabla los que tengan tu código.</div>
           </div>
           <div className="leagues__perk">
             <div className="leagues__perk-icon">🎉</div>
-            <div className="leagues__perk-text"><strong>Apuesten lo que quieran entre ustedes.</strong> El asado, un café, lo que arreglen — cuestión interna del grupo.</div>
+            <div className="leagues__perk-text"><strong>Apuesten lo que quieran.</strong> Cuestión interna del grupo.</div>
           </div>
         </div>
         <div className="leagues__legal">
