@@ -1712,11 +1712,25 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
     setSaving(false)
   }
 
+  // Progreso por grupo: cuántos partidos de ese grupo ya tienen pronóstico guardado
+  const groupProgress = {}
+  GROUPS.forEach(g => {
+    const groupMatches = matches.filter(m => m.phase === 'group' && m.group === g)
+    if (groupMatches.length === 0) return
+    const filled = groupMatches.filter(m => myPreds?.[m.id]?.home !== undefined && myPreds?.[m.id]?.away !== undefined).length
+    groupProgress[g] = { filled, total: groupMatches.length }
+  })
+
   return (
     <div className="pronosticos">
+      <header className="pronosticos__header">
+        <h1 className="pronosticos__heading">Tus pronósticos</h1>
+        <p className="pronosticos__subheading">Cargá los resultados que vas a apostar antes del kickoff de cada partido.</p>
+      </header>
+
       <div className="pronosticos__hint">
         <svg className="pronosticos__hint-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <span>Ingresá el resultado que esperás de cada partido antes de que empiece. Una vez iniciado, ya no podés cambiarlo.</span>
+        <span>Una vez iniciado el partido, ya no podés cambiar tu pronóstico.</span>
       </div>
 
       <div className="pronosticos__nav-panel">
@@ -1739,17 +1753,33 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
           <div className="pronosticos__nav-section">
             <div className="pronosticos__nav-label">Elegí un grupo</div>
             <div className="pronosticos__groups">
-              {GROUPS.filter(g => matches.some(m => m.phase === 'group' && m.group === g)).map(g => (
-                <button
-                  key={g}
-                  className={`pronosticos__group-btn ${group === g ? 'pronosticos__group-btn--active' : ''} ${g === 'J' ? 'pronosticos__group-btn--arg' : ''}`}
-                  onClick={() => tryNavigate(() => setGroup(g))}
-                >
-                  {g === 'J' ? (
-                    <><img src="https://flagcdn.com/w20/ar.png" alt="AR" width={16} style={{verticalAlign:'middle',marginRight:4,borderRadius:2}} />J</>
-                  ) : g}
-                </button>
-              ))}
+              {GROUPS.filter(g => matches.some(m => m.phase === 'group' && m.group === g)).map(g => {
+                const prog = groupProgress[g]
+                const allFilled = prog && prog.filled === prog.total
+                const partial = prog && prog.filled > 0 && prog.filled < prog.total
+                return (
+                  <button
+                    key={g}
+                    className={`pronosticos__group-btn ${group === g ? 'pronosticos__group-btn--active' : ''} ${g === 'J' ? 'pronosticos__group-btn--arg' : ''} ${allFilled ? 'pronosticos__group-btn--done' : ''}`}
+                    onClick={() => tryNavigate(() => setGroup(g))}
+                    aria-label={`Grupo ${g}${prog ? ` — ${prog.filled} de ${prog.total} pronósticos cargados` : ''}`}
+                  >
+                    <span className="pronosticos__group-letter">
+                      {g === 'J' ? (
+                        <><img src="https://flagcdn.com/w20/ar.png" alt="AR" width={16} style={{verticalAlign:'middle',marginRight:4,borderRadius:2}} />J</>
+                      ) : g}
+                    </span>
+                    {allFilled && (
+                      <span className="pronosticos__group-dot pronosticos__group-dot--done" aria-hidden="true">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      </span>
+                    )}
+                    {partial && (
+                      <span className="pronosticos__group-dot pronosticos__group-dot--partial" aria-hidden="true" />
+                    )}
+                  </button>
+                )
+              })}
             </div>
           </div>
         )}
@@ -3176,6 +3206,7 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [info, setInfo] = useState('')
+  const [joinedLeague, setJoinedLeague] = useState(null) // celebración al unirse
 
   function refresh() {
     if (!player?.token) return
@@ -3190,8 +3221,7 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
     setErr('')
     joinLeague(player.token, autoJoinCode)
       .then(r => {
-        setInfo(`✓ Te uniste a "${r.league.name}"`)
-        setSelected(r.league.code)
+        setJoinedLeague(r.league)
         refresh()
       })
       .catch(e => setErr(e.message || 'No se pudo unir.'))
@@ -3210,9 +3240,8 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
     setBusy(true)
     try {
       const r = await joinLeague(player.token, code)
-      setInfo(`✓ Te uniste a "${r.league.name}"`)
       setJoinCode('')
-      setSelected(r.league.code)
+      setJoinedLeague(r.league)
       refresh()
     } catch (e) {
       setErr(e.message || 'No se pudo unir.')
@@ -3329,6 +3358,59 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
           }}
         />
       )}
+
+      {joinedLeague && (
+        <JoinedLeagueCelebration
+          league={joinedLeague}
+          onSeeTable={() => {
+            const code = joinedLeague.code
+            setJoinedLeague(null)
+            setSelected(code)
+          }}
+          onClose={() => setJoinedLeague(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+// Modal celebrativo cuando un jugador se une a una liga (con confetti).
+function JoinedLeagueCelebration({ league, onSeeTable, onClose }) {
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      try {
+        const confetti = (await import('canvas-confetti')).default
+        if (cancelled) return
+        const fire = (opts) => confetti({ particleCount: 60, spread: 70, origin: { y: 0.55 }, zIndex: 9999, ...opts })
+        fire({ angle: 60, origin: { x: 0.1, y: 0.6 } })
+        fire({ angle: 120, origin: { x: 0.9, y: 0.6 } })
+        setTimeout(() => fire({ particleCount: 90, spread: 100, origin: { y: 0.5 } }), 250)
+      } catch {}
+    })()
+    return () => { cancelled = true }
+  }, [])
+
+  return (
+    <div className="ljc-overlay" onClick={onClose}>
+      <div className="ljc" onClick={e => e.stopPropagation()}>
+        <button className="ljc__close" onClick={onClose} aria-label="Cerrar">×</button>
+        <div className="ljc__headline">¡Felicidades!</div>
+        <p className="ljc__sub">Te uniste a la liga</p>
+        <div className="ljc__avatar-wrap">
+          <LeagueAvatar league={league} size={110} />
+        </div>
+        <div className="ljc__name">{league.name}</div>
+        <div className="ljc__meta">
+          {league.memberCount} {league.memberCount === 1 ? 'jugador' : 'jugadores'} compitiendo
+        </div>
+        <p className="ljc__hint">
+          Tus pronósticos suman puntos en esta liga automáticamente. Buena suerte. ⚽
+        </p>
+        <button className="ljc__cta" onClick={onSeeTable}>
+          Ver tabla de la liga →
+        </button>
+      </div>
     </div>
   )
 }

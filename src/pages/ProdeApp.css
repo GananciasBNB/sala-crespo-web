@@ -1485,6 +1485,27 @@
    PRONÓSTICOS VIEW
 ═══════════════════════════════════════════════════════════════ */
 .pronosticos {}
+.pronosticos__header {
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.pronosticos__heading {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  letter-spacing: 1px;
+  color: var(--wc-gold);
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.pronosticos__subheading {
+  color: var(--wc-muted);
+  font-size: 14px;
+  margin: 0;
+  line-height: 1.5;
+}
+
 .pronosticos__hint {
   display: flex;
   gap: 12px;
@@ -1559,17 +1580,53 @@
   border-bottom: 1px solid var(--wc-border);
 }
 .pronosticos__group-btn {
+  position: relative;
   background: rgba(255,255,255,.07);
   border: 1.5px solid rgba(255,255,255,.14);
   color: #D5DCE8;
-  width: 52px;
+  min-width: 52px;
   height: 48px;
+  padding: 0 12px;
   border-radius: 10px;
   font-size: 18px;
   font-weight: 800;
   cursor: pointer;
   transition: all .15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
+.pronosticos__group-btn--done {
+  background: linear-gradient(135deg, rgba(0,200,150,.18), rgba(0,177,64,.1));
+  border-color: rgba(0,200,150,.45);
+  color: #6FE198;
+}
+.pronosticos__group-btn--done.pronosticos__group-btn--active {
+  background: linear-gradient(135deg, rgba(255,210,80,.25), rgba(0,200,150,.18));
+  border-color: var(--wc-gold);
+  color: var(--wc-gold);
+}
+.pronosticos__group-letter { display: inline-flex; align-items: center; }
+.pronosticos__group-dot {
+  position: absolute;
+  top: -5px; right: -5px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid #0a0d12;
+  font-size: 0;
+}
+.pronosticos__group-dot--done {
+  background: linear-gradient(135deg, #00C896, #00a87e);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,200,150,.6);
+}
+.pronosticos__group-dot--partial {
+  background: var(--wc-gold);
+  box-shadow: 0 2px 6px rgba(255,210,80,.6);
+  animation: dot-pulse 1.6s ease-in-out infinite;
+}
+@keyframes dot-pulse { 0%,100% { opacity: .65 } 50% { opacity: 1 } }
 .pronosticos__group-btn:hover { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.3); transform: translateY(-1px); }
 .pronosticos__group-btn--active {
   background: linear-gradient(135deg, rgba(255,210,80,.25), rgba(201,168,76,.18));
@@ -4517,3 +4574,99 @@
 
 @keyframes lg-fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes lg-slide { from { opacity: 0; transform: translateY(20px) scale(.96) } to { opacity: 1; transform: translateY(0) scale(1) } }
+
+/* Modal celebrativo: te uniste a la liga */
+.ljc-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.85);
+  z-index: 1200;
+  display: flex; align-items: center; justify-content: center;
+  padding: 18px;
+  animation: lg-fade .25s;
+}
+.ljc {
+  background: radial-gradient(ellipse at top, rgba(0,200,150,.25), transparent 60%),
+              linear-gradient(155deg, #161B26 0%, #0f1219 100%);
+  border: 2px solid rgba(0,200,150,.45);
+  border-radius: 20px;
+  max-width: 380px; width: 100%;
+  padding: 36px 24px 26px;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0,200,150,.2), 0 16px 60px rgba(0,0,0,.7);
+  animation: ljc-pop .4s cubic-bezier(.2,1.4,.3,1.05);
+}
+.ljc__close {
+  position: absolute; top: 12px; right: 14px;
+  background: none; border: none; color: var(--wc-muted);
+  font-size: 26px; cursor: pointer;
+}
+.ljc__headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 44px; letter-spacing: 1.5px;
+  background: linear-gradient(135deg, #6FE198, #FFD250);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+  line-height: 1;
+}
+.ljc__sub {
+  color: var(--wc-text);
+  font-size: 14px;
+  margin: 0 0 18px;
+  letter-spacing: .5px;
+}
+.ljc__avatar-wrap {
+  display: inline-flex;
+  padding: 6px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(0,200,150,.4), rgba(255,210,80,.3));
+  margin-bottom: 14px;
+  animation: ljc-avatar-glow 2.4s ease-in-out infinite;
+}
+.ljc__name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px; letter-spacing: 1px;
+  color: #fff; margin-bottom: 6px;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.ljc__meta {
+  color: var(--wc-muted);
+  font-size: 13px;
+  margin-bottom: 18px;
+}
+.ljc__hint {
+  font-size: 14px;
+  color: #C8D2E0;
+  margin: 0 0 22px;
+  line-height: 1.5;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+.ljc__cta {
+  width: 100%;
+  background: linear-gradient(135deg, #00C896, #00a87e);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 16px; font-weight: 800;
+  letter-spacing: .5px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,200,150,.4);
+  transition: transform .15s, box-shadow .15s;
+}
+.ljc__cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,200,150,.55); }
+@keyframes ljc-pop {
+  from { opacity: 0; transform: translateY(30px) scale(.9) }
+  to   { opacity: 1; transform: translateY(0) scale(1) }
+}
+@keyframes ljc-avatar-glow {
+  0%,100% { box-shadow: 0 0 0 0 rgba(0,200,150,0); }
+  50%     { box-shadow: 0 0 0 12px rgba(0,200,150,0); background: linear-gradient(135deg, rgba(0,200,150,.55), rgba(255,210,80,.45)); }
+}
