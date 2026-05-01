@@ -1171,6 +1171,7 @@ function ProdeNav({ tabs, activeTab, onTabChange }) {
             onClick={() => onTabChange(t.id)}
           >
             {t.label}
+            {t.badge && <span className="prode-nav__badge">{t.badge}</span>}
           </button>
         ))}
       </nav>
@@ -3887,7 +3888,7 @@ export default function ProdeApp() {
     { id: 'inicio',      label: tabLabel(ICON_HOME, 'Inicio') },
     { id: 'pronosticos', label: tabLabel(ICON_TARGET, 'Mis pronósticos') },
     { id: 'tabla',       label: tabLabel(ICON_CHART, 'Mi posición') },
-    { id: 'ligas',       label: tabLabel(ICON_TROPHY, 'Mis ligas') },
+    { id: 'ligas',       label: tabLabel(ICON_TROPHY, 'Mis ligas'), badge: 'NUEVO' },
     { id: 'llaves',      label: tabLabel(ICON_CAL, 'Fixture') },
   ] : [
     { id: 'inicio', label: tabLabel(ICON_HOME, 'Inicio') },
