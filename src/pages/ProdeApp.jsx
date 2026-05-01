@@ -451,8 +451,8 @@ const ONBOARDING_SLIDES = [
     bullets: [
       { strong: '10 pts · Marcador exacto', desc: 'Ej: 2-1 y salió 2-1.' },
       { strong: '5 pts · Ganador o empate', desc: 'Acertás quién gana, pero no el marcador.' },
-      { strong: '1 pt · Total de goles', desc: 'La suma coincide aunque el resultado no.' },
-      { strong: '×2 · Partidos de Argentina', desc: 'Doble puntos para todos.' },
+      { strong: '1 pt · Total de goles correcto', desc: 'Pusiste 3-1 y salió 2-2 (4 goles cada uno).' },
+      { strong: '×2 · Partidos de Argentina', desc: 'Cada acierto vale el doble.' },
     ],
   },
   {
@@ -3229,7 +3229,7 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
         <div className="leagues__perks">
           <div className="leagues__perk">
             <div className="leagues__perk-icon">📲</div>
-            <div className="leagues__perk-text"><strong>Invitás por link.</strong> Lo pegás en WhatsApp.</div>
+            <div className="leagues__perk-text"><strong>Invitás por link.</strong> Lo pegás en el grupo de WhatsApp y listo.</div>
           </div>
           <div className="leagues__perk">
             <div className="leagues__perk-icon">🔒</div>
@@ -3237,7 +3237,7 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
           </div>
           <div className="leagues__perk">
             <div className="leagues__perk-icon">🎉</div>
-            <div className="leagues__perk-text"><strong>Apuesten lo que quieran.</strong> Cuestión interna del grupo.</div>
+            <div className="leagues__perk-text"><strong>Apuesten lo que quieran entre ustedes.</strong> Asado, café, lo que arreglen — cuestión del grupo.</div>
           </div>
         </div>
         <div className="leagues__legal">
