@@ -2281,8 +2281,11 @@ function PublicHome({ player, onParticipa }) {
         {/* Grupos — referencia */}
         <GroupsGrid />
 
-        {/* Cómo jugar — al final, ya lo sabe */}
-        {infoCards}
+        {/* Cómo jugar — collapsed por default (ya lo sabe del onboarding) */}
+        <details className="pub-info-toggle">
+          <summary>Recordame las reglas</summary>
+          {infoCards}
+        </details>
       </div>
     )
   }

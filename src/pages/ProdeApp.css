@@ -2976,6 +2976,35 @@
 }
 .share-modal__sub { color: #B0B8C4; font-size: 13px; margin: 0 0 14px; }
 
+/* Recordame las reglas — disclosure collapsado para usuarios logueados */
+.pub-info-toggle {
+  margin-top: 18px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 12px;
+  background: rgba(255,255,255,.03);
+}
+.pub-info-toggle > summary {
+  cursor: pointer;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: var(--wc-muted);
+  font-weight: 600;
+  list-style: none;
+  display: flex; align-items: center; justify-content: space-between;
+  transition: color .15s;
+}
+.pub-info-toggle > summary::-webkit-details-marker { display: none; }
+.pub-info-toggle > summary::after {
+  content: '+';
+  font-size: 22px; font-weight: 400;
+  color: var(--wc-gold);
+  transition: transform .2s;
+}
+.pub-info-toggle[open] > summary::after { transform: rotate(45deg); }
+.pub-info-toggle > summary:hover { color: var(--wc-text); }
+.pub-info-toggle[open] > summary { color: var(--wc-text); border-bottom: 1px solid rgba(255,255,255,.08); }
+.pub-info-toggle .pub-info { padding: 14px; }
+
 /* Preview wrapper: muestra <img> a aspect ratio 1080x1920 */
 .share-modal__preview-wrap {
   width: 100%; aspect-ratio: 1080 / 1920;
