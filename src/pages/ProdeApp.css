@@ -4662,6 +4662,14 @@
   transition: transform .15s, box-shadow .15s;
 }
 .ljc__cta:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,200,150,.55); }
+.ljc__autoredirect {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--wc-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: .7;
+}
 @keyframes ljc-pop {
   from { opacity: 0; transform: translateY(30px) scale(.9) }
   to   { opacity: 1; transform: translateY(0) scale(1) }

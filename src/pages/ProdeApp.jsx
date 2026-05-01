@@ -3367,7 +3367,6 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
             setJoinedLeague(null)
             setSelected(code)
           }}
-          onClose={() => setJoinedLeague(null)}
         />
       )}
     </div>
@@ -3375,7 +3374,8 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
 }
 
 // Modal celebrativo cuando un jugador se une a una liga (con confetti).
-function JoinedLeagueCelebration({ league, onSeeTable, onClose }) {
+// Auto-redirect a la tabla a los 3.5s, o al primer click en cualquier parte.
+function JoinedLeagueCelebration({ league, onSeeTable }) {
   useEffect(() => {
     let cancelled = false
     ;(async () => {
@@ -3388,13 +3388,14 @@ function JoinedLeagueCelebration({ league, onSeeTable, onClose }) {
         setTimeout(() => fire({ particleCount: 90, spread: 100, origin: { y: 0.5 } }), 250)
       } catch {}
     })()
-    return () => { cancelled = true }
-  }, [])
+    // Auto-llevar a la tabla a los 3.5 segundos
+    const timer = setTimeout(() => { if (!cancelled) onSeeTable() }, 3500)
+    return () => { cancelled = true; clearTimeout(timer) }
+  }, [onSeeTable])
 
   return (
-    <div className="ljc-overlay" onClick={onClose}>
+    <div className="ljc-overlay" onClick={onSeeTable}>
       <div className="ljc" onClick={e => e.stopPropagation()}>
-        <button className="ljc__close" onClick={onClose} aria-label="Cerrar">×</button>
         <div className="ljc__headline">¡Felicidades!</div>
         <p className="ljc__sub">Te uniste a la liga</p>
         <div className="ljc__avatar-wrap">
@@ -3410,6 +3411,7 @@ function JoinedLeagueCelebration({ league, onSeeTable, onClose }) {
         <button className="ljc__cta" onClick={onSeeTable}>
           Ver tabla de la liga →
         </button>
+        <div className="ljc__autoredirect">Vamos a la tabla en un segundo…</div>
       </div>
     </div>
   )
