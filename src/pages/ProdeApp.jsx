@@ -1714,35 +1714,46 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
   return (
     <div className="pronosticos">
       <div className="pronosticos__hint">
-        Ingresá el resultado que esperás de cada partido antes de que empiece. Una vez iniciado, ya no podés cambiarlo.
-      </div>
-      <div className="pronosticos__phases">
-        {phases.map(ph => (
-          <button
-            key={ph}
-            className={`pronosticos__phase-btn ${phase === ph ? 'pronosticos__phase-btn--active' : ''}`}
-            onClick={() => tryNavigate(() => setPhase(ph))}
-          >
-            {ph === 'group' ? 'Grupos' : PHASE_LABELS[ph]}
-          </button>
-        ))}
+        <svg className="pronosticos__hint-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>Ingresá el resultado que esperás de cada partido antes de que empiece. Una vez iniciado, ya no podés cambiarlo.</span>
       </div>
 
-      {phase === 'group' && (
-        <div className="pronosticos__groups">
-          {GROUPS.filter(g => matches.some(m => m.phase === 'group' && m.group === g)).map(g => (
-            <button
-              key={g}
-              className={`pronosticos__group-btn ${group === g ? 'pronosticos__group-btn--active' : ''} ${g === 'J' ? 'pronosticos__group-btn--arg' : ''}`}
-              onClick={() => tryNavigate(() => setGroup(g))}
-            >
-              {g === 'J' ? (
-                <><img src="https://flagcdn.com/w20/ar.png" alt="AR" width={16} style={{verticalAlign:'middle',marginRight:4,borderRadius:2}} />J</>
-              ) : g}
-            </button>
-          ))}
+      <div className="pronosticos__nav-panel">
+        <div className="pronosticos__nav-section">
+          <div className="pronosticos__nav-label">Fase del torneo</div>
+          <div className="pronosticos__phases">
+            {phases.map(ph => (
+              <button
+                key={ph}
+                className={`pronosticos__phase-btn ${phase === ph ? 'pronosticos__phase-btn--active' : ''}`}
+                onClick={() => tryNavigate(() => setPhase(ph))}
+              >
+                {ph === 'group' ? 'Grupos' : PHASE_LABELS[ph]}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+
+        {phase === 'group' && (
+          <div className="pronosticos__nav-section">
+            <div className="pronosticos__nav-label">Elegí un grupo</div>
+            <div className="pronosticos__groups">
+              {GROUPS.filter(g => matches.some(m => m.phase === 'group' && m.group === g)).map(g => (
+                <button
+                  key={g}
+                  className={`pronosticos__group-btn ${group === g ? 'pronosticos__group-btn--active' : ''} ${g === 'J' ? 'pronosticos__group-btn--arg' : ''}`}
+                  onClick={() => tryNavigate(() => setGroup(g))}
+                >
+                  {g === 'J' ? (
+                    <><img src="https://flagcdn.com/w20/ar.png" alt="AR" width={16} style={{verticalAlign:'middle',marginRight:4,borderRadius:2}} />J</>
+                  ) : g}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
 
       <div className="pronosticos__matches">
         {filtered.length === 0 && <p className="prode-empty">No hay partidos disponibles.</p>}

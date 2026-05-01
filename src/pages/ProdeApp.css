@@ -1486,20 +1486,50 @@
 ═══════════════════════════════════════════════════════════════ */
 .pronosticos {}
 .pronosticos__hint {
-  background: rgba(79, 142, 247, 0.08);
-  border: 1px solid rgba(79, 142, 247, 0.25);
-  border-radius: 8px;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: #B5C5E0;
-  margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: linear-gradient(135deg, rgba(79, 142, 247, 0.18), rgba(79, 142, 247, 0.06));
+  border: 1px solid rgba(79, 142, 247, 0.45);
+  border-left: 4px solid #4F8EF7;
+  border-radius: 10px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #E8EDF5;
+  margin-bottom: 18px;
   line-height: 1.55;
+  font-weight: 500;
+}
+.pronosticos__hint-icon {
+  flex-shrink: 0;
+  color: #6FA8F2;
+  margin-top: 1px;
+}
+
+.pronosticos__nav-panel {
+  background: linear-gradient(155deg, rgba(255,255,255,.04), rgba(255,255,255,.015));
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  padding: 18px 18px 6px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.25);
+}
+.pronosticos__nav-section { margin-bottom: 16px; }
+.pronosticos__nav-section:last-child { margin-bottom: 12px; }
+.pronosticos__nav-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  color: var(--wc-muted);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-left: 2px;
 }
 .pronosticos__phases {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
+  gap: 8px;
 }
 .pronosticos__phase-btn {
   background: rgba(255,255,255,.07);
