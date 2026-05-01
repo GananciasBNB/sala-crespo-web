@@ -1726,12 +1726,11 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
     <div className="pronosticos">
       <header className="pronosticos__header">
         <h1 className="pronosticos__heading">Tus pronósticos</h1>
-        <p className="pronosticos__subheading">Cargá los resultados que vas a apostar antes del kickoff de cada partido.</p>
       </header>
 
       <div className="pronosticos__hint">
         <svg className="pronosticos__hint-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        <span>Una vez iniciado el partido, ya no podés cambiar tu pronóstico.</span>
+        <span>El partido bloquea tu pronóstico al iniciar.</span>
       </div>
 
       <div className="pronosticos__nav-panel">
@@ -1884,10 +1883,7 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
         <div className="pn-confirm-overlay" onClick={() => setPendingNav(null)}>
           <div className="pn-confirm" onClick={e => e.stopPropagation()}>
             <h3 className="pn-confirm__title">Tenés {dirtyCount} cambio{dirtyCount > 1 ? 's' : ''} sin guardar</h3>
-            <p className="pn-confirm__text">
-              Si cambiás de {phase === 'group' ? 'grupo' : 'fase'} ahora, los cambios siguen acá esperando.
-              Pero recordá guardar antes de que empiecen los partidos.
-            </p>
+            <p className="pn-confirm__text">Tus cambios quedan, pero acordate de guardar antes del kickoff.</p>
             <div className="pn-confirm__actions">
               <button
                 className="pn-confirm__btn pn-confirm__btn--save"
