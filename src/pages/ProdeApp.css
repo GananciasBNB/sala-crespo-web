@@ -4259,6 +4259,20 @@
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
 }
+
+/* LeagueAvatar — crest + color o foto */
+.league-avatar {
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.league-avatar svg { display: block; }
+.league-avatar--photo { background: #0a0d12; }
+.league-avatar--photo img {
+  width: 100%; height: 100%; object-fit: cover;
+}
 .leagues__card-info { flex: 1; min-width: 0; }
 .leagues__card-name {
   font-family: 'Bebas Neue', sans-serif;
@@ -4316,16 +4330,103 @@
   font-family: inherit;
 }
 .lg-modal__input:focus { outline: none; border-color: rgba(255,210,80,.5); }
-.lg-modal__emojis { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
-.lg-modal__emoji {
+/* Preview en vivo */
+.lg-modal__preview {
+  display: flex; gap: 14px; align-items: center;
+  padding: 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px dashed rgba(255,255,255,.15);
+  border-radius: 12px;
+  margin: 4px 0 10px;
+}
+.lg-modal__preview-text { display: flex; flex-direction: column; }
+.lg-modal__preview-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: .5px;
+  color: #fff; line-height: 1.1;
+}
+.lg-modal__preview-hint { font-size: 11px; color: var(--wc-muted); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
+
+/* Tabs crest / foto */
+.lg-modal__tabs {
+  display: flex; gap: 6px;
+  background: rgba(0,0,0,.3);
+  padding: 4px; border-radius: 10px;
+  margin: 6px 0 4px;
+}
+.lg-modal__tab {
+  flex: 1;
+  background: transparent; border: none;
+  color: var(--wc-muted);
+  padding: 9px; font-size: 13px; font-weight: 700;
+  border-radius: 7px; cursor: pointer;
+  transition: all .15s;
+}
+.lg-modal__tab:hover:not(.lg-modal__tab--on) { color: var(--wc-text); }
+.lg-modal__tab--on {
+  background: rgba(255,210,80,.18);
+  color: var(--wc-gold);
+}
+
+/* Grid de crests */
+.lg-modal__crests { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.lg-modal__crest {
   background: rgba(255,255,255,.04);
   border: 1.5px solid rgba(255,255,255,.1);
   border-radius: 10px;
-  padding: 10px 0; font-size: 24px; cursor: pointer;
+  padding: 12px 0;
+  color: var(--wc-text);
+  cursor: pointer;
+  transition: all .15s;
+  display: flex; align-items: center; justify-content: center;
+}
+.lg-modal__crest:hover { background: rgba(255,255,255,.1); transform: translateY(-1px); }
+.lg-modal__crest--on {
+  background: rgba(255,210,80,.18);
+  border-color: var(--wc-gold);
+  color: var(--wc-gold);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255,210,80,.25);
+}
+
+/* Color picker */
+.lg-modal__colors { display: flex; gap: 10px; flex-wrap: wrap; }
+.lg-modal__color {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255,255,255,.15);
+  cursor: pointer;
+  transition: all .15s;
+  padding: 0;
+}
+.lg-modal__color:hover { transform: scale(1.08); }
+.lg-modal__color--on {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.18), 0 6px 14px rgba(0,0,0,.4);
+  transform: scale(1.08);
+}
+
+/* Upload de foto */
+.lg-modal__upload {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 14px;
+  background: rgba(255,255,255,.04);
+  border: 1px dashed rgba(255,255,255,.18);
+  border-radius: 12px;
+}
+.lg-modal__upload-btn {
+  background: rgba(0,200,150,.12);
+  border: 1.5px solid rgba(0,200,150,.45);
+  color: #6FE198;
+  padding: 14px;
+  border-radius: 10px;
+  text-align: center;
+  font-weight: 700; font-size: 14px;
+  cursor: pointer;
   transition: all .15s;
 }
-.lg-modal__emoji:hover { background: rgba(255,255,255,.1); }
-.lg-modal__emoji--on { background: rgba(255,210,80,.18); border-color: var(--wc-gold); transform: scale(1.05); }
+.lg-modal__upload-btn:hover { background: rgba(0,200,150,.22); }
+.lg-modal__upload-hint { font-size: 11px; color: var(--wc-muted); text-align: center; line-height: 1.4; }
 .lg-modal__err { color: #ff8597; font-size: 13px; padding: 8px 12px; background: rgba(196,30,58,.1); border-radius: 8px; }
 .lg-modal__btn {
   margin-top: 6px;

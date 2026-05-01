@@ -148,11 +148,18 @@ export const setChampionPick = (token, teamCode, teamName) =>
 export const getMyLeagues = (token) =>
   api('/api/me/leagues', { headers: authHeaders(token) })
 
-export const createLeague = (token, name, emoji) =>
+export const createLeague = (token, payload) =>
   api('/api/leagues', {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify({ name, emoji }),
+    body: JSON.stringify(payload),
+  })
+
+export const uploadLeagueImage = (token, imageBase64) =>
+  api('/api/leagues/upload-image', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ imageBase64 }),
   })
 
 export const joinLeague = (token, code) =>

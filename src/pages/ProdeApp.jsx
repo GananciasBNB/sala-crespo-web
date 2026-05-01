@@ -8,6 +8,7 @@ import {
   getMyAchievements, dailyCheckin, getChampionPick, setChampionPick,
   submitStaffSuggestion,
   getMyLeagues, createLeague, joinLeague, getLeagueLeaderboard, leaveLeague, deleteLeague,
+  uploadLeagueImage,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -3118,7 +3119,54 @@ function PromoMode({ onExit }) {
 }
 
 // ─── Vista Mini-Ligas privadas ────────────────────────────────────────────────
-const LEAGUE_EMOJI_OPTIONS = ['🏆','⚽','🍻','🔥','⭐','🎯','🏟️','🏠','💼','🎉']
+// Sistema de crests SVG + colores. Sin emojis. Foto custom opcional.
+const LEAGUE_CREST_LIST = [
+  { id: 'ball', label: 'Pelota', d: 'M12 2a10 10 0 100 20 10 10 0 000-20zm0 2.5l3.2 2.3-1.2 3.7H10l-1.2-3.7L12 4.5zM5.4 9.4l3.4 1.1.6 3.9-3 2.4A8 8 0 015.4 9.4zm13.2 0a8 8 0 01-1 7.4l-3-2.4.6-3.9 3.4-1.1zm-9 9.7l1.4-2.8h2l1.4 2.8a8 8 0 01-4.8 0z' },
+  { id: 'cup', label: 'Copa', d: 'M7 3h10v2h3v3a4 4 0 01-4 4 5 5 0 01-4 3v3h3v2H9v-2h3v-3a5 5 0 01-4-3 4 4 0 01-4-4V5h3V3zm0 4H5v1a2 2 0 002 2V7zm12 0h-2v3a2 2 0 002-2V7z' },
+  { id: 'shield', label: 'Escudo', d: 'M12 2L3 5v6c0 5 3.8 9.7 9 11 5.2-1.3 9-6 9-11V5l-9-3zm0 4.5l3 5h-2.5L11 14H10l1-3h-2l3-4.5z' },
+  { id: 'bolt', label: 'Rayo', d: 'M13 2L3 14h7l-1 8 11-12h-7l1-8z' },
+  { id: 'flame', label: 'Llama', d: 'M12 2s5 4 5 9a5 5 0 01-10 0c0-2 1-3 1-3s-1 5 2 5c0-3 2-5 2-5s-1 4 2 4c2 0 3-2 3-4 0-3-2-5-5-6z' },
+  { id: 'crown', label: 'Corona', d: 'M3 8l3 8h12l3-8-5 3-4-6-4 6-5-3zm2 11h14v2H5v-2z' },
+  { id: 'star', label: 'Estrella', d: 'M12 2l2.6 7h7.4l-6 4.5 2.3 7.5L12 16.5 5.7 21l2.3-7.5L2 9h7.4L12 2z' },
+  { id: 'helmet', label: 'Casco', d: 'M12 3a8 8 0 00-8 8v6a2 2 0 002 2h2v-4h2v4h8a2 2 0 002-2v-6a8 8 0 00-8-8zm0 3a5 5 0 015 5h-3a2 2 0 00-4 0H7a5 5 0 015-5z' },
+]
+const LEAGUE_COLOR_LIST = [
+  { id: 'red',    label: 'Rojo',    base: '#C41E3A', glow: 'rgba(196,30,58,.4)' },
+  { id: 'gold',   label: 'Dorado',  base: '#C9A84C', glow: 'rgba(255,210,80,.45)' },
+  { id: 'green',  label: 'Verde',   base: '#00B140', glow: 'rgba(0,200,150,.4)' },
+  { id: 'blue',   label: 'Azul',    base: '#3B82F6', glow: 'rgba(79,142,247,.45)' },
+  { id: 'violet', label: 'Violeta', base: '#8B5CF6', glow: 'rgba(139,92,246,.4)' },
+  { id: 'teal',   label: 'Aqua',    base: '#14B8A6', glow: 'rgba(20,184,166,.4)' },
+]
+function getLeagueColor(id) { return LEAGUE_COLOR_LIST.find(c => c.id === id) || LEAGUE_COLOR_LIST[1] }
+function getLeagueCrest(id) { return LEAGUE_CREST_LIST.find(c => c.id === id) || LEAGUE_CREST_LIST[2] }
+
+function LeagueAvatar({ league, size = 56, className = '' }) {
+  // Prioridad: foto custom > crest+color > fallback
+  if (league?.imageUrl) {
+    return (
+      <div className={`league-avatar league-avatar--photo ${className}`} style={{ width: size, height: size }}>
+        <img src={league.imageUrl} alt="" />
+      </div>
+    )
+  }
+  const color = getLeagueColor(league?.accentColor)
+  const crest = getLeagueCrest(league?.crest)
+  return (
+    <div
+      className={`league-avatar ${className}`}
+      style={{
+        width: size, height: size,
+        background: `linear-gradient(135deg, ${color.base}, ${color.base}cc)`,
+        boxShadow: `0 6px 16px ${color.glow}`,
+      }}
+    >
+      <svg viewBox="0 0 24 24" width={Math.round(size * 0.55)} height={Math.round(size * 0.55)} fill="#fff">
+        <path d={crest.d} />
+      </svg>
+    </div>
+  )
+}
 
 function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
   const [list, setList] = useState(null)
@@ -3256,7 +3304,7 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
             className="leagues__card"
             onClick={() => setSelected(lg.code)}
           >
-            <div className="leagues__card-emoji">{lg.emoji || '🏆'}</div>
+            <LeagueAvatar league={lg} size={56} />
             <div className="leagues__card-info">
               <div className="leagues__card-name">{lg.name}</div>
               <div className="leagues__card-meta">
@@ -3287,9 +3335,36 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
 
 function CreateLeagueModal({ player, onClose, onCreated }) {
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState('🏆')
+  const [crest, setCrest] = useState('shield')
+  const [accentColor, setAccentColor] = useState('gold')
+  const [imageUrl, setImageUrl] = useState(null)
+  const [tab, setTab] = useState('crest') // 'crest' | 'photo'
+  const [uploading, setUploading] = useState(false)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+
+  async function handleFile(file) {
+    if (!file) return
+    if (file.size > 4 * 1024 * 1024) {
+      setErr('La imagen pesa más de 4 MB. Probá con una más liviana.')
+      return
+    }
+    setErr('')
+    setUploading(true)
+    try {
+      const reader = new FileReader()
+      const dataUrl = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result)
+        reader.onerror = reject
+        reader.readAsDataURL(file)
+      })
+      const r = await uploadLeagueImage(player.token, dataUrl)
+      setImageUrl(r.url)
+    } catch (e) {
+      setErr(e.message || 'No se pudo subir la imagen.')
+    }
+    setUploading(false)
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
@@ -3297,7 +3372,10 @@ function CreateLeagueModal({ player, onClose, onCreated }) {
     if (!name.trim() || name.trim().length < 2) return setErr('Ponele un nombre a tu liga.')
     setBusy(true)
     try {
-      const r = await createLeague(player.token, name.trim(), emoji)
+      const payload = tab === 'photo' && imageUrl
+        ? { name: name.trim(), imageUrl }
+        : { name: name.trim(), crest, accentColor }
+      const r = await createLeague(player.token, payload)
       onCreated(r.league)
     } catch (e) {
       setErr(e.message || 'No se pudo crear la liga.')
@@ -3305,12 +3383,18 @@ function CreateLeagueModal({ player, onClose, onCreated }) {
     setBusy(false)
   }
 
+  // Preview en vivo del avatar mientras se elige
+  const previewLeague = tab === 'photo' && imageUrl
+    ? { imageUrl }
+    : { crest, accentColor }
+
   return (
     <div className="lg-modal" onClick={onClose}>
       <div className="lg-modal__inner" onClick={e => e.stopPropagation()}>
         <button className="lg-modal__close" onClick={onClose}>×</button>
         <h2 className="lg-modal__title">Crear mini-liga</h2>
         <p className="lg-modal__sub">Compartí el código con tu grupo y compitan entre ustedes.</p>
+
         <form onSubmit={handleSubmit} className="lg-modal__form">
           <label className="lg-modal__label">Nombre de la liga</label>
           <input
@@ -3322,21 +3406,88 @@ function CreateLeagueModal({ player, onClose, onCreated }) {
             className="lg-modal__input"
             autoFocus
           />
-          <label className="lg-modal__label">Elegí un emoji</label>
-          <div className="lg-modal__emojis">
-            {LEAGUE_EMOJI_OPTIONS.map(e => (
-              <button
-                key={e}
-                type="button"
-                className={`lg-modal__emoji ${emoji === e ? 'lg-modal__emoji--on' : ''}`}
-                onClick={() => setEmoji(e)}
-              >
-                {e}
-              </button>
-            ))}
+
+          {/* Preview en vivo */}
+          <div className="lg-modal__preview">
+            <LeagueAvatar league={previewLeague} size={84} />
+            <div className="lg-modal__preview-text">
+              <div className="lg-modal__preview-name">{name.trim() || 'Tu liga'}</div>
+              <div className="lg-modal__preview-hint">Así se va a ver</div>
+            </div>
           </div>
+
+          {/* Tabs: escudo o foto */}
+          <div className="lg-modal__tabs">
+            <button
+              type="button"
+              className={`lg-modal__tab ${tab === 'crest' ? 'lg-modal__tab--on' : ''}`}
+              onClick={() => setTab('crest')}
+            >
+              Elegir escudo
+            </button>
+            <button
+              type="button"
+              className={`lg-modal__tab ${tab === 'photo' ? 'lg-modal__tab--on' : ''}`}
+              onClick={() => setTab('photo')}
+            >
+              Subir foto
+            </button>
+          </div>
+
+          {tab === 'crest' && (
+            <>
+              <label className="lg-modal__label">Escudo</label>
+              <div className="lg-modal__crests">
+                {LEAGUE_CREST_LIST.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`lg-modal__crest ${crest === c.id ? 'lg-modal__crest--on' : ''}`}
+                    onClick={() => setCrest(c.id)}
+                    aria-label={c.label}
+                  >
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d={c.d} /></svg>
+                  </button>
+                ))}
+              </div>
+              <label className="lg-modal__label">Color</label>
+              <div className="lg-modal__colors">
+                {LEAGUE_COLOR_LIST.map(c => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className={`lg-modal__color ${accentColor === c.id ? 'lg-modal__color--on' : ''}`}
+                    onClick={() => setAccentColor(c.id)}
+                    style={{ background: c.base }}
+                    aria-label={c.label}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+
+          {tab === 'photo' && (
+            <div className="lg-modal__upload">
+              <input
+                type="file"
+                accept="image/*"
+                id="lg-file"
+                onChange={e => handleFile(e.target.files?.[0])}
+                style={{ display: 'none' }}
+              />
+              <label htmlFor="lg-file" className="lg-modal__upload-btn">
+                {uploading
+                  ? 'Subiendo…'
+                  : imageUrl
+                    ? '✓ Imagen lista — tocá para cambiar'
+                    : '📷 Elegir foto desde el celu'}
+              </label>
+              <div className="lg-modal__upload-hint">JPG o PNG, hasta 4 MB. Se recorta cuadrada automáticamente.</div>
+            </div>
+          )}
+
           {err && <div className="lg-modal__err">⚠️ {err}</div>}
-          <button className="lg-modal__btn" disabled={busy}>
+          <button className="lg-modal__btn" disabled={busy || uploading}>
             {busy ? 'Creando…' : 'Crear liga →'}
           </button>
         </form>
@@ -3360,9 +3511,16 @@ function LeagueDetail({ player, code, onBack }) {
 
   async function handleShare() {
     if (!data) return
-    const text = `🏆 Te invito a "${data.league.name}", mi mini-liga del Prode Mundial 2026 ⚽\n\nCódigo: ${data.league.code}\nSumate: https://saladejuegoscrespo.ar/prode?liga=${data.league.code}`
+    const url = `https://saladejuegoscrespo.ar/prode?liga=${data.league.code}`
+    const text =
+`Te invito a participar de la liga privada "${data.league.name}", miniliga del Prode Mundial 2026 ⚽ de Sala de Juegos Crespo.
+
+Código: ${data.league.code}
+
+Sumate:
+${url}`
     if (navigator.share) {
-      try { await navigator.share({ title: data.league.name, text }) } catch {}
+      try { await navigator.share({ title: data.league.name, text, url }) } catch {}
     } else {
       try {
         await navigator.clipboard.writeText(text)
@@ -3410,7 +3568,7 @@ function LeagueDetail({ player, code, onBack }) {
       <button className="leagues__back" onClick={onBack}>← Volver a mis ligas</button>
 
       <div className="lg-detail__head">
-        <div className="lg-detail__emoji">{league.emoji || '🏆'}</div>
+        <LeagueAvatar league={league} size={76} />
         <div className="lg-detail__info">
           <h2 className="lg-detail__name">{league.name}</h2>
           <div className="lg-detail__meta">
@@ -3510,6 +3668,18 @@ export default function ProdeApp() {
       window.history.replaceState({}, '', url.toString())
     }
   }
+
+  // Si vino con ?liga=CODE y ya está logueado al cargar, lo llevo directo al tab.
+  // Si NO está logueado, abro el modal de auth para que se registre/loguee y caiga en la liga.
+  useEffect(() => {
+    if (!autoJoinLeagueCode) return
+    if (player) {
+      setTab('ligas')
+    } else {
+      setShowAuth(true)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoJoinLeagueCode, !!player])
   function exitStaffPortal() {
     setStaffPortalCode(null)
     if (typeof window !== 'undefined') {
