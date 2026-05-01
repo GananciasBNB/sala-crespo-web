@@ -4,12 +4,10 @@ import './LaSala.css'
 const GALLERY_PHOTOS = [
   { src: '/sala/saladesdearriba.jpg',  alt: 'Sala de Juegos Crespo — vista aérea' },
   { src: '/sala/gonxifacai.png',       alt: 'Fiesta en la Sala Crespo' },
+  { src: '/sala/bar-luces.jpg',        alt: 'Bar con luces' },
+  { src: '/sala/interior-bn.jpg',      alt: 'Interior de la sala' },
   { src: '/sala/IMG_3271.jpg',         alt: 'Interior de la sala' },
-  { src: '/sala/IMG_3332.jpg',         alt: 'La sala en acción' },
   { src: '/sala/IMG_3347.jpg',         alt: 'Noche de torneo' },
-  { src: '/sala/IMG_3351.jpg',         alt: 'Sala Crespo' },
-  { src: '/sala/IMG_3352.jpg',         alt: 'Sala Crespo' },
-  { src: '/sala/IMG_3353.jpg',         alt: 'Sala Crespo' },
   { src: '/sala/IMG_3358.jpg',         alt: 'Sala Crespo' },
   { src: '/sala/IMG_3360.jpg',         alt: 'Sala Crespo' },
 ]
