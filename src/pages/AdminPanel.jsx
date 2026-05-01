@@ -87,6 +87,74 @@ function AdminLogin({ onLogin }) {
 }
 
 // ─── Prode Management ─────────────────────────────────────────────────────────
+// Card mobile-first para cargar resultado de un partido de hoy
+function TodayMatchCard({ match, onSave, onDelete }) {
+  const [home, setHome] = useState(match.result ? String(match.result.home) : '')
+  const [away, setAway] = useState(match.result ? String(match.result.away) : '')
+  const [saving, setSaving] = useState(false)
+
+  const dt = new Date(match.date)
+  const timeStr = dt.toLocaleTimeString('es-AR', {
+    hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires'
+  }) + ' hs'
+  const hasResult = !!match.result
+
+  async function handleSave() {
+    if (home === '' || away === '') return
+    setSaving(true)
+    await onSave(home, away)
+    setSaving(false)
+  }
+
+  return (
+    <div className={`ap-today-card ${hasResult ? 'ap-today-card--done' : ''}`}>
+      <div className="ap-today-card__meta">
+        <span className="ap-today-card__time">⏰ {timeStr}</span>
+        <span className="ap-today-card__phase">
+          {match.phase === 'group' ? `Grupo ${match.group}` : match.phase}
+        </span>
+        {hasResult && <span className="ap-today-card__badge">✓ Cargado</span>}
+      </div>
+      <div className="ap-today-card__teams">
+        <div className="ap-today-card__team">{match.homeName}</div>
+        <input
+          type="number" inputMode="numeric" min="0" max="30"
+          className="ap-today-card__score"
+          value={home}
+          onChange={e => setHome(e.target.value)}
+          placeholder="0"
+        />
+        <span className="ap-today-card__vs">–</span>
+        <input
+          type="number" inputMode="numeric" min="0" max="30"
+          className="ap-today-card__score"
+          value={away}
+          onChange={e => setAway(e.target.value)}
+          placeholder="0"
+        />
+        <div className="ap-today-card__team ap-today-card__team--away">{match.awayName}</div>
+      </div>
+      <div className="ap-today-card__actions">
+        <button
+          className="ap-btn ap-btn--primary ap-today-card__save"
+          onClick={handleSave}
+          disabled={saving || home === '' || away === ''}
+        >
+          {saving ? 'Guardando…' : hasResult ? 'Actualizar' : 'Guardar resultado'}
+        </button>
+        {hasResult && (
+          <button
+            className="ap-btn ap-btn--danger ap-btn--sm"
+            onClick={onDelete}
+          >
+            Borrar
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function ProdeAdmin({ token, toast }) {
   const [matches, setMatches]   = useState([])
   const [players, setPlayers]   = useState([])
@@ -95,7 +163,7 @@ function ProdeAdmin({ token, toast }) {
   const [away, setAway]         = useState('')
   const [teamsMatchId, setTeamsMatchId] = useState('')
   const [teamData, setTeamData] = useState({ homeName: '', homeFlag: '', awayName: '', awayFlag: '' })
-  const [subtab, setSubtab]     = useState('resultados')
+  const [subtab, setSubtab]     = useState('hoy')
   const [editingPlayer, setEditingPlayer] = useState(null) // { id, name, tel, email }
   const [invitingPlayer, setInvitingPlayer] = useState(null) // { name, dni, tel, email, isEmployee } | null
   const [invitedPin, setInvitedPin] = useState(null)         // { name, pin, emailSent }
@@ -237,19 +305,91 @@ function ProdeAdmin({ token, toast }) {
   const withResults = matches.filter(m => m.result)
   const knockout    = matches.filter(m => !['group'].includes(m.phase))
 
+  // Partidos de HOY en zona horaria Argentina (UTC-3)
+  const todayARDate = (() => {
+    const now = new Date()
+    // Convertir a Argentina (UTC-3) sin importar TZ del cliente
+    const ms = now.getTime() - 3 * 60 * 60 * 1000
+    return new Date(ms).toISOString().slice(0, 10) // YYYY-MM-DD
+  })()
+  const todayMatches = matches.filter(m => {
+    const d = new Date(m.date)
+    const localMs = d.getTime() - 3 * 60 * 60 * 1000
+    return new Date(localMs).toISOString().slice(0, 10) === todayARDate
+  })
+  const upcomingMatches = matches.filter(m => {
+    const d = new Date(m.date)
+    return d > new Date() && !m.result
+  }).slice(0, 1)
+
+  async function saveQuickResult(mid, h, a) {
+    try {
+      await adminSetResult(token, mid, parseInt(h), parseInt(a))
+      toast.show(`✓ Resultado guardado (#${mid}: ${h}-${a})`)
+      const fresh = await getMatches()
+      setMatches(fresh)
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
   return (
     <div className="ap-section">
       <div className="ap-subtabs">
-        {['resultados', 'equipos', 'jugadores'].map(s => (
+        {[
+          { id: 'hoy',        label: '📆 Hoy', badge: todayMatches.length },
+          { id: 'resultados', label: 'Resultados' },
+          { id: 'equipos',    label: 'Equipos' },
+          { id: 'jugadores',  label: 'Jugadores' },
+        ].map(s => (
           <button
-            key={s}
-            className={`ap-subtab ${subtab === s ? 'ap-subtab--active' : ''}`}
-            onClick={() => setSubtab(s)}
+            key={s.id}
+            className={`ap-subtab ${subtab === s.id ? 'ap-subtab--active' : ''}`}
+            onClick={() => setSubtab(s.id)}
           >
-            {s.charAt(0).toUpperCase() + s.slice(1)}
+            {s.label}
+            {s.badge > 0 && <span className="ap-subtab__badge">{s.badge}</span>}
           </button>
         ))}
       </div>
+
+      {subtab === 'hoy' && (
+        <div className="ap-block">
+          <h3 className="ap-block__title">Partidos de hoy</h3>
+          {todayMatches.length === 0 ? (
+            <div className="ap-today__empty">
+              <div className="ap-today__empty-icon">⚽</div>
+              <p><strong>No hay partidos hoy.</strong></p>
+              {upcomingMatches[0] && (
+                <p className="ap-today__empty-next">
+                  Próximo: <strong>{upcomingMatches[0].homeName} vs {upcomingMatches[0].awayName}</strong>
+                  <br />
+                  {new Date(upcomingMatches[0].date).toLocaleDateString('es-AR', {
+                    weekday: 'long', day: 'numeric', month: 'long',
+                    timeZone: 'America/Argentina/Buenos_Aires'
+                  })}
+                  {' · '}
+                  {new Date(upcomingMatches[0].date).toLocaleTimeString('es-AR', {
+                    hour: '2-digit', minute: '2-digit',
+                    timeZone: 'America/Argentina/Buenos_Aires'
+                  })} hs
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="ap-today__list">
+              {todayMatches.map(m => (
+                <TodayMatchCard
+                  key={m.id}
+                  match={m}
+                  onSave={(h, a) => saveQuickResult(m.id, h, a)}
+                  onDelete={() => handleDeleteResult(m.id)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {subtab === 'resultados' && (
         <div className="ap-block">
