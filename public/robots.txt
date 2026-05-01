@@ -1,0 +1,19 @@
+# robots.txt — Sala de Juegos Crespo
+# https://www.saladejuegoscrespo.ar
+
+User-agent: *
+Allow: /
+
+# Privadas (no indexar)
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /*?staff=*
+Disallow: /*?promo=*
+Disallow: /*?liga=*
+Disallow: /*?onboarding=*
+
+# Archivos sensibles
+Disallow: /*.json$
+
+Sitemap: https://www.saladejuegoscrespo.ar/sitemap.xml
