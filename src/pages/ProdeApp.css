@@ -1502,22 +1502,23 @@
   margin-bottom: 12px;
 }
 .pronosticos__phase-btn {
-  background: var(--wc-card);
-  border: 1px solid var(--wc-border);
-  color: var(--wc-muted);
-  padding: 7px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.14);
+  color: #D5DCE8;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
-  transition: all .2s;
+  transition: all .15s;
   letter-spacing: 0.3px;
 }
-.pronosticos__phase-btn:hover { color: var(--wc-text); border-color: rgba(255,255,255,.2); }
+.pronosticos__phase-btn:hover { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.28); }
 .pronosticos__phase-btn--active {
   background: var(--wc-green);
   border-color: var(--wc-green);
   color: #fff;
+  box-shadow: 0 4px 14px rgba(0,177,64,.35);
 }
 .pronosticos__groups {
   display: flex;
@@ -1528,32 +1529,36 @@
   border-bottom: 1px solid var(--wc-border);
 }
 .pronosticos__group-btn {
-  background: rgba(255,255,255,.05);
-  border: 1.5px solid var(--wc-border);
-  color: var(--wc-muted);
+  background: rgba(255,255,255,.07);
+  border: 1.5px solid rgba(255,255,255,.14);
+  color: #D5DCE8;
   width: 52px;
   height: 48px;
   border-radius: 10px;
   font-size: 18px;
   font-weight: 800;
   cursor: pointer;
-  transition: all .2s;
+  transition: all .15s;
 }
-.pronosticos__group-btn:hover { color: var(--wc-text); border-color: rgba(255,255,255,.2); }
+.pronosticos__group-btn:hover { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.3); transform: translateY(-1px); }
 .pronosticos__group-btn--active {
-  background: rgba(201,168,76,.15);
+  background: linear-gradient(135deg, rgba(255,210,80,.25), rgba(201,168,76,.18));
   border-color: var(--wc-gold);
   color: var(--wc-gold);
+  box-shadow: 0 4px 14px rgba(255,210,80,.3), inset 0 0 0 1px rgba(255,210,80,.2);
+  transform: translateY(-1px);
 }
 .pronosticos__group-btn--arg {
   width: auto;
   padding: 0 10px;
-  border-color: rgba(116,172,223,.4);
+  border-color: rgba(116,172,223,.5);
   color: var(--wc-arg);
 }
 .pronosticos__group-btn--arg.pronosticos__group-btn--active {
-  background: rgba(0,63,127,.3);
+  background: linear-gradient(135deg, rgba(0,63,127,.5), rgba(116,172,223,.3));
   border-color: var(--wc-arg);
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(116,172,223,.35), inset 0 0 0 1px rgba(116,172,223,.25);
 }
 .pronosticos__matches { display: flex; flex-direction: column; }
 
