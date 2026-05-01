@@ -2625,27 +2625,6 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           </p>
         </div>
 
-        {/* Vitrina + tabla — 2 columnas */}
-        <div className="staff-portal__split">
-          <div className="staff-portal__split-card">
-            <div className="staff-portal__split-icon">🏅</div>
-            <h3>Tu vitrina personal</h3>
-            <p>
-              Vas ganando <strong>medallas</strong> por logros: el primer pronóstico, 5 aciertos al hilo,
-              acertar un 0-0 raro, terminar el fixture entero. Cada una queda guardada en tu perfil
-              y la podés compartir en <strong>WhatsApp, Instagram o Facebook</strong>.
-            </p>
-          </div>
-          <div className="staff-portal__split-card">
-            <div className="staff-portal__split-icon">🏆</div>
-            <h3>Compiten entre ustedes</h3>
-            <p>
-              Tienen su propia tabla, separada de la pública.
-              <strong> No están mezclados con clientes</strong> — la pelea por el #1 es entre el staff.
-              Vas a ver quién manda en la sala.
-            </p>
-          </div>
-        </div>
 
         {/* Premios concretos para el staff */}
         <section className="staff-portal__prizes">
@@ -2733,18 +2712,6 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
           />
         )}
 
-        {/* Nota — cierre cálido y motivador para el staff antes del form */}
-        <section className="staff-portal__note">
-          <div className="staff-portal__note-icon">💪</div>
-          <div>
-            <strong>Te toca ser embajador del Prode.</strong>
-            <p>
-              Si esto te resulta fácil de usar, vas a poder explicarle a los clientes cómo participar —
-              porque el proceso para ellos va a ser <strong>idéntico al tuyo</strong>: registro, pronósticos, medallas, todo igual.
-              Si algo te traba a vos, seguro le va a trabar a un cliente. Por eso tu feedback vale oro.
-            </p>
-          </div>
-        </section>
 
         {/* Sugerencias */}
         <section className="staff-portal__section staff-portal__suggestions">
