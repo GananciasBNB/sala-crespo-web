@@ -3872,17 +3872,26 @@ export default function ProdeApp() {
     showToast('Pronóstico guardado ✓')
   }
 
+  // Iconos SVG monocromáticos para los tabs (currentColor — respetan la paleta)
+  const ICON_HOME = (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>)
+  const ICON_TARGET = (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>)
+  const ICON_CHART = (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19h16"/><rect x="6" y="11" width="3" height="8"/><rect x="11" y="6" width="3" height="13"/><rect x="16" y="14" width="3" height="5"/></svg>)
+  const ICON_TROPHY = (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 4h12v4a6 6 0 01-12 0V4z"/><path d="M6 6H3v2a3 3 0 003 3"/><path d="M18 6h3v2a3 3 0 01-3 3"/><path d="M9 21h6"/><path d="M12 16v5"/></svg>)
+  const ICON_CAL = (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18"/><path d="M8 3v4"/><path d="M16 3v4"/></svg>)
+
+  function tabLabel(icon, text) { return (<><span className="prode-nav__icon">{icon}</span><span>{text}</span></>) }
+
   // Misma estructura de tabs para clientes y empleados (UX uniforme).
   // "Mi posición" elige automáticamente la tabla correcta según player.isEmployee.
   const TABS = player ? [
-    { id: 'inicio',      label: '🏠 Inicio' },
-    { id: 'pronosticos', label: '🎯 Mis pronósticos' },
-    { id: 'tabla',       label: '📊 Mi posición' },
-    { id: 'ligas',       label: '🏆 Mis ligas' },
-    { id: 'llaves',      label: '🗓️ Fixture' },
+    { id: 'inicio',      label: tabLabel(ICON_HOME, 'Inicio') },
+    { id: 'pronosticos', label: tabLabel(ICON_TARGET, 'Mis pronósticos') },
+    { id: 'tabla',       label: tabLabel(ICON_CHART, 'Mi posición') },
+    { id: 'ligas',       label: tabLabel(ICON_TROPHY, 'Mis ligas') },
+    { id: 'llaves',      label: tabLabel(ICON_CAL, 'Fixture') },
   ] : [
-    { id: 'inicio', label: '🏠 Inicio' },
-    { id: 'tabla',  label: '📊 Posiciones' },
+    { id: 'inicio', label: tabLabel(ICON_HOME, 'Inicio') },
+    { id: 'tabla',  label: tabLabel(ICON_CHART, 'Posiciones') },
   ]
 
   // Modo promotora — render dedicado, no muestra el resto de la app
