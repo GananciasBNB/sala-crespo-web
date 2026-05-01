@@ -3285,22 +3285,47 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
           </div>
         )}
         {list && list.map(lg => (
-          <button
+          <div
             key={lg.code}
-            type="button"
+            role="button"
+            tabIndex={0}
             className="leagues__card"
             onClick={() => setSelected(lg.code)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelected(lg.code) } }}
           >
-            <LeagueAvatar league={lg} size={56} />
-            <div className="leagues__card-info">
-              <div className="leagues__card-name">{lg.name}</div>
-              <div className="leagues__card-meta">
-                {lg.memberCount} {lg.memberCount === 1 ? 'jugador' : 'jugadores'}
-                {lg.isOwner && <span className="leagues__card-owner"> · sos el creador</span>}
+            <div className="leagues__card-head">
+              <LeagueAvatar league={lg} size={56} />
+              <div className="leagues__card-info">
+                <div className="leagues__card-name">{lg.name}</div>
+                <div className="leagues__card-meta">
+                  {lg.memberCount} {lg.memberCount === 1 ? 'jugador' : 'jugadores'}
+                  {lg.isOwner && <span className="leagues__card-owner"> · sos el creador</span>}
+                </div>
               </div>
+              <div className="leagues__card-arrow">→</div>
             </div>
-            <div className="leagues__card-arrow">→</div>
-          </button>
+
+            {lg.leaderboardPreview && lg.leaderboardPreview.length > 0 && (
+              <div className="leagues__card-board">
+                {lg.leaderboardPreview.map((p, idx) => {
+                  const isTopRow = idx < 3 && p.position <= 3
+                  const showSeparator = idx > 0 && lg.leaderboardPreview[idx - 1].position + 1 !== p.position
+                  return (
+                    <div key={p.id + '-' + p.position}>
+                      {showSeparator && <div className="leagues__card-board-sep">···</div>}
+                      <div className={`leagues__card-row ${p.isMe ? 'leagues__card-row--me' : ''} ${isTopRow ? `leagues__card-row--top${p.position}` : ''}`}>
+                        <span className="leagues__card-pos">#{p.position}</span>
+                        <span className="leagues__card-player">
+                          {p.name}{p.isMe && <span className="leagues__card-you"> (vos)</span>}
+                        </span>
+                        <span className="leagues__card-pts">{p.total} pts</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         ))}
       </div>
 

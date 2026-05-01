@@ -4365,10 +4365,10 @@
 .leagues__empty p:last-child { color: var(--wc-muted); }
 
 .leagues__card {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; flex-direction: column; gap: 12px;
   background: linear-gradient(155deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   border: 1px solid rgba(255,255,255,.1);
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 14px 16px;
   cursor: pointer;
   transition: all .15s;
@@ -4377,7 +4377,72 @@
   font-family: inherit;
   color: var(--wc-text);
 }
-.leagues__card:hover { background: rgba(255,210,80,.08); border-color: rgba(255,210,80,.4); transform: translateX(2px); }
+.leagues__card:hover { background: rgba(255,210,80,.06); border-color: rgba(255,210,80,.35); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+.leagues__card-head {
+  display: flex; align-items: center; gap: 14px;
+}
+
+/* Mini-tabla por liga */
+.leagues__card-board {
+  display: flex; flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.leagues__card-board-sep {
+  text-align: center;
+  color: var(--wc-muted);
+  font-size: 11px;
+  letter-spacing: 4px;
+  padding: 2px 0;
+}
+.leagues__card-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  background: transparent;
+  transition: background .15s;
+}
+.leagues__card-row--top1 { background: rgba(255,210,80,.1); }
+.leagues__card-row--top1 .leagues__card-pos { color: #FFD250; font-weight: 800; }
+.leagues__card-row--top2 { background: rgba(192,192,192,.06); }
+.leagues__card-row--top2 .leagues__card-pos { color: #C0C0C0; font-weight: 800; }
+.leagues__card-row--top3 { background: rgba(205,127,50,.06); }
+.leagues__card-row--top3 .leagues__card-pos { color: #CD7F32; font-weight: 800; }
+.leagues__card-row--me {
+  background: rgba(196,30,58,.12);
+  outline: 1px solid rgba(196,30,58,.4);
+}
+.leagues__card-row--me.leagues__card-row--top1,
+.leagues__card-row--me.leagues__card-row--top2,
+.leagues__card-row--me.leagues__card-row--top3 {
+  background: linear-gradient(135deg, rgba(196,30,58,.18), rgba(255,210,80,.1));
+}
+.leagues__card-pos {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  letter-spacing: .5px;
+  color: var(--wc-muted);
+  text-align: center;
+}
+.leagues__card-player {
+  color: #E8EDF5;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.leagues__card-you { color: var(--wc-gold); font-weight: 700; }
+.leagues__card-pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16px;
+  color: #fff;
+  letter-spacing: .5px;
+}
 .leagues__card-emoji {
   font-size: 36px; line-height: 1;
   width: 56px; height: 56px;
