@@ -187,6 +187,15 @@ export const deleteLeague = (token, code) =>
 export const adminGetPlayers = (token) =>
   api('/api/admin/players', { headers: authHeaders(token) })
 
+export const adminGetLeagues = (token) =>
+  api('/api/admin/leagues', { headers: authHeaders(token) })
+
+export const adminGetLeagueDetail = (token, id) =>
+  api(`/api/admin/leagues/${id}`, { headers: authHeaders(token) })
+
+export const adminDeleteLeague = (token, id) =>
+  api(`/api/admin/leagues/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
 export const adminDeletePlayer = (token, id) =>
   api(`/api/admin/player/${id}`, { method: 'DELETE', headers: authHeaders(token) })
 

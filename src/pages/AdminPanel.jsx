@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
   adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
+  adminGetLeagues, adminGetLeagueDetail, adminDeleteLeague,
   adminCreateShow, adminUpdateShow, adminDeleteShow,
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
@@ -341,6 +342,7 @@ function ProdeAdmin({ token, toast }) {
           { id: 'resultados', label: 'Resultados' },
           { id: 'equipos',    label: 'Equipos' },
           { id: 'jugadores',  label: 'Jugadores' },
+          { id: 'ligas',      label: 'Mini-ligas' },
         ].map(s => (
           <button
             key={s.id}
@@ -675,6 +677,128 @@ function ProdeAdmin({ token, toast }) {
             </table>
           </div>
         </div>
+      )}
+
+      {subtab === 'ligas' && <LeaguesAdmin token={token} toast={toast} />}
+    </div>
+  )
+}
+
+// ─── Mini-ligas Management ────────────────────────────────────────────────────
+function LeaguesAdmin({ token, toast }) {
+  const [leagues, setLeagues] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [detail, setDetail] = useState(null)
+  const [detailLoading, setDetailLoading] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    adminGetLeagues(token)
+      .then(setLeagues)
+      .catch(err => toast.show(err.message, 'err'))
+      .finally(() => setLoading(false))
+  }, [token])
+
+  async function openDetail(id) {
+    setSelected(id)
+    setDetail(null)
+    setDetailLoading(true)
+    try {
+      const data = await adminGetLeagueDetail(token, id)
+      setDetail(data)
+    } catch (err) {
+      toast.show(err.message, 'err')
+    } finally {
+      setDetailLoading(false)
+    }
+  }
+
+  async function deleteLeague(id, name) {
+    if (!confirm(`¿Borrar la liga "${name}"? Esto elimina la liga y todos sus miembros. No se puede deshacer.`)) return
+    try {
+      await adminDeleteLeague(token, id)
+      toast.show(`✓ Liga "${name}" eliminada`)
+      setLeagues(leagues.filter(l => l.id !== id))
+      if (selected === id) { setSelected(null); setDetail(null) }
+    } catch (err) {
+      toast.show(err.message, 'err')
+    }
+  }
+
+  if (loading) return <div className="ap-block"><p>Cargando mini-ligas…</p></div>
+
+  return (
+    <div className="ap-block">
+      <h3 className="ap-block__title">Mini-ligas privadas ({leagues.length})</h3>
+      {leagues.length === 0 ? (
+        <p style={{ opacity: 0.7 }}>Todavía no hay ligas creadas. Aparecen acá cuando un jugador crea una desde su panel.</p>
+      ) : (
+        <>
+          <div className="ap-table-wrap">
+            <table className="ap-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Código</th>
+                  <th>Dueño</th>
+                  <th>Miembros</th>
+                  <th>Creada</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {leagues.map(l => (
+                  <tr key={l.id}>
+                    <td><strong>{l.name}</strong></td>
+                    <td><code>{l.code}</code></td>
+                    <td>{l.ownerName || '—'} {l.ownerDniLast3 ? <span style={{ opacity: 0.6 }}>···{l.ownerDniLast3}</span> : null}</td>
+                    <td style={{ textAlign: 'center' }}>{l.memberCount}</td>
+                    <td style={{ opacity: 0.7, fontSize: 12 }}>{new Date(l.createdAt).toLocaleDateString('es-AR')}</td>
+                    <td style={{ display: 'flex', gap: 6 }}>
+                      <button className="ap-btn ap-btn--small" onClick={() => openDetail(l.id)}>Ver</button>
+                      <button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => deleteLeague(l.id, l.name)}>Borrar</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {selected && (
+            <div style={{ marginTop: 24, padding: 16, background: 'rgba(255,255,255,0.04)', borderRadius: 8 }}>
+              {detailLoading && <p>Cargando detalle…</p>}
+              {detail && (
+                <>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+                    <h4 style={{ margin: 0 }}>{detail.name} <span style={{ opacity: 0.6, fontSize: 14 }}>(código: <code>{detail.code}</code>)</span></h4>
+                    <button className="ap-btn ap-btn--small" onClick={() => { setSelected(null); setDetail(null) }}>Cerrar</button>
+                  </div>
+                  <p style={{ margin: '4px 0 12px', opacity: 0.7, fontSize: 13 }}>
+                    Dueño: <strong>{detail.ownerName}</strong> · Miembros: {detail.memberCount}
+                  </p>
+                  <h5 style={{ margin: '16px 0 8px' }}>Tabla de la liga</h5>
+                  <table className="ap-table">
+                    <thead>
+                      <tr><th>#</th><th>Jugador</th><th>Pts</th><th>Exactos</th><th>Aciertos</th></tr>
+                    </thead>
+                    <tbody>
+                      {detail.leaderboard.map((p, i) => (
+                        <tr key={p.id}>
+                          <td>{i + 1}</td>
+                          <td>{p.name} <span style={{ opacity: 0.5, fontSize: 12 }}>···{p.dniLast3}</span></td>
+                          <td><strong>{p.total}</strong></td>
+                          <td>{p.exact}</td>
+                          <td>{p.correct}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </>
+              )}
+            </div>
+          )}
+        </>
       )}
     </div>
   )
