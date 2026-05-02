@@ -2816,6 +2816,7 @@ function PromoMode({ onExit }) {
   const [info, setInfo]   = useState('')
   const [lastResult, setLastResult] = useState(null) // { name, pin }
   const [count, setCount] = useState(0)
+  const [showIgQr, setShowIgQr] = useState(false)
 
   // Cargar datos del torneo desde la misma fuente que la landing pública
   const [tournament, setTournament] = useState({
@@ -2951,16 +2952,15 @@ function PromoMode({ onExit }) {
                 <div className="promo-extra__label">Inscribirlo al torneo de máquinas</div>
                 <div className="promo-extra__sub">{tournament.date}</div>
               </a>
-              <a
+              <button
+                type="button"
                 className="promo-extra promo-extra--instagram"
-                href={INSTAGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
+                onClick={() => setShowIgQr(true)}
               >
                 <div className="promo-extra__icon">📸</div>
                 <div className="promo-extra__label">Que nos siga en Instagram</div>
-                <div className="promo-extra__sub">{INSTAGRAM_HANDLE}</div>
-              </a>
+                <div className="promo-extra__sub">Tocá para mostrar el QR</div>
+              </button>
             </div>
 
             <p className="promo-checklist__skip">Si {firstName} ya está inscripto al torneo y nos sigue en Instagram, podés pasar directo al siguiente cliente.</p>
@@ -2971,6 +2971,18 @@ function PromoMode({ onExit }) {
             </div>
           </div>
         </div>
+
+        {showIgQr && (
+          <div className="promo-qr-modal" onClick={() => setShowIgQr(false)}>
+            <div className="promo-qr-modal__inner" onClick={e => e.stopPropagation()}>
+              <h3 className="promo-qr-modal__title">Escaneá para seguirnos</h3>
+              <p className="promo-qr-modal__sub">Apuntá la cámara del celular al código</p>
+              <img src="/qr-instagram.jpg" alt="QR Instagram Sala Crespo" className="promo-qr-modal__img" />
+              <p className="promo-qr-modal__handle">📸 {INSTAGRAM_HANDLE}</p>
+              <button className="promo-btn promo-btn--primary promo-qr-modal__close" onClick={() => setShowIgQr(false)}>Listo, ya escaneó</button>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
