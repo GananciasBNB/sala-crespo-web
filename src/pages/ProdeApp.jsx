@@ -1207,9 +1207,9 @@ function LeaderboardView({ myId, audience = 'public', token }) {
   }, [phase, audience, token])
 
   const tabs = [
-    { id: 'group',   label: 'Grupos' },
-    { id: 'round32', label: '16avos' },
-    { id: 'all',     label: 'Acumulado' },
+    { id: 'group',   label: 'Puntuación fase de grupos' },
+    { id: 'round32', label: 'Puntuación 16avos de final' },
+    { id: 'all',     label: 'Puntuación Acumulada del Mundial' },
   ]
   const medals = ['🥇', '🥈', '🥉']
 
