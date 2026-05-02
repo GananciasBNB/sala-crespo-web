@@ -9,6 +9,7 @@ import {
   submitStaffSuggestion,
   getMyLeagues, createLeague, joinLeague, getLeagueLeaderboard, leaveLeague, deleteLeague,
   uploadLeagueImage,
+  getPromoRegistrationsToday,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import './ProdeApp.css'
@@ -2833,6 +2834,14 @@ function PromoMode({ onExit }) {
     }).catch(() => {})
   }, [])
 
+  // Contador real desde el backend (count de players creados hoy en TZ Argentina)
+  const refreshCount = useCallback(() => {
+    getPromoRegistrationsToday()
+      .then(r => setCount(r.count || 0))
+      .catch(() => {})
+  }, [])
+  useEffect(() => { refreshCount() }, [refreshCount])
+
   const currentYear = new Date().getFullYear()
   const minBirthYear = 1900
   const maxBirthYear = currentYear - 18
@@ -2872,7 +2881,7 @@ function PromoMode({ onExit }) {
     try {
       await registerPlayer(name.trim(), dni, tel.trim(), pin, 'cocodrilo', email.trim() || null)
       setLastResult({ name: name.trim(), pin })
-      setCount(c => c + 1)
+      refreshCount()
       setStep('success')
     } catch (err) {
       // Caso especial: DNI duplicado

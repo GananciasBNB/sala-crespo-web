@@ -187,6 +187,9 @@ export const deleteLeague = (token, code) =>
 export const adminGetPlayers = (token) =>
   api('/api/admin/players', { headers: authHeaders(token) })
 
+export const getPromoRegistrationsToday = () =>
+  api('/api/promo/registrations-today')
+
 export const adminGetLeagues = (token) =>
   api('/api/admin/leagues', { headers: authHeaders(token) })
 
