@@ -2286,6 +2286,29 @@
   border-color: var(--wc-red);
 }
 
+.promo__header-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.promo__ig-shortcut {
+  background: linear-gradient(135deg, rgba(225, 48, 108, 0.18) 0%, rgba(252, 175, 69, 0.12) 100%);
+  border: 1px solid rgba(225, 48, 108, 0.5);
+  color: var(--wc-text);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.promo__ig-shortcut:hover {
+  border-color: #E1306C;
+  background: linear-gradient(135deg, rgba(225, 48, 108, 0.28) 0%, rgba(252, 175, 69, 0.18) 100%);
+}
+
 /* Body */
 .promo__body {
   flex: 1;

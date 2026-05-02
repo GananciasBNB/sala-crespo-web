@@ -2997,8 +2997,23 @@ function PromoMode({ onExit }) {
             <div className="promo__sub">Registros hoy: {count}</div>
           </div>
         </div>
-        <button className="promo__exit" onClick={onExit}>✕ Salir del modo</button>
+        <div className="promo__header-actions">
+          <button type="button" className="promo__ig-shortcut" onClick={() => setShowIgQr(true)}>📸 Solo seguir IG</button>
+          <button className="promo__exit" onClick={onExit}>✕ Salir</button>
+        </div>
       </header>
+
+      {showIgQr && (
+        <div className="promo-qr-modal" onClick={() => setShowIgQr(false)}>
+          <div className="promo-qr-modal__inner" onClick={e => e.stopPropagation()}>
+            <h3 className="promo-qr-modal__title">Escaneá para seguirnos</h3>
+            <p className="promo-qr-modal__sub">Apuntá la cámara del celular al código</p>
+            <img src="/qr-instagram.jpg" alt="QR Instagram Sala Crespo" className="promo-qr-modal__img" />
+            <p className="promo-qr-modal__handle">📸 {INSTAGRAM_HANDLE}</p>
+            <button className="promo-btn promo-btn--primary promo-qr-modal__close" onClick={() => setShowIgQr(false)}>Listo, ya escaneó</button>
+          </div>
+        </div>
+      )}
 
       <div className="promo__body">
         <form className="promo-form" onSubmit={handleSubmit}>
