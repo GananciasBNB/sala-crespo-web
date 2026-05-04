@@ -61,10 +61,28 @@ export default function Footer() {
         </nav>
       </div>
 
+      <div className="footer__responsible">
+        <div className="container">
+          <div className="footer__responsible-inner">
+            <div className="footer__responsible-badge">
+              <span className="footer__responsible-18">+18</span>
+              <div>
+                <strong>Solo mayores de 18 años</strong>
+                <p>El acceso a la sala y la participación en juegos están permitidos exclusivamente a personas adultas. Te pediremos DNI al ingresar.</p>
+              </div>
+            </div>
+            <div className="footer__responsible-help">
+              <strong>🎯 Juego responsable</strong>
+              <p>Si sentís que el juego dejó de ser un entretenimiento, pedí ayuda. <a href="https://www.iafas.gob.ar/juego-responsable" target="_blank" rel="noopener noreferrer">IAFAS — Juego Responsable</a> · Línea gratuita <a href="tel:0800-444-4000">0800-444-4000</a></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="footer__bottom">
         <div className="container footer__bottom-inner">
           <p>© {year} Sala de Juegos Crespo · Todos los derechos reservados</p>
-          <p className="footer__casinos">Operado bajo Casinos de Entre Ríos</p>
+          <p className="footer__casinos">Operado bajo <strong>Casinos de Entre Ríos</strong> · Habilitación IAFAS</p>
         </div>
       </div>
     </footer>
