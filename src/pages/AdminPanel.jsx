@@ -4,6 +4,8 @@ import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
   adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
   adminGetLeagues, adminGetLeagueDetail, adminDeleteLeague,
+  adminGetTournaments, adminCreateTournament, adminUpdateTournament, adminDeleteTournament,
+  adminGetTournamentRegistrations, adminSetRegistrationAttended, adminSetRegistrationPosition, adminDeleteTournamentRegistration,
   adminCreateShow, adminUpdateShow, adminDeleteShow,
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
@@ -343,6 +345,7 @@ function ProdeAdmin({ token, toast }) {
           { id: 'equipos',    label: 'Equipos' },
           { id: 'jugadores',  label: 'Jugadores' },
           { id: 'ligas',      label: 'Mini-ligas' },
+          { id: 'torneos',    label: 'Torneos Slots' },
         ].map(s => (
           <button
             key={s.id}
@@ -680,6 +683,286 @@ function ProdeAdmin({ token, toast }) {
       )}
 
       {subtab === 'ligas' && <LeaguesAdmin token={token} toast={toast} />}
+      {subtab === 'torneos' && <TournamentsAdmin token={token} toast={toast} />}
+    </div>
+  )
+}
+
+// ─── Torneos de Slots Management ──────────────────────────────────────────────
+function TournamentsAdmin({ token, toast }) {
+  const [tournaments, setTournaments] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [selected, setSelected] = useState(null)
+  const [registrations, setRegistrations] = useState([])
+  const [showCreate, setShowCreate] = useState(false)
+  const [search, setSearch] = useState('')
+
+  function loadTournaments() {
+    setLoading(true)
+    adminGetTournaments(token)
+      .then(setTournaments)
+      .catch(err => toast.show(err.message, 'err'))
+      .finally(() => setLoading(false))
+  }
+  useEffect(() => { loadTournaments() }, [token])
+
+  function loadRegistrations(t) {
+    setSelected(t)
+    setRegistrations([])
+    adminGetTournamentRegistrations(token, t.id)
+      .then(setRegistrations)
+      .catch(err => toast.show(err.message, 'err'))
+  }
+
+  async function handleAttend(reg, attended) {
+    try {
+      await adminSetRegistrationAttended(token, reg.id, attended)
+      setRegistrations(rs => rs.map(r => r.id === reg.id ? { ...r, attended } : r))
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handlePosition(reg, position) {
+    try {
+      await adminSetRegistrationPosition(token, reg.id, position)
+      setRegistrations(rs => rs.map(r => r.id === reg.id ? { ...r, final_position: position } : r))
+      toast.show(position ? `✓ Puesto ${position} asignado` : '✓ Puesto removido')
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleDeleteReg(reg) {
+    if (!confirm(`¿Sacar a "${reg.name}" del torneo?`)) return
+    try {
+      await adminDeleteTournamentRegistration(token, reg.id)
+      setRegistrations(rs => rs.filter(r => r.id !== reg.id))
+      toast.show('✓ Inscripción eliminada')
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleCloseTournament(t) {
+    if (!confirm(`¿Marcar el torneo "${t.name}" como FINALIZADO? Ya no aparecerá en /torneo público.`)) return
+    try {
+      await adminUpdateTournament(token, t.id, { status: 'finished' })
+      toast.show('✓ Torneo cerrado')
+      loadTournaments()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleReopenTournament(t) {
+    try {
+      await adminUpdateTournament(token, t.id, { status: 'open' })
+      toast.show('✓ Torneo reabierto')
+      loadTournaments()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleDeleteTournament(t) {
+    if (!confirm(`¿BORRAR el torneo "${t.name}" Y todas sus inscripciones? Esto NO se puede deshacer.`)) return
+    try {
+      await adminDeleteTournament(token, t.id)
+      toast.show('✓ Torneo eliminado')
+      setSelected(null); setRegistrations([])
+      loadTournaments()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  function exportCSV() {
+    if (!registrations.length || !selected) return
+    const rows = [
+      ['Nº', 'Nombre', 'DNI', 'Tel', 'Email', 'Ciudad', 'Origen', 'Asistió', 'Puesto final', 'Inscripto el'],
+      ...registrations.map(r => [
+        r.registration_no, r.name, r.dni, r.tel || '', r.email || '',
+        r.city || '', r.source, r.attended ? 'SI' : 'NO',
+        r.final_position || '', new Date(r.registered_at).toLocaleString('es-AR')
+      ])
+    ]
+    const csv = rows.map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `torneo-${selected.name.toLowerCase().replace(/\s+/g, '-')}-inscriptos.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const filtered = registrations.filter(r =>
+    !search || r.name.toLowerCase().includes(search.toLowerCase()) || String(r.dni).includes(search)
+  )
+
+  if (loading) return <div className="ap-block"><p>Cargando torneos…</p></div>
+
+  return (
+    <div className="ap-block">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
+        <h3 className="ap-block__title" style={{ margin: 0 }}>Torneos de Slots ({tournaments.length})</h3>
+        <button className="ap-btn ap-btn--primary" onClick={() => setShowCreate(true)}>+ Nuevo torneo</button>
+      </div>
+
+      {tournaments.length === 0 ? (
+        <p style={{ opacity: 0.7 }}>Todavía no hay torneos creados. Apretá <strong>+ Nuevo torneo</strong> para arrancar.</p>
+      ) : (
+        <div className="ap-table-wrap">
+          <table className="ap-table">
+            <thead>
+              <tr>
+                <th>Nombre</th><th>Fecha</th><th>Estado</th><th>Inscriptos</th><th>Asistencia</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {tournaments.map(t => (
+                <tr key={t.id} style={selected?.id === t.id ? { background: 'rgba(201,168,76,0.1)' } : null}>
+                  <td><strong>{t.name}</strong></td>
+                  <td>{new Date(t.tournament_date).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                  <td>
+                    <span style={{
+                      padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                      background: t.status === 'open' ? 'rgba(0,177,64,0.2)' : 'rgba(255,255,255,0.1)',
+                      color: t.status === 'open' ? '#5cd87f' : '#aaa',
+                    }}>
+                      {t.status === 'open' ? 'ACTIVO' : 'FINALIZADO'}
+                    </span>
+                  </td>
+                  <td style={{ textAlign: 'center' }}>{t.registered_count}</td>
+                  <td style={{ textAlign: 'center' }}>{t.attended_count} / {t.registered_count}</td>
+                  <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                    <button className="ap-btn ap-btn--small" onClick={() => loadRegistrations(t)}>Ver inscriptos</button>
+                    {t.status === 'open' ? (
+                      <button className="ap-btn ap-btn--small" onClick={() => handleCloseTournament(t)}>Cerrar</button>
+                    ) : (
+                      <button className="ap-btn ap-btn--small" onClick={() => handleReopenTournament(t)}>Reabrir</button>
+                    )}
+                    <button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => handleDeleteTournament(t)}>Borrar</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {showCreate && <TournamentCreateModal token={token} toast={toast} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); loadTournaments() }} />}
+
+      {selected && (
+        <div style={{ marginTop: 28, padding: 18, background: 'rgba(255,255,255,0.04)', borderRadius: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
+            <h4 style={{ margin: 0 }}>Inscriptos · {selected.name} <span style={{ opacity: 0.6, fontSize: 13 }}>({registrations.length})</span></h4>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <input className="ap-input" placeholder="🔍 Buscar nombre o DNI" value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 200 }} />
+              <button className="ap-btn ap-btn--small" onClick={exportCSV}>📥 Exportar CSV</button>
+              <button className="ap-btn ap-btn--small" onClick={() => { setSelected(null); setRegistrations([]) }}>Cerrar</button>
+            </div>
+          </div>
+
+          {registrations.length === 0 ? (
+            <p style={{ opacity: 0.7, textAlign: 'center', padding: 24 }}>Sin inscriptos todavía.</p>
+          ) : (
+            <div className="ap-table-wrap">
+              <table className="ap-table">
+                <thead>
+                  <tr><th>N°</th><th>Nombre</th><th>DNI</th><th>Tel</th><th>Origen</th><th>Asistió</th><th>Puesto</th><th></th></tr>
+                </thead>
+                <tbody>
+                  {filtered.map(r => (
+                    <tr key={r.id} style={r.attended ? { background: 'rgba(0,177,64,0.05)' } : null}>
+                      <td><strong>{r.registration_no}</strong></td>
+                      <td>{r.name}</td>
+                      <td><code style={{ fontSize: 12 }}>{r.dni}</code></td>
+                      <td>{r.tel || <span style={{ opacity: 0.4 }}>—</span>}</td>
+                      <td><span style={{ fontSize: 11, opacity: 0.7 }}>{r.source}</span></td>
+                      <td>
+                        <button
+                          className={`ap-btn ap-btn--small ${r.attended ? 'ap-btn--success' : ''}`}
+                          onClick={() => handleAttend(r, !r.attended)}
+                          style={{ minWidth: 64 }}
+                        >
+                          {r.attended ? '✓ SÍ' : '○ NO'}
+                        </button>
+                      </td>
+                      <td>
+                        <select
+                          value={r.final_position || ''}
+                          onChange={e => handlePosition(r, e.target.value ? parseInt(e.target.value) : null)}
+                          style={{ background: 'rgba(0,0,0,0.4)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '6px 8px', borderRadius: 6 }}
+                        >
+                          <option value="">—</option>
+                          <option value="1">🥇 1°</option>
+                          <option value="2">🥈 2°</option>
+                          <option value="3">🥉 3°</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => handleDeleteReg(r)} title="Eliminar inscripción">✕</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TournamentCreateModal({ token, toast, onClose, onCreated }) {
+  const [name, setName] = useState('')
+  const [date, setDate] = useState('')
+  const [time, setTime] = useState('21:30')
+  const [location, setLocation] = useState('San Martín 1053, Crespo, Entre Ríos')
+  const [prizePool, setPrizePool] = useState('Premios totales: $200.000 en tickets promocionales')
+  const [infoHtml, setInfoHtml] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+
+  async function handleSave(e) {
+    e.preventDefault()
+    setErr('')
+    if (!name.trim() || !date) return setErr('Nombre y fecha son obligatorios.')
+    const tournamentDate = new Date(`${date}T${time || '21:30'}:00-03:00`).toISOString()
+    setSaving(true)
+    try {
+      await adminCreateTournament(token, {
+        name: name.trim(),
+        tournamentDate,
+        location: location.trim() || null,
+        prizePool: prizePool.trim() || null,
+        infoHtml: infoHtml.trim() || null,
+      })
+      toast.show('✓ Torneo creado')
+      onCreated()
+    } catch (e) { setErr(e.message) }
+    setSaving(false)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 20 }} onClick={onClose}>
+      <form onClick={e => e.stopPropagation()} onSubmit={handleSave} style={{ background: '#15191f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 16, padding: 28, maxWidth: 540, width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <h3 style={{ margin: 0 }}>Nuevo torneo</h3>
+        <label className="ap-label">Nombre</label>
+        <input className="ap-input" value={name} onChange={e => setName(e.target.value)} placeholder="Torneo de Slots Mayo 2026" disabled={saving} />
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <label className="ap-label">Fecha</label>
+            <input className="ap-input" type="date" value={date} onChange={e => setDate(e.target.value)} disabled={saving} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className="ap-label">Hora</label>
+            <input className="ap-input" type="time" value={time} onChange={e => setTime(e.target.value)} disabled={saving} />
+          </div>
+        </div>
+        <label className="ap-label">Lugar</label>
+        <input className="ap-input" value={location} onChange={e => setLocation(e.target.value)} disabled={saving} />
+        <label className="ap-label">Premios (texto destacado)</label>
+        <input className="ap-input" value={prizePool} onChange={e => setPrizePool(e.target.value)} disabled={saving} />
+        <label className="ap-label">Bases / info completa <span style={{ opacity: 0.6, fontWeight: 400 }}>(HTML, opcional)</span></label>
+        <textarea className="ap-input" rows={6} value={infoHtml} onChange={e => setInfoHtml(e.target.value)} placeholder="<p><strong>1° puesto:</strong> $100.000...</p>" disabled={saving} style={{ fontFamily: 'monospace', fontSize: 13 }} />
+        {err && <div style={{ color: '#ff8b9c', fontSize: 13 }}>⚠️ {err}</div>}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+          <button type="button" className="ap-btn" onClick={onClose} disabled={saving}>Cancelar</button>
+          <button type="submit" className="ap-btn ap-btn--primary" disabled={saving}>{saving ? 'Creando…' : 'Crear torneo'}</button>
+        </div>
+      </form>
     </div>
   )
 }
