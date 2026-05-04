@@ -315,15 +315,7 @@ export default function TournamentLanding() {
         </section>
       )}
 
-      {tournament.info_html && (step === 'dni' || step === 'success') && (
-        <details className="trn-info">
-          <summary>Más información del torneo</summary>
-          <div className="trn-info__body" dangerouslySetInnerHTML={{ __html: tournament.info_html }} />
-        </details>
-      )}
-
-      {/* Botón de bases solo si no hay info_html (sino se muestra adentro del details) */}
-      {!tournament.info_html && (step === 'dni' || step === 'success') && (
+      {(step === 'dni' || step === 'success') && (
         <div className="trn-bases-cta">
           <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer">
             <IconDoc /> Bases y condiciones completas
