@@ -11,6 +11,14 @@ const fmtDateTime = iso => {
   return `${day.charAt(0).toUpperCase() + day.slice(1)} · ${time} hs`
 }
 
+const fmtShortDate = iso => {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const day = d.getDate()
+  const month = d.toLocaleDateString('es-AR', { month: 'long' })
+  return `${day} de ${month.charAt(0).toUpperCase() + month.slice(1)}`
+}
+
 // ─── SVG Icons ─────────────────────────────────────────────
 const IconArrow = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
@@ -175,8 +183,8 @@ export default function TournamentLanding() {
 
       <section className="trn-hero">
         <div className="trn-hero__eyebrow">Inscripción · Torneo de Slots</div>
-        <h1 className="trn-hero__title">Inscribite gratis al<br /><em>{tournament.name}</em></h1>
-        <p className="trn-hero__lead">Reservá tu lugar en menos de un minuto. Si ya jugaste antes, tu DNI alcanza.</p>
+        <h1 className="trn-hero__title">Inscribite gratis<br /><em>{fmtShortDate(tournament.tournament_date)}</em></h1>
+        <p className="trn-hero__lead">{tournament.name}. Reservá tu lugar en menos de un minuto. Si ya jugaste antes, tu DNI alcanza.</p>
         <div className="trn-hero__divider" />
         <div className="trn-hero__meta">
           <div className="trn-hero__meta-item"><IconCalendar /> {fmtDateTime(tournament.tournament_date)}</div>
