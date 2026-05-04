@@ -812,7 +812,7 @@ function TournamentsAdmin({ token, toast }) {
               {tournaments.map(t => (
                 <tr key={t.id} style={selected?.id === t.id ? { background: 'rgba(201,168,76,0.1)' } : null}>
                   <td><strong>{t.name}</strong></td>
-                  <td>{new Date(t.tournament_date).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</td>
+                  <td>{new Date(t.tournament_date).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })}</td>
                   <td>
                     <span style={{
                       padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,

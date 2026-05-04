@@ -3,19 +3,23 @@ import { Link } from 'react-router-dom'
 import { getActiveTournament, tournamentLookupDni, tournamentRegister } from '../api/client'
 import './TournamentLanding.css'
 
+const TZ = 'America/Argentina/Buenos_Aires'
+
 const fmtDateTime = iso => {
   if (!iso) return ''
   const d = new Date(iso)
-  const day = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })
-  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })
+  const day = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: TZ })
+  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: TZ })
   return `${day.charAt(0).toUpperCase() + day.slice(1)} · ${time} hs`
 }
 
 const fmtShortDate = iso => {
   if (!iso) return ''
   const d = new Date(iso)
-  const day = d.getDate()
-  const month = d.toLocaleDateString('es-AR', { month: 'long' })
+  // Usar Intl con timeZone para no mezclar getDate (que usa TZ local)
+  const parts = new Intl.DateTimeFormat('es-AR', { day: 'numeric', month: 'long', timeZone: TZ }).formatToParts(d)
+  const day = parts.find(p => p.type === 'day').value
+  const month = parts.find(p => p.type === 'month').value
   return `${day} de ${month.charAt(0).toUpperCase() + month.slice(1)}`
 }
 
@@ -186,10 +190,6 @@ export default function TournamentLanding() {
         <h1 className="trn-hero__title">Inscribite gratis<br /><em>{fmtShortDate(tournament.tournament_date)}</em></h1>
         <p className="trn-hero__lead">{tournament.name}. Reservá tu lugar en menos de un minuto. Si ya jugaste antes, tu DNI alcanza.</p>
         <div className="trn-hero__divider" />
-        <div className="trn-hero__meta">
-          <div className="trn-hero__meta-item"><IconCalendar /> {fmtDateTime(tournament.tournament_date)}</div>
-          {tournament.location && <div className="trn-hero__meta-item"><IconPin /> {tournament.location}</div>}
-        </div>
       </section>
 
       {/* Premios */}
