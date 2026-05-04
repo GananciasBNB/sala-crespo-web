@@ -174,8 +174,9 @@ export default function TournamentLanding() {
       </header>
 
       <section className="trn-hero">
-        <div className="trn-hero__eyebrow">Torneo de Slots</div>
-        <h1 className="trn-hero__title">{tournament.name}</h1>
+        <div className="trn-hero__eyebrow">Inscripción · Torneo de Slots</div>
+        <h1 className="trn-hero__title">Inscribite gratis al<br /><em>{tournament.name}</em></h1>
+        <p className="trn-hero__lead">Reservá tu lugar en menos de un minuto. Si ya jugaste antes, tu DNI alcanza.</p>
         <div className="trn-hero__divider" />
         <div className="trn-hero__meta">
           <div className="trn-hero__meta-item"><IconCalendar /> {fmtDateTime(tournament.tournament_date)}</div>

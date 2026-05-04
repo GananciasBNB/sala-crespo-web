@@ -88,12 +88,25 @@
 }
 .trn-hero__title {
   font-family: var(--font-display);
-  font-size: clamp(34px, 5vw, 54px);
+  font-size: clamp(32px, 4.6vw, 50px);
   font-weight: 900;
-  margin: 0 0 22px;
+  margin: 0 0 14px;
   letter-spacing: -0.02em;
-  line-height: 1.05;
+  line-height: 1.1;
   color: var(--cream);
+}
+.trn-hero__title em {
+  font-style: italic;
+  color: var(--gold);
+  font-weight: 700;
+}
+.trn-hero__lead {
+  font-family: var(--font-body);
+  font-size: clamp(15px, 1.6vw, 18px);
+  color: var(--text2);
+  max-width: 540px;
+  margin: 0 auto 22px;
+  line-height: 1.55;
 }
 .trn-hero__divider {
   width: 80px;
