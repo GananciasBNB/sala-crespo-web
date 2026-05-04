@@ -3007,6 +3007,7 @@ function PromoMode({ onExit }) {
           </div>
         </div>
         <div className="promo__header-actions">
+          <a href={tournament.url} target="_blank" rel="noopener noreferrer" className="promo__tournament-shortcut">🎰 Solo torneo</a>
           <button type="button" className="promo__ig-shortcut" onClick={() => setShowIgQr(true)}>📸 Solo seguir IG</button>
           <button className="promo__exit" onClick={onExit}>✕ Salir</button>
         </div>

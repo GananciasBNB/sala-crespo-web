@@ -2309,6 +2309,26 @@
   background: linear-gradient(135deg, rgba(225, 48, 108, 0.28) 0%, rgba(252, 175, 69, 0.18) 100%);
 }
 
+.promo__tournament-shortcut {
+  background: linear-gradient(135deg, rgba(0, 177, 64, 0.18) 0%, rgba(201, 168, 76, 0.14) 100%);
+  border: 1px solid rgba(201, 168, 76, 0.5);
+  color: var(--wc-text);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+.promo__tournament-shortcut:hover {
+  border-color: #C9A84C;
+  background: linear-gradient(135deg, rgba(0, 177, 64, 0.28) 0%, rgba(201, 168, 76, 0.22) 100%);
+}
+
 /* Body */
 .promo__body {
   flex: 1;
