@@ -4,6 +4,7 @@ import Landing from './pages/Landing'
 import ProdeApp from './pages/ProdeApp'
 import AdminPanel from './pages/AdminPanel'
 import Contacto from './pages/Contacto'
+import TournamentLanding from './pages/TournamentLanding'
 
 const SITE_URL = 'https://www.saladejuegoscrespo.ar'
 
@@ -56,6 +57,16 @@ export default function App() {
             path="/prode"
           />
           <ProdeApp />
+        </>
+      } />
+      <Route path="/torneo" element={
+        <>
+          <PageHead
+            title="Torneo de Slots — Inscripción Gratuita | Sala Crespo"
+            description="Inscribite gratis al próximo Torneo de Slots de Sala Crespo. Premios en tickets promocionales. San Martín 1053, Crespo, Entre Ríos."
+            path="/torneo"
+          />
+          <TournamentLanding />
         </>
       } />
       <Route path="/contacto" element={

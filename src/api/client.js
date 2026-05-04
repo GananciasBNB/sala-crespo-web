@@ -190,6 +190,47 @@ export const adminGetPlayers = (token) =>
 export const getPromoRegistrationsToday = () =>
   api('/api/promo/registrations-today')
 
+// ─── Torneo de Slots ──────────────────────────────────────────────────────────
+export const getActiveTournament = () =>
+  api('/api/tournament/active')
+
+export const tournamentLookupDni = (dni) =>
+  api('/api/tournament/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })
+
+export const tournamentRegister = (data) =>
+  api('/api/tournament/register', { method: 'POST', body: JSON.stringify(data) })
+
+// Admin
+export const adminGetTournaments = (token) =>
+  api('/api/admin/tournaments', { headers: authHeaders(token) })
+
+export const adminCreateTournament = (token, data) =>
+  api('/api/admin/tournaments', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(data) })
+
+export const adminUpdateTournament = (token, id, data) =>
+  api(`/api/admin/tournaments/${id}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(data) })
+
+export const adminDeleteTournament = (token, id) =>
+  api(`/api/admin/tournaments/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
+export const adminGetTournamentRegistrations = (token, id) =>
+  api(`/api/admin/tournaments/${id}/registrations`, { headers: authHeaders(token) })
+
+export const adminSetRegistrationAttended = (token, regId, attended) =>
+  api(`/api/admin/tournaments/registration/${regId}/attended`, {
+    method: 'PATCH', headers: authHeaders(token), body: JSON.stringify({ attended })
+  })
+
+export const adminSetRegistrationPosition = (token, regId, position) =>
+  api(`/api/admin/tournaments/registration/${regId}/position`, {
+    method: 'PATCH', headers: authHeaders(token), body: JSON.stringify({ position })
+  })
+
+export const adminDeleteTournamentRegistration = (token, regId) =>
+  api(`/api/admin/tournaments/registration/${regId}`, {
+    method: 'DELETE', headers: authHeaders(token)
+  })
+
 export const adminGetLeagues = (token) =>
   api('/api/admin/leagues', { headers: authHeaders(token) })
 
