@@ -322,7 +322,8 @@ export default function TournamentLanding() {
         </details>
       )}
 
-      {(step === 'dni' || step === 'success') && (
+      {/* Botón de bases solo si no hay info_html (sino se muestra adentro del details) */}
+      {!tournament.info_html && (step === 'dni' || step === 'success') && (
         <div className="trn-bases-cta">
           <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer">
             <IconDoc /> Bases y condiciones completas
