@@ -61,7 +61,7 @@
 .trn-hero {
   padding: 56px 24px 32px;
   text-align: center;
-  max-width: 760px;
+  max-width: 980px;
   margin: 0 auto;
   width: 100%;
 }
@@ -124,7 +124,7 @@
 
 /* Premios — estilo card del sitio */
 .trn-prizes {
-  max-width: 760px;
+  max-width: 980px;
   margin: 0 auto;
   padding: 0 24px;
   display: grid;
@@ -175,7 +175,7 @@
 .trn-prize--bronze .trn-prize__amount { color: #e09d7a; }
 
 .trn-prizes__total {
-  max-width: 760px;
+  max-width: 980px;
   margin: 18px auto 0;
   padding: 0 24px;
   text-align: center;
@@ -190,7 +190,7 @@
 
 /* Pills informativos */
 .trn-pills {
-  max-width: 760px;
+  max-width: 980px;
   margin: 28px auto 0;
   padding: 0 24px;
   display: flex;
@@ -212,11 +212,11 @@
 }
 .trn-pill svg { width: 14px; height: 14px; color: var(--gold); }
 
-/* Main */
+/* Main — el form se mantiene angosto pero centrado mejor */
 .trn-main {
   flex: 1;
   padding: 36px 24px 24px;
-  max-width: 540px;
+  max-width: 600px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
@@ -492,7 +492,7 @@
 /* Bases / Cómo funciona */
 .trn-bases {
   margin: 40px auto 0;
-  max-width: 760px;
+  max-width: 980px;
   padding: 0 24px;
 }
 .trn-bases__title {
@@ -543,7 +543,7 @@
 /* Info collapsable */
 .trn-info {
   margin: 24px auto 0;
-  max-width: 760px;
+  max-width: 980px;
   background: var(--dark);
   border: 1px solid var(--border);
   border-radius: var(--radius);
