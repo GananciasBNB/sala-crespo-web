@@ -11,17 +11,55 @@ const fmtDateTime = iso => {
   return `${day.charAt(0).toUpperCase() + day.slice(1)} · ${time} hs`
 }
 
+// ─── SVG Icons ─────────────────────────────────────────────
+const IconArrow = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+)
+const IconCalendar = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18"/></svg>
+)
+const IconPin = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+)
+const IconTrophy = () => (
+  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M10 4h12v10a6 6 0 01-12 0V4z"/><path d="M10 9H6a3 3 0 003 3"/><path d="M22 9h4a3 3 0 01-4 3"/><line x1="16" y1="20" x2="16" y2="26"/><rect x="10" y="26" width="12" height="3" rx="1.5"/></svg>
+)
+const IconSlot = () => (
+  <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="7" width="26" height="20" rx="3"/><line x1="12" y1="7" x2="12" y2="27"/><line x1="20" y1="7" x2="20" y2="27"/><circle cx="7.5" cy="17" r="2.5"/><circle cx="16" cy="17" r="2.5"/><circle cx="24.5" cy="17" r="2.5"/><rect x="11" y="3" width="10" height="5" rx="2"/></svg>
+)
+const IconTicket = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7a2 2 0 012-2h14a2 2 0 012 2v3a2 2 0 100 4v3a2 2 0 01-2 2H5a2 2 0 01-2-2v-3a2 2 0 100-4V7z"/><path d="M13 5v2M13 11v2M13 17v2"/></svg>
+)
+const IconClock = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+)
+const IconShield = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l8 4v6c0 5-3.5 9-8 10-4.5-1-8-5-8-10V6l8-4z"/></svg>
+)
+const IconCheck = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-6"/></svg>
+)
+const IconAlert = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
+)
+const IconDoc = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+)
+const IconStar = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+)
+
 const PRIZES = [
-  { medal: '🥇', place: '1° puesto', amount: '$100.000', cls: 'trn-prize--gold' },
-  { medal: '🥈', place: '2° puesto', amount: '$60.000',  cls: 'trn-prize--silver' },
-  { medal: '🥉', place: '3° puesto', amount: '$40.000',  cls: 'trn-prize--bronze' },
+  { medal: <IconStar />, place: '1° puesto', amount: '$100.000', cls: 'trn-prize--gold' },
+  { medal: <IconStar />, place: '2° puesto', amount: '$60.000',  cls: 'trn-prize--silver' },
+  { medal: <IconStar />, place: '3° puesto', amount: '$40.000',  cls: 'trn-prize--bronze' },
 ]
 
 const BASES_CARDS = [
-  { icon: '🎰', title: 'Modalidad', body: 'Rondas eliminatorias en máquinas configuradas para el evento. Avanzás según los créditos finales obtenidos.' },
-  { icon: '🎟️', title: 'Premio en vouchers', body: 'Cada premio se entrega en 4 vouchers, uno por semana. El primero se entrega al finalizar el torneo.' },
-  { icon: '⏰', title: 'Asistencia obligatoria', body: 'Llegá con 30 minutos de anticipación. Quien no se presente en horario queda fuera del torneo.' },
-  { icon: '🔞', title: 'Mayores de 18', body: 'Inscripción gratuita y abierta al público mayor de 18 años. Necesitás presentar DNI el día del evento.' },
+  { Icon: IconSlot,   title: 'Modalidad',         body: 'Rondas eliminatorias en máquinas configuradas para el evento. Avanzás según los créditos finales obtenidos.' },
+  { Icon: IconTicket, title: 'Premio en vouchers', body: 'Cada premio se entrega en 4 vouchers, uno por semana. El primero al finalizar el torneo.' },
+  { Icon: IconClock,  title: 'Asistencia obligatoria', body: 'Llegá con 30 minutos de anticipación. Quien no se presente en horario queda fuera del torneo.' },
+  { Icon: IconShield, title: 'Mayores de 18',     body: 'Inscripción gratuita y abierta al público mayor de 18 años. Necesitás presentar DNI el día del evento.' },
 ]
 
 export default function TournamentLanding() {
@@ -46,7 +84,6 @@ export default function TournamentLanding() {
       .finally(() => setLoading(false))
   }, [])
 
-  // Scroll suave al form cuando se cambia de step
   useEffect(() => {
     if (step !== 'dni') {
       document.querySelector('.trn-main')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -62,14 +99,11 @@ export default function TournamentLanding() {
     try {
       const r = await tournamentLookupDni(dni.trim())
       setLookupResult(r)
-      if (r.alreadyRegistered) {
-        setStep('alreadyRegistered')
-      } else if (r.exists) {
+      if (r.alreadyRegistered) setStep('alreadyRegistered')
+      else if (r.exists) {
         setName(r.name || ''); setTel(r.tel || ''); setEmail(r.email || '')
         setStep('confirm')
-      } else {
-        setStep('newPlayer')
-      }
+      } else setStep('newPlayer')
     } catch (err) { setError(err.message) }
     setSubmitting(false)
   }
@@ -119,14 +153,14 @@ export default function TournamentLanding() {
     return (
       <div className="trn-page">
         <header className="trn-header">
-          <Link to="/" className="trn-header__back" aria-label="Volver">←</Link>
+          <Link to="/" className="trn-header__back" aria-label="Volver"><IconArrow /></Link>
           <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="trn-header__logo" />
         </header>
         <div className="trn-empty">
           <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="trn-empty__logo" />
           <h1>No hay torneo activo</h1>
           <p>Pronto vamos a anunciar el próximo torneo de slots. Seguinos en redes para enterarte primero.</p>
-          <Link to="/" className="trn-btn trn-btn--ghost">← Volver al inicio</Link>
+          <Link to="/" className="trn-btn trn-btn--ghost">Volver al inicio</Link>
         </div>
       </div>
     )
@@ -135,20 +169,21 @@ export default function TournamentLanding() {
   return (
     <div className="trn-page">
       <header className="trn-header">
-        <Link to="/" className="trn-header__back" aria-label="Volver al inicio">←</Link>
+        <Link to="/" className="trn-header__back" aria-label="Volver"><IconArrow /></Link>
         <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="trn-header__logo" />
       </header>
 
       <section className="trn-hero">
-        <div className="trn-hero__eyebrow">🎰 Torneo de Slots</div>
+        <div className="trn-hero__eyebrow">Torneo de Slots</div>
         <h1 className="trn-hero__title">{tournament.name}</h1>
+        <div className="trn-hero__divider" />
         <div className="trn-hero__meta">
-          <div className="trn-hero__meta-item">📅 {fmtDateTime(tournament.tournament_date)}</div>
-          {tournament.location && <div className="trn-hero__meta-item">📍 {tournament.location}</div>}
+          <div className="trn-hero__meta-item"><IconCalendar /> {fmtDateTime(tournament.tournament_date)}</div>
+          {tournament.location && <div className="trn-hero__meta-item"><IconPin /> {tournament.location}</div>}
         </div>
       </section>
 
-      {/* Premios siempre visibles */}
+      {/* Premios */}
       <div className="trn-prizes">
         {PRIZES.map(p => (
           <div key={p.place} className={`trn-prize ${p.cls}`}>
@@ -159,11 +194,13 @@ export default function TournamentLanding() {
         ))}
       </div>
       <div className="trn-prizes__total">
-        💰 Total en premios: <strong>$200.000</strong> en tickets promocionales
+        Total en premios: <strong>$200.000</strong> en tickets promocionales
       </div>
 
-      <div className="trn-cta-bar">
-        ✨ Inscripción gratuita · +18 años · Cupos limitados
+      <div className="trn-pills">
+        <span className="trn-pill"><IconCheck /> Inscripción gratuita</span>
+        <span className="trn-pill"><IconShield /> +18 años</span>
+        <span className="trn-pill"><IconAlert /> Cupos limitados</span>
       </div>
 
       <main className="trn-main">
@@ -183,25 +220,25 @@ export default function TournamentLanding() {
               <input type="checkbox" checked={acceptedTerms} onChange={e => setAcceptedTerms(e.target.checked)} disabled={submitting} />
               <span>Acepto las <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer">bases y condiciones</a> del torneo y autorizo el uso de mi imagen con fines promocionales.</span>
             </label>
-            {error && <div className="trn-error">⚠️ {error}</div>}
+            {error && <div className="trn-error"><IconAlert /> {error}</div>}
             <button type="submit" className="trn-btn trn-btn--primary" disabled={submitting || !dni || !acceptedTerms}>
-              {submitting ? 'Verificando…' : 'Continuar →'}
+              {submitting ? 'Verificando…' : 'Continuar'}
             </button>
           </form>
         )}
 
         {step === 'confirm' && lookupResult && (
           <div className="trn-card">
-            <h2 className="trn-card__title">¡Hola, {lookupResult.name}! 👋</h2>
+            <h2 className="trn-card__title">Hola, {lookupResult.name}</h2>
             <p className="trn-card__sub">Ya tenemos tus datos. Confirmá tu inscripción al torneo:</p>
             <div className="trn-summary">
               <div className="trn-summary__row"><span>Nombre</span><strong>{lookupResult.name}</strong></div>
               {lookupResult.tel && <div className="trn-summary__row"><span>Teléfono</span><strong>{lookupResult.tel}</strong></div>}
               {lookupResult.email && <div className="trn-summary__row"><span>Email</span><strong>{lookupResult.email}</strong></div>}
             </div>
-            {error && <div className="trn-error">⚠️ {error}</div>}
+            {error && <div className="trn-error"><IconAlert /> {error}</div>}
             <button className="trn-btn trn-btn--primary" onClick={handleConfirmExisting} disabled={submitting}>
-              {submitting ? 'Inscribiendo…' : '✓ Confirmar inscripción'}
+              {submitting ? 'Inscribiendo…' : 'Confirmar inscripción'}
             </button>
             <button className="trn-btn trn-btn--ghost" onClick={() => setStep('newPlayer')} disabled={submitting}>
               Mis datos cambiaron, actualizar
@@ -221,24 +258,25 @@ export default function TournamentLanding() {
             <input className="trn-input" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" disabled={submitting} />
             <label className="trn-label">Ciudad</label>
             <input className="trn-input" value={city} onChange={e => setCity(e.target.value)} disabled={submitting} />
-            {error && <div className="trn-error">⚠️ {error}</div>}
+            {error && <div className="trn-error"><IconAlert /> {error}</div>}
             <button type="submit" className="trn-btn trn-btn--primary" disabled={submitting}>
-              {submitting ? 'Inscribiendo…' : '✓ Confirmar inscripción'}
+              {submitting ? 'Inscribiendo…' : 'Confirmar inscripción'}
             </button>
           </form>
         )}
 
         {step === 'success' && result && (
           <div className="trn-card trn-card--success">
-            <div className="trn-success__check">🎉</div>
+            <div className="trn-success__check"><IconCheck /></div>
             <h2 className="trn-card__title">¡Quedaste inscripto!</h2>
             <div className="trn-success__no">N° {result.registrationNo}</div>
             <p className="trn-card__sub">
               Te esperamos el <strong>{fmtDateTime(tournament.tournament_date)}</strong>{tournament.location ? <> en <strong>{tournament.location}</strong></> : null}.
             </p>
-            <p className="trn-success__tip">💡 Llegá <strong>30 minutos antes</strong> para asegurar tu lugar. Es obligatorio presentarse en horario.</p>
+            <p className="trn-success__tip">Llegá <strong>30 minutos antes</strong> para asegurar tu lugar. Es obligatorio presentarse en horario.</p>
             <div className="trn-success__share">
-              📲 <strong>Compartí con un amigo:</strong> {window.location.origin}/torneo
+              <strong>Compartí con un amigo:</strong>
+              {window.location.origin}/torneo
             </div>
             <Link to="/" className="trn-btn trn-btn--ghost">Volver al inicio</Link>
             <button className="trn-link" onClick={reset}>Inscribir a otra persona</button>
@@ -247,26 +285,25 @@ export default function TournamentLanding() {
 
         {step === 'alreadyRegistered' && (
           <div className="trn-card trn-card--success">
-            <div className="trn-success__check">✅</div>
+            <div className="trn-success__check"><IconCheck /></div>
             <h2 className="trn-card__title">Ya estás inscripto</h2>
             <p className="trn-card__sub">
               Te esperamos el <strong>{fmtDateTime(tournament.tournament_date)}</strong>.
             </p>
-            <p className="trn-success__tip">💡 Llegá <strong>30 minutos antes</strong>. Es obligatorio presentarse en horario.</p>
+            <p className="trn-success__tip">Llegá <strong>30 minutos antes</strong>. Es obligatorio presentarse en horario.</p>
             <Link to="/" className="trn-btn trn-btn--ghost">Volver al inicio</Link>
             <button className="trn-link" onClick={reset}>Inscribir a otra persona</button>
           </div>
         )}
       </main>
 
-      {/* Cómo funciona — siempre visible */}
       {(step === 'dni' || step === 'success') && (
         <section className="trn-bases">
           <div className="trn-bases__title">Cómo funciona</div>
           <div className="trn-bases__grid">
             {BASES_CARDS.map(b => (
               <div key={b.title} className="trn-base-card">
-                <div className="trn-base-card__icon">{b.icon}</div>
+                <div className="trn-base-card__icon"><b.Icon /></div>
                 <div>
                   <div className="trn-base-card__title">{b.title}</div>
                   <div className="trn-base-card__body">{b.body}</div>
@@ -277,33 +314,17 @@ export default function TournamentLanding() {
         </section>
       )}
 
-      {/* Info adicional cargada por admin (HTML libre) */}
       {tournament.info_html && (step === 'dni' || step === 'success') && (
         <details className="trn-info">
-          <summary>📋 Más información del torneo</summary>
+          <summary>Más información del torneo</summary>
           <div className="trn-info__body" dangerouslySetInnerHTML={{ __html: tournament.info_html }} />
         </details>
       )}
 
-      {/* Link a bases completas */}
       {(step === 'dni' || step === 'success') && (
-        <div style={{ textAlign: 'center', padding: '24px 20px 0' }}>
-          <a
-            href="/legal/bases-torneo-slots.html"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: '#C9A84C',
-              textDecoration: 'none',
-              fontSize: 14,
-              fontWeight: 700,
-              padding: '10px 18px',
-              border: '1px solid rgba(201,168,76,0.4)',
-              borderRadius: 999,
-              display: 'inline-block',
-            }}
-          >
-            📜 Leer bases y condiciones completas
+        <div className="trn-bases-cta">
+          <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer">
+            <IconDoc /> Bases y condiciones completas
           </a>
         </div>
       )}
