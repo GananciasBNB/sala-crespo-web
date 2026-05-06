@@ -316,8 +316,8 @@ function DniStep({ dni, setDni, onSubmit, busy, error, inputRef, onInstall, onSh
             <span className="pm-quick__icon">📸</span>
           </div>
           <div className="pm-quick__txt">
-            <strong>Seguinos en Instagram</strong>
-            <small>Mostrá el QR · 1 toque y listo</small>
+            <strong>Seguinos en redes</strong>
+            <small>QR de Instagram y Facebook · 1 toque</small>
           </div>
           <span className="pm-quick__arrow">→</span>
         </button>
@@ -697,8 +697,8 @@ function SuccessStep({ success, onReset, onGoHome, onInstall, onShowIg }) {
         </button>
         <button className="pm-recommend__card" onClick={onShowIg}>
           <span className="pm-recommend__icon">📸</span>
-          <strong>Que siga el Instagram</strong>
-          <small>QR + 1 toque</small>
+          <strong>Que nos siga en redes</strong>
+          <small>QR Instagram y Facebook · 1 toque</small>
         </button>
         <a className="pm-recommend__card" href="https://www.saladejuegoscrespo.ar" target="_blank" rel="noopener noreferrer">
           <span className="pm-recommend__icon">🌐</span>
@@ -723,14 +723,40 @@ function SuccessStep({ success, onReset, onGoHome, onInstall, onShowIg }) {
 // MODALES
 // ═════════════════════════════════════════════════════════════════════════════
 function IgQrModal({ onClose }) {
+  const [network, setNetwork] = useState('ig') // 'ig' | 'fb'
   return (
     <div className="pm-modal" onClick={onClose}>
       <div className="pm-modal__inner" onClick={e => e.stopPropagation()}>
         <button className="pm-modal__close" onClick={onClose}>✕</button>
-        <h2>📸 Seguinos en Instagram</h2>
-        <p className="pm-modal__sub">Escaneá el QR con la cámara de tu celular</p>
-        <img src="/qr-instagram.jpg" alt="QR Instagram" className="pm-qr" />
-        <p className="pm-modal__handle">@salajuegoscrespo</p>
+        <h2>Seguinos en redes</h2>
+        <p className="pm-modal__sub">Mostrale el QR — escanea con la cámara y lo lleva al perfil</p>
+
+        <div className="pm-install-tabs" style={{ marginBottom: 16 }}>
+          <button
+            className={network === 'ig' ? 'pm-install-tab pm-install-tab--on' : 'pm-install-tab'}
+            onClick={() => setNetwork('ig')}
+          >
+            📸 Instagram
+          </button>
+          <button
+            className={network === 'fb' ? 'pm-install-tab pm-install-tab--on' : 'pm-install-tab'}
+            onClick={() => setNetwork('fb')}
+          >
+            📘 Facebook
+          </button>
+        </div>
+
+        {network === 'ig' ? (
+          <>
+            <img src="/qr-instagram.jpg" alt="QR Instagram" className="pm-qr" />
+            <p className="pm-modal__handle">@salajuegoscrespo</p>
+          </>
+        ) : (
+          <>
+            <img src="/qr-facebook.jpg" alt="QR Facebook" className="pm-qr" />
+            <p className="pm-modal__handle">Sala de Juegos Crespo</p>
+          </>
+        )}
       </div>
     </div>
   )
