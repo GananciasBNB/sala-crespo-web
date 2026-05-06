@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
-  adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
+  adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminSearchPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
   adminGetLeagues, adminGetLeagueDetail, adminDeleteLeague,
   adminGetTournaments, adminCreateTournament, adminUpdateTournament, adminDeleteTournament,
   adminGetTournamentRegistrations, adminSetRegistrationAttended, adminSetRegistrationPosition, adminDeleteTournamentRegistration,
@@ -164,6 +164,8 @@ function TodayMatchCard({ match, onSave, onDelete }) {
 function ProdeAdmin({ token, toast }) {
   const [matches, setMatches]   = useState([])
   const [players, setPlayers]   = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null) // null = no buscó | [] = sin matches
   const [matchId, setMatchId]   = useState('')
   const [home, setHome]         = useState('')
   const [away, setAway]         = useState('')
@@ -579,6 +581,72 @@ function ProdeAdmin({ token, toast }) {
                 onClick={() => setInvitingPlayer({ name: '', dni: '', tel: '', email: '', isEmployee: false })}
               >+ Invitar jugador</button>
             </div>
+          </div>
+
+          {/* Buscador global (incluye importados del torneo) */}
+          <div style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: 10, padding: 14, margin: '16px 0' }}>
+            <div style={{ fontSize: 13, color: '#a0a0b0', marginBottom: 8 }}>
+              🔍 Buscar por nombre, email o DNI (incluye importados del torneo, que no aparecen en la lista de abajo)
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input
+                className="ap-input"
+                style={{ flex: 1 }}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Ej: schmidt, brunner, stieben…"
+                onKeyDown={async (e) => {
+                  if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+                    try {
+                      const r = await adminSearchPlayers(token, searchQuery.trim())
+                      setSearchResults(r)
+                    } catch (err) { alert('Error: ' + err.message) }
+                  }
+                }}
+              />
+              <button
+                className="ap-btn ap-btn--primary"
+                disabled={searchQuery.trim().length < 2}
+                onClick={async () => {
+                  try {
+                    const r = await adminSearchPlayers(token, searchQuery.trim())
+                    setSearchResults(r)
+                  } catch (err) { alert('Error: ' + err.message) }
+                }}
+              >Buscar</button>
+              {searchResults && (
+                <button className="ap-btn" onClick={() => { setSearchResults(null); setSearchQuery('') }}>Limpiar</button>
+              )}
+            </div>
+
+            {searchResults && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 12, color: '#a0a0b0', marginBottom: 8 }}>
+                  {searchResults.length === 0 ? 'Sin resultados.' : `${searchResults.length} resultado${searchResults.length === 1 ? '' : 's'}`}
+                </div>
+                {searchResults.map(p => (
+                  <div key={p.id} style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
+                          {p.name}
+                          {p.tournamentOnly && <span style={{ fontSize: 10, background: 'rgba(255,209,102,0.15)', color: '#ffd166', padding: '2px 8px', borderRadius: 999, marginLeft: 8, letterSpacing: 0.5, textTransform: 'uppercase' }}>Importado torneo</span>}
+                          {p.isEmployee && <span style={{ fontSize: 10, background: 'rgba(155,31,31,0.2)', color: '#fca5a5', padding: '2px 8px', borderRadius: 999, marginLeft: 8 }}>Empleado</span>}
+                        </div>
+                        <div style={{ fontSize: 13, color: '#a0a0b0', marginTop: 4 }}>DNI: {p.dni} · Tel: {p.tel || '—'}</div>
+                        <div style={{ fontSize: 13, color: p.email ? '#86efac' : '#fca5a5', marginTop: 4, wordBreak: 'break-all' }}>
+                          📧 {p.email || '(sin email)'}
+                        </div>
+                      </div>
+                      <button
+                        className="ap-btn"
+                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, tel: p.tel || '', email: p.email || '' })}
+                      >Editar</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Modal de invitación */}
