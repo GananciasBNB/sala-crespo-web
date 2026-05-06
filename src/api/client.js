@@ -184,8 +184,8 @@ export const deleteLeague = (token, code) =>
     headers: authHeaders(token),
   })
 
-export const adminGetPlayers = (token) =>
-  api('/api/admin/players', { headers: authHeaders(token) })
+export const adminGetPlayers = (token, include = 'prode') =>
+  api(`/api/admin/players?include=${encodeURIComponent(include)}`, { headers: authHeaders(token) })
 
 export const adminSearchPlayers = (token, q) =>
   api(`/api/admin/players/search?q=${encodeURIComponent(q)}`, { headers: authHeaders(token) })

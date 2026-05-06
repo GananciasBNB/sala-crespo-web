@@ -166,6 +166,7 @@ function ProdeAdmin({ token, toast }) {
   const [players, setPlayers]   = useState([])
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState(null) // null = no buscó | [] = sin matches
+  const [playersFilter, setPlayersFilter] = useState('prode') // 'prode' | 'tournament' | 'all'
   const [matchId, setMatchId]   = useState('')
   const [home, setHome]         = useState('')
   const [away, setAway]         = useState('')
@@ -178,8 +179,12 @@ function ProdeAdmin({ token, toast }) {
 
   useEffect(() => {
     getMatches().then(setMatches).catch(() => {})
-    adminGetPlayers(token).then(setPlayers).catch(() => {})
   }, [token])
+
+  // Recargar players al cambiar el filtro
+  useEffect(() => {
+    adminGetPlayers(token, playersFilter).then(setPlayers).catch(() => {})
+  }, [token, playersFilter])
 
   async function handleSetResult(e) {
     e.preventDefault()
@@ -236,7 +241,7 @@ function ProdeAdmin({ token, toast }) {
     try {
       await adminDeletePlayer(token, id)
       toast.show('Jugador eliminado')
-      adminGetPlayers(token).then(setPlayers)
+      adminGetPlayers(token, playersFilter).then(setPlayers)
     } catch (err) {
       toast.show(err.message, 'err')
     }
@@ -252,7 +257,7 @@ function ProdeAdmin({ token, toast }) {
       })
       toast.show('Jugador actualizado')
       setEditingPlayer(null)
-      adminGetPlayers(token).then(setPlayers)
+      adminGetPlayers(token, playersFilter).then(setPlayers)
     } catch (err) {
       toast.show(err.message, 'err')
     }
@@ -275,7 +280,7 @@ function ProdeAdmin({ token, toast }) {
       })
       setInvitingPlayer(null)
       setInvitedPin({ name: inv.name.trim(), pin: res.pin, isEmployee: !!inv.isEmployee, emailSent: res.emailSent })
-      adminGetPlayers(token).then(setPlayers)
+      adminGetPlayers(token, playersFilter).then(setPlayers)
     } catch (err) {
       toast.show(err.message, 'err')
     }
@@ -289,7 +294,7 @@ function ProdeAdmin({ token, toast }) {
     try {
       await adminTogglePlayerEmployee(token, player.id, next)
       toast.show(`✓ ${player.name} ${next ? 'marcado como empleado' : 'quitado de empleados'}`)
-      adminGetPlayers(token).then(setPlayers)
+      adminGetPlayers(token, playersFilter).then(setPlayers)
     } catch (err) {
       toast.show(err.message, 'err')
     }
@@ -521,7 +526,35 @@ function ProdeAdmin({ token, toast }) {
       {subtab === 'jugadores' && (
         <div className="ap-block">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-            <h3 className="ap-block__title" style={{ margin: 0 }}>Jugadores registrados ({players.length})</h3>
+            <div>
+              <h3 className="ap-block__title" style={{ margin: 0 }}>
+                {playersFilter === 'prode' ? 'Jugadores del Prode' : playersFilter === 'tournament' ? 'Importados del torneo' : 'Toda la base de clientes'}
+                {' '}({players.length})
+              </h3>
+              <div style={{ display: 'inline-flex', gap: 4, marginTop: 8, background: 'rgba(0,0,0,0.3)', padding: 4, borderRadius: 8 }}>
+                {[
+                  { id: 'prode', label: '⚽ Prode' },
+                  { id: 'tournament', label: '🎰 Torneo' },
+                  { id: 'all', label: '👥 Todos' },
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setPlayersFilter(opt.id)}
+                    style={{
+                      padding: '6px 14px',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      border: 'none',
+                      borderRadius: 6,
+                      cursor: 'pointer',
+                      background: playersFilter === opt.id ? 'linear-gradient(90deg, #F0D275, #C41E3A)' : 'transparent',
+                      color: playersFilter === opt.id ? '#0C0606' : '#a0a0b0',
+                      transition: 'all 0.15s',
+                    }}
+                  >{opt.label}</button>
+                ))}
+              </div>
+            </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <button
                 className="ap-btn"
@@ -570,7 +603,7 @@ function ProdeAdmin({ token, toast }) {
                     const result = await r2.json()
                     if (!r2.ok) throw new Error(result.error || `Error ${r2.status}`)
                     alert(`Borrados: ${result.deleted} de ${result.requested}`)
-                    adminGetPlayers(token).then(setPlayers)
+                    adminGetPlayers(token, playersFilter).then(setPlayers)
                   } catch (err) {
                     alert('Error: ' + err.message)
                   }
