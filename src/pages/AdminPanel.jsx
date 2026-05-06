@@ -836,6 +836,329 @@ function ProdeAdmin({ token, toast }) {
   )
 }
 
+// ─── Clientes (base completa) ─────────────────────────────────────────────────
+// Tab principal del panel admin. Default trae TODA la base, con filtros opcionales
+// para acotar a Prode / Torneo / Todos.
+function ClientsAdmin({ token, toast }) {
+  const [players, setPlayers] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState(null)
+  const [playersFilter, setPlayersFilter] = useState('all') // ← default: TODA la base
+  const [editingPlayer, setEditingPlayer] = useState(null)
+  const [invitingPlayer, setInvitingPlayer] = useState(null)
+  const [invitedPin, setInvitedPin] = useState(null)
+
+  useEffect(() => {
+    adminGetPlayers(token, playersFilter).then(setPlayers).catch(() => {})
+  }, [token, playersFilter])
+
+  async function handleDeletePlayer(id) {
+    if (!confirm('¿Eliminar este cliente y sus pronósticos asociados?')) return
+    try {
+      await adminDeletePlayer(token, id)
+      toast.show('Cliente eliminado')
+      adminGetPlayers(token, playersFilter).then(setPlayers)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleEditPlayerSave() {
+    if (!editingPlayer.name.trim()) return toast.show('El nombre no puede estar vacío.', 'err')
+    const dniClean = (editingPlayer.dni || '').trim()
+    if (dniClean && !/^\d{7,8}$/.test(dniClean)) return toast.show('DNI debe ser 7 u 8 dígitos.', 'err')
+    try {
+      await adminEditPlayer(token, editingPlayer.id, {
+        name: editingPlayer.name.trim(),
+        dni: dniClean || null,
+        tel: editingPlayer.tel,
+        email: editingPlayer.email || null,
+      })
+      toast.show('Cliente actualizado')
+      setEditingPlayer(null)
+      adminGetPlayers(token, playersFilter).then(setPlayers)
+      // si hay búsqueda activa, refrescarla también
+      if (searchResults && searchQuery) {
+        adminSearchPlayers(token, searchQuery.trim()).then(setSearchResults).catch(() => {})
+      }
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleInvitePlayerSave() {
+    const inv = invitingPlayer
+    if (!inv) return
+    if (!inv.name?.trim()) return toast.show('Nombre requerido', 'err')
+    if (!/^\d{7,8}$/.test(String(inv.dni || '').trim())) return toast.show('DNI debe tener 7 u 8 dígitos', 'err')
+    if (!/^[\d\s\-\+\(\)]{8,15}$/.test(String(inv.tel || '').trim())) return toast.show('Teléfono inválido', 'err')
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(inv.email || '').trim().toLowerCase())) return toast.show('Email obligatorio (se envía el PIN por mail)', 'err')
+    try {
+      const res = await adminInvitePlayer(token, {
+        name: inv.name.trim(),
+        dni: String(inv.dni).trim(),
+        tel: String(inv.tel).trim(),
+        email: String(inv.email).trim().toLowerCase(),
+        isEmployee: !!inv.isEmployee,
+      })
+      setInvitingPlayer(null)
+      setInvitedPin({ name: inv.name.trim(), pin: res.pin, isEmployee: !!inv.isEmployee, emailSent: res.emailSent })
+      adminGetPlayers(token, playersFilter).then(setPlayers)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleToggleEmployee(player) {
+    const next = !player.isEmployee
+    const verb = next ? 'marcar como empleado' : 'desmarcar como empleado'
+    const ok = confirm(`¿${verb.charAt(0).toUpperCase() + verb.slice(1)} a ${player.name}?\n\n${next ? 'Pasará a la tabla interna y dejará de aparecer en el ranking público.' : 'Volverá a aparecer en el ranking público.'}`)
+    if (!ok) return
+    try {
+      await adminTogglePlayerEmployee(token, player.id, next)
+      toast.show(`✓ ${player.name} ${next ? 'marcado como empleado' : 'quitado de empleados'}`)
+      adminGetPlayers(token, playersFilter).then(setPlayers)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleResetPin(player) {
+    const ok = confirm(`¿Resetear el PIN de ${player.name}?\n\nSe generará un PIN nuevo y se mostrará en pantalla. ${player.email ? 'También se enviará por email.' : 'El cliente no tiene email registrado, anotalo y entregalo en mostrador.'}`)
+    if (!ok) return
+    try {
+      const res = await adminResetPin(token, player.id)
+      const msg = res.emailSent
+        ? `✓ PIN nuevo de ${player.name}: ${res.pin}\n\nTambién se envió por email a ${player.email}.\n\nAnotalo igual por las dudas.`
+        : `✓ PIN nuevo de ${player.name}: ${res.pin}\n\n(El cliente no tiene email — anotalo y entregalo en mostrador)`
+      alert(msg)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  return (
+    <div className="ap-block">
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <h3 className="ap-block__title" style={{ margin: 0 }}>
+            👥 Base de clientes — {playersFilter === 'prode' ? 'Solo Prode' : playersFilter === 'tournament' ? 'Solo importados de torneo' : 'Todos'}
+            {' '}({players.length})
+          </h3>
+          <div style={{ display: 'inline-flex', gap: 4, marginTop: 8, background: 'rgba(0,0,0,0.3)', padding: 4, borderRadius: 8 }}>
+            {[
+              { id: 'all', label: '👥 Todos' },
+              { id: 'prode', label: '⚽ Prode' },
+              { id: 'tournament', label: '🎰 Torneo' },
+            ].map(opt => (
+              <button
+                key={opt.id}
+                onClick={() => setPlayersFilter(opt.id)}
+                style={{
+                  padding: '6px 14px', fontSize: 13, fontWeight: 600, border: 'none',
+                  borderRadius: 6, cursor: 'pointer',
+                  background: playersFilter === opt.id ? 'linear-gradient(90deg, #F0D275, #C41E3A)' : 'transparent',
+                  color: playersFilter === opt.id ? '#0C0606' : '#a0a0b0',
+                  transition: 'all 0.15s',
+                }}
+              >{opt.label}</button>
+            ))}
+          </div>
+        </div>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button
+            className="ap-btn"
+            onClick={async () => {
+              try {
+                const base = import.meta.env.VITE_API_URL || ''
+                const r = await fetch(base + '/api/admin/players/export.csv', { headers: { Authorization: `Bearer ${token}` } })
+                if (!r.ok) throw new Error(`Error ${r.status}`)
+                const blob = await r.blob()
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = `clientes-sala-crespo-${new Date().toISOString().slice(0,10)}.csv`
+                document.body.appendChild(a); a.click(); a.remove()
+                URL.revokeObjectURL(url)
+              } catch (err) { alert('No se pudo exportar: ' + err.message) }
+            }}
+          >↓ Exportar CSV</button>
+          <button
+            className="ap-btn"
+            onClick={async () => {
+              try {
+                const base = import.meta.env.VITE_API_URL || ''
+                const r = await fetch(base + '/api/admin/players/cleanup-test', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ dryRun: true, windowHours: 24 }),
+                })
+                const data = await r.json()
+                if (!r.ok) throw new Error(data.error || `Error ${r.status}`)
+                if (data.count === 0) { alert('No hay registros de prueba para limpiar de las últimas 24h.'); return }
+                const list = data.candidates.map(c => `• ${c.name} (DNI ${c.dni})`).join('\n')
+                if (!confirm(`Se van a borrar ${data.count} registros creados en las últimas 24h:\n\n${list}\n\n¿Confirmás el borrado?`)) return
+                const r2 = await fetch(base + '/api/admin/players/cleanup-test', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ dryRun: false, windowHours: 24 }),
+                })
+                const result = await r2.json()
+                if (!r2.ok) throw new Error(result.error || `Error ${r2.status}`)
+                alert(`Borrados: ${result.deleted} de ${result.requested}`)
+                adminGetPlayers(token, playersFilter).then(setPlayers)
+              } catch (err) { alert('Error: ' + err.message) }
+            }}
+          >🧪 Limpiar pruebas de hoy</button>
+          <button
+            className="ap-btn ap-btn--primary"
+            onClick={() => setInvitingPlayer({ name: '', dni: '', tel: '', email: '', isEmployee: false })}
+          >+ Invitar cliente</button>
+        </div>
+      </div>
+
+      {/* Buscador global */}
+      <div style={{ background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.25)', borderRadius: 10, padding: 14, margin: '16px 0' }}>
+        <div style={{ fontSize: 13, color: '#a0a0b0', marginBottom: 8 }}>
+          🔍 Buscar por nombre, email o DNI (busca en TODA la base)
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <input
+            className="ap-input"
+            style={{ flex: 1 }}
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Ej: schmidt, brunner, gadea, 12345678…"
+            onKeyDown={async (e) => {
+              if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+                try { setSearchResults(await adminSearchPlayers(token, searchQuery.trim())) }
+                catch (err) { alert('Error: ' + err.message) }
+              }
+            }}
+          />
+          <button
+            className="ap-btn ap-btn--primary"
+            disabled={searchQuery.trim().length < 2}
+            onClick={async () => {
+              try { setSearchResults(await adminSearchPlayers(token, searchQuery.trim())) }
+              catch (err) { alert('Error: ' + err.message) }
+            }}
+          >Buscar</button>
+          {searchResults && (
+            <button className="ap-btn" onClick={() => { setSearchResults(null); setSearchQuery('') }}>Limpiar</button>
+          )}
+        </div>
+
+        {searchResults && (
+          <div style={{ marginTop: 12 }}>
+            <div style={{ fontSize: 12, color: '#a0a0b0', marginBottom: 8 }}>
+              {searchResults.length === 0 ? 'Sin resultados.' : `${searchResults.length} resultado${searchResults.length === 1 ? '' : 's'}`}
+            </div>
+            {searchResults.map(p => (
+              <div key={p.id} style={{ background: 'rgba(0,0,0,0.3)', borderRadius: 8, padding: 12, marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
+                      {p.name}
+                      {p.tournamentOnly && <span style={{ fontSize: 10, background: 'rgba(255,209,102,0.15)', color: '#ffd166', padding: '2px 8px', borderRadius: 999, marginLeft: 8, letterSpacing: 0.5, textTransform: 'uppercase' }}>Importado torneo</span>}
+                      {p.isEmployee && <span style={{ fontSize: 10, background: 'rgba(155,31,31,0.2)', color: '#fca5a5', padding: '2px 8px', borderRadius: 999, marginLeft: 8 }}>Empleado</span>}
+                    </div>
+                    <div style={{ fontSize: 13, color: '#a0a0b0', marginTop: 4 }}>DNI: {p.dni} · Tel: {p.tel || '—'}</div>
+                    <div style={{ fontSize: 13, color: p.email ? '#86efac' : '#fca5a5', marginTop: 4, wordBreak: 'break-all' }}>
+                      📧 {p.email || '(sin email)'}
+                    </div>
+                  </div>
+                  <button
+                    className="ap-btn"
+                    onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}
+                  >Editar</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Modal de invitación */}
+      {invitingPlayer && (
+        <div className="ap-edit-modal">
+          <h4 className="ap-edit-modal__title">Invitar cliente</h4>
+          <p style={{ color: 'var(--ap-muted)', fontSize: 13, marginTop: 0 }}>Se generará un PIN de 4 dígitos y se enviará por email.</p>
+          <label className="ap-label">Nombre completo</label>
+          <input className="ap-input" value={invitingPlayer.name} onChange={e => setInvitingPlayer(p => ({ ...p, name: e.target.value }))} placeholder="Ej: Juan Pérez" autoFocus />
+          <label className="ap-label">DNI (7 u 8 dígitos, sin puntos)</label>
+          <input className="ap-input" type="tel" inputMode="numeric" maxLength={8} value={invitingPlayer.dni} onChange={e => setInvitingPlayer(p => ({ ...p, dni: e.target.value.replace(/\D/g, '') }))} placeholder="Ej: 35123456" />
+          <label className="ap-label">Teléfono</label>
+          <input className="ap-input" value={invitingPlayer.tel} onChange={e => setInvitingPlayer(p => ({ ...p, tel: e.target.value }))} placeholder="Ej: 3435 123456" />
+          <label className="ap-label">Email (obligatorio para invitación)</label>
+          <input className="ap-input" type="email" value={invitingPlayer.email} onChange={e => setInvitingPlayer(p => ({ ...p, email: e.target.value }))} placeholder="ejemplo@correo.com" />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12, padding: 12, background: 'rgba(155,31,31,0.1)', border: '1px solid rgba(155,31,31,0.3)', borderRadius: 8, cursor: 'pointer' }}>
+            <input type="checkbox" checked={!!invitingPlayer.isEmployee} onChange={e => setInvitingPlayer(p => ({ ...p, isEmployee: e.target.checked }))} style={{ width: 18, height: 18, cursor: 'pointer' }} />
+            <span style={{ fontSize: 14, color: '#E8EDF5' }}>🏢 <strong>Es empleado de Electric Line SRL</strong></span>
+          </label>
+          <div className="ap-edit-modal__btns">
+            <button className="ap-btn ap-btn--primary" onClick={handleInvitePlayerSave}>Generar PIN y enviar email</button>
+            <button className="ap-btn" onClick={() => setInvitingPlayer(null)}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      {invitedPin && (
+        <div className="ap-edit-modal" style={{ borderColor: '#C9A84C' }}>
+          <h4 className="ap-edit-modal__title" style={{ color: '#F0D275' }}>✓ Invitación enviada a {invitedPin.name}</h4>
+          <p style={{ color: 'var(--ap-muted)', fontSize: 14 }}>{invitedPin.emailSent ? 'Se envió un email con el PIN.' : 'No se pudo enviar el email — anotá el PIN.'}</p>
+          <div style={{ background: '#0a0d12', border: '2px solid #C9A84C', borderRadius: 12, padding: 24, textAlign: 'center', margin: '16px 0' }}>
+            <div style={{ fontSize: 11, color: '#C9A84C', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 }}>PIN generado</div>
+            <div style={{ fontFamily: 'Courier New, monospace', fontSize: 48, color: '#F0D275', letterSpacing: 16, fontWeight: 'bold' }}>{invitedPin.pin}</div>
+          </div>
+          <div className="ap-edit-modal__btns">
+            <button className="ap-btn ap-btn--primary" onClick={() => setInvitedPin(null)}>Cerrar</button>
+          </div>
+        </div>
+      )}
+
+      {editingPlayer && (
+        <div className="ap-edit-modal">
+          <h4 className="ap-edit-modal__title">Editar cliente</h4>
+          <label className="ap-label">Nombre</label>
+          <input className="ap-input" value={editingPlayer.name} onChange={e => setEditingPlayer(p => ({ ...p, name: e.target.value }))} />
+          <label className="ap-label">DNI (7 u 8 dígitos)</label>
+          <input className="ap-input" type="tel" inputMode="numeric" maxLength={8} value={editingPlayer.dni || ''} onChange={e => setEditingPlayer(p => ({ ...p, dni: e.target.value.replace(/\D/g, '') }))} placeholder="35123456" />
+          <label className="ap-label">Teléfono</label>
+          <input className="ap-input" value={editingPlayer.tel || ''} onChange={e => setEditingPlayer(p => ({ ...p, tel: e.target.value }))} placeholder="Ej: 3435 123456" />
+          <label className="ap-label">Email (opcional)</label>
+          <input className="ap-input" type="email" value={editingPlayer.email || ''} onChange={e => setEditingPlayer(p => ({ ...p, email: e.target.value }))} placeholder="ejemplo@correo.com" />
+          <div className="ap-edit-modal__btns">
+            <button className="ap-btn ap-btn--primary" onClick={handleEditPlayerSave}>Guardar</button>
+            <button className="ap-btn" onClick={() => setEditingPlayer(null)}>Cancelar</button>
+          </div>
+        </div>
+      )}
+
+      <div className="ap-table-wrap">
+        <table className="ap-table">
+          <thead>
+            <tr><th>Nombre</th><th>DNI</th><th>Teléfono</th><th>Email</th><th>Registrado</th><th></th></tr>
+          </thead>
+          <tbody>
+            {players.map(p => (
+              <tr key={p.id}>
+                <td>
+                  {p.name}
+                  {p.isEmployee && <span title="Empleado interno" style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', background: 'rgba(155,31,31,0.2)', border: '1px solid rgba(155,31,31,0.5)', color: '#FF8888', borderRadius: 4, letterSpacing: 0.5 }}>🏢 INTERNO</span>}
+                  {p.tournamentOnly && <span title="Importado del torneo" style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', background: 'rgba(255,209,102,0.15)', border: '1px solid rgba(255,209,102,0.4)', color: '#FFD166', borderRadius: 4, letterSpacing: 0.5 }}>📋 IMPORTADO</span>}
+                </td>
+                <td><code className="ap-code">{p.dni}</code></td>
+                <td>{p.tel || '—'}</td>
+                <td>{p.email ? <span title={p.email}>{p.email.length > 22 ? p.email.slice(0,20) + '…' : p.email}</span> : <span className="ap-muted">—</span>}</td>
+                <td>{new Date(p.createdAt).toLocaleDateString('es-AR')}</td>
+                <td className="ap-table__actions">
+                  <button className="ap-btn ap-btn--sm" onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}>Editar</button>
+                  {!p.tournamentOnly && (
+                    <button className="ap-btn ap-btn--sm" onClick={() => handleResetPin(p)} title="Generar PIN nuevo">🔑 Reset PIN</button>
+                  )}
+                  <button className="ap-btn ap-btn--sm" onClick={() => handleToggleEmployee(p)} title={p.isEmployee ? 'Quitar como empleado' : 'Marcar como empleado'}>{p.isEmployee ? '👤 Quitar empleado' : '🏢 Marcar empleado'}</button>
+                  <button className="ap-btn ap-btn--danger ap-btn--sm" onClick={() => handleDeletePlayer(p.id)}>Eliminar</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
+}
+
 // ─── Torneos de Slots Management ──────────────────────────────────────────────
 function TournamentsAdmin({ token, toast }) {
   const [tournaments, setTournaments] = useState([])
@@ -2686,11 +3009,12 @@ export default function AdminPanel() {
   }
 
   const TABS = [
-    { id: 'dash',     label: '🏠 Dashboard' },
-    { id: 'prode',    label: '⚽ Prode' },
-    { id: 'torneos',  label: '🎰 Torneo Slots' },
+    { id: 'dash',      label: '🏠 Dashboard' },
+    { id: 'clientes',  label: '👥 Clientes' },
+    { id: 'prode',     label: '⚽ Prode' },
+    { id: 'torneos',   label: '🎰 Torneo Slots' },
     ...(admin?.role === 'superadmin' ? [{ id: 'premios', label: '💰 Premios' }] : []),
-    { id: 'shows',    label: '🎤 Shows' },
+    { id: 'shows',     label: '🎤 Shows' },
     { id: 'contenido', label: '📝 Contenido' },
     ...(admin?.role === 'superadmin' ? [{ id: 'email',  label: '📧 Email' }] : []),
     ...(admin?.role === 'superadmin' ? [{ id: 'admins', label: '👤 Admins' }] : []),
@@ -2741,6 +3065,7 @@ export default function AdminPanel() {
       {/* Content */}
       <main className="ap-main">
         {tab === 'dash'      && <Dashboard      token={token} admin={admin} onNavigate={setTab} />}
+        {tab === 'clientes'  && <ClientsAdmin   token={token} toast={toast} />}
         {tab === 'prode'     && <ProdeAdmin    token={token} toast={toast} />}
         {tab === 'torneos'   && <TournamentsAdmin token={token} toast={toast} />}
         {tab === 'premios'   && <PrizesAdmin   token={token} toast={toast} />}
