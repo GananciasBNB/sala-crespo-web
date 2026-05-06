@@ -186,4 +186,28 @@
 .torneos__next { font-size: 17px; color: var(--cream); }
 .torneos__next strong { color: var(--gold); }
 .torneos__sub { font-size: 14px; color: var(--text3); margin-bottom: 8px; }
+
+/* CTA cuando hay torneo activo: botón grande + links secundarios */
+.torneos__btn-inscribite {
+  font-size: 17px;
+  padding: 16px 36px;
+  letter-spacing: .3px;
+}
+.torneos__cta-secondary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.torneos__bases-link {
+  color: var(--text3);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color .15s ease;
+}
+.torneos__bases-link:hover { color: var(--gold); text-decoration: underline; }
+.torneos__cta-sep { color: var(--text3); opacity: .5; }
+
 @media (max-width: 700px) { .torneos__cards { grid-template-columns: 1fr; max-width: 100%; } }

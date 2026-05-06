@@ -306,3 +306,42 @@ export const adminCreateAdmin = (token, data) =>
 
 export const adminDeleteAdmin = (token, id) =>
   api(`/api/admin/admins/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
+// ─── Email blast (admin) ──────────────────────────────────────────────────────
+export const adminEmailBlast = (token, body) =>
+  api('/api/admin/email/blast', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+
+export const adminEmailPreview = (token, body) =>
+  api('/api/admin/email/preview', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+
+export const adminEmailDefaults = (token) =>
+  api('/api/admin/email/defaults', { headers: authHeaders(token) })
+
+export const adminEmailCampaigns = (token, limit = 50) =>
+  api(`/api/admin/email/campaigns?limit=${limit}`, { headers: authHeaders(token) })
+
+export const adminEmailCampaignDetail = (token, id) =>
+  api(`/api/admin/email/campaigns/${id}`, { headers: authHeaders(token) })
+
+export const adminPlayerEmailHistory = (token, playerId) =>
+  api(`/api/admin/email/player-history/${encodeURIComponent(playerId)}`, { headers: authHeaders(token) })
+
+// ─── Promo (modo promotora — público con rate-limit) ──────────────────────────
+export const promoLookupDni = (dni) =>
+  api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })
+
+export const promoInscribeProde = (data) =>
+  api('/api/promo/inscribe-prode', { method: 'POST', body: JSON.stringify(data) })
+
+export const promoInscribeTournament = (data) =>
+  api('/api/promo/inscribe-tournament', { method: 'POST', body: JSON.stringify(data) })
+
+export const promoUpdateContact = (data) =>
+  api('/api/promo/update-contact', { method: 'POST', body: JSON.stringify(data) })
+
+// ─── Dashboard stats (admin) ──────────────────────────────────────────────────
+export const adminDashboardStats = (token) =>
+  api('/api/admin/dashboard/stats', { headers: authHeaders(token) })
+
+export const adminAnalyticsSnapshot = (token) =>
+  api('/api/admin/analytics/snapshot', { headers: authHeaders(token) })

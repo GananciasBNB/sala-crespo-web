@@ -9,8 +9,8 @@ const fmtDateTime = iso => {
   if (!iso) return ''
   const d = new Date(iso)
   const day = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: TZ })
-  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: TZ })
-  return `${day.charAt(0).toUpperCase() + day.slice(1)} · ${time} hs`
+  const time = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ })
+  return `${day.charAt(0).toUpperCase() + day.slice(1)} · ${time} horas`
 }
 
 const fmtShortDate = iso => {
@@ -88,6 +88,7 @@ export default function TournamentLanding() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [result, setResult] = useState(null)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     getActiveTournament()
@@ -114,7 +115,10 @@ export default function TournamentLanding() {
       if (r.alreadyRegistered) setStep('alreadyRegistered')
       else if (r.exists) {
         setName(r.name || ''); setTel(r.tel || ''); setEmail(r.email || '')
-        setStep('confirm')
+        // Si el player existe pero no tiene telefono cargado, lo mandamos al form completo
+        // para que lo agregue antes de confirmar.
+        if (!r.tel || String(r.tel).trim().length < 6) setStep('newPlayer')
+        else setStep('confirm')
       } else setStep('newPlayer')
     } catch (err) { setError(err.message) }
     setSubmitting(false)
@@ -283,10 +287,44 @@ export default function TournamentLanding() {
               Te esperamos el <strong>{fmtDateTime(tournament.tournament_date)}</strong>{tournament.location ? <> en <strong>{tournament.location}</strong></> : null}.
             </p>
             <p className="trn-success__tip">Llegá <strong>30 minutos antes</strong> para asegurar tu lugar. Es obligatorio presentarse en horario.</p>
-            <div className="trn-success__share">
-              <strong>Compartí con un amigo:</strong>
-              {window.location.origin}/torneo
-            </div>
+            {(() => {
+              const url   = `${window.location.origin}/torneo`
+              const text  = `Me anoté al ${tournament.name} en Sala de Juegos Crespo. Inscribite gratis acá:`
+              const wa    = `https://wa.me/?text=${encodeURIComponent(text + ' ' + url)}`
+              const fb    = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
+              const ig    = 'https://www.instagram.com/salajuegoscrespo/'
+              const copyLink = async () => {
+                try {
+                  await navigator.clipboard.writeText(url)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 1800)
+                } catch { /* fallback silencioso */ }
+              }
+              return (
+                <div className="trn-share">
+                  <div className="trn-share__title">Compartí con tus amigos</div>
+                  <div className="trn-share__buttons">
+                    <a className="trn-share-btn trn-share-btn--wa"  href={wa} target="_blank" rel="noopener noreferrer" aria-label="Compartir por WhatsApp">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11 11 0 003.6 17.7L2 22l4.4-1.5A11 11 0 1020.5 3.5zM12 20a8 8 0 01-4.1-1.1l-.3-.2-2.6.9.9-2.6-.2-.3A8 8 0 1112 20zm4.6-6c-.3-.1-1.6-.8-1.8-.9s-.4-.1-.6.1c-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.8-2c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-1 2.4s1 2.8 1.1 3c.1.2 2 3 4.7 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.6-.7 1.9-1.3.2-.6.2-1.2.2-1.3-.1-.1-.3-.2-.6-.3z"/></svg>
+                      WhatsApp
+                    </a>
+                    <a className="trn-share-btn trn-share-btn--fb" href={fb} target="_blank" rel="noopener noreferrer" aria-label="Compartir en Facebook">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.3v7A10 10 0 0022 12z"/></svg>
+                      Facebook
+                    </a>
+                    <a className="trn-share-btn trn-share-btn--ig" href={ig} target="_blank" rel="noopener noreferrer" aria-label="Seguir en Instagram">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+                      Instagram
+                    </a>
+                    <button type="button" className="trn-share-btn trn-share-btn--copy" onClick={copyLink} aria-label="Copiar link">
+                      {copied
+                        ? <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12l5 5 9-11"/></svg>Copiado</>
+                        : <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 012-2h10"/></svg>Copiar link</>}
+                    </button>
+                  </div>
+                </div>
+              )
+            })()}
             <Link to="/" className="trn-btn trn-btn--ghost">Volver al inicio</Link>
             <button className="trn-link" onClick={reset}>Inscribir a otra persona</button>
           </div>
@@ -336,7 +374,7 @@ export default function TournamentLanding() {
           <span className="trn-footer__18">+18</span>
           <div>
             <strong>Solo mayores de 18 años.</strong> Si sentís que el juego dejó de ser un entretenimiento, pedí ayuda.<br />
-            <a href="https://www.iafas.gob.ar/juego-responsable" target="_blank" rel="noopener noreferrer">IAFAS — Juego Responsable</a> · <a href="tel:0800-444-4000">0800-444-4000</a>
+            <a href="https://www.iafas.gov.ar/juego-responsable" target="_blank" rel="noopener noreferrer">IAFAS — Juego Responsable</a> · <a href="tel:0800-44-42327">0800-44-42327</a>
           </div>
         </div>
         <div className="trn-footer__legal">

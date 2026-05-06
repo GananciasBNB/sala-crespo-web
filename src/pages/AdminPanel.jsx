@@ -10,6 +10,9 @@ import {
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
   adminGetPrizes, adminGetPrizesSummary, adminGeneratePrizes, adminRedeemPrize, adminRevokePrize,
+  adminEmailBlast, adminEmailPreview, adminEmailDefaults,
+  adminEmailCampaigns, adminEmailCampaignDetail,
+  adminDashboardStats, adminAnalyticsSnapshot,
 } from '../api/client'
 import './AdminPanel.css'
 
@@ -98,8 +101,8 @@ function TodayMatchCard({ match, onSave, onDelete }) {
 
   const dt = new Date(match.date)
   const timeStr = dt.toLocaleTimeString('es-AR', {
-    hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires'
-  }) + ' hs'
+    hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Argentina/Buenos_Aires'
+  }) + ' horas'
   const hasResult = !!match.result
 
   async function handleSave() {
@@ -345,7 +348,6 @@ function ProdeAdmin({ token, toast }) {
           { id: 'equipos',    label: 'Equipos' },
           { id: 'jugadores',  label: 'Jugadores' },
           { id: 'ligas',      label: 'Mini-ligas' },
-          { id: 'torneos',    label: 'Torneos Slots' },
         ].map(s => (
           <button
             key={s.id}
@@ -375,9 +377,9 @@ function ProdeAdmin({ token, toast }) {
                   })}
                   {' · '}
                   {new Date(upcomingMatches[0].date).toLocaleTimeString('es-AR', {
-                    hour: '2-digit', minute: '2-digit',
+                    hour: '2-digit', minute: '2-digit', hour12: false,
                     timeZone: 'America/Argentina/Buenos_Aires'
-                  })} hs
+                  })} horas
                 </p>
               )}
             </div>
@@ -683,7 +685,6 @@ function ProdeAdmin({ token, toast }) {
       )}
 
       {subtab === 'ligas' && <LeaguesAdmin token={token} toast={toast} />}
-      {subtab === 'torneos' && <TournamentsAdmin token={token} toast={toast} />}
     </div>
   )
 }
@@ -812,7 +813,7 @@ function TournamentsAdmin({ token, toast }) {
               {tournaments.map(t => (
                 <tr key={t.id} style={selected?.id === t.id ? { background: 'rgba(201,168,76,0.1)' } : null}>
                   <td><strong>{t.name}</strong></td>
-                  <td>{new Date(t.tournament_date).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' })}</td>
+                  <td>{new Date(t.tournament_date).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Argentina/Buenos_Aires' })}</td>
                   <td>
                     <span style={{
                       padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
@@ -1827,6 +1828,679 @@ function PrizesAdmin({ token, toast }) {
   )
 }
 
+// ─── Dashboard (home) ─────────────────────────────────────────────────────────
+function Dashboard({ token, admin, onNavigate }) {
+  const [stats, setStats] = useState(null)
+  const [ga, setGA]       = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let mounted = true
+    Promise.all([
+      adminDashboardStats(token).catch(() => null),
+      adminAnalyticsSnapshot(token).catch(() => null),
+    ]).then(([s, g]) => {
+      if (!mounted) return
+      setStats(s); setGA(g)
+    }).finally(() => { if (mounted) setLoading(false) })
+    return () => { mounted = false }
+  }, [token])
+
+  const greet = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Buenos días'
+    if (h < 19) return 'Buenas tardes'
+    return 'Buenas noches'
+  })()
+  const firstName = (admin?.email || 'admin').split('@')[0].split('.')[0]
+  const niceName = firstName.charAt(0).toUpperCase() + firstName.slice(1)
+
+  function trend(now, prev) {
+    if (prev === 0 && now === 0) return { kind: 'flat', label: '—' }
+    if (prev === 0) return { kind: 'up', label: `+${now}` }
+    const diff = now - prev
+    if (diff === 0) return { kind: 'flat', label: '=' }
+    return { kind: diff > 0 ? 'up' : 'down', label: (diff > 0 ? '+' : '') + diff }
+  }
+
+  return (
+    <div className="ap-dash">
+      <div className="ap-dash__hero">
+        <div className="ap-dash__greeting">{greet}, {niceName}</div>
+        <h1 className="ap-dash__title">Panel de Sala Crespo</h1>
+        <p className="ap-dash__subtitle">{loading ? 'Cargando datos…' : 'Esto es lo que está pasando hoy.'}</p>
+      </div>
+
+      {/* KPIs */}
+      <div className="ap-kpi-grid">
+        {/* Inscriptos Prode hoy */}
+        <div className="ap-kpi" onClick={() => onNavigate('prode')}>
+          <div className="ap-kpi__icon">⚽</div>
+          <div className="ap-kpi__label">Prode · inscriptos hoy</div>
+          <div>
+            <span className="ap-kpi__value">{stats?.prode?.registeredToday ?? '—'}</span>
+            {stats && (() => {
+              const t = trend(stats.prode.registeredToday, stats.prode.registeredYesterday)
+              return <span className={`ap-kpi__trend ap-kpi__trend--${t.kind}`}>{t.label}</span>
+            })()}
+          </div>
+          <p className="ap-kpi__sub">{stats?.prode?.total ?? 0} totales · {stats?.prode?.active ?? 0} con predicciones</p>
+        </div>
+
+        {/* Torneo activo */}
+        <div className="ap-kpi" onClick={() => onNavigate('torneos')}>
+          <div className="ap-kpi__icon">🎰</div>
+          <div className="ap-kpi__label">{stats?.tournament ? 'Torneo · faltan' : 'Torneo'}</div>
+          <div>
+            {stats?.tournament ? (
+              <>
+                <span className="ap-kpi__value">{stats.tournament.daysRemaining}</span>
+                <span className="ap-kpi__trend ap-kpi__trend--flat">días</span>
+              </>
+            ) : (
+              <span className="ap-kpi__value ap-kpi__value--small">Sin torneo activo</span>
+            )}
+          </div>
+          <p className="ap-kpi__sub">
+            {stats?.tournament
+              ? `${stats.tournament.registered} inscriptos · ${stats.tournament.registeredToday} hoy`
+              : 'Crear un torneo desde la pestaña Torneo Slots'}
+          </p>
+        </div>
+
+        {/* Players activos del Prode */}
+        <div className="ap-kpi" onClick={() => onNavigate('prode')}>
+          <div className="ap-kpi__icon">🎯</div>
+          <div className="ap-kpi__label">Predicciones cargadas</div>
+          <div>
+            <span className="ap-kpi__value">{stats?.prode?.active ?? '—'}</span>
+            {stats && stats.prode.total > 0 && (
+              <span className="ap-kpi__trend ap-kpi__trend--flat">
+                {Math.round((stats.prode.active / stats.prode.total) * 100)}%
+              </span>
+            )}
+          </div>
+          <p className="ap-kpi__sub">jugadores que ya predijeron al menos 1 partido</p>
+        </div>
+
+        {/* Optouts marketing */}
+        <div className="ap-kpi" onClick={() => admin?.role === 'superadmin' && onNavigate('email')}>
+          <div className="ap-kpi__icon">📧</div>
+          <div className="ap-kpi__label">Bajas marketing</div>
+          <div>
+            <span className="ap-kpi__value ap-kpi__value--small">{stats?.marketing?.optouts ?? '—'}</span>
+          </div>
+          <p className="ap-kpi__sub">contactos que se dieron de baja del email</p>
+        </div>
+      </div>
+
+      {/* Google Analytics */}
+      {ga && ga.ok && (
+        <div>
+          <div className="ap-block__subtitle" style={{margin:'0 0 12px'}}>📈 Tráfico web (Google Analytics)</div>
+          <div className="ap-kpi-grid">
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">👥</div>
+              <div className="ap-kpi__label">Usuarios hoy</div>
+              <div><span className="ap-kpi__value">{ga.users.today}</span></div>
+              <p className="ap-kpi__sub">Visitantes únicos en lo que va del día</p>
+            </div>
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">📅</div>
+              <div className="ap-kpi__label">Últimos 7 días</div>
+              <div><span className="ap-kpi__value">{ga.users.last7}</span></div>
+              <p className="ap-kpi__sub">Usuarios únicos en la semana</p>
+            </div>
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">📊</div>
+              <div className="ap-kpi__label">Últimos 30 días</div>
+              <div><span className="ap-kpi__value">{ga.users.last30}</span></div>
+              <p className="ap-kpi__sub">Usuarios únicos en el mes</p>
+            </div>
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">📄</div>
+              <div className="ap-kpi__label">Top página · 7d</div>
+              <div>
+                <span className="ap-kpi__value ap-kpi__value--small" style={{wordBreak:'break-all', lineHeight:1.2}}>
+                  {ga.topPages?.[0]?.path || '—'}
+                </span>
+              </div>
+              <p className="ap-kpi__sub">{ga.topPages?.[0]?.views || 0} visitas</p>
+            </div>
+          </div>
+
+          {/* Top pages list */}
+          {ga.topPages?.length > 1 && (
+            <div className="ap-block" style={{marginTop:14}}>
+              <div className="ap-block__subtitle">Top 5 páginas (últimos 7 días)</div>
+              <table className="ap-table" style={{marginTop:8}}>
+                <thead>
+                  <tr><th>Página</th><th style={{textAlign:'right'}}>Visitas</th></tr>
+                </thead>
+                <tbody>
+                  {ga.topPages.map(p => (
+                    <tr key={p.path}>
+                      <td><code style={{fontSize:13}}>{p.path}</code></td>
+                      <td style={{textAlign:'right', fontWeight:700, color:'var(--ap-gold)'}}>{p.views}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Top sources */}
+          {ga.topSources?.length > 0 && (
+            <div className="ap-block" style={{marginTop:14}}>
+              <div className="ap-block__subtitle">Fuentes de tráfico (7 días)</div>
+              <table className="ap-table" style={{marginTop:8}}>
+                <thead>
+                  <tr><th>Origen</th><th style={{textAlign:'right'}}>Usuarios</th></tr>
+                </thead>
+                <tbody>
+                  {ga.topSources.map(s => (
+                    <tr key={s.source}>
+                      <td>{s.source}</td>
+                      <td style={{textAlign:'right', fontWeight:700, color:'var(--ap-gold)'}}>{s.users}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {ga && !ga.ok && ga.unavailable && (
+        <div style={{padding:'14px 18px', background:'rgba(255,210,80,.06)', border:'1px solid rgba(201,168,76,.3)', borderRadius:10, fontSize:13, color:'#C9A84C'}}>
+          ⚠️ Google Analytics no disponible: <strong>{ga.reason}</strong>
+        </div>
+      )}
+
+      {/* Quick actions */}
+      <div>
+        <div className="ap-block__subtitle" style={{margin:'0 0 12px'}}>Accesos rápidos</div>
+        <div className="ap-quick-actions">
+          <button className="ap-quick-btn" onClick={() => onNavigate('torneos')}>🎰 Ver inscriptos del torneo</button>
+          <button className="ap-quick-btn" onClick={() => onNavigate('prode')}>⚽ Cargar resultado de partido</button>
+          {admin?.role === 'superadmin' && (
+            <button className="ap-quick-btn" onClick={() => onNavigate('email')}>📧 Mandar email blast</button>
+          )}
+          <button className="ap-quick-btn" onClick={() => onNavigate('contenido')}>📝 Editar contenido del sitio</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Email Blast Admin ────────────────────────────────────────────────────────
+function EmailBlastAdmin({ token, toast }) {
+  const [template, setTemplate] = useState('promo')
+  const [scope, setScope]       = useState('all')
+  const [testEmail, setTestEmail] = useState('urieleprieto@gmail.com')
+  const [defaults, setDefaults] = useState(null)
+  const [customSubject, setCustomSubject] = useState('')
+  const [customIntro,   setCustomIntro]   = useState('')
+  const [previewHtml, setPreviewHtml]     = useState('')
+  const [previewing, setPreviewing]       = useState(false)
+  const [busy, setBusy]         = useState(false)
+  const [lastResult, setLastResult] = useState(null)
+  const [confirmBlast, setConfirmBlast] = useState(false)
+  const [excludeRecent, setExcludeRecent] = useState(false)
+  const [excludeDays, setExcludeDays] = useState(7)
+  const [showHistory, setShowHistory] = useState(false)
+  const [campaigns, setCampaigns] = useState([])
+  const [campaignDetail, setCampaignDetail] = useState(null)
+  // Imagenes custom para template Shows (override de los shows de la base)
+  const [customShows, setCustomShows] = useState([
+    { imageUrl: '', name: '', dateLabel: '' },
+    { imageUrl: '', name: '', dateLabel: '' },
+  ])
+  const [uploadingIdx, setUploadingIdx] = useState(null)
+
+  async function uploadShowImage(file, idx) {
+    if (!file) return
+    setUploadingIdx(idx)
+    try {
+      const reader = new FileReader()
+      reader.onload = async () => {
+        try {
+          const r = await adminUploadImage(token, reader.result, 'sala-crespo/shows-blast')
+          setCustomShows(prev => prev.map((s, i) => i === idx ? { ...s, imageUrl: r.url } : s))
+          toast.show('Imagen subida', 'ok')
+        } catch (err) { toast.show(err.message, 'err') }
+        finally { setUploadingIdx(null) }
+      }
+      reader.readAsDataURL(file)
+    } catch (err) { toast.show(err.message, 'err'); setUploadingIdx(null) }
+  }
+  function updateCustomShow(idx, field, value) {
+    setCustomShows(prev => prev.map((s, i) => i === idx ? { ...s, [field]: value } : s))
+  }
+  function clearCustomShow(idx) {
+    setCustomShows(prev => prev.map((s, i) => i === idx ? { imageUrl: '', name: '', dateLabel: '' } : s))
+  }
+  // Lista filtrada (solo las que tienen imagen) que se manda al backend
+  const customShowsToSend = customShows.filter(s => s.imageUrl)
+
+  const TEMPLATES = [
+    { id: 'promo', title: '🎁 Promo doble (Prode + Torneo)', desc: 'Dos cards: invita al Prode y al torneo activo.', audience: 'Players con email · sin opt-out' },
+    { id: 'prode', title: '⚽ Solo Prode', desc: 'Enfocado al Prode. Premios por fase, sin mencionar torneo.', audience: 'Players con email · sin opt-out' },
+    { id: 'reminder', title: '⏰ Recordatorio T-1 día', desc: 'Mañana es tu torneo, llegá 30 min antes. Solo a inscriptos al torneo activo.', audience: 'Solo inscriptos al torneo activo (con email)' },
+    { id: 'shows',    title: '🎤 Shows del mes', desc: 'Cards visuales con los próximos shows. Trae automáticamente los que están en upcoming.', audience: 'Players con email · sin opt-out' },
+  ]
+  const selected = TEMPLATES.find(t => t.id === template)
+
+  // Cargar defaults al inicio
+  useEffect(() => {
+    adminEmailDefaults(token).then(r => setDefaults(r.defaults)).catch(() => {})
+  }, [token])
+
+  // Cuando cambia template (o se cargan defaults), precargar inputs con los defaults
+  useEffect(() => {
+    if (!defaults) return
+    const d = defaults[template]
+    if (d) { setCustomSubject(d.subject); setCustomIntro(d.intro) }
+  }, [template, defaults])
+
+  // Preview con debounce: cuando cambian subject/intro/template/customShows, regenerar HTML
+  useEffect(() => {
+    if (!customSubject && !customIntro) return
+    const t = setTimeout(async () => {
+      setPreviewing(true)
+      try {
+        const body = { template, customSubject, customIntro }
+        if (template === 'shows' && customShowsToSend.length > 0) body.customShows = customShowsToSend
+        const r = await adminEmailPreview(token, body)
+        setPreviewHtml(r.html || '')
+      } catch (err) {
+        setPreviewHtml(`<p style="color:#c41e3a;padding:20px;">Error: ${err.message}</p>`)
+      } finally { setPreviewing(false) }
+    }, 350)
+    return () => clearTimeout(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [template, customSubject, customIntro, token, customShows.map(s => s.imageUrl + s.name + s.dateLabel).join('|')])
+
+  function resetToDefault() {
+    if (!defaults) return
+    const d = defaults[template]
+    if (d) { setCustomSubject(d.subject); setCustomIntro(d.intro) }
+  }
+
+  async function sendTest() {
+    if (!testEmail || !testEmail.includes('@')) return toast.show('Ingresá un email válido', 'err')
+    setBusy(true); setLastResult(null)
+    try {
+      const body = { template, testEmail, customSubject, customIntro }
+      if (template === 'shows' && customShowsToSend.length > 0) body.customShows = customShowsToSend
+      await adminEmailBlast(token, body)
+      setLastResult({ ok: true, msg: `✅ Test enviado a ${testEmail}. Revisá tu inbox (y carpeta spam por las dudas).` })
+      toast.show(`Test enviado a ${testEmail}`, 'ok')
+    } catch (err) {
+      setLastResult({ ok: false, msg: `❌ ${err.message}` }); toast.show(err.message, 'err')
+    } finally { setBusy(false) }
+  }
+
+  async function dryRun() {
+    setBusy(true); setLastResult(null)
+    try {
+      const body = { template, scope, dryRun: true }
+      if (excludeRecent) body.excludeRecentDays = excludeDays
+      const r = await adminEmailBlast(token, body)
+      const list = r.recipients || r.sample || []
+      const excludedNote = r.excluded ? ` · ${r.excluded} excluidos por haber recibido esta plantilla en los últimos ${excludeDays} días` : ''
+      setLastResult({
+        ok: true,
+        msg: `📋 Se enviaría a ${r.count} destinatarios${excludedNote}:\n\n${list.map(s => `· ${s.name} <${s.email}>`).join('\n')}`,
+      })
+    } catch (err) {
+      setLastResult({ ok: false, msg: `❌ ${err.message}` })
+    } finally { setBusy(false) }
+  }
+
+  async function blast() {
+    setBusy(true); setLastResult(null); setConfirmBlast(false)
+    try {
+      const body = { template, scope, customSubject, customIntro }
+      if (excludeRecent) body.excludeRecentDays = excludeDays
+      if (template === 'shows' && customShowsToSend.length > 0) body.customShows = customShowsToSend
+      const r = await adminEmailBlast(token, body)
+      const excludedNote = r.excluded ? ` · ${r.excluded} excluidos` : ''
+      setLastResult({ ok: true, msg: `✅ Enviado a ${r.sent}/${r.total}. Fallidos: ${r.failed}. Skipped: ${r.skipped}.${excludedNote}` })
+      toast.show(`Enviado a ${r.sent} destinatarios`, 'ok')
+      // refrescar historial si está abierto
+      if (showHistory) loadCampaigns()
+    } catch (err) {
+      setLastResult({ ok: false, msg: `❌ ${err.message}` }); toast.show(err.message, 'err')
+    } finally { setBusy(false) }
+  }
+
+  async function loadCampaigns() {
+    try {
+      const r = await adminEmailCampaigns(token)
+      setCampaigns(r.campaigns || [])
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  async function openCampaignDetail(id) {
+    try {
+      const r = await adminEmailCampaignDetail(token, id)
+      setCampaignDetail(r.campaign)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  useEffect(() => { if (showHistory) loadCampaigns() }, [showHistory])
+
+  const inputStyle = { width:'100%', padding:'10px 14px', borderRadius:8, border:'1px solid var(--ap-border, #2a3142)', background:'rgba(0,0,0,.3)', color:'#fff', fontSize:14, fontFamily:'inherit', boxSizing:'border-box' }
+
+  return (
+    <div className="ap-section">
+      <h2 className="ap-section__title">📧 Email — Blast a la base</h2>
+      <p className="ap-section__sub">Envíos masivos. Editá asunto y mensaje, mirá la preview en vivo, después mandate un test antes de blastear.</p>
+
+      {/* PASO 1: TEMPLATE */}
+      <div className="ap-block">
+        <h3 className="ap-block__title">1. Elegí la plantilla</h3>
+        <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(260px, 1fr))', gap:'12px', margin:'12px 0'}}>
+          {TEMPLATES.map(t => (
+            <button
+              key={t.id} type="button"
+              onClick={() => setTemplate(t.id)}
+              style={{
+                textAlign:'left', padding:'16px', borderRadius:'10px',
+                border: `2px solid ${template === t.id ? '#C9A84C' : '#2a3142'}`,
+                background: template === t.id ? 'rgba(201,168,76,.1)' : 'transparent',
+                color: '#fff', cursor: 'pointer', transition: 'all .15s'
+              }}
+            >
+              <div style={{fontWeight:700, fontSize:14, marginBottom:6}}>{t.title}</div>
+              <div style={{fontSize:13, color:'#8B9BB4', lineHeight:1.45}}>{t.desc}</div>
+              <div style={{fontSize:12, color:'#5BD68F', marginTop:8, fontWeight:600}}>👥 {t.audience}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* PASO 2: EDITAR + PREVIEW */}
+      <div className="ap-block">
+        <h3 className="ap-block__title">2. Editá el contenido y mirá el preview</h3>
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:20, alignItems:'start'}}>
+          {/* Editor */}
+          <div>
+            <label style={{display:'block', fontSize:13, color:'#C9A84C', fontWeight:600, marginBottom:6}}>Asunto del mail</label>
+            <input
+              type="text" value={customSubject}
+              onChange={e => setCustomSubject(e.target.value)}
+              disabled={busy}
+              style={{...inputStyle, marginBottom:14}}
+            />
+            <label style={{display:'block', fontSize:13, color:'#C9A84C', fontWeight:600, marginBottom:6}}>Mensaje de intro (1° párrafo del cuerpo)</label>
+            <textarea
+              value={customIntro}
+              onChange={e => setCustomIntro(e.target.value)}
+              disabled={busy}
+              rows={5}
+              style={{...inputStyle, resize:'vertical', minHeight:100}}
+            />
+            <div style={{marginTop:8, fontSize:12, color:'#8B9BB4', lineHeight:1.5}}>
+              💡 El resto del mail (cards de premios, footer, etc) viene del template y no se edita acá. Las variables <code style={{background:'rgba(0,0,0,.3)', padding:'1px 5px', borderRadius:3}}>{'{tournamentName}'}</code> en el asunto se reemplazan automático.
+            </div>
+            <button
+              type="button"
+              onClick={resetToDefault}
+              disabled={busy}
+              style={{marginTop:10, padding:'6px 12px', fontSize:12, background:'transparent', border:'1px solid #5d6b80', color:'#8B9BB4', borderRadius:6, cursor:'pointer'}}
+            >
+              ↻ Restaurar texto original
+            </button>
+
+            {/* Imágenes custom (solo template Shows) */}
+            {template === 'shows' && (
+              <div style={{marginTop:18, paddingTop:18, borderTop:'1px solid var(--ap-border)'}}>
+                <label style={{display:'block', fontSize:13, color:'#C9A84C', fontWeight:600, marginBottom:6}}>
+                  🖼️ Imágenes custom (opcional, para este envío)
+                </label>
+                <p style={{fontSize:12, color:'#8B9BB4', margin:'0 0 12px', lineHeight:1.5}}>
+                  Si subís imágenes acá, se usan en lugar de los shows de la base. Ideal para flyers que querés enviar UNA vez sin guardar como show.<br/>
+                  Si dejás todo vacío, se usan los shows con tipo "upcoming" cargados en la pestaña Shows.
+                </p>
+                {customShows.map((show, idx) => (
+                  <div key={idx} style={{
+                    marginBottom:12, padding:14, borderRadius:8, border:'1px dashed var(--ap-border-strong)',
+                    background:'rgba(0,0,0,.15)',
+                  }}>
+                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8}}>
+                      <strong style={{fontSize:12, color:'var(--ap-gold)'}}>Imagen {idx + 1}</strong>
+                      {show.imageUrl && (
+                        <button type="button" onClick={() => clearCustomShow(idx)} style={{background:'none', border:'none', color:'#FF7A8A', fontSize:11, cursor:'pointer'}}>✕ Quitar</button>
+                      )}
+                    </div>
+                    {show.imageUrl ? (
+                      <img src={show.imageUrl} alt="" style={{maxWidth:'100%', maxHeight:160, borderRadius:6, marginBottom:10, display:'block'}} />
+                    ) : (
+                      <input
+                        type="file" accept="image/*"
+                        disabled={busy || uploadingIdx === idx}
+                        onChange={e => uploadShowImage(e.target.files?.[0], idx)}
+                        style={{fontSize:12, color:'#C8D2E0', marginBottom:10, display:'block'}}
+                      />
+                    )}
+                    {uploadingIdx === idx && <div style={{fontSize:12, color:'#8B9BB4'}}>Subiendo imagen...</div>}
+                    <input
+                      type="text" placeholder="Nombre del show (ej: 'Noche de Cumbia')"
+                      value={show.name}
+                      onChange={e => updateCustomShow(idx, 'name', e.target.value)}
+                      disabled={busy}
+                      style={{...inputStyle, marginBottom:6, fontSize:13}}
+                    />
+                    <input
+                      type="text" placeholder="Fecha (ej: 'Sábado 17 · 22:30')"
+                      value={show.dateLabel}
+                      onChange={e => updateCustomShow(idx, 'dateLabel', e.target.value)}
+                      disabled={busy}
+                      style={{...inputStyle, fontSize:13}}
+                    />
+                  </div>
+                ))}
+                {customShowsToSend.length > 0 && (
+                  <div style={{fontSize:12, color:'#5BD68F', marginTop:6}}>
+                    ✓ {customShowsToSend.length} imagen(es) custom cargada(s) · se van a usar en este blast
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Preview iframe */}
+          <div>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:6}}>
+              <label style={{fontSize:13, color:'#C9A84C', fontWeight:600}}>Preview del mail</label>
+              {previewing && <span style={{fontSize:12, color:'#8B9BB4'}}>Actualizando...</span>}
+            </div>
+            <div style={{border:'1px solid #2a3142', borderRadius:10, overflow:'hidden', background:'#0a0d12'}}>
+              <iframe
+                title="email preview"
+                srcDoc={previewHtml || '<p style="color:#8B9BB4;padding:30px;font-family:sans-serif;text-align:center;">Cargando preview...</p>'}
+                style={{width:'100%', height:600, border:'none', background:'#0a0d12'}}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PASO 3: TEST */}
+      <div className="ap-block">
+        <h3 className="ap-block__title">3. Probar antes</h3>
+        <div style={{display:'flex', gap:8, alignItems:'center', flexWrap:'wrap'}}>
+          <input
+            type="email" value={testEmail}
+            onChange={e => setTestEmail(e.target.value)}
+            placeholder="urieleprieto@gmail.com" disabled={busy}
+            style={{flex:'1 1 280px', ...inputStyle, width:'auto'}}
+          />
+          <button className="ap-btn ap-btn--primary" onClick={sendTest} disabled={busy} style={{padding:'10px 20px'}}>
+            {busy ? 'Enviando...' : '✉️ Mandarme test'}
+          </button>
+        </div>
+      </div>
+
+      {/* PASO 4: BLAST */}
+      <div className="ap-block">
+        <h3 className="ap-block__title">4. Enviar a todos</h3>
+        {template !== 'reminder' && (
+          <div style={{margin:'0 0 14px', display:'flex', gap:16, fontSize:14, flexWrap:'wrap'}}>
+            <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer'}}>
+              <input type="radio" checked={scope === 'all'} onChange={() => setScope('all')} disabled={busy} />
+              <span>Todos los players con email</span>
+            </label>
+            <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer'}}>
+              <input type="radio" checked={scope === 'tournament'} onChange={() => setScope('tournament')} disabled={busy} />
+              <span>Solo inscriptos al torneo activo</span>
+            </label>
+          </div>
+        )}
+
+        {/* Exclude recent */}
+        <div style={{margin:'0 0 14px', padding:'10px 14px', background:'rgba(0,0,0,.2)', borderRadius:8, fontSize:13}}>
+          <label style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer'}}>
+            <input type="checkbox" checked={excludeRecent} onChange={e => setExcludeRecent(e.target.checked)} disabled={busy} />
+            <span>No mandar a quien ya recibió esta plantilla en los últimos</span>
+            <input
+              type="number" min="1" max="365"
+              value={excludeDays}
+              onChange={e => setExcludeDays(Math.max(1, parseInt(e.target.value, 10) || 7))}
+              disabled={busy || !excludeRecent}
+              style={{width:60, padding:'4px 8px', borderRadius:6, border:'1px solid #2a3142', background:'rgba(0,0,0,.3)', color:'#fff', fontSize:13}}
+            />
+            <span>días</span>
+          </label>
+        </div>
+
+        <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+          <button className="ap-btn" onClick={dryRun} disabled={busy} style={{padding:'10px 20px'}}>
+            👁️ Ver lista (dry run)
+          </button>
+          {!confirmBlast ? (
+            <button className="ap-btn ap-btn--danger" onClick={() => setConfirmBlast(true)} disabled={busy} style={{padding:'10px 20px'}}>
+              📤 Enviar a todos
+            </button>
+          ) : (
+            <>
+              <button className="ap-btn ap-btn--danger" onClick={blast} disabled={busy} style={{padding:'10px 20px', fontWeight:700}}>
+                ⚠️ SÍ, ENVIAR AHORA
+              </button>
+              <button className="ap-btn" onClick={() => setConfirmBlast(false)} disabled={busy} style={{padding:'10px 20px'}}>
+                Cancelar
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+
+      {lastResult && (
+        <div style={{
+          margin:'14px 0', padding:'14px 18px', borderRadius:8,
+          background: lastResult.ok ? 'rgba(0,177,64,.1)' : 'rgba(196,30,58,.1)',
+          border: `1px solid ${lastResult.ok ? 'rgba(0,177,64,.4)' : 'rgba(196,30,58,.4)'}`,
+          color: '#fff', fontSize:13, whiteSpace:'pre-wrap', lineHeight:1.55,
+          maxHeight: 320, overflowY: 'auto',
+        }}>
+          {lastResult.msg}
+        </div>
+      )}
+
+      {/* HISTORIAL DE CAMPAÑAS */}
+      <div className="ap-block" style={{marginTop:24}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+          <h3 className="ap-block__title" style={{margin:0}}>📜 Historial de campañas</h3>
+          <button type="button" className="ap-btn" onClick={() => setShowHistory(s => !s)} style={{padding:'6px 12px', fontSize:12}}>
+            {showHistory ? 'Ocultar' : 'Mostrar'}
+          </button>
+        </div>
+
+        {showHistory && (
+          <>
+            {campaigns.length === 0 ? (
+              <p style={{color:'var(--ap-text-mut)', fontSize:13, margin:'10px 0 0'}}>Todavía no se enviaron campañas.</p>
+            ) : (
+              <table className="ap-table" style={{marginTop:10}}>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Plantilla</th>
+                    <th>Asunto</th>
+                    <th style={{textAlign:'center'}}>Enviados</th>
+                    <th style={{textAlign:'center'}}>Fallidos</th>
+                    <th>Admin</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {campaigns.map(c => (
+                    <tr key={c.id}>
+                      <td style={{whiteSpace:'nowrap'}}>{new Date(c.sent_at).toLocaleString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit', hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'America/Argentina/Buenos_Aires' })}</td>
+                      <td><span style={{padding:'2px 8px', background:'rgba(201,168,76,.15)', color:'var(--ap-gold)', borderRadius:4, fontSize:11, fontWeight:700, letterSpacing:1}}>{c.template.toUpperCase()}</span></td>
+                      <td style={{fontSize:13, maxWidth:280, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{c.subject}</td>
+                      <td style={{textAlign:'center', fontWeight:700, color:'var(--ap-gold)'}}>{c.total_sent}</td>
+                      <td style={{textAlign:'center', color: c.total_failed > 0 ? '#FF7A8A' : 'var(--ap-text-mut)'}}>{c.total_failed}</td>
+                      <td style={{fontSize:12, color:'var(--ap-text-mut)'}}>{(c.sent_by_admin_email || '').split('@')[0]}</td>
+                      <td>
+                        <button type="button" className="ap-btn ap-btn--sm" onClick={() => openCampaignDetail(c.id)}>Ver</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* MODAL detalle de campaña */}
+      {campaignDetail && (
+        <div onClick={() => setCampaignDetail(null)} style={{
+          position:'fixed', inset:0, background:'rgba(0,0,0,.7)', zIndex:1000,
+          display:'flex', alignItems:'center', justifyContent:'center', padding:20,
+        }}>
+          <div onClick={e => e.stopPropagation()} style={{
+            background:'var(--ap-bg-card)', borderRadius:12, padding:24, maxWidth:720, width:'100%',
+            maxHeight:'85vh', overflowY:'auto', border:'1px solid var(--ap-border-strong)',
+          }}>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:14}}>
+              <div>
+                <h3 style={{margin:'0 0 6px', color:'var(--ap-gold-light)', fontFamily:'Playfair Display, serif'}}>{campaignDetail.subject}</h3>
+                <div style={{fontSize:12, color:'var(--ap-text-mut)'}}>
+                  {new Date(campaignDetail.sent_at).toLocaleString('es-AR', { timeZone:'America/Argentina/Buenos_Aires', hour12:false })} · plantilla <strong>{campaignDetail.template}</strong> · {campaignDetail.total_sent}/{campaignDetail.total_recipients} enviados
+                </div>
+              </div>
+              <button type="button" onClick={() => setCampaignDetail(null)} style={{background:'none', border:'none', color:'#fff', fontSize:22, cursor:'pointer'}}>✕</button>
+            </div>
+            <table className="ap-table">
+              <thead>
+                <tr><th>Nombre</th><th>Email</th><th>Estado</th><th>Hora</th></tr>
+              </thead>
+              <tbody>
+                {(campaignDetail.sends || []).map(s => (
+                  <tr key={s.id}>
+                    <td style={{fontSize:13}}>{s.name || '—'}</td>
+                    <td style={{fontSize:12, color:'var(--ap-text-mut)'}}>{s.email}</td>
+                    <td>
+                      <span style={{
+                        padding:'2px 8px', borderRadius:4, fontSize:11, fontWeight:700,
+                        background: s.status === 'sent' ? 'rgba(0,177,64,.15)' : 'rgba(196,30,58,.15)',
+                        color: s.status === 'sent' ? '#5BD68F' : '#FF7A8A',
+                      }}>{s.status}</span>
+                    </td>
+                    <td style={{fontSize:11, color:'var(--ap-text-mut)', whiteSpace:'nowrap'}}>{new Date(s.sent_at).toLocaleTimeString('es-AR', { timeZone:'America/Argentina/Buenos_Aires', hour12:false })}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── AdminPanel (main) ────────────────────────────────────────────────────────
 export default function AdminPanel() {
   const [token, setToken]   = useState(() => localStorage.getItem('admin_token') || '')
@@ -1834,7 +2508,7 @@ export default function AdminPanel() {
     try { return JSON.parse(localStorage.getItem('admin_info') || 'null') } catch { return null }
   })
   const [verified, setVerified] = useState(false)
-  const [tab, setTab]           = useState('prode')
+  const [tab, setTab]           = useState('dash')
   const toast = useToast()
 
   useEffect(() => {
@@ -1865,10 +2539,13 @@ export default function AdminPanel() {
   }
 
   const TABS = [
+    { id: 'dash',     label: '🏠 Dashboard' },
     { id: 'prode',    label: '⚽ Prode' },
+    { id: 'torneos',  label: '🎰 Torneo Slots' },
     ...(admin?.role === 'superadmin' ? [{ id: 'premios', label: '💰 Premios' }] : []),
     { id: 'shows',    label: '🎤 Shows' },
     { id: 'contenido', label: '📝 Contenido' },
+    ...(admin?.role === 'superadmin' ? [{ id: 'email',  label: '📧 Email' }] : []),
     ...(admin?.role === 'superadmin' ? [{ id: 'admins', label: '👤 Admins' }] : []),
   ]
 
@@ -1916,10 +2593,13 @@ export default function AdminPanel() {
 
       {/* Content */}
       <main className="ap-main">
+        {tab === 'dash'      && <Dashboard      token={token} admin={admin} onNavigate={setTab} />}
         {tab === 'prode'     && <ProdeAdmin    token={token} toast={toast} />}
+        {tab === 'torneos'   && <TournamentsAdmin token={token} toast={toast} />}
         {tab === 'premios'   && <PrizesAdmin   token={token} toast={toast} />}
         {tab === 'shows'     && <ShowsAdmin    token={token} toast={toast} />}
         {tab === 'contenido' && <ContentAdmin  token={token} toast={toast} />}
+        {tab === 'email'     && <EmailBlastAdmin token={token} toast={toast} />}
         {tab === 'admins'    && <AdminsAdmin   token={token} currentAdmin={admin} toast={toast} />}
       </main>
     </div>

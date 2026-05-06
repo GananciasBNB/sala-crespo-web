@@ -58,6 +58,7 @@ export default function Footer() {
           <a href="/legal/03-politica-privacidad.html" target="_blank" rel="noopener noreferrer">Política de privacidad</a>
           <a href="/legal/04-politica-cookies.html" target="_blank" rel="noopener noreferrer">Política de cookies</a>
           <a href="/legal/05-bases-prode-publico.html" target="_blank" rel="noopener noreferrer">Bases del Prode Mundial 2026</a>
+          <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer">Bases del Torneo de Slots</a>
         </nav>
       </div>
 
@@ -73,7 +74,7 @@ export default function Footer() {
             </div>
             <div className="footer__responsible-help">
               <strong>🎯 Juego responsable</strong>
-              <p>Si sentís que el juego dejó de ser un entretenimiento, pedí ayuda. <a href="https://www.iafas.gob.ar/juego-responsable" target="_blank" rel="noopener noreferrer">IAFAS — Juego Responsable</a> · Línea gratuita <a href="tel:0800-444-4000">0800-444-4000</a></p>
+              <p>Si sentís que el juego dejó de ser un entretenimiento, pedí ayuda. <a href="https://www.iafas.gov.ar/juego-responsable" target="_blank" rel="noopener noreferrer">IAFAS — Juego Responsable</a> · Línea gratuita <a href="tel:0800-44-42327">0800-44-42327</a></p>
             </div>
           </div>
         </div>

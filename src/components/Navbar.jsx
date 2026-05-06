@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
+import { getActiveTournament } from '../api/client'
 import './Navbar.css'
 
-const NAV_LINKS = [
+const BASE_NAV_LINKS = [
   { label: 'La Sala', href: '#sala' },
   { label: 'A&B', href: '#ayb' },
   { label: 'Shows', href: '#shows' },
-  { label: 'Torneos', href: '#torneos' },
+  { label: 'Torneos', href: '#torneos', key: 'torneos' },
   { label: 'Prode Mundial', href: '/prode', highlight: true },
   { label: 'Ubicación', href: '#ubicacion' },
 ]
@@ -15,12 +16,27 @@ export default function Navbar({ onAdminUnlock }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [holdTimer, setHoldTimer] = useState(null)
   const [holdProgress, setHoldProgress] = useState(0)
+  const [hasActiveTournament, setHasActiveTournament] = useState(false)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 60)
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Detectar si hay torneo activo (open) para resaltar el link "Torneos" en el nav
+  useEffect(() => {
+    getActiveTournament().then(r => setHasActiveTournament(!!r.active)).catch(() => {})
+  }, [])
+
+  // Si hay torneo activo, mutamos el link de Torneos a "Inscribite al próximo torneo"
+  // con estilo gold y apuntando directo a /torneo.
+  const NAV_LINKS = BASE_NAV_LINKS.map(link => {
+    if (link.key === 'torneos' && hasActiveTournament) {
+      return { ...link, label: '🎰 Inscribite al próximo torneo', href: '/torneo', highlight: true, pulse: true }
+    }
+    return link
+  })
 
   // "Puerta secreta": mantener presionado el logo 3s para acceder al admin
   const startHold = useCallback(() => {
@@ -71,7 +87,7 @@ export default function Navbar({ onAdminUnlock }) {
             <li key={link.href}>
               <a
                 href={link.href}
-                className={`navbar__link ${link.highlight ? 'navbar__link--gold' : ''}`}
+                className={`navbar__link ${link.highlight ? 'navbar__link--gold' : ''} ${link.pulse ? 'navbar__link--pulse' : ''}`}
               >
                 {link.label}
               </a>
@@ -96,7 +112,7 @@ export default function Navbar({ onAdminUnlock }) {
             <a
               key={link.href}
               href={link.href}
-              className={`navbar__mobile-link ${link.highlight ? 'navbar__link--gold' : ''}`}
+              className={`navbar__mobile-link ${link.highlight ? 'navbar__link--gold' : ''} ${link.pulse ? 'navbar__link--pulse' : ''}`}
               onClick={() => setMenuOpen(false)}
             >
               {link.label}

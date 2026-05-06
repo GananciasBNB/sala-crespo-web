@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+﻿import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import {
   registerPlayer, loginPlayer, forgotPin,
@@ -9,9 +9,9 @@ import {
   submitStaffSuggestion,
   getMyLeagues, createLeague, joinLeague, getLeagueLeaderboard, leaveLeague, deleteLeague,
   uploadLeagueImage,
-  getPromoRegistrationsToday,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
+import PromoMode from './PromoMode'
 import './ProdeApp.css'
 
 // ─── Mapa de nombre → ISO para flagcdn.com ────────────────────────────────────
@@ -1195,6 +1195,7 @@ function LeaderboardView({ myId, audience = 'public', token }) {
   const [phase, setPhase] = useState('all')
   const [data, setData]   = useState([])
   const [loading, setLoading] = useState(true)
+  const [showAll, setShowAll] = useState(false)
 
   useEffect(() => {
     setLoading(true)
@@ -1207,12 +1208,38 @@ function LeaderboardView({ myId, audience = 'public', token }) {
       .finally(() => setLoading(false))
   }, [phase, audience, token])
 
+  // Resetea showAll al cambiar de fase para que el "Ver todos" sea por fase.
+  useEffect(() => { setShowAll(false) }, [phase])
+
   const tabs = [
     { id: 'group',   label: 'Puntuación fase de grupos' },
     { id: 'round32', label: 'Puntuación 16avos de final' },
     { id: 'all',     label: 'Puntuación Acumulada del Mundial' },
   ]
   const medals = ['🥇', '🥈', '🥉']
+  const TOP_LIMIT = 10
+
+  // "Juan Pérez Gomez" → "Juan P." | "Juan" → "Juan" | "Maria del Carmen Lopez" → "Maria del Carmen L."
+  const shortenName = (fullName) => {
+    const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean)
+    if (parts.length <= 1) return parts[0] || ''
+    const last = parts[parts.length - 1]
+    const first = parts.slice(0, -1).join(' ')
+    return `${first} ${last.charAt(0).toUpperCase()}.`
+  }
+
+  // Decidir filas a mostrar: top 10, y si yo estoy fuera del top, agregar mi fila al final
+  const myIndex = data.findIndex(p => p.id === myId)
+  const visibleRows = showAll
+    ? data.map((p, i) => ({ ...p, _pos: i + 1 }))
+    : (() => {
+        const top = data.slice(0, TOP_LIMIT).map((p, i) => ({ ...p, _pos: i + 1 }))
+        if (myIndex >= TOP_LIMIT) {
+          top.push({ _gap: true })
+          top.push({ ...data[myIndex], _pos: myIndex + 1 })
+        }
+        return top
+      })()
 
   return (
     <div className="lb-wrap">
@@ -1236,39 +1263,51 @@ function LeaderboardView({ myId, audience = 'public', token }) {
           <p><strong>Todavía no empezó el Mundial.</strong> Pre-cargá tus pronósticos ahora y arrancá con ventaja desde el primer partido.</p>
         </div>
       ) : (
-        <table className="lb__table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Jugador</th>
-              <th>Pts</th>
-              <th className="lb__hide-sm" style={{textAlign:'center'}}>Resultado Perfecto</th>
-              <th className="lb__hide-sm" style={{textAlign:'center'}}>Acierto Ganador</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((p, i) => (
-              <tr key={p.id} className={`lb__row ${p.id === myId ? 'lb__row--me' : ''} ${i < 3 ? 'lb__row--top' : ''}`}>
-                <td className="lb__pos">
-                  {i < 3 ? <span style={{fontSize:'22px'}}>{medals[i]}</span> : <span className="lb__pos-num">{i + 1}</span>}
-                </td>
-                <td className="lb__name">
-                  <span style={{ display:'flex', alignItems:'center', gap:'8px' }}>
-                    <PlayerAvatar mascotId={p.mascota} size={32} name={p.name} />
-                    <span>
-                      {p.name}
-                      {p.dniLast3 && <span className="lb__dni"> ···{p.dniLast3}</span>}
-                      {p.id === myId && <span className="lb__you"> (vos)</span>}
-                    </span>
-                  </span>
-                </td>
-                <td className="lb__pts">{p.total}</td>
-                <td className="lb__hide-sm lb__exact" style={{textAlign:'center'}}>{p.exact}</td>
-                <td className="lb__hide-sm" style={{textAlign:'center'}}>{p.correct}</td>
+        <>
+          <table className="lb__table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Jugador</th>
+                <th>Pts</th>
+                <th className="lb__hide-sm" style={{textAlign:'center'}}>Resultado Perfecto</th>
+                <th className="lb__hide-sm" style={{textAlign:'center'}}>Acierto Ganador</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {visibleRows.map((p, i) => p._gap ? (
+                <tr key="gap" className="lb__row lb__row--gap">
+                  <td colSpan={5} style={{textAlign:'center', padding:'8px', color:'var(--wc-muted)'}}>···</td>
+                </tr>
+              ) : (
+                <tr key={p.id} className={`lb__row ${p.id === myId ? 'lb__row--me' : ''} ${p._pos <= 3 ? 'lb__row--top' : ''}`}>
+                  <td className="lb__pos">
+                    {p._pos <= 3 ? <span style={{fontSize:'22px'}}>{medals[p._pos - 1]}</span> : <span className="lb__pos-num">{p._pos}</span>}
+                  </td>
+                  <td className="lb__name">
+                    <span style={{ display:'flex', alignItems:'center', gap:'8px' }}>
+                      <PlayerAvatar mascotId={p.mascota} size={32} name={p.name} />
+                      <span>
+                        {shortenName(p.name)}
+                        {p.id === myId && <span className="lb__you"> (vos)</span>}
+                      </span>
+                    </span>
+                  </td>
+                  <td className="lb__pts">{p.total}</td>
+                  <td className="lb__hide-sm lb__exact" style={{textAlign:'center'}}>{p.exact}</td>
+                  <td className="lb__hide-sm" style={{textAlign:'center'}}>{p.correct}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {data.length > TOP_LIMIT && (
+            <div className="lb__expand">
+              <button className="lb__expand-btn" onClick={() => setShowAll(s => !s)}>
+                {showAll ? '↑ Mostrar solo top 10' : `↓ Ver los ${data.length} jugadores`}
+              </button>
+            </div>
+          )}
+        </>
       )}
       <div className="lb__legend">
         <div className="lb__legend-row"><span className="lb__legend-pts lb__legend-pts--gold">10 pts</span><span><strong>Resultado Perfecto</strong> — acertás el marcador exacto (ej: 2-1 y salió 2-1)</span></div>
@@ -1301,7 +1340,7 @@ function AuthModal({ onClose, onLogin, staffSignupCode = null, initialTab = null
   useEffect(() => {
     getRegistrationStatus().then(s => setRegistrationClosed(!!s.closed)).catch(() => {})
   }, [])
-  const [tab, setTab]           = useState(initialTab || (registrationClosed ? 'login' : 'registro'))
+  const [tab, setTab]           = useState(initialTab || 'login')
   const [name, setName]         = useState('')
   const [dni, setDni]           = useState('')
   const [tel, setTel]           = useState('')
@@ -1379,11 +1418,13 @@ function AuthModal({ onClose, onLogin, staffSignupCode = null, initialTab = null
         </div>
 
         <div className="modal__tabs">
-          <button className={`modal__tab ${tab === 'registro' ? 'modal__tab--active' : ''}`} onClick={() => { setTab('registro'); setError('') }}>
-            Soy nuevo
-          </button>
           <button className={`modal__tab ${tab === 'login' ? 'modal__tab--active' : ''}`} onClick={() => { setTab('login'); setError('') }}>
-            Ya tengo cuenta
+            🔑 Ya tengo cuenta
+            <span className="modal__tab-sub">Ingresar con DNI + PIN</span>
+          </button>
+          <button className={`modal__tab ${tab === 'registro' ? 'modal__tab--active' : ''}`} onClick={() => { setTab('registro'); setError('') }}>
+            ✨ Soy nuevo
+            <span className="modal__tab-sub">Crear cuenta gratis</span>
           </button>
         </div>
 
@@ -1557,7 +1598,7 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
   const matchDate = new Date(match.date)
   const TZ        = 'America/Argentina/Buenos_Aires'
   const dateStr   = matchDate.toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short', timeZone: TZ })
-  const timeStr   = matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: TZ }) + ' hs (ARG)'
+  const timeStr   = matchDate.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ }) + ' horas (ARG)'
 
   // Valor a mostrar: si hay cambio local, ese; si no, el guardado en server
   const homeVal = localPred?.home ?? myPred?.home ?? ''
@@ -1956,7 +1997,7 @@ function fmtKickoff(dateStr) {
     const d = new Date(dateStr)
     return d.toLocaleString('es-AR', {
       day: '2-digit', month: '2-digit',
-      hour: '2-digit', minute: '2-digit',
+      hour: '2-digit', minute: '2-digit', hour12: false,
       timeZone: 'America/Argentina/Buenos_Aires',
     })
   } catch { return null }
@@ -2214,7 +2255,7 @@ function PublicHome({ player, onParticipa }) {
       <div className="pub-info__card">
         <div className="pub-info__icon">🎁</div>
         <h3>¿Cómo cobrar?</h3>
-        <p>Los premios son en tickets promocionales de Sala Crespo. El admin verifica identidad con DNI al finalizar la fase.</p>
+        <p>Los premios son en tickets promocionales de Sala Crespo. El staff de Sala Crespo verifica identidad con DNI al finalizar la fase.</p>
       </div>
     </div>
   )
@@ -2337,7 +2378,7 @@ const INSTAGRAM_URL    = 'https://www.instagram.com/salajuegoscrespo/'
 
 // Fallbacks por si /api/content todavía no responde — se reemplazan por valores reales de DB
 const FALLBACK_TOURNAMENT_DATE = '21 de mayo · 2026'
-const FALLBACK_TOURNAMENT_URL  = 'https://docs.google.com/forms/d/1sOfBSy8FXm-ncMuQGU6GqbP60zP08DADbb0DrqGBG8g/edit'
+const FALLBACK_TOURNAMENT_URL  = '/torneo'
 
 // ─── Staff Portal ─────────────────────────────────────────────────────────────
 // Activado por ?staff=CODIGO en la URL. Pantalla dedicada que vende la idea +
@@ -2802,347 +2843,6 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
   )
 }
 
-function PromoMode({ onExit }) {
-  const [step, setStep] = useState('form') // 'form' | 'success' | 'extras'
-  const [name, setName] = useState('')
-  const [dni, setDni]   = useState('')
-  const [tel, setTel]   = useState('')
-  const [email, setEmail] = useState('')
-  const [pin, setPin]   = useState('')
-  const [showYearInput, setShowYearInput] = useState(false)
-  const [year, setYear] = useState('')
-  const [accept, setAccept] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [info, setInfo]   = useState('')
-  const [lastResult, setLastResult] = useState(null) // { name, pin }
-  const [count, setCount] = useState(0)
-  const [showIgQr, setShowIgQr] = useState(false)
-
-  // Cargar datos del torneo desde la misma fuente que la landing pública
-  const [tournament, setTournament] = useState({
-    date: FALLBACK_TOURNAMENT_DATE,
-    url:  FALLBACK_TOURNAMENT_URL,
-  })
-  useEffect(() => {
-    getContent().then(content => {
-      const t = content?.torneos || {}
-      setTournament({
-        date: t.fecha_torneo  || FALLBACK_TOURNAMENT_DATE,
-        url:  t.link_torneo   || FALLBACK_TOURNAMENT_URL,
-      })
-    }).catch(() => {})
-  }, [])
-
-  // Contador real desde el backend (count de players creados hoy en TZ Argentina)
-  const refreshCount = useCallback(() => {
-    getPromoRegistrationsToday()
-      .then(r => setCount(r.count || 0))
-      .catch(() => {})
-  }, [])
-  useEffect(() => { refreshCount() }, [refreshCount])
-
-  const currentYear = new Date().getFullYear()
-  const minBirthYear = 1900
-  const maxBirthYear = currentYear - 18
-
-  function applyYearAsPin() {
-    if (!/^\d{4}$/.test(year)) {
-      setError('Ingresá un año válido de 4 dígitos.')
-      return
-    }
-    const y = parseInt(year, 10)
-    if (y < minBirthYear || y > maxBirthYear) {
-      setError(`El año debe estar entre ${minBirthYear} y ${maxBirthYear} (mayor de 18).`)
-      return
-    }
-    setPin(year)
-    setError('')
-    setInfo('PIN sugerido cargado: el año de nacimiento del cliente.')
-    setShowYearInput(false)
-  }
-
-  function reset() {
-    setName(''); setDni(''); setTel(''); setEmail(''); setPin('')
-    setYear(''); setShowYearInput(false)
-    setAccept(false); setError(''); setInfo(''); setStep('form')
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault()
-    setError('')
-    if (!name.trim()) return setError('Falta el nombre del cliente.')
-    if (!/^\d{7,8}$/.test(dni)) return setError(`DNI: ingresaste ${dni.length} ${dni.length === 1 ? 'número' : 'números'}, debe tener 7 u 8 (sin puntos).`)
-    if (!/^[\d\s\-\+\(\)]{8,15}$/.test(tel.trim())) return setError('Teléfono inválido (ej: 3435 123456).')
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError('Email inválido. Borralo si no querés cargarlo.')
-    if (!/^\d{4}$/.test(pin)) return setError('El PIN debe tener exactamente 4 dígitos.')
-    if (!accept) return setError('El cliente debe aceptar las bases del concurso.')
-    setLoading(true)
-    try {
-      await registerPlayer(name.trim(), dni, tel.trim(), pin, 'cocodrilo', email.trim() || null)
-      setLastResult({ name: name.trim(), pin })
-      refreshCount()
-      setStep('success')
-    } catch (err) {
-      // Caso especial: DNI duplicado
-      if (/ya está registrad|exist|duplicad/i.test(err.message || '')) {
-        setError(`Este DNI ya está registrado. ${err.message}`)
-      } else {
-        setError(err.message)
-      }
-    }
-    setLoading(false)
-  }
-
-  // PASO 2 — PIN listo, mostrar el código grande para que el cliente lo anote
-  if (step === 'success' && lastResult) {
-    return (
-      <div className="promo">
-        <header className="promo__header">
-          <div className="promo__brand">
-            <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="promo__logo" />
-            <div>
-              <div className="promo__title">Modo Promotora</div>
-              <div className="promo__sub">Paso 2 de 3 · Registros: {count}</div>
-            </div>
-          </div>
-          <button className="promo__exit" onClick={onExit}>✕ Salir del modo</button>
-        </header>
-
-        <div className="promo__body promo__body--success">
-          <div className="promo-success">
-            <div className="promo-success__icon">✅</div>
-            <h2 className="promo-success__title">¡Listo, {lastResult.name.split(' ')[0]}!</h2>
-            <p className="promo-success__sub">El cliente ya está participando del Prode Mundial 2026.</p>
-            <div className="promo-success__pin-label">PIN del cliente</div>
-            <div className="promo-success__pin">{lastResult.pin}</div>
-            <p className="promo-success__hint">📝 Anotalo y entregáselo al cliente. Lo va a necesitar para cargar sus pronósticos.</p>
-
-            <div className="promo-success__actions">
-              <button className="promo-btn promo-btn--primary" onClick={() => setStep('extras')}>Continuar →</button>
-              <button className="promo-btn promo-btn--ghost" onClick={onExit}>Salir del modo</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // PASO 3 — Extras / Checklist final antes de soltar al cliente
-  if (step === 'extras' && lastResult) {
-    const firstName = lastResult.name.split(' ')[0]
-    return (
-      <div className="promo">
-        <header className="promo__header">
-          <div className="promo__brand">
-            <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="promo__logo" />
-            <div>
-              <div className="promo__title">Modo Promotora</div>
-              <div className="promo__sub">Paso 3 de 3 · Antes de soltar al cliente</div>
-            </div>
-          </div>
-          <button className="promo__exit" onClick={onExit}>✕ Salir del modo</button>
-        </header>
-
-        <div className="promo__body promo__body--success">
-          <div className="promo-checklist">
-            <div className="promo-checklist__icon">🎯</div>
-            <h2 className="promo-checklist__title">Antes de soltar a {firstName}…</h2>
-            <p className="promo-checklist__sub">Aprovechá que está acá. Tocá las tarjetas que correspondan, o pasá al siguiente cliente si ya las hicieron.</p>
-
-            <div className="promo-checklist__grid">
-              <a
-                className="promo-extra promo-extra--tournament"
-                href="/torneo"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <div className="promo-extra__icon">🎰</div>
-                <div className="promo-extra__label">Inscribirlo al torneo de máquinas</div>
-                <div className="promo-extra__sub">{tournament.date}</div>
-              </a>
-              <button
-                type="button"
-                className="promo-extra promo-extra--instagram"
-                onClick={() => setShowIgQr(true)}
-              >
-                <div className="promo-extra__icon">📸</div>
-                <div className="promo-extra__label">Que nos siga en Instagram</div>
-                <div className="promo-extra__sub">Tocá para mostrar el QR</div>
-              </button>
-            </div>
-
-            <p className="promo-checklist__skip">Si {firstName} ya está inscripto al torneo y nos sigue en Instagram, podés pasar directo al siguiente cliente.</p>
-
-            <div className="promo-success__actions">
-              <button className="promo-btn promo-btn--primary" onClick={reset}>✓ Listo, registrar siguiente cliente</button>
-              <button className="promo-btn promo-btn--ghost" onClick={onExit}>Salir del modo</button>
-            </div>
-          </div>
-        </div>
-
-        {showIgQr && (
-          <div className="promo-qr-modal" onClick={() => setShowIgQr(false)}>
-            <div className="promo-qr-modal__inner" onClick={e => e.stopPropagation()}>
-              <h3 className="promo-qr-modal__title">Escaneá para seguirnos</h3>
-              <p className="promo-qr-modal__sub">Apuntá la cámara del celular al código</p>
-              <img src="/qr-instagram.jpg" alt="QR Instagram Sala Crespo" className="promo-qr-modal__img" />
-              <p className="promo-qr-modal__handle">📸 {INSTAGRAM_HANDLE}</p>
-              <button className="promo-btn promo-btn--primary promo-qr-modal__close" onClick={() => setShowIgQr(false)}>Listo, ya escaneó</button>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  return (
-    <div className="promo">
-      <header className="promo__header">
-        <div className="promo__brand">
-          <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="promo__logo" />
-          <div>
-            <div className="promo__title">Modo Promotora</div>
-            <div className="promo__sub">Registros hoy: {count}</div>
-          </div>
-        </div>
-        <div className="promo__header-actions">
-          <a href="/torneo" target="_blank" rel="noopener noreferrer" className="promo__tournament-shortcut">🎰 Solo torneo</a>
-          <button type="button" className="promo__ig-shortcut" onClick={() => setShowIgQr(true)}>📸 Solo seguir IG</button>
-          <button className="promo__exit" onClick={onExit}>✕ Salir</button>
-        </div>
-      </header>
-
-      {showIgQr && (
-        <div className="promo-qr-modal" onClick={() => setShowIgQr(false)}>
-          <div className="promo-qr-modal__inner" onClick={e => e.stopPropagation()}>
-            <h3 className="promo-qr-modal__title">Escaneá para seguirnos</h3>
-            <p className="promo-qr-modal__sub">Apuntá la cámara del celular al código</p>
-            <img src="/qr-instagram.jpg" alt="QR Instagram Sala Crespo" className="promo-qr-modal__img" />
-            <p className="promo-qr-modal__handle">📸 {INSTAGRAM_HANDLE}</p>
-            <button className="promo-btn promo-btn--primary promo-qr-modal__close" onClick={() => setShowIgQr(false)}>Listo, ya escaneó</button>
-          </div>
-        </div>
-      )}
-
-      <div className="promo__body">
-        <form className="promo-form" onSubmit={handleSubmit}>
-          <h2 className="promo-form__title">Inscribir cliente al Prode</h2>
-          <p className="promo-form__sub">Cargá los datos básicos. Al final también vas a poder inscribirlo al torneo de máquinas e invitarlo a seguirnos en Instagram.</p>
-
-          {/* Indicador de pasos */}
-          <div className="promo-reminders">
-            <div className="promo-reminders__title">📌 Paso 1 de 3 · Datos del cliente</div>
-            <ul className="promo-reminders__list">
-              <li>1️⃣ <strong>Cargar datos</strong> y elegir PIN (este paso)</li>
-              <li>2️⃣ Mostrarle el PIN al cliente para que lo anote</li>
-              <li>3️⃣ Inscribirlo al torneo de máquinas + pedirle que siga el Instagram</li>
-            </ul>
-          </div>
-
-          <label className="promo-label">Nombre y apellido</label>
-          <input
-            className="promo-input"
-            value={name}
-            onChange={e => setName(e.target.value)}
-            placeholder="Ej: Juan Pérez"
-            autoFocus
-            autoCapitalize="words"
-            spellCheck={false}
-          />
-
-          <label className="promo-label">DNI <span className="promo-label__hint">(sin puntos)</span></label>
-          <input
-            className="promo-input"
-            type="tel"
-            inputMode="numeric"
-            maxLength={8}
-            value={dni}
-            onChange={e => setDni(e.target.value.replace(/\D/g, ''))}
-            placeholder="35123456"
-          />
-
-          <label className="promo-label">Teléfono</label>
-          <input
-            className="promo-input"
-            type="tel"
-            inputMode="tel"
-            value={tel}
-            onChange={e => setTel(e.target.value)}
-            placeholder="3435 123456"
-          />
-
-          <label className="promo-label">
-            Email <span className="promo-label__optional">(opcional pero recomendado)</span>
-          </label>
-          <p className="promo-label__why">📧 Sirve para avisarle al cliente si gana y para que pueda recuperar su PIN si lo olvida.</p>
-          <input
-            className="promo-input"
-            type="email"
-            inputMode="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="cliente@gmail.com"
-            autoCapitalize="off"
-            spellCheck={false}
-          />
-
-          <label className="promo-label">PIN <span className="promo-label__hint">(4 dígitos — el cliente lo va a usar para entrar)</span></label>
-          <div className="promo-pin-row">
-            <input
-              className="promo-input promo-input--pin"
-              type="tel"
-              inputMode="numeric"
-              maxLength={4}
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
-              placeholder="1234"
-              autoComplete="off"
-            />
-            <button
-              type="button"
-              className="promo-btn promo-btn--ghost promo-btn--sm"
-              onClick={() => { setShowYearInput(v => !v); setError('') }}
-            >📅 Sugerir año de nacimiento</button>
-          </div>
-
-          {showYearInput && (
-            <div className="promo-year-box">
-              <p className="promo-year-box__hint">💡 <strong>Truco:</strong> el año de nacimiento es fácil de recordar para el cliente y no es un dato sensible. Cargalo y se completa el PIN.</p>
-              <div className="promo-pin-row">
-                <input
-                  className="promo-input promo-input--pin"
-                  type="tel"
-                  inputMode="numeric"
-                  maxLength={4}
-                  value={year}
-                  onChange={e => setYear(e.target.value.replace(/\D/g, ''))}
-                  placeholder={`Ej: 1965 (entre ${minBirthYear} y ${maxBirthYear})`}
-                  autoFocus
-                />
-                <button type="button" className="promo-btn promo-btn--primary promo-btn--sm" onClick={applyYearAsPin}>
-                  Usar como PIN
-                </button>
-              </div>
-            </div>
-          )}
-
-          <label className="promo-check">
-            <input type="checkbox" checked={accept} onChange={e => setAccept(e.target.checked)} />
-            <span>El cliente fue informado y acepta las bases del concurso.</span>
-          </label>
-
-          {error && <div className="promo-error">⚠ {error}</div>}
-          {info && <div className="promo-info">ℹ {info}</div>}
-
-          <button className="promo-btn promo-btn--primary promo-btn--full" disabled={loading}>
-            {loading ? 'Registrando...' : '🎯 Registrar e imprimir PIN'}
-          </button>
-        </form>
-      </div>
-    </div>
-  )
-}
 
 // ─── Vista Mini-Ligas privadas ────────────────────────────────────────────────
 // Sistema de crests SVG + colores. Sin emojis. Foto custom opcional.
