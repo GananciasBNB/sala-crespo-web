@@ -249,9 +249,12 @@ function ProdeAdmin({ token, toast }) {
 
   async function handleEditPlayerSave() {
     if (!editingPlayer.name.trim()) return toast.show('El nombre no puede estar vacío.', 'err')
+    const dniClean = (editingPlayer.dni || '').trim()
+    if (dniClean && !/^\d{7,8}$/.test(dniClean)) return toast.show('DNI debe ser 7 u 8 dígitos.', 'err')
     try {
       await adminEditPlayer(token, editingPlayer.id, {
         name: editingPlayer.name.trim(),
+        dni: dniClean || null,
         tel: editingPlayer.tel,
         email: editingPlayer.email || null,
       })
@@ -673,7 +676,7 @@ function ProdeAdmin({ token, toast }) {
                       </div>
                       <button
                         className="ap-btn"
-                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, tel: p.tel || '', email: p.email || '' })}
+                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}
                       >Editar</button>
                     </div>
                   </div>
@@ -751,6 +754,16 @@ function ProdeAdmin({ token, toast }) {
                 value={editingPlayer.name}
                 onChange={e => setEditingPlayer(p => ({ ...p, name: e.target.value }))}
               />
+              <label className="ap-label">DNI (7 u 8 dígitos)</label>
+              <input
+                className="ap-input"
+                type="tel"
+                inputMode="numeric"
+                maxLength={8}
+                value={editingPlayer.dni || ''}
+                onChange={e => setEditingPlayer(p => ({ ...p, dni: e.target.value.replace(/\D/g, '') }))}
+                placeholder="35123456"
+              />
               <label className="ap-label">Teléfono</label>
               <input
                 className="ap-input"
@@ -784,6 +797,7 @@ function ProdeAdmin({ token, toast }) {
                     <td>
                       {p.name}
                       {p.isEmployee && <span title="Empleado interno" style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', background: 'rgba(155,31,31,0.2)', border: '1px solid rgba(155,31,31,0.5)', color: '#FF8888', borderRadius: 4, letterSpacing: 0.5 }}>🏢 INTERNO</span>}
+                      {p.tournamentOnly && <span title="Importado del torneo, no es jugador del Prode" style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', background: 'rgba(255,209,102,0.15)', border: '1px solid rgba(255,209,102,0.4)', color: '#FFD166', borderRadius: 4, letterSpacing: 0.5 }}>📋 IMPORTADO</span>}
                     </td>
                     <td><code className="ap-code">{p.dni}</code></td>
                     <td>{p.tel || '—'}</td>
@@ -792,7 +806,7 @@ function ProdeAdmin({ token, toast }) {
                     <td className="ap-table__actions">
                       <button
                         className="ap-btn ap-btn--sm"
-                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, tel: p.tel || '', email: p.email || '' })}
+                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}
                       >Editar</button>
                       <button
                         className="ap-btn ap-btn--sm"
