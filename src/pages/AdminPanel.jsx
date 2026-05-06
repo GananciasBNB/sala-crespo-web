@@ -1001,6 +1001,51 @@ function ClientsAdmin({ token, toast }) {
             }}
           >🧪 Limpiar pruebas de hoy</button>
           <button
+            className="ap-btn"
+            onClick={async () => {
+              try {
+                const base = import.meta.env.VITE_API_URL || ''
+                // 1. Dry run para ver qué va a hacer
+                const r = await fetch(base + '/api/admin/players/cleanup-dni-zeros', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ dryRun: true }),
+                })
+                const data = await r.json()
+                if (!r.ok) throw new Error(data.error || `Error ${r.status}`)
+                if (data.stats.pairs === 0 && data.stats.renamedExtra === 0) {
+                  alert('La base ya está limpia: 0 pares duplicados con DNI X+0, 0 nombres a normalizar.')
+                  return
+                }
+                const summary =
+`Resumen del cleanup:
+
+• Pares duplicados (DNI X / X+0): ${data.stats.pairs}
+   ↳ a borrar: ${data.stats.deleted}
+   ↳ con info copiada: ${data.stats.merged}
+   ↳ con nombre mejorado: ${data.stats.renamed}
+   ↳ saltados (con datos): ${data.stats.skipped}
+
+• Nombres a normalizar (mayúsculas/paréntesis): ${data.stats.renamedExtra}
+
+¿Confirmás la ejecución?`
+                if (!confirm(summary)) return
+                // 2. Ejecución real
+                const r2 = await fetch(base + '/api/admin/players/cleanup-dni-zeros', {
+                  method: 'POST',
+                  headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ dryRun: false }),
+                })
+                const result = await r2.json()
+                if (!r2.ok) throw new Error(result.error || `Error ${r2.status}`)
+                alert(`✓ Listo!\n\nPares borrados: ${result.stats.deleted}\nNombres mejorados: ${result.stats.renamed + result.stats.renamedExtra}\nMergeados con info: ${result.stats.merged}`)
+                adminGetPlayers(token, playersFilter).then(setPlayers)
+              } catch (err) {
+                alert('Error: ' + err.message)
+              }
+            }}
+          >🧹 Unificar duplicados DNI</button>
+          <button
             className="ap-btn ap-btn--primary"
             onClick={() => setInvitingPlayer({ name: '', dni: '', tel: '', email: '', isEmployee: false })}
           >+ Invitar cliente</button>
