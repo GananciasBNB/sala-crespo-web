@@ -543,6 +543,38 @@ function ProdeAdmin({ token, toast }) {
                 }}
               >↓ Exportar CSV</button>
               <button
+                className="ap-btn"
+                onClick={async () => {
+                  try {
+                    const base = import.meta.env.VITE_API_URL || ''
+                    const r = await fetch(base + '/api/admin/players/cleanup-test', {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ dryRun: true, windowHours: 24 }),
+                    })
+                    const data = await r.json()
+                    if (!r.ok) throw new Error(data.error || `Error ${r.status}`)
+                    if (data.count === 0) {
+                      alert('No hay registros de prueba para limpiar de las últimas 24h.')
+                      return
+                    }
+                    const list = data.candidates.map(c => `• ${c.name} (DNI ${c.dni})`).join('\n')
+                    if (!confirm(`Se van a borrar ${data.count} registros creados en las últimas 24h:\n\n${list}\n\n¿Confirmás el borrado?`)) return
+                    const r2 = await fetch(base + '/api/admin/players/cleanup-test', {
+                      method: 'POST',
+                      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ dryRun: false, windowHours: 24 }),
+                    })
+                    const result = await r2.json()
+                    if (!r2.ok) throw new Error(result.error || `Error ${r2.status}`)
+                    alert(`Borrados: ${result.deleted} de ${result.requested}`)
+                    adminGetPlayers(token).then(setPlayers)
+                  } catch (err) {
+                    alert('Error: ' + err.message)
+                  }
+                }}
+              >🧪 Limpiar pruebas de hoy</button>
+              <button
                 className="ap-btn ap-btn--primary"
                 onClick={() => setInvitingPlayer({ name: '', dni: '', tel: '', email: '', isEmployee: false })}
               >+ Invitar jugador</button>
