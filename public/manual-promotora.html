@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Manual de Promotora · Sala de Juegos Crespo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,700;0,800;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #F0D275;
+    --crimson: #C41E3A;
+    --crimson-dark: #9B1F1F;
+    --onyx: #0C0606;
+    --bg: #0F1218;
+    --bg-card: #1A202C;
+    --bg-elev: #1F2638;
+    --border: #2A3142;
+    --text: #E8EDF5;
+    --text-mut: #8B95AB;
+    --text-dim: #5A6378;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', system-ui, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+  }
+  .container { max-width: 1080px; margin: 0 auto; padding: 16px 24px 32px; }
+
+  /* HEADER */
+  .hero {
+    background: linear-gradient(135deg, #0F1218 0%, #1A0E0E 100%);
+    text-align: center;
+    padding: 36px 24px 28px;
+    border-bottom: 4px solid var(--gold);
+    position: relative;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--crimson) 0%, var(--gold) 100%);
+  }
+  .hero__logo {
+    width: 96px;
+    height: 96px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 14px;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,.5));
+  }
+  .hero__eyebrow {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    margin-bottom: 10px;
+  }
+  .hero__title {
+    font-family: 'Playfair Display', serif;
+    font-size: 38px;
+    color: #fff;
+    margin: 0 0 10px;
+    line-height: 1.1;
+    font-weight: 700;
+  }
+  .hero__title em {
+    color: var(--gold-light);
+    font-style: italic;
+  }
+  .hero__sub {
+    font-size: 16px;
+    color: var(--text-mut);
+    max-width: 540px;
+    margin: 0 auto;
+  }
+
+  /* TABLA DE CONTENIDOS */
+  .toc {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 28px;
+    margin: 32px 0;
+  }
+  .toc h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin: 0 0 14px;
+    text-transform: uppercase;
+  }
+  .toc ol {
+    margin: 0;
+    padding-left: 20px;
+    columns: 2;
+    column-gap: 32px;
+  }
+  .toc ol li {
+    padding: 6px 0;
+    break-inside: avoid;
+  }
+  .toc ol li a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 15px;
+    transition: color .15s;
+  }
+  .toc ol li a:hover { color: var(--gold); }
+  @media (max-width: 600px) {
+    .toc ol { columns: 1; }
+  }
+
+  /* SECTIONS */
+  section { margin: 28px 0; scroll-margin-top: 16px; }
+  .sec__num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 4px;
+    display: block;
+  }
+  h2.sec__title {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    color: #fff;
+    margin: 0 0 14px;
+    line-height: 1.15;
+    font-weight: 700;
+  }
+  h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    color: var(--gold-light);
+    margin: 18px 0 8px;
+  }
+  h4 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    margin: 14px 0 8px;
+    text-transform: uppercase;
+  }
+  p { margin: 0 0 10px; color: #C8D2E0; }
+  ul, ol { color: #C8D2E0; padding-left: 20px; margin: 0 0 12px; }
+  ul li, ol li { padding: 3px 0; }
+  strong { color: #fff; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin: 12px 0;
+  }
+  .card--gold { border-color: rgba(201,168,76,.4); background: linear-gradient(135deg, rgba(201,168,76,.08), rgba(201,168,76,.02)); }
+  .card--crimson { border-color: rgba(196,30,58,.4); background: linear-gradient(135deg, rgba(196,30,58,.08), rgba(196,30,58,.02)); }
+  .card__icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+    display: block;
+  }
+  .card h4 { margin-top: 0; }
+
+  /* SCRIPTS / FRASES */
+  .script {
+    background: rgba(201,168,76,.06);
+    border-left: 4px solid var(--gold);
+    padding: 16px 22px;
+    margin: 14px 0;
+    border-radius: 8px;
+    font-style: italic;
+    color: var(--gold-light);
+  }
+  .script::before {
+    content: '💬 ';
+    font-style: normal;
+  }
+
+  /* PASOS */
+  .steps {
+    counter-reset: step-counter;
+    margin: 16px 0;
+    padding: 0;
+    list-style: none;
+  }
+  .steps li {
+    counter-increment: step-counter;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 22px 18px 64px;
+    margin: 12px 0;
+    position: relative;
+  }
+  .steps li::before {
+    content: counter(step-counter);
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    color: #0F1218;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .steps li strong { color: #fff; }
+
+  /* BOXES INFORMATIVOS */
+  .info-box {
+    background: rgba(0,0,0,.25);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin: 14px 0;
+    font-size: 14px;
+    border-left: 3px solid var(--text-mut);
+  }
+  .info-box--warn {
+    border-left-color: var(--crimson);
+    background: rgba(196,30,58,.06);
+  }
+  .info-box--tip {
+    border-left-color: var(--gold);
+    background: rgba(201,168,76,.06);
+  }
+
+  /* TABLA */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 14px;
+  }
+  th, td {
+    text-align: left;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  th {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 2px;
+    color: var(--gold);
+    background: rgba(0,0,0,.25);
+    text-transform: uppercase;
+    font-size: 12px;
+  }
+  td { color: var(--text); }
+
+  /* LINKS */
+  a.url {
+    display: inline-block;
+    background: rgba(201,168,76,.1);
+    color: var(--gold-light);
+    padding: 4px 12px;
+    border-radius: 6px;
+    font-family: 'DM Sans', monospace;
+    text-decoration: none;
+    font-size: 14px;
+    word-break: break-all;
+    border: 1px solid rgba(201,168,76,.25);
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+    padding: 24px 16px;
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+  }
+  footer strong { color: var(--gold); }
+
+  /* MOBILE — pantalla chica: compactar todo */
+  @media (max-width: 700px) {
+    body { font-size: 15px; line-height: 1.55; }
+    .container { padding: 12px 14px 24px; }
+    .hero { padding: 22px 16px 20px; }
+    .hero__logo { width: 72px; height: 72px; margin-bottom: 10px; }
+    .hero__eyebrow { font-size: 11px; letter-spacing: 3px; margin-bottom: 8px; }
+    .hero__title { font-size: 26px; }
+    .hero__sub { font-size: 14px; }
+
+    .toc { padding: 18px; margin: 16px 0; }
+    .toc h2 { font-size: 12px; letter-spacing: 3px; }
+    .toc ol { padding-left: 16px; }
+    .toc ol li a { font-size: 14px; }
+
+    section { margin: 22px 0; }
+    h2.sec__title { font-size: 22px; margin: 0 0 10px; }
+    h3 { font-size: 17px; margin: 14px 0 6px; }
+    h4 { font-size: 12px; letter-spacing: 2px; margin: 12px 0 6px; }
+    p { margin: 0 0 8px; }
+    ul, ol { padding-left: 18px; margin: 0 0 10px; }
+
+    .card { padding: 14px 14px; margin: 10px 0; border-radius: 10px; }
+    .card__icon { font-size: 24px; margin-bottom: 4px; }
+    .script { padding: 12px 16px; margin: 10px 0; font-size: 14px; }
+
+    .steps li { padding: 14px 14px 14px 50px; margin: 8px 0; font-size: 14px; border-radius: 10px; }
+    .steps li::before { left: 10px; width: 30px; height: 30px; font-size: 15px; }
+
+    .info-box { padding: 12px 14px; margin: 10px 0; font-size: 13px; }
+
+    table { font-size: 13px; margin: 12px 0; }
+    th, td { padding: 9px 10px; }
+
+    a.url { font-size: 13px; padding: 3px 9px; }
+
+    footer { padding: 20px 12px; font-size: 11px; }
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff; color: #000; font-size: 11pt; }
+    .hero { background: #fff; color: #000; }
+    .hero__title, h2.sec__title, h3 { color: #000 !important; }
+    .card, .toc, .steps li { background: #fff !important; border: 1px solid #ccc !important; }
+    .script { background: #fff7e0 !important; color: #5b4b1c !important; }
+    p, ul, ol, td, th { color: #000 !important; }
+    a { color: #0066cc !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+  <img src="https://www.saladejuegoscrespo.ar/logo-sin-fondo.png" alt="Sala de Juegos Crespo" class="hero__logo" />
+  <div class="hero__eyebrow">Manual de trabajo · Mayo 2026</div>
+  <h1 class="hero__title">Promotora<br/><em>Sala de Juegos Crespo</em></h1>
+  <p class="hero__sub">Tu rol, tus herramientas y todo lo que necesitás saber para sumar valor en cada turno.</p>
+</header>
+
+<div class="container">
+
+<!-- TABLA DE CONTENIDOS -->
+<nav class="toc">
+  <h2>Contenidos</h2>
+  <ol>
+    <li><a href="#bienvenida">Bienvenida</a></li>
+    <li><a href="#dias">Cuándo vas a estar</a></li>
+    <li><a href="#objetivos">Tus 7 objetivos</a></li>
+    <li><a href="#productos">Lo que ofrecemos</a></li>
+    <li><a href="#abordaje">Cómo abordar al cliente</a></li>
+    <li><a href="#app">La app de promotora (paso a paso)</a></li>
+    <li><a href="#instalar">Instalar el Prode en el celular del cliente</a></li>
+    <li><a href="#prode">Inscribir al Prode Mundial</a></li>
+    <li><a href="#torneo">Inscribir al torneo de slots</a></li>
+    <li><a href="#redes">Sumar seguidores en IG y Facebook</a></li>
+    <li><a href="#shows">Promocionar los shows</a></li>
+    <li><a href="#tips">Tips clave</a></li>
+    <li><a href="#practica">Practicá antes de tu primer turno</a></li>
+    <li><a href="#contacto">Contacto y dudas</a></li>
+  </ol>
+</nav>
+
+<!-- 1. BIENVENIDA -->
+<section id="bienvenida">
+  <span class="sec__num">01</span>
+  <h2 class="sec__title">Bienvenida 👋</h2>
+  <p>¡Hola! Gracias por sumarte a <strong>Sala de Juegos Crespo</strong>. Tu trabajo es <strong>amigable y simple</strong>: no vendés nada ni presionás — sumás valor. Cuanto mejor sea el contacto del cliente con la sala, más probabilidad de que vuelva.</p>
+</section>
+
+<!-- 2. DÍAS -->
+<section id="dias">
+  <span class="sec__num">02</span>
+  <h2 class="sec__title">Cuándo vas a estar</h2>
+  <p>Vas a venir los <strong>días de mayor afluencia</strong> — viernes, sábado y domingo. Los horarios y la duración los coordinás con la sala.</p>
+  <div class="info-box info-box--tip">
+    💡 Antes de empezar, dale <strong>5 minutos</strong> a chequear que el modo promotora abra bien y que tengas batería.
+  </div>
+</section>
+
+<!-- 3. OBJETIVOS -->
+<section id="objetivos">
+  <span class="sec__num">03</span>
+  <h2 class="sec__title">Tus 3 objetivos</h2>
+  <p>Tu trabajo se mide por <strong>3 puntos</strong>. Si te concentrás en estos, lo demás (mostrar la app, hablar de shows) sale solo.</p>
+
+  <div class="card card--gold">
+    <span class="card__icon">📝</span>
+    <h4>1 · Anotar clientes</h4>
+    <p>Inscribilos al <strong>Prode Mundial</strong> y al <strong>Torneo de Slots</strong>. Los dos son gratuitos y los premios son en tickets/vouchers para usar en la sala. Más anotados = más gente volviendo.</p>
+    <p style="margin-top:10px"><strong>🥤 Tu mejor herramienta para conseguirlo</strong>: cada cliente que se anota <strong>con email</strong> recibe al instante un código para retirar en la barra una <strong>bebida de cortesía</strong> (agua saborizada, gaseosa o cerveza). Es tu carta para vender.</p>
+  </div>
+
+  <div class="card card--crimson">
+    <span class="card__icon">📸</span>
+    <h4>2 · Sumar seguidores en Instagram y Facebook</h4>
+    <p>Que sigan <strong>@salajuegoscrespo</strong> en Instagram <strong>y "Sala de Juegos Crespo"</strong> en Facebook. Tenés <strong>QR para las dos redes</strong> — el cliente escanea con la cámara y le abre directo el perfil para seguirnos. Publicamos torneos, shows y promos en ambas.</p>
+  </div>
+
+  <div class="card">
+    <span class="card__icon">📋</span>
+    <h4>3 · Mejorar la base de datos</h4>
+    <p>Validá con el cliente que su <strong>teléfono y email</strong> estén actualizados. Editás en la app de un toque.</p>
+    <p style="margin-top:10px"><strong>📧 El email es lo más importante</strong>: ahí van las <strong>promociones y regalos exclusivos</strong> (no se publican en redes).</p>
+    <p style="margin-top:10px"><strong>🥤 Tu mejor argumento</strong>: cuando el cliente <strong>da email al inscribirse</strong>, le llega automáticamente un código de <strong>bebida de cortesía</strong> para canjear esa misma noche en la barra (agua saborizada, gaseosa o cerveza). Esto te lo deja servido.</p>
+  </div>
+</section>
+
+<!-- 4. PRODUCTOS -->
+<section id="productos">
+  <span class="sec__num">04</span>
+  <h2 class="sec__title">Lo que ofrecemos</h2>
+
+  <p>Resumen rápido para que tengas presente al hablar con el cliente. El detalle de cómo inscribir está en las secciones 8 y 9.</p>
+
+  <h3>⚽ Prode Mundial 2026 — gratuito</h3>
+  <p>Juego online: el cliente predice los resultados del Mundial. <strong>$525.000 en tickets</strong> repartidos en 3 fases (grupos / 16avos / acumulado total).</p>
+
+  <h3>🎰 Torneo de Slots — 21 de mayo · gratuito</h3>
+  <p>Inscripción libre, en la sala. <strong>$200.000 en vouchers</strong> (1°: $100k · 2°: $60k · 3°: $40k).</p>
+
+  <h3>🎤 Shows en vivo</h3>
+  <p>En fechas puntuales del mes (no todos los sábados). Mirá en Instagram qué hay confirmado.</p>
+</section>
+
+<!-- 5. ABORDAJE -->
+<section id="abordaje">
+  <span class="sec__num">05</span>
+  <h2 class="sec__title">Cómo abordar al cliente</h2>
+
+  <h3>Reglas básicas</h3>
+  <ul>
+    <li><strong>Sonrisa siempre</strong>. Energía calma, ni invasiva ni tímida.</li>
+    <li>Esperá <strong>el momento adecuado</strong>: cuando salga del baño, esté tomando algo en la barra, espere su mesa. <strong>No interrumpas a nadie jugando una máquina activa</strong>.</li>
+    <li><strong>Ofrecé una sola cosa por vez</strong>. Primero el Prode. Si engancha, agregás Torneo. Si engancha más, redes.</li>
+    <li>Si te dicen que no, <strong>respetá</strong>. Decí "no hay problema, cualquier duda estoy por acá" y seguí.</li>
+  </ul>
+
+  <div class="info-box info-box--tip" style="margin-bottom:24px;">
+    🥤 <strong>Tu carta principal: la bebida de cortesía</strong>. Cuando el cliente da email al inscribirse, le llega un código para retirar en la barra <strong>agua saborizada, gaseosa o cerveza</strong>. Esto es lo que <strong>vos</strong> usás para vender — es premio inmediato + premios del Prode/Torneo + todo gratis. Mencionalo desde el primer saludo.
+  </div>
+
+  <h3>Apertura recomendada</h3>
+  <p>Saludá según el momento — <em>"buenas tardes"</em> de día, <em>"buenas noches"</em> a la noche. Y arrancá con la bebida + premios de una:</p>
+  <div class="script">Hola, buenas noches. ¿Te puedo invitar una <strong>bebida de cortesía</strong>? Solo te anotás al Prode Mundial o al torneo de slots — los dos son <strong>gratuitos</strong>, el Prode tiene <strong>$525.000 en tickets</strong> y el torneo <strong>$200.000 en vouchers</strong>. Te llega el código de la bebida al mail al toque y la canjeás en la barra.</div>
+  <p>La bebida es <strong>el premio inmediato</strong> que rompe el "no me interesa". Los $525k son el premio futuro. Los dos juntos son imbatibles.</p>
+
+  <h3>Cómo seguir según la respuesta</h3>
+  <ul>
+    <li><strong>"Dale, qué hay que hacer"</strong> → pedís el DNI, completás los datos y <em>insistí con el email</em> (sin email no hay bebida).</li>
+    <li><strong>"Ya estoy anotado en algo"</strong> → pedís el DNI igual: la app te muestra qué le falta. Si tiene el mail cargado, igual le llega la bebida al inscribir lo nuevo. Si no lo tiene, ofrecele actualizarlo y la bebida sale igual.</li>
+    <li><strong>"Estoy en los dos"</strong> → pedís el DNI para validar/actualizar tel y email. <em>Si edita el email, también puede pasar a buscar la bebida.</em></li>
+    <li><strong>"No me interesa"</strong> → <em>"No hay problema, cualquier duda estoy por acá."</em></li>
+  </ul>
+
+  <h3>Si dudan en darte el email</h3>
+  <p>Es el momento donde se gana o se pierde el dato. Tenés dos cartas:</p>
+  <div class="script">No te preocupes, no te llenamos de mails. Es solo para mandarte el código de la bebida ahora, y avisarte cuando hay <strong>regalos exclusivos</strong> que no publicamos en redes.</div>
+  <p>Si igual dice que no, no insistas más. Cargás sin email y seguís.</p>
+</section>
+
+<!-- 6. APP -->
+<section id="app">
+  <span class="sec__num">06</span>
+  <h2 class="sec__title">La app de promotora — paso a paso</h2>
+
+  <p>Esta es tu herramienta principal. Funciona en cualquier celular o tablet con internet.</p>
+
+  <h3>Cómo entrar</h3>
+  <p>Abrí el navegador (Chrome en Android, Safari en iPhone) y andá a:</p>
+  <p><a class="url" href="https://www.saladejuegoscrespo.ar/prode?promo=1" target="_blank">www.saladejuegoscrespo.ar/prode?promo=1</a></p>
+
+  <h3>Guardarlo como acceso directo en tu celular (recomendado)</h3>
+  <p>Para no escribir la URL larga cada vez, te conviene dejar un ícono en la pantalla de tu celular que te lleve <strong>directo al modo promotora</strong>. Hacelo así:</p>
+
+  <div class="info-box info-box--warn">
+    ⚠️ <strong>Atención</strong>: en Android Chrome, NO elijas <em>"Instalar app"</em> — eso te abre la home de la sala, no el modo promotora. Tenés que elegir <em>"Agregar a pantalla principal"</em> (acceso directo, no PWA).
+  </div>
+
+  <h4>📱 Android (Chrome)</h4>
+  <ol class="steps">
+    <li>Asegurate de tener la URL completa en el navegador: <a class="url" href="https://www.saladejuegoscrespo.ar/prode?promo=1" target="_blank">www.saladejuegoscrespo.ar/prode?promo=1</a> (con el <code>?promo=1</code> al final, eso es lo que activa el modo promotora).</li>
+    <li>Tocá los <strong>3 puntitos arriba a la derecha</strong> (⋮).</li>
+    <li>Elegí <strong>"Agregar a pantalla principal"</strong>. <em>Si te aparece "Instalar app", evitala — esa es la PWA del cliente, no del modo promotora.</em></li>
+    <li>Te va a pedir un nombre — ponele <strong>"Promotora Sala"</strong> y confirmá.</li>
+    <li>Listo: en tu pantalla principal te queda un ícono que abre directo el modo promotora.</li>
+  </ol>
+
+  <h4>🍏 iPhone (Safari)</h4>
+  <ol class="steps">
+    <li>Abrí <strong>Safari</strong> (no Chrome) y entrá a <a class="url" href="https://www.saladejuegoscrespo.ar/prode?promo=1" target="_blank">www.saladejuegoscrespo.ar/prode?promo=1</a>.</li>
+    <li>Tocá el botón de <strong>compartir</strong> abajo (cuadrado con flecha hacia arriba ⬆️).</li>
+    <li>Bajá hasta <strong>"Agregar a pantalla de inicio"</strong> y tocá.</li>
+    <li>Te va a pedir un nombre — ponele <strong>"Promotora Sala"</strong> y confirmá.</li>
+    <li>Listo: ícono en la pantalla principal que abre directo el modo promotora.</li>
+  </ol>
+
+  <div class="info-box info-box--tip">
+    💡 <strong>Cómo verificar que quedó bien</strong>: tocá el ícono que acabás de crear. Tiene que abrir la pantalla con el cuadro grande de "Ingresá el DNI del cliente". Si te abre la web de la sala con la foto de las máquinas, lo guardaste mal — borralo y volvé a hacerlo asegurándote que la URL tenga <code>?promo=1</code>.
+  </div>
+
+  <h3>Cómo está organizada la pantalla principal</h3>
+  <p>Arriba siempre vas a ver:</p>
+  <ul>
+    <li>🏠 <strong>Botón "Inicio"</strong> (izquierda) → vuelve al sitio público de la sala (útil si querés mostrarle la web al cliente)</li>
+    <li>🎯 <strong>Logo + "Modo Promotora"</strong> (centro) con un contador <em>"Inscripciones hoy: X"</em> que se actualiza cuando inscribís a alguien</li>
+    <li>✕ <strong>Botón salir</strong> (derecha) → cierra el modo promotora</li>
+  </ul>
+
+  <h3>Flujo de trabajo — siempre arranca con el DNI</h3>
+  <p>El primer paso siempre es el mismo: <strong>pedile el DNI al cliente y cargalo</strong>. La app va a buscar si ya está cargado en nuestro sistema.</p>
+
+  <h4>📍 Caso A — Cliente nuevo (no aparece)</h4>
+  <p>Te lleva a un formulario para cargar:</p>
+  <ol class="steps">
+    <li><strong>Nombre y apellido</strong> tal cual figura en el documento.</li>
+    <li><strong>Año de nacimiento</strong> (4 dígitos). Eso queda como su PIN del Prode. <em>Si nació en 1985, su PIN es 1985.</em></li>
+    <li><strong>Teléfono</strong> (obligatorio si vas a inscribirlo al torneo).</li>
+    <li><strong>Email</strong> (opcional pero muy recomendado — le llega confirmación).</li>
+  </ol>
+  <p>Después de cargar los datos, elegís <strong>dónde lo inscribimos</strong>. Tenés 3 botones:</p>
+  <ul>
+    <li>⚽ <strong>Solo Prode</strong> — el más común</li>
+    <li>🎰 <strong>Solo Torneo</strong> — si solo le interesa el torneo de slots</li>
+    <li>🌟 <strong>Prode + Torneo</strong> — la opción más completa, intentá ofrecer siempre esta primero</li>
+  </ul>
+
+  <h4>📍 Caso B — Cliente ya cargado (lo conocemos)</h4>
+  <p>Te aparece la pantalla de <strong>estado del cliente</strong> con su nombre y dos cards grandes:</p>
+  <ul>
+    <li>⚽ <strong>PRODE MUNDIAL</strong> — verde si está inscripto, rojo si no</li>
+    <li>🎰 <strong>TORNEO DE SLOTS</strong> — verde con su número de inscripción si ya está, rojo si falta</li>
+  </ul>
+  <div class="info-box info-box--tip">
+    💡 Las cards en <strong>rojo</strong> ("No inscripto") son <strong>clickeables</strong>: tocás la card y la app te lleva directo al formulario para inscribirlo en eso.
+  </div>
+
+  <h4>📋 Validá los datos del cliente</h4>
+  <p>En la misma pantalla aparece un bloque azul con el <strong>teléfono y email</strong> del cliente. <strong>Siempre confirmá con él</strong> que estén bien:</p>
+  <div class="script">Tengo este número anotado: 343 456-7890 ¿Está bien? ¿Y el email es este?</div>
+  <p>Si te corrige algo, lo editás ahí mismo y tocás <strong>"💾 Guardar cambios"</strong>. Listo, queda actualizado para todos los mails que le mandemos.</p>
+
+  <h4>Pantalla de cierre — ¡Listo, [nombre]!</h4>
+  <p>Después de inscribirlo, te aparece una pantalla con un check verde grande y:</p>
+  <ul>
+    <li>Su <strong>PIN del Prode</strong> (si lo inscribiste al Prode) — bien grande para que saque foto</li>
+    <li>Su <strong>número de inscripción al torneo</strong> (si lo inscribiste al torneo) — también grande</li>
+  </ul>
+  <div class="script">¡Listo, [nombre]! Acá tenés tu PIN: [año]. Sacale foto antes de cerrar la pantalla.</div>
+
+  <h4>📌 Recomendados antes de despedirte</h4>
+  <p>En esa misma pantalla de éxito te aparecen 3 cards extras. <strong>Hacé al menos una</strong>:</p>
+  <ul>
+    <li>📱 <strong>"Mostrale cómo instalar la app"</strong> — para que abra el Prode con un toque (sección 7)</li>
+    <li>📸 <strong>"Que siga el Instagram"</strong> — abre el QR para escanear</li>
+    <li>🌐 <strong>"Mostrale la web"</strong> — abre <em>saladejuegoscrespo.ar</em> en una pestaña nueva</li>
+  </ul>
+  <p>Abajo tenés <strong>"➕ Inscribir a otra persona"</strong> (vuelve al DNI) y <strong>"🏠 Volver al inicio"</strong>.</p>
+
+  <h3>🎤 Próximos shows en pantalla</h3>
+  <p>En la pantalla principal del DNI también ves un cartel violeta con los <strong>próximos shows del mes</strong>. Mientras el cliente carga su DNI, aprovechá para mencionar el show que viene:</p>
+  <div class="script">¿Viste que este sábado tenemos a [nombre]? Bailamos hasta las 03:30 am. Te recomiendo que vengas, está bueno.</div>
+</section>
+
+<!-- 7. INSTALAR -->
+<section id="instalar">
+  <span class="sec__num">07</span>
+  <h2 class="sec__title">Instalar el Prode como aplicación en el celular del cliente</h2>
+
+  <p>Esto es importante: <strong>le facilita al cliente volver a entrar</strong>. Si lo deja como ícono en la pantalla, abre el Prode con un toque — no tiene que recordar la URL ni buscarla en el navegador. Y si entra fácil, vuelve a jugar el próximo partido.</p>
+
+  <p>Decile algo así:</p>
+  <div class="script">Te lo dejo como ícono en tu pantalla, así entrás de un toque cuando quieras pronosticar el próximo partido. Si tenés que escribir la dirección cada vez, te olvidás.</div>
+
+  <h3>Android (Chrome)</h3>
+  <ol class="steps">
+    <li>Que abra <strong>Chrome</strong> y entre a <a class="url" href="https://www.saladejuegoscrespo.ar/prode" target="_blank">saladejuegoscrespo.ar/prode</a></li>
+    <li>Toque los <strong>3 puntitos arriba a la derecha</strong> (⋮)</li>
+    <li>Elegir <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar app"</strong></li>
+    <li>Confirmar <strong>"Instalar"</strong></li>
+    <li>Listo: aparece un ícono de Sala Crespo en su escritorio</li>
+  </ol>
+
+  <h3>iPhone (Safari)</h3>
+  <ol class="steps">
+    <li>Que abra <strong>Safari</strong> (no Chrome) y entre a <a class="url" href="https://www.saladejuegoscrespo.ar/prode" target="_blank">saladejuegoscrespo.ar/prode</a></li>
+    <li>Toque el botón de <strong>compartir</strong> abajo (cuadrado con flecha hacia arriba ⬆️)</li>
+    <li>Bajá hasta <strong>"Agregar a pantalla de inicio"</strong></li>
+    <li>Confirmar <strong>"Agregar"</strong></li>
+    <li>Listo: aparece un ícono de Sala Crespo en su escritorio</li>
+  </ol>
+
+</section>
+
+<!-- 8. PRODE -->
+<section id="prode">
+  <span class="sec__num">08</span>
+  <h2 class="sec__title">Inscribir al Prode Mundial</h2>
+
+  <p>El Prode es el corazón de tu trabajo. Es <strong>online, gratuito y deja al cliente conectado con la sala durante todo el Mundial</strong> — cada vez que entra a pronosticar, está pensando en nosotros.</p>
+
+  <h3>Cómo funciona (para que se lo expliques al cliente)</h3>
+  <ul>
+    <li>Cada vez que se juega un partido del Mundial, el cliente entra al Prode y predice <strong>quién gana</strong> y, si quiere, <strong>el resultado exacto</strong>.</li>
+    <li>Suma puntos según los aciertos. Cuanto más afina, más sube en la tabla.</li>
+    <li>No tiene que jugar todos los partidos — puede entrar y salir cuando quiera.</li>
+    <li>Entra desde su celular o computadora con <strong>su DNI + el PIN</strong> (que es el año de nacimiento que cargaste vos).</li>
+  </ul>
+
+  <h3>Cómo se inscribe (paso a paso)</h3>
+  <ol class="steps">
+    <li>Abrís el modo promotora y le pedís el DNI al cliente.</li>
+    <li>
+      Si es <strong>cliente nuevo</strong> → cargás los datos y elegís <em>"⚽ Solo Prode"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>
+      Si <strong>ya estaba cargado pero no en el Prode</strong> → tocás la card <em>"PRODE MUNDIAL · No inscripto"</em> (la roja) y la app te lleva al campo del PIN.
+    </li>
+    <li>El PIN es el <strong>año de nacimiento</strong> (4 dígitos). Pedíselo y cargalo.</li>
+    <li>Confirmás. La app te muestra una pantalla con el <strong>PIN bien grande</strong> en pantalla.</li>
+    <li>Mostrale la pantalla al cliente y decile que saque foto o anote: <em>"Tu DNI es tu usuario y este número es tu PIN para entrar."</em></li>
+  </ol>
+
+  <h3>Lo que tenés que comunicar SIEMPRE</h3>
+  <div class="card card--gold">
+    <p style="margin:0;"><strong>🏆 Premios totales</strong>: $525.000 en tickets para usar en la sala.<br/>
+    <strong>📊 Cómo se gana</strong>: predicen los partidos del Mundial — gana el que más acierta.<br/>
+    <strong>💸 Distribución</strong>:<br/>
+    &nbsp;&nbsp;&nbsp;• Fase de grupos: $75k · $50k · $25k<br/>
+    &nbsp;&nbsp;&nbsp;• 16avos de final: $75k · $50k · $25k<br/>
+    &nbsp;&nbsp;&nbsp;• Acumulado total del Mundial: $100k · $75k · $50k<br/>
+    <strong>🆓 Inscripción</strong>: gratuita, en menos de 1 minuto desde la app.<br/>
+    <strong>📱 Acceso</strong>: desde el celular del cliente, con su DNI + PIN.</p>
+  </div>
+
+  <h3>Si el cliente da email</h3>
+  <p>Le va a llegar un mail de bienvenida con:</p>
+  <ul>
+    <li>Su <strong>PIN</strong> y el link para entrar al Prode</li>
+    <li>Un <strong>código de bebida de cortesía</strong> 🥤 para canjear esa misma noche en la barra</li>
+  </ul>
+  <p>Decile que <strong>revise su mail antes de ir a la barra</strong> y que muestre el código a la cajera.</p>
+</section>
+
+<!-- 9. TORNEO -->
+<section id="torneo">
+  <span class="sec__num">09</span>
+  <h2 class="sec__title">Inscribir al Torneo de Slots</h2>
+
+  <p>El torneo se inscribe <strong>desde el mismo flujo del DNI</strong>. Algunos clientes querrán solo el torneo, otros solo el Prode, otros los dos. La app te muestra qué le falta a cada uno.</p>
+
+  <h3>Cómo se inscribe</h3>
+  <ol class="steps">
+    <li>Pedile el DNI y cargalo en la app.</li>
+    <li>
+      Si es <strong>cliente nuevo</strong> → cargás los datos y elegís <em>"🎰 Solo Torneo"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>
+      Si <strong>ya estaba cargado</strong> → tocás la card <em>"TORNEO DE SLOTS · No inscripto"</em> (la roja) y la app te lleva al botón "Inscribir al Torneo".
+    </li>
+    <li>Si falta el teléfono, te lo va a pedir (es obligatorio para el torneo).</li>
+    <li>Confirmás y le aparece un <strong>número de inscripción grande</strong> (ej. N° 17). Anotalo o que saque foto.</li>
+  </ol>
+
+  <h3>Lo que tenés que comunicar SIEMPRE</h3>
+  <div class="card card--crimson">
+    <p style="margin:0;"><strong>📅 Fecha</strong>: jueves 21 de mayo a las 21:30 horas.<br/>
+    <strong>📍 Lugar</strong>: Sala de Juegos Crespo (San Martín 1053).<br/>
+    <strong>⏰ Llegar con tiempo</strong> para acomodarse antes del inicio.<br/>
+    <strong>🪪 Traer DNI</strong> (lo van a chequear el día del evento).<br/>
+    <strong>🎁 Premios</strong>: $200.000 en vouchers para máquinas (1°: $100k · 2°: $60k · 3°: $40k).</p>
+  </div>
+
+  <h3>Si el cliente da email</h3>
+  <p>Le va a llegar un mail de confirmación con:</p>
+  <ul>
+    <li>Todos los datos del torneo (fecha, lugar, premios)</li>
+    <li>Un <strong>código de bebida de cortesía</strong> 🥤 para canjear esa misma noche en la barra</li>
+  </ul>
+  <p>Decile que <strong>revise su mail antes de ir a la barra</strong> y que muestre el código a la cajera.</p>
+</section>
+
+<!-- 10. REDES -->
+<section id="redes">
+  <span class="sec__num">10</span>
+  <h2 class="sec__title">Sumar seguidores en redes</h2>
+
+  <h3>Por qué importa</h3>
+  <p>Cuando el cliente nos sigue, ve nuestras <strong>publicaciones de torneos, shows y promos</strong>. Eso lo trae de vuelta sin que tengas que hacer nada.</p>
+
+  <h3>Cómo lo hacés — los 2 QR están en la app</h3>
+  <p>Desde el modo promotora tocás el botón <strong>"Seguinos en redes"</strong> y se abre un modal con <strong>dos pestañas: Instagram y Facebook</strong>. Tocás la que use el cliente, le mostrás el QR, escanea con su cámara y le abre directo el perfil para seguirnos.</p>
+  <ul>
+    <li>📸 <strong>Instagram</strong>: <strong>@salajuegoscrespo</strong></li>
+    <li>📘 <strong>Facebook</strong>: <strong>"Sala de Juegos Crespo"</strong></li>
+  </ul>
+
+  <div class="script">Antes de que te vayas, ¿nos seguís? Tengo Instagram y Facebook, escaneá el que uses y te lleva directo. Allá publicamos torneos, shows y promos.</div>
+
+  <p><strong>Tip</strong>: ofrecé las dos opciones. Si solo le mostrás IG y la persona usa solo Facebook, se pierde el seguidor. Decí <em>"tengo los dos QR, escaneá el que prefieras"</em>.</p>
+</section>
+
+<!-- 11. SHOWS -->
+<section id="shows">
+  <span class="sec__num">11</span>
+  <h2 class="sec__title">Mencionar los shows</h2>
+
+  <p>Antes de empezar tu turno, mirá en <a class="url" href="https://www.instagram.com/salajuegoscrespo/" target="_blank">Instagram</a> o en <a class="url" href="https://www.saladejuegoscrespo.ar/#shows" target="_blank">la web</a> qué show hay confirmado. <strong>El modo promotora también te muestra los próximos shows</strong> en la pantalla principal, así que lo tenés a mano.</p>
+
+  <div class="script">¿Viste que tenemos a [nombre] el [fecha]? Bailamos hasta las 03:30. Toda la info actualizada está en nuestra web y redes — te recomiendo seguirnos para no perderte nada.</div>
+
+  <p>Eso te da pie a sumar seguidor (objetivo principal).</p>
+</section>
+
+<!-- 12. TIPS -->
+<section id="tips">
+  <span class="sec__num">12</span>
+  <h2 class="sec__title">Tips clave</h2>
+
+  <ul>
+    <li>📱 <strong>Tablet/celu siempre cargado</strong>. Si se descarga en medio de una inscripción, perdés al cliente.</li>
+    <li>💡 <strong>Premios en plata, no abstracto</strong>. "$525.000" pega más que "premios". Aclará que son <strong>tickets/vouchers</strong> para usar en la sala — no efectivo.</li>
+    <li>🤝 <strong>Llamá por nombre</strong>. Cuando aparece su nombre en pantalla, usalo: <em>"Listo, María, ya estás dentro."</em></li>
+    <li>📧 <strong>Pedile siempre el email con el gancho de la bebida</strong>: <em>"Si me dejás un mail, te mando una bebida de cortesía para que la canjees ahora en la barra — agua saborizada, gaseosa o cerveza."</em> Funciona casi siempre. Si igual no lo da, dale el PIN y seguí.</li>
+    <li>🔄 <strong>Si te trabás con la app</strong>, refrescá la página (botón circular del navegador). 90% de los problemas se solucionan así.</li>
+  </ul>
+
+  <h3>Lo que NO hacer</h3>
+  <ul>
+    <li>❌ Interrumpir a alguien jugando una máquina activamente</li>
+    <li>❌ Sentarte en mesas de clientes a charlar largo</li>
+    <li>❌ Discutir si te dicen que no</li>
+    <li>❌ Pedir más datos de los que pide el formulario</li>
+    <li>❌ Hablar de máquinas específicas o estrategias de juego (eso es decisión del cliente)</li>
+    <li>❌ Tomar alcohol durante el turno</li>
+  </ul>
+</section>
+
+<!-- 13. PRÁCTICA -->
+<section id="practica">
+  <span class="sec__num">13</span>
+  <h2 class="sec__title">Practicá antes de tu primer turno</h2>
+
+  <p>Antes de tu primer día, <strong>practicá tranquila</strong> usando el modo promotora con DNIs ficticios. Después borramos esos registros desde el panel de admin.</p>
+
+  <h3>Link directo</h3>
+  <p>Abrí este link en el celular o tablet que vayas a usar:</p>
+  <p><a class="url" href="https://www.saladejuegoscrespo.ar/prode?promo=1" target="_blank">https://www.saladejuegoscrespo.ar/prode?promo=1</a></p>
+
+  <h3>Cómo probar — la regla es simple</h3>
+  <p>Inventá los datos que quieras. <strong>Lo único importante</strong>: que el <strong>nombre empiece con la palabra "Prueba"</strong>. Por ejemplo:</p>
+  <ul>
+    <li>✅ <strong>Prueba Juan</strong> · DNI <code>12345678</code> · año <code>1990</code></li>
+    <li>✅ <strong>Prueba María</strong> · DNI <code>87654321</code> · año <code>1985</code></li>
+  </ul>
+  <p>El resto (DNI, año, teléfono) lo inventás. Una vez que termines, nosotros borramos de la base todos los que empiezan con "Prueba" y la base queda limpia.</p>
+
+  <p>Probá los 3 caminos para conocer la app:</p>
+  <ol class="steps">
+    <li>Inscribir <strong>solo al Prode</strong> a "Prueba Juan".</li>
+    <li>Cargar el <strong>mismo DNI</strong> otra vez → te aparece la pantalla de "cliente conocido" con cards verde (Prode) y roja (Torneo). Tocá la roja y lo inscribís al torneo. Así ves los dos caminos.</li>
+    <li>Inscribir a <strong>"Prueba + Prueba"</strong> nuevo (otro DNI), eligiendo <em>"🌟 Prode + Torneo"</em>. Es el botón estrella, el que más vas a usar.</li>
+  </ol>
+
+  <h3>🥤 Probá la bebida con tu propio mail</h3>
+  <p>Una vez que tengas confianza con el flujo, cargá <strong>una inscripción con tu mail real</strong>. Por ejemplo: nombre <em>"Prueba [tu nombre]"</em>, DNI inventado, tu mail.</p>
+  <p>Vas a recibir el mail de bienvenida con el <strong>código de bebida</strong> bien grande. Ese mismo código lo llevás a la barra y la cajera te entrega la bebida. Es importante que vivas el flow una vez antes del primer turno — así sabés exactamente cómo se ve lo que recibe el cliente y lo contás con confianza al venderlo.</p>
+</section>
+
+<!-- 14. CONTACTO -->
+<section id="contacto">
+  <span class="sec__num">14</span>
+  <h2 class="sec__title">Contacto y dudas</h2>
+
+  <p>Cualquier duda durante el turno, hablá con el <strong>encargado de la sala</strong>.</p>
+
+  <p>Para temas operativos fuera del turno:</p>
+  <ul>
+    <li>📞 <strong>WhatsApp Sala</strong>: <a class="url" href="https://wa.me/5493434259136" target="_blank">+54 9 343 425-9136</a></li>
+    <li>📧 <strong>Email</strong>: <a class="url" href="mailto:info@saladejuegoscrespo.ar">info@saladejuegoscrespo.ar</a></li>
+    <li>📍 <strong>Dirección</strong>: San Martín 1053, Crespo, Entre Ríos</li>
+    <li>🌐 <strong>Web</strong>: <a class="url" href="https://www.saladejuegoscrespo.ar" target="_blank">www.saladejuegoscrespo.ar</a></li>
+    <li>📸 <strong>Instagram</strong>: <a class="url" href="https://www.instagram.com/salajuegoscrespo/" target="_blank">@salajuegoscrespo</a></li>
+  </ul>
+</section>
+
+</div>
+
+<footer>
+  <p><strong>Sala de Juegos Crespo</strong> · San Martín 1053, Crespo, Entre Ríos<br/>
+  Operado bajo Casinos de Entre Ríos · Habilitación IAFAS · Solo mayores de 18 años<br/>
+  <em>Manual interno de uso para promotoras · Mayo 2026</em></p>
+</footer>
+
+</body>
+</html>
