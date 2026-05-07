@@ -211,9 +211,6 @@ export default function PromoMode({ onExit, onGoHome }) {
     <div className="pm">
       {/* HEADER */}
       <header className="pm__header">
-        <button className="pm__home" onClick={goHome} title="Ir al inicio del sitio">
-          🏠 <span>Inicio</span>
-        </button>
         <div className="pm__brand">
           <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="pm__logo" />
           <div>
@@ -221,7 +218,11 @@ export default function PromoMode({ onExit, onGoHome }) {
             <div className="pm__counter">Inscripciones hoy: <strong>{count}</strong></div>
           </div>
         </div>
-        <button className="pm__exit" onClick={onExit} title="Salir del modo promotora">✕</button>
+        <button
+          className="pm__exit"
+          onClick={() => { if (confirm('¿Salir del modo promotora?')) onExit(); }}
+          title="Salir del modo promotora"
+        >✕</button>
       </header>
 
       {/* CONTENT */}
@@ -710,9 +711,6 @@ function SuccessStep({ success, onReset, onGoHome, onInstall, onShowIg }) {
       <div className="pm-success__cta-row">
         <button className="pm-btn pm-btn--primary pm-btn--xl" onClick={onReset}>
           ➕ Inscribir a otra persona
-        </button>
-        <button className="pm-btn pm-btn--ghost pm-btn--xl" onClick={onGoHome}>
-          🏠 Volver al inicio
         </button>
       </div>
     </div>

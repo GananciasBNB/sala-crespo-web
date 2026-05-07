@@ -74,7 +74,10 @@
   }
   .hero__title em {
     color: var(--gold-light);
-    font-style: italic;
+    font-style: normal;
+    font-weight: 600;
+    display: inline-block;
+    margin-top: 4px;
   }
   .hero__sub {
     font-size: 16px;
@@ -498,8 +501,8 @@
     <li><a href="#abordaje">Cómo abordar al cliente</a></li>
     <li><a href="#bebida">🥤 Cuándo recibe la bebida</a></li>
     <li><a href="#app">La app — paso a paso</a></li>
-    <li><a href="#instalar">Instalar el Prode al cliente</a></li>
     <li><a href="#prode">Inscribir al Prode</a></li>
+    <li><a href="#instalar">Instalar el Prode al cliente</a></li>
     <li><a href="#torneo">Inscribir al Torneo</a></li>
     <li><a href="#redes">Sumar seguidores</a></li>
     <li><a href="#shows">Mencionar shows</a></li>
@@ -681,12 +684,41 @@
   <div class="script">¿Viste que tenemos a [nombre] el [fecha]? Bailamos hasta las 03:30 am.</div>
 </section>
 
+<!-- 7. PRODE -->
+<section id="prode">
+  <span class="sec__num">07</span>
+  <h2 class="sec__title">Inscribir al Prode Mundial</h2>
+
+  <p>Online, gratuito, en menos de 1 minuto. <strong>$525.000 en tickets</strong> para usar en la sala.</p>
+
+  <h3>Cómo se inscribe</h3>
+  <ol class="steps">
+    <li><strong>Pedile el DNI</strong> y cargalo en la app.</li>
+    <li>Si es nuevo → cargás datos y elegís <em>"⚽ Solo Prode"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>Si ya está cargado → tocás la card roja <em>"PRODE · No inscripto"</em>.</li>
+    <li>El PIN es el <strong>año de nacimiento</strong> (4 dígitos).</li>
+    <li>Confirmás. Aparece el PIN bien grande → <em>"Sacale foto, este es tu PIN para entrar al Prode."</em></li>
+  </ol>
+
+  <h3>Premios — comunicar siempre</h3>
+  <div class="card card--gold">
+    <p style="margin:0;"><strong>🏆 $525.000 en tickets</strong> repartidos en 3 fases:</p>
+    <ul style="margin:8px 0 0;">
+      <li>Fase de grupos: $75k · $50k · $25k</li>
+      <li>16avos de final: $75k · $50k · $25k</li>
+      <li>Acumulado del Mundial: $100k · $75k · $50k</li>
+    </ul>
+    <p style="margin:8px 0 0;font-size:13px;color:var(--text-mut);">El cliente entra desde su celu con DNI + PIN. Predice partidos del Mundial. Gana el que más acierta.</p>
+  </div>
+
+  <p style="margin-top:14px;font-size:13px;color:var(--text-mut);">Si dejó email, recibe un mail de bienvenida con el PIN + 🥤 bebida de cortesía. Decile que <strong>revise el mail antes de ir a la barra</strong>.</p>
+</section>
+
 <!-- 8. INSTALAR -->
 <section id="instalar">
-  <span class="sec__num">07</span>
+  <span class="sec__num">08</span>
   <h2 class="sec__title">Instalar el Prode como app en el celular del cliente</h2>
 
-  <p>Si lo deja como ícono, vuelve más seguido. Si tiene que escribir la URL cada vez, se olvida.</p>
+  <p>Después de inscribirlo, ofrecele dejarlo como ícono. Si tiene que escribir la URL cada vez, se olvida.</p>
 
   <div class="script">Te lo dejo como ícono así entrás de un toque para el próximo partido.</div>
 
@@ -713,35 +745,6 @@
       </tr>
     </tbody>
   </table>
-</section>
-
-<!-- 8. PRODE -->
-<section id="prode">
-  <span class="sec__num">08</span>
-  <h2 class="sec__title">Inscribir al Prode Mundial</h2>
-
-  <p>Online, gratuito, en menos de 1 minuto. <strong>$525.000 en tickets</strong> para usar en la sala.</p>
-
-  <h3>Cómo se inscribe</h3>
-  <ol class="steps">
-    <li><strong>Pedile el DNI</strong> y cargalo en la app.</li>
-    <li>Si es nuevo → cargás datos y elegís <em>"⚽ Solo Prode"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>Si ya está cargado → tocás la card roja <em>"PRODE · No inscripto"</em>.</li>
-    <li>El PIN es el <strong>año de nacimiento</strong> (4 dígitos).</li>
-    <li>Confirmás. Aparece el PIN bien grande → <em>"Sacale foto, este es tu PIN para entrar al Prode."</em></li>
-  </ol>
-
-  <h3>Premios — comunicar siempre</h3>
-  <div class="card card--gold">
-    <p style="margin:0;"><strong>🏆 $525.000 en tickets</strong> repartidos en 3 fases:</p>
-    <ul style="margin:8px 0 0;">
-      <li>Fase de grupos: $75k · $50k · $25k</li>
-      <li>16avos de final: $75k · $50k · $25k</li>
-      <li>Acumulado del Mundial: $100k · $75k · $50k</li>
-    </ul>
-    <p style="margin:8px 0 0;font-size:13px;color:var(--text-mut);">El cliente entra desde su celu con DNI + PIN. Predice partidos del Mundial. Gana el que más acierta.</p>
-  </div>
-
-  <p style="margin-top:14px;font-size:13px;color:var(--text-mut);">Si dejó email, recibe un mail de bienvenida con el PIN + 🥤 bebida de cortesía. Decile que <strong>revise el mail antes de ir a la barra</strong>.</p>
 </section>
 
 <!-- 9. TORNEO -->
@@ -812,7 +815,7 @@
 
   <div class="igrid">
     <div class="igrid__item"><span class="igrid__icon">📱</span><div class="igrid__txt"><strong>Tablet siempre cargada</strong>Si se descarga en medio de una inscripción, perdés al cliente.</div></div>
-    <div class="igrid__item"><span class="igrid__icon">💵</span><div class="igrid__txt"><strong>Premios en plata</strong>"$525.000" pega más que "premios". Aclará: tickets para la sala, no efectivo.</div></div>
+    <div class="igrid__item"><span class="igrid__icon">💵</span><div class="igrid__txt"><strong>Premios en dinero para jugar</strong>"$525.000" pega más que "premios". Es <strong>crédito para usar en la sala</strong> (máquinas), no efectivo.</div></div>
     <div class="igrid__item"><span class="igrid__icon">🤝</span><div class="igrid__txt"><strong>Llamá por nombre</strong>"Listo María, ya estás dentro." Usá su nombre apenas aparece.</div></div>
     <div class="igrid__item"><span class="igrid__icon">📧</span><div class="igrid__txt"><strong>Email con bebida</strong>"Dame un mail, te mando una bebida para canjear ahora en la barra."</div></div>
     <div class="igrid__item"><span class="igrid__icon">🔄</span><div class="igrid__txt"><strong>Si la app se traba</strong>Refrescá la página (botón circular). 90% de los problemas se arreglan así.</div></div>
