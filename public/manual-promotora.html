@@ -290,6 +290,51 @@
   }
   footer strong { color: var(--gold); }
 
+  /* Tabla SÍ/NO bebida */
+  .yesno {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .yesno__col {
+    border-radius: 12px;
+    padding: 16px 14px;
+  }
+  .yesno__col--yes {
+    background: rgba(34,197,94,.08);
+    border: 1px solid rgba(34,197,94,.4);
+  }
+  .yesno__col--no {
+    background: rgba(196,30,58,.06);
+    border: 1px solid rgba(196,30,58,.4);
+  }
+  .yesno__head {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 14px;
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .yesno__col--yes .yesno__head { color: #4ade80; }
+  .yesno__col--no  .yesno__head { color: #f87171; }
+  .yesno__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .yesno__list li {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,.05);
+    color: var(--text);
+  }
+  .yesno__list li:last-child { border-bottom: none; }
+  @media (max-width: 600px) {
+    .yesno { grid-template-columns: 1fr; gap: 8px; }
+  }
+
   /* MOBILE — pantalla chica: compactar todo */
   @media (max-width: 700px) {
     body { font-size: 15px; line-height: 1.55; }
@@ -362,6 +407,7 @@
     <li><a href="#objetivos">Tus 7 objetivos</a></li>
     <li><a href="#productos">Lo que ofrecemos</a></li>
     <li><a href="#abordaje">Cómo abordar al cliente</a></li>
+    <li><a href="#bebida">🥤 Cuándo recibe la bebida</a></li>
     <li><a href="#app">La app de promotora (paso a paso)</a></li>
     <li><a href="#instalar">Instalar el Prode en el celular del cliente</a></li>
     <li><a href="#prode">Inscribir al Prode Mundial</a></li>
@@ -472,9 +518,40 @@
   <p>Si igual dice que no, no insistas más. Cargás sin email y seguís.</p>
 </section>
 
-<!-- 6. APP -->
-<section id="app">
+<!-- 6. BEBIDA — cuándo SÍ y cuándo NO -->
+<section id="bebida">
   <span class="sec__num">06</span>
+  <h2 class="sec__title">🥤 Cuándo recibe la bebida</h2>
+  <p>La bebida es <strong>tu carta principal</strong>. Pero el sistema solo la manda en estos casos:</p>
+
+  <div class="yesno">
+    <div class="yesno__col yesno__col--yes">
+      <div class="yesno__head">✓ SÍ recibe</div>
+      <ul class="yesno__list">
+        <li>🆕 Cliente nuevo + da email + se inscribe</li>
+        <li>📝 Cliente que estaba <strong>sin email</strong> y la promotora le carga uno por primera vez</li>
+        <li>♻️ Cliente vuelve y se inscribe a algo nuevo (Prode o Torneo)</li>
+      </ul>
+    </div>
+    <div class="yesno__col yesno__col--no">
+      <div class="yesno__head">✗ NO recibe</div>
+      <ul class="yesno__list">
+        <li>❌ Cliente no quiere dar el email</li>
+        <li>⏱ Ya recibió otra bebida en las últimas 8 horas</li>
+        <li>🔁 Solo le corregís un email que ya tenía (typo)</li>
+        <li>✅ Ya está en TODO (Prode + Torneo) y no le agregás email</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="info-box info-box--tip">
+    💡 <strong>Regla simple para no equivocarte</strong>: si el cliente <strong>te deja un email que antes no teníamos</strong>, le va a llegar la bebida. Si solo retoca un dato que ya tenía, no.
+  </div>
+</section>
+
+<!-- 7. APP -->
+<section id="app">
+  <span class="sec__num">07</span>
   <h2 class="sec__title">La app de promotora — paso a paso</h2>
 
   <p>Esta es tu herramienta principal. Funciona en cualquier celular o tablet con internet.</p>
@@ -575,143 +652,121 @@
   <div class="script">¿Viste que este sábado tenemos a [nombre]? Bailamos hasta las 03:30 am. Te recomiendo que vengas, está bueno.</div>
 </section>
 
-<!-- 7. INSTALAR -->
+<!-- 8. INSTALAR -->
 <section id="instalar">
-  <span class="sec__num">07</span>
-  <h2 class="sec__title">Instalar el Prode como aplicación en el celular del cliente</h2>
+  <span class="sec__num">08</span>
+  <h2 class="sec__title">Instalar el Prode como app en el celular del cliente</h2>
 
-  <p>Esto es importante: <strong>le facilita al cliente volver a entrar</strong>. Si lo deja como ícono en la pantalla, abre el Prode con un toque — no tiene que recordar la URL ni buscarla en el navegador. Y si entra fácil, vuelve a jugar el próximo partido.</p>
+  <p>Si lo deja como ícono, vuelve más seguido. Si tiene que escribir la URL cada vez, se olvida.</p>
 
-  <p>Decile algo así:</p>
-  <div class="script">Te lo dejo como ícono en tu pantalla, así entrás de un toque cuando quieras pronosticar el próximo partido. Si tenés que escribir la dirección cada vez, te olvidás.</div>
+  <div class="script">Te lo dejo como ícono así entrás de un toque para el próximo partido.</div>
 
-  <h3>Android (Chrome)</h3>
-  <ol class="steps">
-    <li>Que abra <strong>Chrome</strong> y entre a <a class="url" href="https://www.saladejuegoscrespo.ar/prode" target="_blank">saladejuegoscrespo.ar/prode</a></li>
-    <li>Toque los <strong>3 puntitos arriba a la derecha</strong> (⋮)</li>
-    <li>Elegir <strong>"Agregar a la pantalla principal"</strong> o <strong>"Instalar app"</strong></li>
-    <li>Confirmar <strong>"Instalar"</strong></li>
-    <li>Listo: aparece un ícono de Sala Crespo en su escritorio</li>
-  </ol>
-
-  <h3>iPhone (Safari)</h3>
-  <ol class="steps">
-    <li>Que abra <strong>Safari</strong> (no Chrome) y entre a <a class="url" href="https://www.saladejuegoscrespo.ar/prode" target="_blank">saladejuegoscrespo.ar/prode</a></li>
-    <li>Toque el botón de <strong>compartir</strong> abajo (cuadrado con flecha hacia arriba ⬆️)</li>
-    <li>Bajá hasta <strong>"Agregar a pantalla de inicio"</strong></li>
-    <li>Confirmar <strong>"Agregar"</strong></li>
-    <li>Listo: aparece un ícono de Sala Crespo en su escritorio</li>
-  </ol>
-
+  <table>
+    <thead><tr><th></th><th>📱 Android (Chrome)</th><th>🍏 iPhone (Safari)</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>1</strong></td>
+        <td colspan="2">Entrar a <a class="url" href="https://www.saladejuegoscrespo.ar/prode" target="_blank">saladejuegoscrespo.ar/prode</a></td>
+      </tr>
+      <tr>
+        <td><strong>2</strong></td>
+        <td>Tocar los <strong>⋮ tres puntitos</strong> arriba a la derecha</td>
+        <td>Tocar <strong>compartir ⬆️</strong> abajo</td>
+      </tr>
+      <tr>
+        <td><strong>3</strong></td>
+        <td><strong>"Agregar a la pantalla principal"</strong></td>
+        <td><strong>"Agregar a pantalla de inicio"</strong></td>
+      </tr>
+      <tr>
+        <td><strong>4</strong></td>
+        <td colspan="2">Confirmar → ícono en el escritorio ✓</td>
+      </tr>
+    </tbody>
+  </table>
 </section>
 
-<!-- 8. PRODE -->
+<!-- 9. PRODE -->
 <section id="prode">
-  <span class="sec__num">08</span>
+  <span class="sec__num">09</span>
   <h2 class="sec__title">Inscribir al Prode Mundial</h2>
 
-  <p>El Prode es el corazón de tu trabajo. Es <strong>online, gratuito y deja al cliente conectado con la sala durante todo el Mundial</strong> — cada vez que entra a pronosticar, está pensando en nosotros.</p>
-
-  <h3>Cómo funciona (para que se lo expliques al cliente)</h3>
-  <ul>
-    <li>Cada vez que se juega un partido del Mundial, el cliente entra al Prode y predice <strong>quién gana</strong> y, si quiere, <strong>el resultado exacto</strong>.</li>
-    <li>Suma puntos según los aciertos. Cuanto más afina, más sube en la tabla.</li>
-    <li>No tiene que jugar todos los partidos — puede entrar y salir cuando quiera.</li>
-    <li>Entra desde su celular o computadora con <strong>su DNI + el PIN</strong> (que es el año de nacimiento que cargaste vos).</li>
-  </ul>
-
-  <h3>Cómo se inscribe (paso a paso)</h3>
-  <ol class="steps">
-    <li>Abrís el modo promotora y le pedís el DNI al cliente.</li>
-    <li>
-      Si es <strong>cliente nuevo</strong> → cargás los datos y elegís <em>"⚽ Solo Prode"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>
-      Si <strong>ya estaba cargado pero no en el Prode</strong> → tocás la card <em>"PRODE MUNDIAL · No inscripto"</em> (la roja) y la app te lleva al campo del PIN.
-    </li>
-    <li>El PIN es el <strong>año de nacimiento</strong> (4 dígitos). Pedíselo y cargalo.</li>
-    <li>Confirmás. La app te muestra una pantalla con el <strong>PIN bien grande</strong> en pantalla.</li>
-    <li>Mostrale la pantalla al cliente y decile que saque foto o anote: <em>"Tu DNI es tu usuario y este número es tu PIN para entrar."</em></li>
-  </ol>
-
-  <h3>Lo que tenés que comunicar SIEMPRE</h3>
-  <div class="card card--gold">
-    <p style="margin:0;"><strong>🏆 Premios totales</strong>: $525.000 en tickets para usar en la sala.<br/>
-    <strong>📊 Cómo se gana</strong>: predicen los partidos del Mundial — gana el que más acierta.<br/>
-    <strong>💸 Distribución</strong>:<br/>
-    &nbsp;&nbsp;&nbsp;• Fase de grupos: $75k · $50k · $25k<br/>
-    &nbsp;&nbsp;&nbsp;• 16avos de final: $75k · $50k · $25k<br/>
-    &nbsp;&nbsp;&nbsp;• Acumulado total del Mundial: $100k · $75k · $50k<br/>
-    <strong>🆓 Inscripción</strong>: gratuita, en menos de 1 minuto desde la app.<br/>
-    <strong>📱 Acceso</strong>: desde el celular del cliente, con su DNI + PIN.</p>
-  </div>
-
-  <h3>Si el cliente da email</h3>
-  <p>Le va a llegar un mail de bienvenida con:</p>
-  <ul>
-    <li>Su <strong>PIN</strong> y el link para entrar al Prode</li>
-    <li>Un <strong>código de bebida de cortesía</strong> 🥤 para canjear esa misma noche en la barra</li>
-  </ul>
-  <p>Decile que <strong>revise su mail antes de ir a la barra</strong> y que muestre el código a la cajera.</p>
-</section>
-
-<!-- 9. TORNEO -->
-<section id="torneo">
-  <span class="sec__num">09</span>
-  <h2 class="sec__title">Inscribir al Torneo de Slots</h2>
-
-  <p>El torneo se inscribe <strong>desde el mismo flujo del DNI</strong>. Algunos clientes querrán solo el torneo, otros solo el Prode, otros los dos. La app te muestra qué le falta a cada uno.</p>
+  <p>Online, gratuito, en menos de 1 minuto. <strong>$525.000 en tickets</strong> para usar en la sala.</p>
 
   <h3>Cómo se inscribe</h3>
   <ol class="steps">
-    <li>Pedile el DNI y cargalo en la app.</li>
-    <li>
-      Si es <strong>cliente nuevo</strong> → cargás los datos y elegís <em>"🎰 Solo Torneo"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>
-      Si <strong>ya estaba cargado</strong> → tocás la card <em>"TORNEO DE SLOTS · No inscripto"</em> (la roja) y la app te lleva al botón "Inscribir al Torneo".
-    </li>
-    <li>Si falta el teléfono, te lo va a pedir (es obligatorio para el torneo).</li>
-    <li>Confirmás y le aparece un <strong>número de inscripción grande</strong> (ej. N° 17). Anotalo o que saque foto.</li>
+    <li><strong>Pedile el DNI</strong> y cargalo en la app.</li>
+    <li>Si es nuevo → cargás datos y elegís <em>"⚽ Solo Prode"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>Si ya está cargado → tocás la card roja <em>"PRODE · No inscripto"</em>.</li>
+    <li>El PIN es el <strong>año de nacimiento</strong> (4 dígitos).</li>
+    <li>Confirmás. Aparece el PIN bien grande → <em>"Sacale foto, este es tu PIN para entrar al Prode."</em></li>
   </ol>
 
-  <h3>Lo que tenés que comunicar SIEMPRE</h3>
-  <div class="card card--crimson">
-    <p style="margin:0;"><strong>📅 Fecha</strong>: jueves 21 de mayo a las 21:30 horas.<br/>
-    <strong>📍 Lugar</strong>: Sala de Juegos Crespo (San Martín 1053).<br/>
-    <strong>⏰ Llegar con tiempo</strong> para acomodarse antes del inicio.<br/>
-    <strong>🪪 Traer DNI</strong> (lo van a chequear el día del evento).<br/>
-    <strong>🎁 Premios</strong>: $200.000 en vouchers para máquinas (1°: $100k · 2°: $60k · 3°: $40k).</p>
+  <h3>Premios — comunicar siempre</h3>
+  <div class="card card--gold">
+    <p style="margin:0;"><strong>🏆 $525.000 en tickets</strong> repartidos en 3 fases:</p>
+    <ul style="margin:8px 0 0;">
+      <li>Fase de grupos: $75k · $50k · $25k</li>
+      <li>16avos de final: $75k · $50k · $25k</li>
+      <li>Acumulado del Mundial: $100k · $75k · $50k</li>
+    </ul>
+    <p style="margin:8px 0 0;font-size:13px;color:var(--text-mut);">El cliente entra desde su celu con DNI + PIN. Predice partidos del Mundial. Gana el que más acierta.</p>
   </div>
 
-  <h3>Si el cliente da email</h3>
-  <p>Le va a llegar un mail de confirmación con:</p>
-  <ul>
-    <li>Todos los datos del torneo (fecha, lugar, premios)</li>
-    <li>Un <strong>código de bebida de cortesía</strong> 🥤 para canjear esa misma noche en la barra</li>
-  </ul>
-  <p>Decile que <strong>revise su mail antes de ir a la barra</strong> y que muestre el código a la cajera.</p>
+  <p style="margin-top:14px;font-size:13px;color:var(--text-mut);">Si dejó email, recibe un mail de bienvenida con el PIN + 🥤 bebida de cortesía. Decile que <strong>revise el mail antes de ir a la barra</strong>.</p>
 </section>
 
-<!-- 10. REDES -->
-<section id="redes">
+<!-- 10. TORNEO -->
+<section id="torneo">
   <span class="sec__num">10</span>
+  <h2 class="sec__title">Inscribir al Torneo de Slots</h2>
+
+  <p>Mismo flujo: empezás con el DNI. La app te dice si ya está inscripto o le falta.</p>
+
+  <h3>Cómo se inscribe</h3>
+  <ol class="steps">
+    <li><strong>Pedí el DNI</strong> y cargalo.</li>
+    <li>Si es nuevo → datos + <em>"🎰 Solo Torneo"</em> o <em>"🌟 Prode + Torneo"</em>.<br/>Si ya está cargado → tocás la card roja <em>"TORNEO · No inscripto"</em>.</li>
+    <li>El <strong>teléfono es obligatorio</strong> para el torneo. Si falta, te lo pide.</li>
+    <li>Confirmás → aparece el N° de inscripción bien grande. Sacale foto.</li>
+  </ol>
+
+  <h3>Datos del torneo — comunicar siempre</h3>
+  <div class="card card--crimson">
+    <p style="margin:0;">
+      📅 <strong>Jueves 21 de mayo · 21:30 hs</strong><br/>
+      📍 Sala de Juegos Crespo (San Martín 1053)<br/>
+      🪪 Traer DNI<br/>
+      🎁 <strong>$200.000 en vouchers</strong> (1°: $100k · 2°: $60k · 3°: $40k)
+    </p>
+  </div>
+
+  <p style="margin-top:14px;font-size:13px;color:var(--text-mut);">Si dejó email, recibe mail con N° de inscripción + 🥤 bebida de cortesía. <strong>Revisar mail antes de ir a la barra.</strong></p>
+</section>
+
+<!-- 11. REDES -->
+<section id="redes">
+  <span class="sec__num">11</span>
   <h2 class="sec__title">Sumar seguidores en redes</h2>
 
-  <h3>Por qué importa</h3>
-  <p>Cuando el cliente nos sigue, ve nuestras <strong>publicaciones de torneos, shows y promos</strong>. Eso lo trae de vuelta sin que tengas que hacer nada.</p>
+  <p>Si nos siguen, vuelven solos: ven torneos, shows y promos en su feed. <strong>Pasa por seguir 2 redes</strong>:</p>
 
-  <h3>Cómo lo hacés — los 2 QR están en la app</h3>
-  <p>Desde el modo promotora tocás el botón <strong>"Seguinos en redes"</strong> y se abre un modal con <strong>dos pestañas: Instagram y Facebook</strong>. Tocás la que use el cliente, le mostrás el QR, escanea con su cámara y le abre directo el perfil para seguirnos.</p>
   <ul>
-    <li>📸 <strong>Instagram</strong>: <strong>@salajuegoscrespo</strong></li>
-    <li>📘 <strong>Facebook</strong>: <strong>"Sala de Juegos Crespo"</strong></li>
+    <li>📸 Instagram: <strong>@salajuegoscrespo</strong></li>
+    <li>📘 Facebook: <strong>"Sala de Juegos Crespo"</strong></li>
   </ul>
 
-  <div class="script">Antes de que te vayas, ¿nos seguís? Tengo Instagram y Facebook, escaneá el que uses y te lleva directo. Allá publicamos torneos, shows y promos.</div>
+  <p>En el modo promotora, botón <strong>"Seguinos en redes"</strong> → modal con 2 pestañas (Instagram / Facebook). Cliente escanea el QR que usa.</p>
 
-  <p><strong>Tip</strong>: ofrecé las dos opciones. Si solo le mostrás IG y la persona usa solo Facebook, se pierde el seguidor. Decí <em>"tengo los dos QR, escaneá el que prefieras"</em>.</p>
+  <div class="script">Antes de que te vayas, ¿nos seguís? Tengo Instagram y Facebook, escaneá el que uses.</div>
+
+  <div class="info-box info-box--tip">
+    💡 <strong>Ofrecé las dos opciones</strong>. Si solo mostrás IG y la persona usa solo FB, se pierde el seguidor.
+  </div>
 </section>
 
-<!-- 11. SHOWS -->
+<!-- 12. SHOWS -->
 <section id="shows">
-  <span class="sec__num">11</span>
+  <span class="sec__num">12</span>
   <h2 class="sec__title">Mencionar los shows</h2>
 
   <p>Antes de empezar tu turno, mirá en <a class="url" href="https://www.instagram.com/salajuegoscrespo/" target="_blank">Instagram</a> o en <a class="url" href="https://www.saladejuegoscrespo.ar/#shows" target="_blank">la web</a> qué show hay confirmado. <strong>El modo promotora también te muestra los próximos shows</strong> en la pantalla principal, así que lo tenés a mano.</p>
@@ -721,9 +776,9 @@
   <p>Eso te da pie a sumar seguidor (objetivo principal).</p>
 </section>
 
-<!-- 12. TIPS -->
+<!-- 13. TIPS -->
 <section id="tips">
-  <span class="sec__num">12</span>
+  <span class="sec__num">13</span>
   <h2 class="sec__title">Tips clave</h2>
 
   <ul>
@@ -744,9 +799,9 @@
   </ul>
 </section>
 
-<!-- 13. PRÁCTICA -->
+<!-- 14. PRÁCTICA -->
 <section id="practica">
-  <span class="sec__num">13</span>
+  <span class="sec__num">14</span>
   <h2 class="sec__title">Practicá antes de tu primer turno</h2>
 
   <p>Antes de tu primer día, <strong>practicá tranquila</strong> usando el modo promotora con DNIs ficticios. Después borramos esos registros desde el panel de admin.</p>
@@ -775,9 +830,9 @@
   <p>Vas a recibir el mail de bienvenida con el <strong>código de bebida</strong> bien grande. Ese mismo código lo llevás a la barra y la cajera te entrega la bebida. Es importante que vivas el flow una vez antes del primer turno — así sabés exactamente cómo se ve lo que recibe el cliente y lo contás con confianza al venderlo.</p>
 </section>
 
-<!-- 14. CONTACTO -->
+<!-- 15. CONTACTO -->
 <section id="contacto">
-  <span class="sec__num">14</span>
+  <span class="sec__num">15</span>
   <h2 class="sec__title">Contacto y dudas</h2>
 
   <p>Cualquier duda durante el turno, hablá con el <strong>encargado de la sala</strong>.</p>
