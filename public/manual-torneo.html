@@ -327,6 +327,52 @@
     flex-shrink: 0;
   }
 
+  /* ─── screenshots / placeholders ────────────────────────────────── */
+  .shot-placeholder,
+  .shot {
+    display: block;
+    width: 100%;
+    border-radius: 14px;
+    margin: 14px 0;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+  .shot-placeholder {
+    background: linear-gradient(135deg, rgba(201,168,76,0.05), rgba(155,31,31,0.03));
+    border: 2px dashed rgba(201,168,76,0.35);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+  }
+  .shot-placeholder .shot-icon {
+    font-size: 36px;
+    line-height: 1;
+    opacity: 0.85;
+  }
+  .shot-placeholder .shot-name {
+    font-size: 13px;
+    color: #C9A84C;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+  }
+  .shot-placeholder .shot-file {
+    font-family: ui-monospace, 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: rgba(255,255,255,0.45);
+    background: rgba(0,0,0,0.35);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .shot {
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+  }
+
   /* ─── tips ──────────────────────────────────────────────────────── */
   .tip {
     background: rgba(116,172,223,0.08);
@@ -396,6 +442,11 @@
     <div class="tip">
       <strong>💡 Antes del torneo:</strong> abrí la URL una vez para "despertar" el servidor. La primera carga después de varias horas tarda 30 segundos — si lo hacés con tiempo, el día del torneo arranca instantáneo.
     </div>
+    <div class="shot-placeholder">
+      <div class="shot-icon">📷</div>
+      <div class="shot-name">Captura: pantalla de login</div>
+      <div class="shot-file">manual-torneo-img/01-login.png</div>
+    </div>
   </section>
 
   <!-- ───────────── 2 · CÓMO SE ARMA ───────────── -->
@@ -458,7 +509,7 @@
       </div>
       <div class="card">
         <span class="icon">🎬</span>
-        <h3>Modo final dramático</h3>
+        <h3>Modo Final</h3>
         <p>Cuando llega la Gran Final, la TV cambia sola: copa de campeón, ranking en vivo, lluvia de papelitos. Le da la cuota de espectáculo al evento.</p>
       </div>
       <div class="card">
@@ -476,8 +527,13 @@
       <div class="step">
         <div class="step-num">1</div>
         <div class="step-body">
-          <h3>Setup inicial</h3>
+          <h3>Pantalla inicial</h3>
           <p>Cargás nombre del torneo, premios y la lista de jugadores. El botón <strong>"Cargar inscriptos del Prode"</strong> trae automáticamente a todos los anotados al torneo activo.</p>
+          <div class="shot-placeholder" style="aspect-ratio: 16 / 7; margin-top: 12px;">
+            <div class="shot-icon">📷</div>
+            <div class="shot-name">Captura: pantalla inicial con jugadores cargados</div>
+            <div class="shot-file">manual-torneo-img/02-pantalla-inicial.png</div>
+          </div>
         </div>
       </div>
       <div class="step">
@@ -499,6 +555,11 @@
         <div class="step-body">
           <h3>Cargar créditos</h3>
           <p>Cuando termina el tiempo, anotás los créditos finales que quedaron en cada máquina. La app rankea sola y muestra clasificados (verde) y eliminados (rojo).</p>
+          <div class="shot-placeholder" style="aspect-ratio: 16 / 7; margin-top: 12px;">
+            <div class="shot-icon">📷</div>
+            <div class="shot-name">Captura: ranking del grupo (verde/rojo)</div>
+            <div class="shot-file">manual-torneo-img/03-ranking-grupo.png</div>
+          </div>
         </div>
       </div>
       <div class="step">
@@ -512,7 +573,17 @@
         <div class="step-num">6</div>
         <div class="step-body">
           <h3>Gran Final + diplomas</h3>
-          <p>Última ronda con la TV en modo dramático (lluvia de papelitos, copa de campeón, ranking en vivo). Al cerrarla aparece el campeón en pantalla. Después abrís la ventana de envío para mandarles el diploma por mail a los 8 finalistas.</p>
+          <p>Última ronda con la TV en <strong>Modo Final</strong>: lluvia de papelitos, copa de campeón y ranking en vivo. Al cerrarla aparece el campeón en pantalla. Después abrís la ventana de envío para mandarles el diploma por mail a los 8 finalistas.</p>
+          <div class="shot-placeholder" style="aspect-ratio: 16 / 7; margin-top: 12px;">
+            <div class="shot-icon">📷</div>
+            <div class="shot-name">Captura: TV en Modo Final con campeón</div>
+            <div class="shot-file">manual-torneo-img/04-modo-final.png</div>
+          </div>
+          <div class="shot-placeholder" style="aspect-ratio: 16 / 7; margin-top: 8px;">
+            <div class="shot-icon">📷</div>
+            <div class="shot-name">Captura: ventana de envío de diplomas</div>
+            <div class="shot-file">manual-torneo-img/05-diplomas.png</div>
+          </div>
         </div>
       </div>
     </div>
