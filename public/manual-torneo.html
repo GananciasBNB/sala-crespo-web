@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cómo operar el Torneo · Sala de Juegos Crespo</title>
+<style>
+  /* ─── reset ─────────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background:
+      radial-gradient(circle at 18% 0%, rgba(220,38,38,0.18) 0%, transparent 55%),
+      radial-gradient(circle at 82% 100%, rgba(251,191,36,0.14) 0%, transparent 55%),
+      #050507;
+    color: #E8EDF5;
+    line-height: 1.55;
+    min-height: 100vh;
+    overflow-wrap: break-word;
+  }
+  ::selection { background: rgba(251,191,36,0.4); color: #fff; }
+
+  /* ─── layout ────────────────────────────────────────────────────── */
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 36px 22px 60px; }
+
+  /* ─── header ────────────────────────────────────────────────────── */
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .logo {
+    height: 70px;
+    width: auto;
+    margin: 0 auto 14px;
+    display: block;
+    filter: drop-shadow(0 4px 14px rgba(201,168,76,0.3));
+  }
+  .kicker {
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: #C9A84C;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    margin: 8px 0 6px;
+    background: linear-gradient(135deg, #FFE9A8 0%, #C9A84C 50%, #9B1F1F 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    line-height: 1.05;
+  }
+  .lede {
+    color: #C8D2E0;
+    font-size: 15px;
+    max-width: 580px;
+    margin: 0 auto 18px;
+  }
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(251,191,36,0.12);
+    border: 1px solid rgba(251,191,36,0.4);
+    color: #F0D275;
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+  }
+  .cta:hover { background: rgba(251,191,36,0.22); transform: translateY(-1px); }
+  .cta .dot { width: 8px; height: 8px; border-radius: 50%; background: #5cd87f; box-shadow: 0 0 10px rgba(92,216,127,0.6); }
+
+  /* ─── sections ──────────────────────────────────────────────────── */
+  section { margin-bottom: 38px; }
+  h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 16px;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2::before {
+    content: '';
+    display: inline-block;
+    width: 4px;
+    height: 22px;
+    background: linear-gradient(180deg, #C9A84C, #9B1F1F);
+    border-radius: 2px;
+  }
+
+  /* ─── grids ─────────────────────────────────────────────────────── */
+  .grid {
+    display: grid;
+    gap: 12px;
+  }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+
+  /* ─── cards ─────────────────────────────────────────────────────── */
+  .card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 20px;
+    transition: border-color 0.2s, background 0.2s;
+    min-width: 0;
+  }
+  .card:hover { border-color: rgba(201,168,76,0.3); background: rgba(255,255,255,0.05); }
+  .card .icon {
+    font-size: 28px;
+    line-height: 1;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .card h3 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: 0.2px;
+  }
+  .card p {
+    font-size: 13px;
+    color: #B0BCD0;
+    line-height: 1.55;
+  }
+
+  /* ─── steps (numerados) ─────────────────────────────────────────── */
+  .steps {
+    display: grid;
+    gap: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .step {
+    display: flex;
+    gap: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 14px;
+    padding: 16px 18px;
+    align-items: flex-start;
+    min-width: 0;
+  }
+  .step-num {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #FFE9A8, #C9A84C);
+    color: #0A0A14;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 4px 14px rgba(201,168,76,0.3);
+  }
+  .step-body { min-width: 0; flex: 1; }
+  .step h3 {
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+  .step p {
+    font-size: 13px;
+    color: #B0BCD0;
+    line-height: 1.55;
+  }
+
+  /* ─── access strip ──────────────────────────────────────────────── */
+  .access {
+    background: linear-gradient(135deg, rgba(201,168,76,0.10), rgba(155,31,31,0.06));
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 16px;
+    padding: 22px;
+  }
+  .access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+  }
+  .access-item h4 {
+    font-size: 11px;
+    color: #F0D275;
+    letter-spacing: 2.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .access-item p { color: #C8D2E0; font-size: 13.5px; }
+  .access-item code {
+    display: inline-block;
+    background: rgba(0,0,0,0.4);
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12px;
+    color: #F0D275;
+    border: 1px solid rgba(201,168,76,0.2);
+  }
+
+  /* ─── faqs ──────────────────────────────────────────────────────── */
+  .faqs { display: grid; gap: 8px; }
+  details {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 0;
+    transition: background 0.2s;
+  }
+  details[open] { background: rgba(255,255,255,0.05); border-color: rgba(201,168,76,0.25); }
+  summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 14px 18px;
+    font-weight: 700;
+    color: #fff;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::after {
+    content: '+';
+    font-weight: 400;
+    font-size: 22px;
+    color: #C9A84C;
+    line-height: 1;
+    transition: transform 0.2s;
+  }
+  details[open] summary::after { transform: rotate(45deg); }
+  .faq-body {
+    padding: 0 18px 16px;
+    font-size: 13.5px;
+    color: #B0BCD0;
+    line-height: 1.6;
+  }
+  .faq-body strong { color: #E8EDF5; }
+
+  /* ─── bracket / cómo se arma ───────────────────────────────────── */
+  .bracket {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .bracket-step {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+    position: relative;
+    min-width: 0;
+  }
+  .bracket-step.final {
+    background: linear-gradient(135deg, rgba(201,168,76,0.15), rgba(155,31,31,0.10));
+    border-color: rgba(201,168,76,0.5);
+  }
+  .bracket-label {
+    font-size: 10px;
+    letter-spacing: 2.5px;
+    color: #C9A84C;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .bracket-step.final .bracket-label { color: #FFE9A8; }
+  .bracket-title {
+    font-size: 16px;
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+  .bracket-desc {
+    font-size: 12px;
+    color: #B0BCD0;
+    line-height: 1.5;
+  }
+  .bracket-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(201,168,76,0.5);
+    font-size: 26px;
+    line-height: 1;
+    user-select: none;
+  }
+  @media (max-width: 700px) {
+    .bracket-arrow { display: none; }
+  }
+  .rules-list {
+    list-style: none;
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+  }
+  .rules-list li {
+    display: flex;
+    gap: 10px;
+    font-size: 13.5px;
+    color: #C8D2E0;
+    line-height: 1.55;
+    padding-left: 0;
+  }
+  .rules-list li::before {
+    content: '✓';
+    color: #C9A84C;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+
+  /* ─── tips ──────────────────────────────────────────────────────── */
+  .tip {
+    background: rgba(116,172,223,0.08);
+    border-left: 3px solid #74ACDF;
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #C8D2E0;
+    margin-top: 14px;
+  }
+  .tip strong { color: #74ACDF; }
+
+  /* ─── footer ────────────────────────────────────────────────────── */
+  footer {
+    margin-top: 50px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+  footer strong { color: #C9A84C; }
+
+  /* ─── mobile ────────────────────────────────────────────────────── */
+  @media (max-width: 540px) {
+    .wrap { padding: 24px 16px 40px; }
+    h2 { font-size: 19px; }
+    .access { padding: 16px; }
+    .step { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ───────────── HEADER ───────────── -->
+  <header>
+    <img class="logo" src="https://www.saladejuegoscrespo.ar/logo-sin-fondo.png" alt="Sala de Juegos Crespo" />
+    <div class="kicker">Sala de Juegos Crespo</div>
+    <h1>Herramienta del Torneo</h1>
+    <p class="lede">Guía rápida para operar el torneo de slots en vivo desde la app web.</p>
+    <a class="cta" href="https://torneo.saladejuegoscrespo.ar" target="_blank" rel="noopener">
+      <span class="dot"></span> torneo.saladejuegoscrespo.ar
+    </a>
+  </header>
+
+  <!-- ───────────── 1 · ACCESO ───────────── -->
+  <section>
+    <h2>1 · Acceso</h2>
+    <div class="access">
+      <div class="access-grid">
+        <div class="access-item">
+          <h4>Dirección</h4>
+          <p><code>torneo.saladejuegoscrespo.ar</code></p>
+        </div>
+        <div class="access-item">
+          <h4>Cómo entrar</h4>
+          <p>Email + contraseña del Centro de Control. Solo cuentas autorizadas pueden ingresar.</p>
+        </div>
+        <div class="access-item">
+          <h4>Dispositivo</h4>
+          <p>Conviene una <strong>PC o notebook</strong>. Mejor con teclado para cargar créditos rápido.</p>
+        </div>
+      </div>
+    </div>
+    <div class="tip">
+      <strong>💡 Antes del torneo:</strong> abrí la URL una vez para "despertar" el servidor. La primera carga después de varias horas tarda 30 segundos — si lo hacés con tiempo, el día del torneo arranca instantáneo.
+    </div>
+  </section>
+
+  <!-- ───────────── 2 · CÓMO SE ARMA ───────────── -->
+  <section>
+    <h2>2 · Cómo se arma el torneo</h2>
+    <div class="bracket">
+      <div class="bracket-step">
+        <div class="bracket-label">Ronda 1</div>
+        <div class="bracket-title">Varios grupos</div>
+        <div class="bracket-desc">Todos los inscriptos divididos en grupos de hasta 8.</div>
+      </div>
+      <div class="bracket-arrow">→</div>
+      <div class="bracket-step">
+        <div class="bracket-label">Rondas siguientes</div>
+        <div class="bracket-title">Menos grupos</div>
+        <div class="bracket-desc">Los clasificados de la ronda anterior se vuelven a juntar en grupos nuevos.</div>
+      </div>
+      <div class="bracket-arrow">→</div>
+      <div class="bracket-step final">
+        <div class="bracket-label">Gran Final</div>
+        <div class="bracket-title">1 grupo</div>
+        <div class="bracket-desc">Los 8 finalistas. Sale el campeón.</div>
+      </div>
+    </div>
+
+    <ul class="rules-list">
+      <li>Cada <strong>grupo</strong> tiene hasta 8 jugadores que juegan en 8 máquinas al mismo tiempo, durante 2 minutos.</li>
+      <li>Cuando termina el tiempo, los jugadores con <strong>más créditos</strong> de ese grupo clasifican a la próxima ronda. Los demás quedan afuera.</li>
+      <li>Una <strong>ronda</strong> termina cuando se jugaron todos los grupos de esa ronda. Después configurás cuántos grupos tendrá la siguiente.</li>
+      <li>La cantidad de rondas no es fija: depende de cuántos inscriptos haya. Vas reduciendo la cantidad de grupos hasta que queden los <strong>8 finalistas</strong> de la Gran Final.</li>
+    </ul>
+  </section>
+
+  <!-- ───────────── 3 · FLUJO ───────────── -->
+  <section>
+    <h2>3 · Flujo del torneo (paso a paso)</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <h3>Setup inicial</h3>
+          <p>Cargás nombre del torneo, premios y la lista de jugadores. El botón <strong>"Cargar inscriptos del Prode"</strong> trae automáticamente a todos los anotados al torneo activo.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <h3>Asignar jugadores al grupo</h3>
+          <p>Llamás a 8 jugadores y los acomodás en las 8 máquinas. A medida que se sientan, los confirmás uno por uno. Si llamás a alguien y <strong>no se presenta</strong>, lo marcás ausente y llamás a un suplente que esté en lista.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <h3>Cronómetro</h3>
+          <p>Cuando todos están listos, arrancás el cronómetro: <strong>2 minutos</strong> por grupo. La TV muestra cuenta regresiva en vivo.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <h3>Cargar créditos</h3>
+          <p>Cuando termina el tiempo, anotás los créditos finales que quedaron en cada máquina. La app rankea sola y muestra clasificados (verde) y eliminados (rojo).</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <h3>Próxima ronda</h3>
+          <p>Configurás cuántos grupos tendrá la siguiente ronda y cuántos clasifican por grupo. Repetís hasta llegar a <strong>8 finalistas</strong>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <h3>Gran Final + diplomas</h3>
+          <p>Última ronda con la TV en modo dramático (lluvia de papelitos, copa de campeón, ranking en vivo). Al cerrarla aparece el campeón en pantalla. Después abrís la ventana de envío para mandarles el diploma por mail a los 8 finalistas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 3 · HERRAMIENTAS EXTRA ───────────── -->
+  <section>
+    <h2>4 · Herramientas extra</h2>
+    <div class="grid grid-3">
+      <div class="card">
+        <span class="icon">📺</span>
+        <h3>TV Pública</h3>
+        <p>Hay un botón <strong>"TV PÚBLICA"</strong> en la barra inferior de tu pantalla. Cuando lo apretás se abre una segunda ventana que está siempre sincronizada con vos en vivo. Esa segunda ventana la mostrás en una pantalla grande para los jugadores.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🗺️</span>
+        <h3>Recorrido</h3>
+        <p>En la barra inferior de tu pantalla hay una pestaña <strong>"RECORRIDO"</strong>. Te muestra todo el camino del torneo: rondas, grupos, créditos finales y quiénes clasificaron. Útil para repasar lo que pasó mientras el torneo está en curso.</p>
+      </div>
+      <div class="card">
+        <span class="icon">🏆</span>
+        <h3>Diplomas por mail</h3>
+        <p>Al terminar la final aparece una ventana con la lista de los 8 finalistas y un espacio para escribir el mail de cada uno. Si a alguno le falta, lo cargás ahí mismo y queda guardado en la base. Después se envía el diploma incluido en el mail.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ───────────── 4 · FAQs ───────────── -->
+  <section>
+    <h2>5 · Preguntas frecuentes</h2>
+    <div class="faqs">
+
+      <details>
+        <summary>¿Qué pasa si un jugador no se presenta cuando lo llamo?</summary>
+        <div class="faq-body">
+          Lo marcás como <strong>ausente</strong> con el botón al lado de su nombre y llamás a un suplente. Importante: los suplentes solo se pueden llamar en la <strong>primera ronda</strong>. Una vez que avanzaste a la siguiente, ya no entran nuevos jugadores.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Puedo corregir un crédito si me equivoqué?</summary>
+        <div class="faq-body">
+          Sí. Mientras estés cargando créditos del grupo, podés volver atrás y corregir. Si ya pasaste a la siguiente ronda, hay un botón <strong>"Reiniciar Torneo"</strong> que te deja arrancar de cero (atención: se borra todo el progreso).
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Cuánto dura cada grupo?</summary>
+        <div class="faq-body">
+          <strong>2 minutos exactos</strong>. La duración es fija, no se puede cambiar desde la app. Si necesitás cortar antes, hay un botón "Finalizar grupo" que te lleva directo al paso de cargar créditos.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Y si la TV pública se cierra o se desconecta?</summary>
+        <div class="faq-body">
+          Volvés a apretar el botón <strong>"TV PÚBLICA"</strong> y se vuelve a abrir. Recupera sola el momento del torneo en el que estabas. Si se cortó internet, esperá a que vuelva y refrescá la pantalla con F5.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Necesito internet todo el tiempo?</summary>
+        <div class="faq-body">
+          Sí. Lo necesitás para entrar a la app y para guardar los resultados al final. Si se corta a mitad del torneo, podés seguir operando, pero los resultados se guardarán recién cuando vuelva la conexión.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Si un finalista no tiene email cargado, recibe diploma?</summary>
+        <div class="faq-body">
+          No automáticamente. Pero en la ventana de envío de diplomas tenés un espacio para escribir el mail de cada finalista — lo cargás ahí y se manda al instante. Ese mail queda guardado en la base para próximas campañas.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Puedo entrar desde el celular?</summary>
+        <div class="faq-body">
+          Funciona, pero <strong>no se recomienda</strong>. La pantalla del operador tiene mucha información y tablas anchas. Para el evento real, conviene PC o notebook con teclado. El celular sí sirve para revisar antes desde casa.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Cómo sé qué jugadores están inscriptos al torneo activo?</summary>
+        <div class="faq-body">
+          En la pantalla inicial, el botón <strong>"Cargar inscriptos del Prode"</strong> los trae todos. Es la lista oficial — los que se anotaron por la web, los que cargó la promotora y cualquier otro origen. Si necesitás agregar a alguien que no está, tenés un espacio para escribirlo manualmente al lado.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Puedo probar la app antes del torneo real?</summary>
+        <div class="faq-body">
+          Sí. En la pantalla inicial hay <strong>plantillas de prueba</strong> con jugadores ficticios (12 o 24). Cargás una, simulás el torneo completo de punta a punta y después apretás <strong>"Reiniciar Torneo"</strong> para volver a cero.
+        </div>
+      </details>
+
+      <details>
+        <summary>¿Qué hago si no puedo entrar al login?</summary>
+        <div class="faq-body">
+          Asegurate de estar usando el email y la contraseña del <strong>Centro de Control</strong> (no las del Prode ni de otra cuenta). Si la contraseña no funciona, se resetea desde el panel del Centro. Si tu mail no está habilitado para entrar, se da de alta desde ahí también.
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- ───────────── FOOTER ───────────── -->
+  <footer>
+    <strong>Sala de Juegos Crespo</strong> · San Martín 1053, Crespo, Entre Ríos<br/>
+    Manual de la herramienta del torneo · v1.0
+  </footer>
+
+</div>
+</body>
+</html>
