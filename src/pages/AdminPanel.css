@@ -1190,3 +1190,49 @@
 }
 .ap-quick-btn svg { width: 16px; height: 16px; }
 
+/* ═══════════════════════════════════════════════════════════════
+   ADMIN — TIPOGRAFÍA OPTIMIZADA PARA LEGIBILIDAD DE DATOS
+   Override scoped a .ap-page: el sitio público sigue con
+   Playfair Display + Bebas Neue + DM Sans. El admin pasa a
+   Inter (sans neutra, ultra legible) + JetBrains Mono (datos).
+═══════════════════════════════════════════════════════════════ */
+
+.ap-page,
+.ap-page *:not(code):not(.ap-mono):not([data-mono]):not(input):not(textarea):not(select) {
+  font-family: 'Inter', 'DM Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+  letter-spacing: -0.005em;
+}
+
+/* Inputs y formularios — fuente sin override de letter-spacing (mejor para typing). */
+.ap-page input,
+.ap-page textarea,
+.ap-page select {
+  font-family: 'Inter', 'DM Sans', system-ui, sans-serif !important;
+  letter-spacing: 0;
+}
+
+/* Datos técnicos: paths, IDs, números fijos, códigos. */
+.ap-page code,
+.ap-page .ap-mono,
+.ap-page [data-mono] {
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Courier New', monospace !important;
+  letter-spacing: 0;
+}
+
+/* Números de KPI más respirados — pierden el ancho serif y necesitan más weight. */
+.ap-page .ap-kpi__value,
+.ap-page .ap-block__title,
+.ap-page .ap-stat__value {
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+}
+
+/* Labels (ex-Bebas) ahora en Inter con tracking moderado para no perder identidad. */
+.ap-page .ap-kpi__label,
+.ap-page .ap-stat__label,
+.ap-page .ap-section-eyebrow {
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase;
+}
+
