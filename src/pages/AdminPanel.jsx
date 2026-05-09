@@ -2603,6 +2603,7 @@ function EmailBlastAdmin({ token, toast }) {
     { id: 'prode', title: '⚽ Solo Prode', desc: 'Enfocado al Prode. Premios por fase, sin mencionar torneo.', audience: 'Players con email · sin opt-out' },
     { id: 'reminder', title: '⏰ Recordatorio T-1 día', desc: 'Mañana es tu torneo, llegá 30 min antes. Solo a inscriptos al torneo activo.', audience: 'Solo inscriptos al torneo activo (con email)' },
     { id: 'shows',    title: '🎤 Shows del mes', desc: 'Cards visuales con los próximos shows. Trae automáticamente los que están en upcoming.', audience: 'Players con email · sin opt-out' },
+    { id: 'courtesy', title: '🎁 Cortesía (bebida 48h)', desc: 'Manda mail con voucher de bebida cortesía válido 48h. Cada destinatario recibe un código único. Excelente excusa para reactivar la base.', audience: 'Players con email · sin opt-out · que no tengan voucher reciente' },
   ]
   const selected = TEMPLATES.find(t => t.id === template)
 
