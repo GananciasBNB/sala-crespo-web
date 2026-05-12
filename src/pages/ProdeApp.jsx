@@ -1663,6 +1663,58 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
 }
 
 // ─── Vista Pronósticos ────────────────────────────────────────────────────────
+// Progress badge: cuántos partidos cargó el usuario de los que están abiertos
+// para pronosticar HOY. "Abierto" = de fase de grupos, sin lockear y sin
+// resultado todavía. Los KO no se cuentan hasta que se definan los cruces.
+function PredictionsProgress({ matches, myPreds }) {
+  const now = Date.now()
+  const abiertos = matches.filter(m => {
+    if (m.phase !== 'group') return false
+    if (m.locked) return false
+    if (m.result) return false
+    if (!m.date || new Date(m.date).getTime() <= now) return false
+    return true
+  })
+  const cargados = abiertos.filter(m =>
+    myPreds?.[m.id]?.home !== undefined && myPreds?.[m.id]?.away !== undefined
+  ).length
+  const total = abiertos.length
+  if (total === 0) return null
+  const pct = Math.round((cargados / total) * 100)
+  const faltan = total - cargados
+  const isComplete = faltan === 0
+  const justStarted = cargados === 0
+
+  let mensaje
+  if (isComplete) mensaje = '¡Tremendo! Tenés todos los partidos de grupos pronosticados. Cuando termine la fase de grupos se habilitan los 32 cruces de eliminatorias y vas a sumar más.'
+  else if (justStarted) mensaje = `Tenés ${total} partidos de grupos abiertos para pronosticar. Arrancá por el grupo de Argentina y seguí desde ahí.`
+  else mensaje = `Te falta${faltan === 1 ? '' : 'n'} ${faltan} partido${faltan === 1 ? '' : 's'} de grupos por cargar. Cuando termine la fase de grupos, se desbloquean 32 cruces más de eliminatorias.`
+
+  return (
+    <div className={`pronosticos-progress ${isComplete ? 'pronosticos-progress--complete' : ''} ${justStarted ? 'pronosticos-progress--zero' : ''}`}>
+      <div className="pronosticos-progress__eyebrow">Tu progreso</div>
+      <div className="pronosticos-progress__big">
+        <div className="pronosticos-progress__big-left">
+          <span className="pronosticos-progress__big-num">{cargados}</span>
+          <span className="pronosticos-progress__big-sep">/</span>
+          <span className="pronosticos-progress__big-total">{total}</span>
+        </div>
+        <div className="pronosticos-progress__big-right">
+          <span className="pronosticos-progress__big-label">partidos de la fase de grupos</span>
+          <span className="pronosticos-progress__big-sublabel">abiertos para pronosticar</span>
+        </div>
+      </div>
+      <div className="pronosticos-progress__bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+        <div className="pronosticos-progress__bar-fill" style={{ width: `${pct}%` }}>
+          {pct >= 18 && <span className="pronosticos-progress__bar-pct">{pct}%</span>}
+        </div>
+        {pct < 18 && <span className="pronosticos-progress__bar-pct pronosticos-progress__bar-pct--outside">{pct}%</span>}
+      </div>
+      <div className="pronosticos-progress__hint">{mensaje}</div>
+    </div>
+  )
+}
+
 function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
   const [phase, setPhase]       = useState('group')
   const [group, setGroup]       = useState('J')
@@ -1769,6 +1821,8 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
       <header className="pronosticos__header">
         <h1 className="pronosticos__heading">Tus pronósticos</h1>
       </header>
+
+      <PredictionsProgress matches={matches} myPreds={myPreds} />
 
       <div className="pronosticos__hint">
         <svg className="pronosticos__hint-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>

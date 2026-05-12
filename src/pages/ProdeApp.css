@@ -4950,3 +4950,146 @@
   0%,100% { box-shadow: 0 0 0 0 rgba(0,200,150,0); }
   50%     { box-shadow: 0 0 0 12px rgba(0,200,150,0); background: linear-gradient(135deg, rgba(0,200,150,.55), rgba(255,210,80,.45)); }
 }
+
+/* Progress badge del tab "Pronósticos" — cuántos partidos abiertos para pronosticar tiene cargados el usuario. */
+.pronosticos-progress {
+  position: relative;
+  background:
+    radial-gradient(ellipse 600px 200px at 20% 0%, rgba(201,168,76,0.18), transparent 60%),
+    linear-gradient(135deg, rgba(201,168,76,0.10), rgba(155,31,31,0.08));
+  border: 1px solid rgba(201,168,76,0.40);
+  border-radius: 16px;
+  padding: 22px 22px 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.pronosticos-progress--complete {
+  background:
+    radial-gradient(ellipse 600px 200px at 20% 0%, rgba(34,197,94,0.22), transparent 60%),
+    linear-gradient(135deg, rgba(34,197,94,0.14), rgba(201,168,76,0.08));
+  border-color: rgba(134,239,172,0.55);
+}
+.pronosticos-progress__eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #F0D275;
+  margin-bottom: 10px;
+}
+.pronosticos-progress--complete .pronosticos-progress__eyebrow {
+  color: #86efac;
+}
+.pronosticos-progress__big {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.pronosticos-progress__big-left {
+  display: flex;
+  align-items: baseline;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.pronosticos-progress__big-num {
+  font-family: 'Bebas Neue', 'Anton', system-ui, sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  text-shadow: 0 0 24px rgba(240,210,117,0.35);
+}
+.pronosticos-progress--complete .pronosticos-progress__big-num {
+  color: #86efac;
+  text-shadow: 0 0 24px rgba(134,239,172,0.45);
+}
+.pronosticos-progress__big-sep {
+  font-family: 'Bebas Neue', system-ui, sans-serif;
+  font-size: 40px;
+  font-weight: 400;
+  color: rgba(232,237,245,0.35);
+  margin: 0 6px;
+}
+.pronosticos-progress__big-total {
+  font-family: 'Bebas Neue', system-ui, sans-serif;
+  font-size: 40px;
+  font-weight: 400;
+  color: rgba(232,237,245,0.65);
+}
+.pronosticos-progress__big-right {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  flex: 1;
+  min-width: 0;
+}
+.pronosticos-progress__big-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #E8EDF5;
+}
+.pronosticos-progress__big-sublabel {
+  font-size: 13px;
+  color: #C8D2E0;
+  opacity: 0.85;
+}
+.pronosticos-progress__bar {
+  position: relative;
+  height: 16px;
+  background: rgba(232,237,245,0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.3);
+}
+.pronosticos-progress__bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #C9A84C 0%, #F0D275 50%, #C9A84C 100%);
+  background-size: 200% 100%;
+  border-radius: 999px;
+  transition: width 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 12px rgba(240,210,117,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 10px;
+  animation: pronosticos-progress-shimmer 3s linear infinite;
+}
+.pronosticos-progress--complete .pronosticos-progress__bar-fill {
+  background: linear-gradient(90deg, #16a34a 0%, #86efac 50%, #16a34a 100%);
+  background-size: 200% 100%;
+  box-shadow: 0 0 12px rgba(134,239,172,0.6);
+}
+.pronosticos-progress--zero .pronosticos-progress__bar-fill {
+  animation: none;
+}
+@keyframes pronosticos-progress-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+.pronosticos-progress__bar-pct {
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(0,0,0,0.7);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.5px;
+}
+.pronosticos-progress__bar-pct--outside {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #C8D2E0;
+}
+.pronosticos-progress__hint {
+  margin-top: 14px;
+  font-size: 13px;
+  color: #C8D2E0;
+  line-height: 1.55;
+}
+
+@media (max-width: 480px) {
+  .pronosticos-progress__big-num { font-size: 48px; }
+  .pronosticos-progress__big-sep,
+  .pronosticos-progress__big-total { font-size: 32px; }
+}
