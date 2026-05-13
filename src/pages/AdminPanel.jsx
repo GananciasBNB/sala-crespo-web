@@ -4,6 +4,7 @@ import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
   adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminSearchPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
   adminGetLeagues, adminGetLeagueDetail, adminDeleteLeague,
+  adminEspnTestDiscover, adminEspnTestAdd, adminEspnTestList, adminEspnTestSync, adminEspnTestDelete,
   adminGetTournaments, adminCreateTournament, adminUpdateTournament, adminDeleteTournament,
   adminGetTournamentRegistrations, adminSetRegistrationAttended, adminSetRegistrationPosition, adminDeleteTournamentRegistration,
   adminCreateShow, adminUpdateShow, adminDeleteShow,
@@ -358,6 +359,7 @@ function ProdeAdmin({ token, toast }) {
           { id: 'equipos',    label: 'Equipos' },
           { id: 'jugadores',  label: 'Jugadores' },
           { id: 'ligas',      label: 'Mini-ligas' },
+          { id: 'espn',       label: '🌐 ESPN sync' },
         ].map(s => (
           <button
             key={s.id}
@@ -832,7 +834,237 @@ function ProdeAdmin({ token, toast }) {
       )}
 
       {subtab === 'ligas' && <LeaguesAdmin token={token} toast={toast} />}
+      {subtab === 'espn'  && <EspnTestAdmin token={token} toast={toast} />}
     </div>
+  )
+}
+
+// ─── ESPN test sync ─────────────────────────────────────────────────────────
+// Sandbox para validar el flow de sync automático contra partidos reales de
+// Premier, La Liga, etc. NO toca la tabla `results` real del Prode.
+const ESPN_LEAGUES = [
+  { slug: 'eng.1', label: 'Premier League (ENG)' },
+  { slug: 'esp.1', label: 'La Liga (ESP)' },
+  { slug: 'ita.1', label: 'Serie A (ITA)' },
+  { slug: 'ger.1', label: 'Bundesliga (GER)' },
+  { slug: 'fra.1', label: 'Ligue 1 (FRA)' },
+  { slug: 'arg.1', label: 'Liga Argentina' },
+  { slug: 'uefa.champions', label: 'UEFA Champions League' },
+  { slug: 'conmebol.libertadores', label: 'CONMEBOL Libertadores' },
+  { slug: 'fifa.world', label: 'FIFA World Cup 2026' },
+]
+const ESPN_STATUS_LABEL = {
+  waiting:     { txt: 'Programado',  color: '#94a3b8' },
+  in_progress: { txt: 'En juego',    color: '#f59e0b' },
+  finished:    { txt: 'Finalizado',  color: '#22c55e' },
+  not_found:   { txt: 'No encontrado', color: '#ef4444' },
+  unknown:     { txt: 'Desconocido', color: '#a78bfa' },
+}
+
+function EspnTestAdmin({ token, toast }) {
+  const [list, setList]                 = useState([])
+  const [lastSync, setLastSync]         = useState(null)
+  const [loading, setLoading]           = useState(true)
+  const [syncing, setSyncing]           = useState(false)
+  const [discoverLeague, setDiscoverLeague] = useState('eng.1')
+  const [discoverDate, setDiscoverDate]     = useState('')
+  const [discoverResults, setDiscoverResults] = useState(null)
+  const [selected, setSelected]         = useState({}) // espnEventId -> true
+  const [discovering, setDiscovering]   = useState(false)
+
+  async function reload() {
+    try {
+      const r = await adminEspnTestList(token)
+      setList(r.matches || [])
+      setLastSync(r.lastSync || null)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  useEffect(() => {
+    setLoading(true)
+    reload().finally(() => setLoading(false))
+  }, [token])
+
+  // Auto-refresh cada 30s mientras la tab está abierta
+  useEffect(() => {
+    const t = setInterval(reload, 30000)
+    return () => clearInterval(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
+  async function handleDiscover(e) {
+    e?.preventDefault()
+    if (!discoverDate) { toast.show('Elegí una fecha', 'err'); return }
+    const dateYYYYMMDD = discoverDate.replace(/-/g, '')
+    setDiscovering(true)
+    setDiscoverResults(null)
+    setSelected({})
+    try {
+      const r = await adminEspnTestDiscover(token, discoverLeague, dateYYYYMMDD)
+      setDiscoverResults(r)
+      if (!r.events || r.events.length === 0) toast.show('Sin partidos en esa fecha', 'err')
+    } catch (err) {
+      toast.show(err.message, 'err')
+    } finally {
+      setDiscovering(false)
+    }
+  }
+
+  async function handleAddSelected() {
+    if (!discoverResults) return
+    const events = (discoverResults.events || []).filter(ev => selected[ev.espnEventId] && !ev.alreadyAdded)
+    if (events.length === 0) { toast.show('Marcá al menos un partido nuevo', 'err'); return }
+    try {
+      const r = await adminEspnTestAdd(token, discoverResults.leagueSlug, events)
+      toast.show(`✓ ${r.added?.length || 0} prueba(s) agregada(s)`)
+      setSelected({})
+      // re-discover para refrescar alreadyAdded
+      await handleDiscover()
+      await reload()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleSyncNow() {
+    setSyncing(true)
+    try {
+      const r = await adminEspnTestSync(token)
+      toast.show(`✓ Sync OK · actualizados: ${r.updated}, finalizados: ${r.finished || 0}`)
+      await reload()
+    } catch (err) { toast.show(err.message, 'err') }
+    setSyncing(false)
+  }
+
+  async function handleDelete(id, label) {
+    if (!confirm(`¿Borrar la prueba "${label}"?`)) return
+    try {
+      await adminEspnTestDelete(token, id)
+      toast.show('✓ Eliminada')
+      await reload()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  const fmtScore = (m) => (m.homeScore != null && m.awayScore != null) ? `${m.homeScore} - ${m.awayScore}` : '—'
+
+  if (loading) return <div className="ap-block"><p>Cargando…</p></div>
+
+  return (
+    <>
+      <div className="ap-block">
+        <h3 className="ap-block__title">🌐 ESPN sync · sandbox</h3>
+        <p style={{ opacity: 0.75, fontSize: 13, lineHeight: 1.5 }}>
+          Trackea partidos reales (Premier, La Liga, etc.) para validar que el sync
+          automático con ESPN funciona antes del Mundial. <strong>No toca la tabla de resultados del Prode.</strong> Auto-refresh cada 30s.
+        </p>
+
+        <form onSubmit={handleDiscover} style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'end', marginTop: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={{ fontSize: 11, opacity: 0.7, textTransform: 'uppercase' }}>Liga</label>
+            <select value={discoverLeague} onChange={e => setDiscoverLeague(e.target.value)} className="ap-input" style={{ minWidth: 220 }}>
+              {ESPN_LEAGUES.map(l => <option key={l.slug} value={l.slug}>{l.label}</option>)}
+            </select>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <label style={{ fontSize: 11, opacity: 0.7, textTransform: 'uppercase' }}>Fecha</label>
+            <input type="date" value={discoverDate} onChange={e => setDiscoverDate(e.target.value)} className="ap-input" />
+          </div>
+          <button type="submit" className="ap-btn ap-btn--primary" disabled={discovering}>
+            {discovering ? 'Buscando…' : 'Buscar partidos'}
+          </button>
+        </form>
+
+        {discoverResults && (
+          <div style={{ marginTop: 16, padding: 12, border: '1px solid rgba(201,168,76,0.3)', borderRadius: 8 }}>
+            <div style={{ fontSize: 13, marginBottom: 10 }}>
+              <strong>{discoverResults.leagueName}</strong> · {discoverResults.season || ''} · {discoverResults.events.length} partido(s)
+            </div>
+            {discoverResults.events.length === 0 ? (
+              <p style={{ opacity: 0.7 }}>Sin partidos en esa fecha.</p>
+            ) : (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {discoverResults.events.map(ev => {
+                    const dt = ev.dateUtc ? new Date(ev.dateUtc).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }) : '—'
+                    const st = ESPN_STATUS_LABEL[ev.status] || ESPN_STATUS_LABEL.unknown
+                    return (
+                      <label key={ev.espnEventId} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: 8, background: 'rgba(255,255,255,0.03)', borderRadius: 6, cursor: ev.alreadyAdded ? 'not-allowed' : 'pointer', opacity: ev.alreadyAdded ? 0.5 : 1 }}>
+                        <input
+                          type="checkbox"
+                          disabled={ev.alreadyAdded}
+                          checked={!!selected[ev.espnEventId]}
+                          onChange={e => setSelected(prev => ({ ...prev, [ev.espnEventId]: e.target.checked }))}
+                        />
+                        <span style={{ flex: 1 }}>
+                          <strong>{ev.homeAbbr}</strong> {ev.homeName} <span style={{ opacity: 0.5 }}>vs</span> <strong>{ev.awayAbbr}</strong> {ev.awayName}
+                        </span>
+                        <span style={{ fontSize: 12, opacity: 0.7 }}>{dt} ARG</span>
+                        <span style={{ fontSize: 11, color: st.color, fontWeight: 600 }}>● {st.txt}</span>
+                        {ev.alreadyAdded && <span style={{ fontSize: 11, opacity: 0.6 }}>(ya agregado)</span>}
+                      </label>
+                    )
+                  })}
+                </div>
+                <button onClick={handleAddSelected} className="ap-btn ap-btn--primary" style={{ marginTop: 12 }}>
+                  Agregar seleccionados
+                </button>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="ap-block">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <h3 className="ap-block__title" style={{ margin: 0 }}>Pruebas activas ({list.length})</h3>
+          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+            {lastSync && <span style={{ fontSize: 12, opacity: 0.65 }}>Último sync: {new Date(lastSync).toLocaleString('es-AR')}</span>}
+            <button onClick={handleSyncNow} className="ap-btn" disabled={syncing}>
+              {syncing ? 'Sincronizando…' : '🔄 Sincronizar ahora'}
+            </button>
+          </div>
+        </div>
+
+        {list.length === 0 ? (
+          <p style={{ opacity: 0.7, marginTop: 12 }}>No hay pruebas activas. Agregá algunas desde el bloque de arriba.</p>
+        ) : (
+          <div className="ap-table-wrap" style={{ marginTop: 12 }}>
+            <table className="ap-table">
+              <thead>
+                <tr>
+                  <th>Liga</th>
+                  <th>Partido</th>
+                  <th>Fecha (ARG)</th>
+                  <th>Estado</th>
+                  <th>Score</th>
+                  <th>Último check</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {list.map(m => {
+                  const dt = m.expectedDate ? new Date(m.expectedDate).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false }) : '—'
+                  const checked = m.lastCheckedAt ? new Date(m.lastCheckedAt).toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', hour12: false }) : '—'
+                  const st = ESPN_STATUS_LABEL[m.status] || ESPN_STATUS_LABEL.unknown
+                  const label = `${m.homeAbbr} vs ${m.awayAbbr}`
+                  return (
+                    <tr key={m.id}>
+                      <td style={{ fontSize: 11, opacity: 0.7 }}>{m.leagueSlug}</td>
+                      <td><strong>{m.homeAbbr}</strong> vs <strong>{m.awayAbbr}</strong></td>
+                      <td style={{ fontSize: 12 }}>{dt}</td>
+                      <td style={{ color: st.color, fontWeight: 600 }}>● {st.txt}</td>
+                      <td style={{ fontVariantNumeric: 'tabular-nums' }}>{fmtScore(m)}</td>
+                      <td style={{ fontSize: 11, opacity: 0.6 }}>{checked}</td>
+                      <td>
+                        <button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => handleDelete(m.id, label)}>Borrar</button>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
 

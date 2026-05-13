@@ -243,6 +243,26 @@ export const adminGetLeagueDetail = (token, id) =>
 export const adminDeleteLeague = (token, id) =>
   api(`/api/admin/leagues/${id}`, { method: 'DELETE', headers: authHeaders(token) })
 
+// ESPN test matches (sandbox del sync automático)
+export const adminEspnTestDiscover = (token, leagueSlug, dateYYYYMMDD) =>
+  api(`/api/admin/espn-test/discover?league=${encodeURIComponent(leagueSlug)}&date=${encodeURIComponent(dateYYYYMMDD)}`,
+    { headers: authHeaders(token) })
+
+export const adminEspnTestAdd = (token, leagueSlug, events) =>
+  api('/api/admin/espn-test/add', {
+    method: 'POST', headers: authHeaders(token),
+    body: JSON.stringify({ leagueSlug, events }),
+  })
+
+export const adminEspnTestList = (token) =>
+  api('/api/admin/espn-test', { headers: authHeaders(token) })
+
+export const adminEspnTestSync = (token) =>
+  api('/api/admin/espn-test/sync', { method: 'POST', headers: authHeaders(token) })
+
+export const adminEspnTestDelete = (token, id) =>
+  api(`/api/admin/espn-test/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
 export const adminDeletePlayer = (token, id) =>
   api(`/api/admin/player/${id}`, { method: 'DELETE', headers: authHeaders(token) })
 
