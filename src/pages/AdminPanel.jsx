@@ -2614,10 +2614,15 @@ function Dashboard({ token, admin, onNavigate }) {
     if (!snapLabel.trim()) return
     setSnapSaving(true)
     try {
-      await adminSaveAnalyticsSnapshot(token, snapLabel.trim())
+      const saved = await adminSaveAnalyticsSnapshot(token, snapLabel.trim())
       setSnapLabel('')
+      // Agregar al tope de la lista local — sin re-fetch al servidor para no
+      // colgar el botón si Render se duerme entre calls.
+      if (saved?.id) {
+        setSnapshots(prev => [{ id: String(saved.id), label: saved.label, takenAt: saved.takenAt }, ...prev])
+        setSnapLoaded(true)
+      }
       toast.show('✓ Snapshot guardado')
-      await loadSnapshots()
     } catch (err) { toast.show(err.message, 'err') }
     setSnapSaving(false)
   }
