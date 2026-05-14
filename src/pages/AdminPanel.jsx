@@ -2795,6 +2795,10 @@ function EmailBlastAdmin({ token, toast }) {
   const [confirmBlast, setConfirmBlast] = useState(false)
   const [excludeRecent, setExcludeRecent] = useState(false)
   const [excludeDays, setExcludeDays] = useState(7)
+  // Segmentación específica del template "reminder-predictions": filtra por cantidad
+  // de pronósticos cargados. 'all' = sin filtro. Default 30 = solo los que están flojos.
+  const [maxPredictions, setMaxPredictions] = useState(30)
+  const [unfilteredPredictions, setUnfilteredPredictions] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [campaigns, setCampaigns] = useState([])
   const [campaignDetail, setCampaignDetail] = useState(null)
@@ -2836,6 +2840,7 @@ function EmailBlastAdmin({ token, toast }) {
     { id: 'reminder', title: '⏰ Recordatorio T-1 día', desc: 'Mañana es tu torneo, llegá 30 min antes. Solo a inscriptos al torneo activo.', audience: 'Solo inscriptos al torneo activo (con email)' },
     { id: 'shows',    title: '🎤 Shows del mes', desc: 'Cards visuales con los próximos shows. Trae automáticamente los que están en upcoming.', audience: 'Players con email · sin opt-out' },
     { id: 'courtesy', title: '🎁 Cortesía (bebida 48h)', desc: 'Manda mail con voucher de bebida cortesía válido 48h. Cada destinatario recibe un código único. Excelente excusa para reactivar la base.', audience: 'Players con email · sin opt-out · que no tengan voucher reciente' },
+    { id: 'reminder-predictions', title: '⚽ Recordatorio "Cargá tus pronósticos"', desc: 'Mail visual con countdown al Mundial, cómo cargar pronósticos paso a paso, mockup de la app y bombo a mini-ligas. Subject dinámico con días al kickoff. Footer aclara que los premios son tickets promocionales.', audience: 'Inscriptos al Prode con pocos pronósticos cargados (configurable abajo)' },
   ]
   const selected = TEMPLATES.find(t => t.id === template)
 
@@ -2875,11 +2880,19 @@ function EmailBlastAdmin({ token, toast }) {
     if (d) { setCustomSubject(d.subject); setCustomIntro(d.intro) }
   }
 
+  // Helper: agrega maxPredictions al body si la plantilla es reminder-predictions.
+  function withReminderPredictionsBody(body) {
+    if (template === 'reminder-predictions') {
+      body.maxPredictions = unfilteredPredictions ? null : Number(maxPredictions)
+    }
+    return body
+  }
+
   async function sendTest() {
     if (!testEmail || !testEmail.includes('@')) return toast.show('Ingresá un email válido', 'err')
     setBusy(true); setLastResult(null)
     try {
-      const body = { template, testEmail, customSubject, customIntro }
+      const body = withReminderPredictionsBody({ template, testEmail, customSubject, customIntro })
       if (template === 'shows' && customShowsToSend.length > 0) body.customShows = customShowsToSend
       await adminEmailBlast(token, body)
       setLastResult({ ok: true, msg: `✅ Test enviado a ${testEmail}. Revisá tu inbox (y carpeta spam por las dudas).` })
@@ -2892,7 +2905,7 @@ function EmailBlastAdmin({ token, toast }) {
   async function dryRun() {
     setBusy(true); setLastResult(null)
     try {
-      const body = { template, scope, dryRun: true }
+      const body = withReminderPredictionsBody({ template, scope, dryRun: true })
       if (excludeRecent) body.excludeRecentDays = excludeDays
       const r = await adminEmailBlast(token, body)
       const list = r.recipients || r.sample || []
@@ -2909,7 +2922,7 @@ function EmailBlastAdmin({ token, toast }) {
   async function blast() {
     setBusy(true); setLastResult(null); setConfirmBlast(false)
     try {
-      const body = { template, scope, customSubject, customIntro }
+      const body = withReminderPredictionsBody({ template, scope, customSubject, customIntro })
       if (excludeRecent) body.excludeRecentDays = excludeDays
       if (template === 'shows' && customShowsToSend.length > 0) body.customShows = customShowsToSend
       const r = await adminEmailBlast(token, body)
@@ -3053,6 +3066,45 @@ function EmailBlastAdmin({ token, toast }) {
                     ✓ {customShowsToSend.length} imagen(es) custom cargada(s) · se van a usar en este blast
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Segmentación específica del template reminder-predictions */}
+            {template === 'reminder-predictions' && (
+              <div style={{marginTop:18, paddingTop:18, borderTop:'1px solid var(--ap-border)'}}>
+                <label style={{display:'block', fontSize:13, color:'#C9A84C', fontWeight:600, marginBottom:6}}>
+                  🎯 Segmentación de destinatarios
+                </label>
+                <p style={{fontSize:12, color:'#8B9BB4', margin:'0 0 12px', lineHeight:1.5}}>
+                  Por default este mail va solo a los inscriptos que están <strong>flojos</strong> (cargaron pocos pronósticos). Ajustá el límite o mandalo a toda la base.
+                </p>
+                <div style={{display:'flex', gap:10, alignItems:'center', marginBottom:10, flexWrap:'wrap'}}>
+                  <label style={{display:'flex', gap:6, alignItems:'center', fontSize:13, color:'#E8EDF5', cursor:'pointer'}}>
+                    <input
+                      type="checkbox"
+                      checked={unfilteredPredictions}
+                      onChange={e => setUnfilteredPredictions(e.target.checked)}
+                      disabled={busy}
+                    />
+                    Mandar a TODOS los inscriptos del Prode (sin filtro de pronósticos)
+                  </label>
+                </div>
+                {!unfilteredPredictions && (
+                  <div style={{display:'flex', gap:10, alignItems:'center', flexWrap:'wrap'}}>
+                    <label style={{fontSize:13, color:'#C8D2E0'}}>Solo a los que cargaron</label>
+                    <input
+                      type="number" min={0} max={104} step={1}
+                      value={maxPredictions}
+                      onChange={e => setMaxPredictions(e.target.value)}
+                      disabled={busy}
+                      style={{...inputStyle, width:80, padding:'8px 10px'}}
+                    />
+                    <span style={{fontSize:13, color:'#C8D2E0'}}>pronósticos o menos.</span>
+                  </div>
+                )}
+                <div style={{marginTop:10, fontSize:12, color:'#5BD68F', lineHeight:1.5}}>
+                  💡 El subject del mail se completa automáticamente con los días que faltan al Mundial. Usá <code style={{background:'rgba(0,0,0,.3)', padding:'1px 5px', borderRadius:3}}>{'{daysToKickoff}'}</code> en el asunto si querés controlarlo manualmente.
+                </div>
               </div>
             )}
           </div>
