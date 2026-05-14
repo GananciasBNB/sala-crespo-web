@@ -2816,7 +2816,14 @@ function Dashboard({ token, admin, onNavigate }) {
       <div style={{paddingTop:4}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
           <div className="ap-block__subtitle" style={{margin:0}}>📸 Snapshots de Analytics — campañas</div>
-          {!snapLoaded && <button className="ap-btn ap-btn--small" onClick={loadSnapshots}>Cargar historial</button>}
+          {!snapLoaded && (
+            <button
+              onClick={loadSnapshots}
+              style={{padding:'8px 16px',borderRadius:8,border:'1px solid #C9A84C',background:'rgba(201,168,76,.15)',color:'#F0D275',fontSize:12,fontWeight:600,cursor:'pointer',whiteSpace:'nowrap'}}
+            >
+              📂 Cargar historial
+            </button>
+          )}
         </div>
         <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
           <input
