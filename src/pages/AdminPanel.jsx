@@ -2605,6 +2605,21 @@ function Dashboard({ token, admin, onNavigate }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
+  // Devuelve texto tipo "8 may–14 may · vs 1 may–7 may" para un rango dado.
+  function rangeDatesLabel(range) {
+    const today = new Date()
+    const fmt = d => d.toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })
+    function shift(date, days) { const d = new Date(date); d.setDate(d.getDate() + days); return d }
+    if (range === 'today') {
+      return `${fmt(today)} · vs ${fmt(shift(today, -1))}`
+    }
+    const days = range === '30d' ? 30 : range === '90d' ? 90 : 7
+    const start = shift(today, -(days - 1))
+    const prevEnd = shift(start, -1)
+    const prevStart = shift(prevEnd, -(days - 1))
+    return `${fmt(start)}–${fmt(today)} · vs ${fmt(prevStart)}–${fmt(prevEnd)}`
+  }
+
   // Re-fetch GA cuando cambia el rango (después del mount inicial)
   async function reloadGA(newRange) {
     setGaRange(newRange)
@@ -2753,7 +2768,10 @@ function Dashboard({ token, admin, onNavigate }) {
         <div>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap',marginBottom:12}}>
             <div className="ap-block__subtitle" style={{margin:0}}>
-              📈 Tráfico web (Google Analytics) · <span style={{color:'#8B9BB4',fontWeight:400}}>{ga.label || 'Últimos 7 días'}</span>
+              📈 Tráfico web (Google Analytics)
+              <span style={{display:'block',color:'#8B9BB4',fontWeight:400,fontSize:12,marginTop:4}}>
+                {rangeDatesLabel(gaRange)}
+              </span>
             </div>
             <div style={{display:'flex',gap:6,alignItems:'center'}}>
               {gaLoading && <span style={{fontSize:11,color:'#8B9BB4'}}>actualizando…</span>}
@@ -2781,17 +2799,36 @@ function Dashboard({ token, admin, onNavigate }) {
           {/* Cards de métricas principales con delta vs período anterior */}
           <div className="ap-kpi-grid">
             {[
-              ['👥', 'Usuarios activos', 'activeUsers', null,    'visitantes únicos'],
-              ['🆕', 'Usuarios nuevos',  'newUsers',    null,    'primera visita en el período'],
-              ['🔄', 'Sesiones',         'sessions',    null,    'visitas totales'],
-              ['📄', 'Vistas de página', 'screenPageViews', null,'páginas vistas'],
-            ].map(([icon, label, key, _, sub]) => {
+              {
+                icon: '👥', label: 'Usuarios activos', key: 'activeUsers',
+                sub: 'personas distintas que entraron al sitio',
+                tip: 'Cantidad de personas únicas que visitaron el sitio en el período. Si la misma persona entra 5 veces, cuenta 1 sola. Es la métrica más "limpia" para medir tamaño de audiencia.',
+              },
+              {
+                icon: '🆕', label: 'Usuarios nuevos', key: 'newUsers',
+                sub: 'su primera visita al sitio',
+                tip: 'De los usuarios activos, cuántos vinieron por primera vez en su vida al sitio. Si una persona ya visitó hace 6 meses y vuelve hoy, NO se cuenta acá. Es el indicador clave de captación: cuánta gente nueva está llegando.',
+              },
+              {
+                icon: '🔄', label: 'Sesiones', key: 'sessions',
+                sub: 'visitas en total al sitio',
+                tip: 'Una sesión = una visita al sitio. Si una persona entra a la mañana, cierra el navegador y vuelve a la tarde, son 2 sesiones. Generalmente sesiones > usuarios porque la gente vuelve. Sirve para medir cuánto "engancha" el sitio.',
+              },
+              {
+                icon: '📄', label: 'Vistas de página', key: 'screenPageViews',
+                sub: 'clicks de navegación entre pantallas',
+                tip: 'Cada vez que alguien abre o cambia de página/sección, cuenta +1. Por ejemplo, abrir el home, después ir al Prode, después al fixture = 3 vistas. Métrica buena para ver qué tan a fondo navegan los visitantes.',
+              },
+            ].map(({ icon, label, key, sub, tip }) => {
               const m = ga.metrics?.[key]
               const cmp = ga.comparison?.[key]
               return (
-                <div key={key} className="ap-kpi">
+                <div key={key} className="ap-kpi" title={tip}>
                   <div className="ap-kpi__icon">{icon}</div>
-                  <div className="ap-kpi__label">{label}</div>
+                  <div className="ap-kpi__label" style={{display:'flex',alignItems:'center',gap:6}}>
+                    {label}
+                    <span style={{display:'inline-flex',width:14,height:14,borderRadius:999,background:'rgba(201,168,76,.18)',color:'#C9A84C',fontSize:9,alignItems:'center',justifyContent:'center',fontWeight:700,cursor:'help'}}>ⓘ</span>
+                  </div>
                   <div>
                     <span className="ap-kpi__value">{m ?? '—'}</span>
                     {cmp && cmp.previous > 0 && (
@@ -2808,9 +2845,12 @@ function Dashboard({ token, admin, onNavigate }) {
 
           {/* Cards de calidad de tráfico */}
           <div className="ap-kpi-grid" style={{marginTop:14}}>
-            <div className="ap-kpi">
+            <div className="ap-kpi" title="Porcentaje de sesiones donde la persona hizo algo significativo: estuvo más de 10 segundos, vio más de una pantalla, o disparó un evento (click en botón, scroll profundo, etc). Lo opuesto al rebote. Alto = bueno: el contenido enganchó.">
               <div className="ap-kpi__icon">💚</div>
-              <div className="ap-kpi__label">Engagement</div>
+              <div className="ap-kpi__label" style={{display:'flex',alignItems:'center',gap:6}}>
+                Engagement
+                <span style={{display:'inline-flex',width:14,height:14,borderRadius:999,background:'rgba(201,168,76,.18)',color:'#C9A84C',fontSize:9,alignItems:'center',justifyContent:'center',fontWeight:700,cursor:'help'}}>ⓘ</span>
+              </div>
               <div>
                 <span className="ap-kpi__value">{ga.metrics?.engagementRate?.toFixed(1) ?? '—'}<span style={{fontSize:18,opacity:.6}}>%</span></span>
                 {ga.comparison?.engagementRate && (
@@ -2819,11 +2859,14 @@ function Dashboard({ token, admin, onNavigate }) {
                   </span>
                 )}
               </div>
-              <p className="ap-kpi__sub">% sesiones con interacción significativa</p>
+              <p className="ap-kpi__sub">de las visitas hubo interés genuino · subir es bueno</p>
             </div>
-            <div className="ap-kpi">
+            <div className="ap-kpi" title="Porcentaje de sesiones donde la persona entró y se fue sin hacer nada (no llegó a 10 seg, no scrolleó, no clickeó). Bajo = bueno: la gente se queda y explora. Si tu campaña Meta tiene rebote alto, significa que el público no es el indicado o la página de aterrizaje no engancha.">
               <div className="ap-kpi__icon">🏃</div>
-              <div className="ap-kpi__label">Rebote</div>
+              <div className="ap-kpi__label" style={{display:'flex',alignItems:'center',gap:6}}>
+                Rebote
+                <span style={{display:'inline-flex',width:14,height:14,borderRadius:999,background:'rgba(201,168,76,.18)',color:'#C9A84C',fontSize:9,alignItems:'center',justifyContent:'center',fontWeight:700,cursor:'help'}}>ⓘ</span>
+              </div>
               <div>
                 <span className="ap-kpi__value">{ga.metrics?.bounceRate?.toFixed(1) ?? '—'}<span style={{fontSize:18,opacity:.6}}>%</span></span>
                 {ga.comparison?.bounceRate && (
@@ -2832,23 +2875,29 @@ function Dashboard({ token, admin, onNavigate }) {
                   </span>
                 )}
               </div>
-              <p className="ap-kpi__sub">% que se va sin interactuar (menor es mejor)</p>
+              <p className="ap-kpi__sub">se fue sin enganchar · bajar es bueno</p>
             </div>
-            <div className="ap-kpi">
+            <div className="ap-kpi" title="Tiempo promedio que una persona pasa en el sitio durante UNA visita. Si alguien entra y se va en 5 segundos, baja el promedio. Si alguien navega 10 minutos, lo sube. Sirve para medir profundidad de interés. Para un Prode, valores arriba de 1:30 son muy buenos.">
               <div className="ap-kpi__icon">⏱</div>
-              <div className="ap-kpi__label">Duración media</div>
+              <div className="ap-kpi__label" style={{display:'flex',alignItems:'center',gap:6}}>
+                Duración media
+                <span style={{display:'inline-flex',width:14,height:14,borderRadius:999,background:'rgba(201,168,76,.18)',color:'#C9A84C',fontSize:9,alignItems:'center',justifyContent:'center',fontWeight:700,cursor:'help'}}>ⓘ</span>
+              </div>
               <div>
                 <span className="ap-kpi__value">{ga.metrics?.averageSessionDuration ? `${Math.floor(ga.metrics.averageSessionDuration / 60)}:${String(Math.round(ga.metrics.averageSessionDuration % 60)).padStart(2,'0')}` : '—'}</span>
               </div>
-              <p className="ap-kpi__sub">tiempo promedio por sesión (mm:ss)</p>
+              <p className="ap-kpi__sub">tiempo promedio por visita · más es mejor</p>
             </div>
-            <div className="ap-kpi">
+            <div className="ap-kpi" title="Cuántas pantallas distintas ve una persona en promedio en una sola visita. Si vale 1.0, la gente entra y se va sin navegar. Si vale 3+, la gente explora bien. Para el Prode, ideal arriba de 2: significa que después del home van al fixture, a la tabla, etc.">
               <div className="ap-kpi__icon">📑</div>
-              <div className="ap-kpi__label">Vistas / sesión</div>
+              <div className="ap-kpi__label" style={{display:'flex',alignItems:'center',gap:6}}>
+                Vistas / sesión
+                <span style={{display:'inline-flex',width:14,height:14,borderRadius:999,background:'rgba(201,168,76,.18)',color:'#C9A84C',fontSize:9,alignItems:'center',justifyContent:'center',fontWeight:700,cursor:'help'}}>ⓘ</span>
+              </div>
               <div>
                 <span className="ap-kpi__value">{ga.metrics?.screenPageViewsPerSession?.toFixed(2) ?? '—'}</span>
               </div>
-              <p className="ap-kpi__sub">páginas vistas por visita</p>
+              <p className="ap-kpi__sub">pantallas por visita · más es mejor</p>
             </div>
           </div>
 
