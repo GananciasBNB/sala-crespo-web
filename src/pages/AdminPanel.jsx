@@ -2580,6 +2580,8 @@ function PrizesAdmin({ token, toast }) {
 function Dashboard({ token, admin, onNavigate }) {
   const [stats, setStats] = useState(null)
   const [ga, setGA]       = useState(null)
+  const [gaRange, setGaRange] = useState('7d')
+  const [gaLoading, setGaLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [snapLabel, setSnapLabel]   = useState('')
   const [snapSaving, setSnapSaving] = useState(false)
@@ -2594,13 +2596,25 @@ function Dashboard({ token, admin, onNavigate }) {
     let mounted = true
     Promise.all([
       adminDashboardStats(token).catch(() => null),
-      adminAnalyticsSnapshot(token).catch(() => null),
+      adminAnalyticsSnapshot(token, { range: gaRange }).catch(() => null),
     ]).then(([s, g]) => {
       if (!mounted) return
       setStats(s); setGA(g)
     }).finally(() => { if (mounted) setLoading(false) })
     return () => { mounted = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
+
+  // Re-fetch GA cuando cambia el rango (después del mount inicial)
+  async function reloadGA(newRange) {
+    setGaRange(newRange)
+    setGaLoading(true)
+    try {
+      const g = await adminAnalyticsSnapshot(token, { range: newRange })
+      setGA(g)
+    } catch {}
+    setGaLoading(false)
+  }
 
   async function loadSnapshots() {
     try {
@@ -2737,46 +2751,134 @@ function Dashboard({ token, admin, onNavigate }) {
       {/* Google Analytics */}
       {ga && ga.ok && (
         <div>
-          <div className="ap-block__subtitle" style={{margin:'0 0 12px'}}>📈 Tráfico web (Google Analytics)</div>
-          <div className="ap-kpi-grid">
-            <div className="ap-kpi">
-              <div className="ap-kpi__icon">👥</div>
-              <div className="ap-kpi__label">Usuarios hoy</div>
-              <div><span className="ap-kpi__value">{ga.users.today}</span></div>
-              <p className="ap-kpi__sub">Visitantes únicos en lo que va del día</p>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12,flexWrap:'wrap',marginBottom:12}}>
+            <div className="ap-block__subtitle" style={{margin:0}}>
+              📈 Tráfico web (Google Analytics) · <span style={{color:'#8B9BB4',fontWeight:400}}>{ga.label || 'Últimos 7 días'}</span>
             </div>
-            <div className="ap-kpi">
-              <div className="ap-kpi__icon">📅</div>
-              <div className="ap-kpi__label">Últimos 7 días</div>
-              <div><span className="ap-kpi__value">{ga.users.last7}</span></div>
-              <p className="ap-kpi__sub">Usuarios únicos en la semana</p>
-            </div>
-            <div className="ap-kpi">
-              <div className="ap-kpi__icon">📊</div>
-              <div className="ap-kpi__label">Últimos 30 días</div>
-              <div><span className="ap-kpi__value">{ga.users.last30}</span></div>
-              <p className="ap-kpi__sub">Usuarios únicos en el mes</p>
-            </div>
-            <div className="ap-kpi">
-              <div className="ap-kpi__icon">📄</div>
-              <div className="ap-kpi__label">Top página · 7d</div>
-              <div>
-                <span className="ap-kpi__value ap-kpi__value--small" style={{wordBreak:'break-all', lineHeight:1.2}}>
-                  {ga.topPages?.[0]?.path || '—'}
-                </span>
-              </div>
-              <p className="ap-kpi__sub">{ga.topPages?.[0]?.views || 0} visitas</p>
+            <div style={{display:'flex',gap:6,alignItems:'center'}}>
+              {gaLoading && <span style={{fontSize:11,color:'#8B9BB4'}}>actualizando…</span>}
+              {[
+                ['today','Hoy'],
+                ['7d','7d'],
+                ['30d','30d'],
+                ['90d','90d'],
+              ].map(([val,lbl]) => (
+                <button
+                  key={val}
+                  onClick={() => reloadGA(val)}
+                  disabled={gaLoading}
+                  style={{
+                    padding:'6px 12px',borderRadius:8,fontSize:12,fontWeight:600,cursor:'pointer',
+                    border:`1px solid ${gaRange === val ? '#C9A84C' : '#2a3142'}`,
+                    background: gaRange === val ? 'rgba(201,168,76,.18)' : 'transparent',
+                    color: gaRange === val ? '#F0D275' : '#C8D2E0',
+                  }}
+                >{lbl}</button>
+              ))}
             </div>
           </div>
 
-          {/* Top pages list */}
-          {ga.topPages?.length > 1 && (
+          {/* Cards de métricas principales con delta vs período anterior */}
+          <div className="ap-kpi-grid">
+            {[
+              ['👥', 'Usuarios activos', 'activeUsers', null,    'visitantes únicos'],
+              ['🆕', 'Usuarios nuevos',  'newUsers',    null,    'primera visita en el período'],
+              ['🔄', 'Sesiones',         'sessions',    null,    'visitas totales'],
+              ['📄', 'Vistas de página', 'screenPageViews', null,'páginas vistas'],
+            ].map(([icon, label, key, _, sub]) => {
+              const m = ga.metrics?.[key]
+              const cmp = ga.comparison?.[key]
+              return (
+                <div key={key} className="ap-kpi">
+                  <div className="ap-kpi__icon">{icon}</div>
+                  <div className="ap-kpi__label">{label}</div>
+                  <div>
+                    <span className="ap-kpi__value">{m ?? '—'}</span>
+                    {cmp && cmp.previous > 0 && (
+                      <span style={{marginLeft:8,fontSize:13,fontWeight:700,color: cmp.abs >= 0 ? '#22c55e' : '#ef4444'}}>
+                        {cmp.abs >= 0 ? '+' : ''}{cmp.pct}%
+                      </span>
+                    )}
+                  </div>
+                  <p className="ap-kpi__sub">{sub}{cmp && cmp.previous > 0 ? ` · antes ${cmp.previous}` : ''}</p>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Cards de calidad de tráfico */}
+          <div className="ap-kpi-grid" style={{marginTop:14}}>
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">💚</div>
+              <div className="ap-kpi__label">Engagement</div>
+              <div>
+                <span className="ap-kpi__value">{ga.metrics?.engagementRate?.toFixed(1) ?? '—'}<span style={{fontSize:18,opacity:.6}}>%</span></span>
+                {ga.comparison?.engagementRate && (
+                  <span style={{marginLeft:8,fontSize:13,fontWeight:700,color: ga.comparison.engagementRate.abs >= 0 ? '#22c55e' : '#ef4444'}}>
+                    {ga.comparison.engagementRate.abs >= 0 ? '+' : ''}{ga.comparison.engagementRate.abs.toFixed(1)}pp
+                  </span>
+                )}
+              </div>
+              <p className="ap-kpi__sub">% sesiones con interacción significativa</p>
+            </div>
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">🏃</div>
+              <div className="ap-kpi__label">Rebote</div>
+              <div>
+                <span className="ap-kpi__value">{ga.metrics?.bounceRate?.toFixed(1) ?? '—'}<span style={{fontSize:18,opacity:.6}}>%</span></span>
+                {ga.comparison?.bounceRate && (
+                  <span style={{marginLeft:8,fontSize:13,fontWeight:700,color: ga.comparison.bounceRate.abs <= 0 ? '#22c55e' : '#ef4444'}}>
+                    {ga.comparison.bounceRate.abs >= 0 ? '+' : ''}{ga.comparison.bounceRate.abs.toFixed(1)}pp
+                  </span>
+                )}
+              </div>
+              <p className="ap-kpi__sub">% que se va sin interactuar (menor es mejor)</p>
+            </div>
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">⏱</div>
+              <div className="ap-kpi__label">Duración media</div>
+              <div>
+                <span className="ap-kpi__value">{ga.metrics?.averageSessionDuration ? `${Math.floor(ga.metrics.averageSessionDuration / 60)}:${String(Math.round(ga.metrics.averageSessionDuration % 60)).padStart(2,'0')}` : '—'}</span>
+              </div>
+              <p className="ap-kpi__sub">tiempo promedio por sesión (mm:ss)</p>
+            </div>
+            <div className="ap-kpi">
+              <div className="ap-kpi__icon">📑</div>
+              <div className="ap-kpi__label">Vistas / sesión</div>
+              <div>
+                <span className="ap-kpi__value">{ga.metrics?.screenPageViewsPerSession?.toFixed(2) ?? '—'}</span>
+              </div>
+              <p className="ap-kpi__sub">páginas vistas por visita</p>
+            </div>
+          </div>
+
+          {/* Devices */}
+          {ga.devices && Object.keys(ga.devices).length > 0 && (
             <div className="ap-block" style={{marginTop:14}}>
-              <div className="ap-block__subtitle">Top 5 páginas (últimos 7 días)</div>
+              <div className="ap-block__subtitle" style={{marginBottom:10}}>📱 Dispositivos</div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                {Object.entries(ga.devices).map(([dev, n]) => {
+                  const total = Object.values(ga.devices).reduce((a,b) => a + b, 0)
+                  const pct = total > 0 ? Math.round((n / total) * 100) : 0
+                  const icon = dev === 'mobile' ? '📱' : dev === 'desktop' ? '💻' : dev === 'tablet' ? '📱' : '❓'
+                  return (
+                    <div key={dev} style={{flex:'1 1 140px',padding:'12px 14px',background:'rgba(0,0,0,.25)',border:'1px solid #2a3142',borderRadius:10}}>
+                      <div style={{fontSize:11,color:'#8B9BB4',textTransform:'uppercase',letterSpacing:1,marginBottom:4}}>{icon} {dev}</div>
+                      <div style={{fontSize:20,fontWeight:800,color:'#F0D275'}}>{n}</div>
+                      <div style={{fontSize:12,color:'#C8D2E0',marginTop:2}}>{pct}% del tráfico</div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Top pages list */}
+          {ga.topPages?.length > 0 && (
+            <div className="ap-block" style={{marginTop:14}}>
+              <div className="ap-block__subtitle">Top 5 páginas ({ga.label || 'período'})</div>
               <table className="ap-table" style={{marginTop:8}}>
-                <thead>
-                  <tr><th>Página</th><th style={{textAlign:'right'}}>Visitas</th></tr>
-                </thead>
+                <thead><tr><th>Página</th><th style={{textAlign:'right'}}>Visitas</th></tr></thead>
                 <tbody>
                   {ga.topPages.map(p => (
                     <tr key={p.path}>
@@ -2792,18 +2894,19 @@ function Dashboard({ token, admin, onNavigate }) {
           {/* Top sources */}
           {ga.topSources?.length > 0 && (
             <div className="ap-block" style={{marginTop:14}}>
-              <div className="ap-block__subtitle">Fuentes de tráfico (7 días)</div>
+              <div className="ap-block__subtitle">Fuentes de tráfico ({ga.label || 'período'})</div>
               <table className="ap-table" style={{marginTop:8}}>
-                <thead>
-                  <tr><th>Origen</th><th style={{textAlign:'right'}}>Usuarios</th></tr>
-                </thead>
+                <thead><tr><th>Origen</th><th style={{textAlign:'right'}}>Usuarios</th></tr></thead>
                 <tbody>
-                  {ga.topSources.map(s => (
-                    <tr key={s.source}>
-                      <td>{s.source}</td>
-                      <td style={{textAlign:'right', fontWeight:700, color:'var(--ap-gold)'}}>{s.users}</td>
-                    </tr>
-                  ))}
+                  {ga.topSources.map(s => {
+                    const isMeta = /facebook|fb|meta|instagram|ig/i.test(s.source)
+                    return (
+                      <tr key={s.source} style={isMeta ? {background:'rgba(24,119,242,.10)'} : {}}>
+                        <td>{isMeta && '🟦 '}{s.source}</td>
+                        <td style={{textAlign:'right', fontWeight:700, color:'var(--ap-gold)'}}>{s.users}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

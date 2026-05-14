@@ -245,10 +245,10 @@ export const adminDeleteLeague = (token, id) =>
 
 // ESPN test matches (sandbox del sync automático)
 // Analytics snapshots — medir efectividad de campañas
-export const adminSaveAnalyticsSnapshot = (token, label) =>
+export const adminSaveAnalyticsSnapshot = (token, label, opts = {}) =>
   api('/api/admin/analytics/snapshots', {
     method: 'POST', headers: authHeaders(token),
-    body: JSON.stringify({ label }),
+    body: JSON.stringify({ label, range: opts.range, from: opts.from, to: opts.to }),
   })
 
 export const adminListAnalyticsSnapshots = (token) =>
@@ -382,5 +382,11 @@ export const promoUpdateContact = (data) =>
 export const adminDashboardStats = (token) =>
   api('/api/admin/dashboard/stats', { headers: authHeaders(token) })
 
-export const adminAnalyticsSnapshot = (token) =>
-  api('/api/admin/analytics/snapshot', { headers: authHeaders(token) })
+export const adminAnalyticsSnapshot = (token, opts = {}) => {
+  const params = new URLSearchParams()
+  if (opts.range) params.set('range', opts.range)
+  if (opts.from)  params.set('from',  opts.from)
+  if (opts.to)    params.set('to',    opts.to)
+  const qs = params.toString()
+  return api(`/api/admin/analytics/snapshot${qs ? '?' + qs : ''}`, { headers: authHeaders(token) })
+}
