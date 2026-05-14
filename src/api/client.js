@@ -244,6 +244,22 @@ export const adminDeleteLeague = (token, id) =>
   api(`/api/admin/leagues/${id}`, { method: 'DELETE', headers: authHeaders(token) })
 
 // ESPN test matches (sandbox del sync automático)
+// Analytics snapshots — medir efectividad de campañas
+export const adminSaveAnalyticsSnapshot = (token, label) =>
+  api('/api/admin/analytics/snapshots', {
+    method: 'POST', headers: authHeaders(token),
+    body: JSON.stringify({ label }),
+  })
+
+export const adminListAnalyticsSnapshots = (token) =>
+  api('/api/admin/analytics/snapshots', { headers: authHeaders(token) })
+
+export const adminDeleteAnalyticsSnapshot = (token, id) =>
+  api(`/api/admin/analytics/snapshots/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
+export const adminCompareAnalyticsSnapshots = (token, idA, idB) =>
+  api(`/api/admin/analytics/snapshots/compare?a=${idA}&b=${idB}`, { headers: authHeaders(token) })
+
 export const adminEspnTestDiscover = (token, leagueSlug, dateYYYYMMDD) =>
   api(`/api/admin/espn-test/discover?league=${encodeURIComponent(leagueSlug)}&date=${encodeURIComponent(dateYYYYMMDD)}`,
     { headers: authHeaders(token) })

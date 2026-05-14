@@ -14,6 +14,7 @@ import {
   adminEmailBlast, adminEmailPreview, adminEmailDefaults,
   adminEmailCampaigns, adminEmailCampaignDetail,
   adminDashboardStats, adminAnalyticsSnapshot,
+  adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
 } from '../api/client'
 import './AdminPanel.css'
 
@@ -2580,6 +2581,14 @@ function Dashboard({ token, admin, onNavigate }) {
   const [stats, setStats] = useState(null)
   const [ga, setGA]       = useState(null)
   const [loading, setLoading] = useState(true)
+  const [snapLabel, setSnapLabel]   = useState('')
+  const [snapSaving, setSnapSaving] = useState(false)
+  const [snapshots, setSnapshots]   = useState([])
+  const [snapLoaded, setSnapLoaded] = useState(false)
+  const [cmpA, setCmpA]             = useState('')
+  const [cmpB, setCmpB]             = useState('')
+  const [cmpResult, setCmpResult]   = useState(null)
+  const [cmpLoading, setCmpLoading] = useState(false)
 
   useEffect(() => {
     let mounted = true
@@ -2592,6 +2601,45 @@ function Dashboard({ token, admin, onNavigate }) {
     }).finally(() => { if (mounted) setLoading(false) })
     return () => { mounted = false }
   }, [token])
+
+  async function loadSnapshots() {
+    try {
+      const r = await adminListAnalyticsSnapshots(token)
+      setSnapshots(r.snapshots || [])
+      setSnapLoaded(true)
+    } catch {}
+  }
+
+  async function saveSnap() {
+    if (!snapLabel.trim()) return
+    setSnapSaving(true)
+    try {
+      await adminSaveAnalyticsSnapshot(token, snapLabel.trim())
+      setSnapLabel('')
+      toast.show('✓ Snapshot guardado')
+      await loadSnapshots()
+    } catch (err) { toast.show(err.message, 'err') }
+    setSnapSaving(false)
+  }
+
+  async function deleteSnap(id, label) {
+    if (!confirm(`¿Borrar snapshot "${label}"?`)) return
+    try {
+      await adminDeleteAnalyticsSnapshot(token, id)
+      await loadSnapshots()
+      toast.show('✓ Borrado')
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function compare() {
+    if (!cmpA || !cmpB || cmpA === cmpB) return toast.show('Elegí 2 snapshots distintos', 'err')
+    setCmpLoading(true); setCmpResult(null)
+    try {
+      const r = await adminCompareAnalyticsSnapshots(token, cmpA, cmpB)
+      setCmpResult(r)
+    } catch (err) { toast.show(err.message, 'err') }
+    setCmpLoading(false)
+  }
 
   const greet = (() => {
     const h = new Date().getHours()
@@ -2763,6 +2811,88 @@ function Dashboard({ token, admin, onNavigate }) {
           ⚠️ Google Analytics no disponible: <strong>{ga.reason}</strong>
         </div>
       )}
+
+      {/* Analytics Snapshots — baseline de campañas */}
+      <div style={{paddingTop:4}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+          <div className="ap-block__subtitle" style={{margin:0}}>📸 Snapshots de Analytics — campañas</div>
+          {!snapLoaded && <button className="ap-btn ap-btn--small" onClick={loadSnapshots}>Cargar historial</button>}
+        </div>
+        <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
+          <input
+            type="text"
+            placeholder='Label, ej: "meta-campaign-start-2026-05-14"'
+            value={snapLabel}
+            onChange={e => setSnapLabel(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && saveSnap()}
+            style={{flex:1,minWidth:200,padding:'9px 13px',borderRadius:8,border:'1px solid #2a3142',background:'rgba(0,0,0,.3)',color:'#fff',fontSize:13,fontFamily:'inherit'}}
+          />
+          <button className="ap-btn ap-btn--primary" onClick={saveSnap} disabled={snapSaving || !snapLabel.trim()}>
+            {snapSaving ? 'Guardando…' : '📸 Guardar snapshot'}
+          </button>
+        </div>
+
+        {snapLoaded && snapshots.length === 0 && (
+          <p style={{opacity:.6,fontSize:13}}>Sin snapshots guardados todavía.</p>
+        )}
+
+        {snapshots.length > 0 && (
+          <>
+            <div className="ap-table-wrap" style={{marginBottom:16}}>
+              <table className="ap-table">
+                <thead><tr><th>Label</th><th>Tomado</th><th></th></tr></thead>
+                <tbody>
+                  {snapshots.map(s => (
+                    <tr key={s.id}>
+                      <td style={{fontSize:13}}>{s.label}</td>
+                      <td style={{fontSize:12,opacity:.7}}>{new Date(s.takenAt).toLocaleString('es-AR')}</td>
+                      <td><button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => deleteSnap(s.id, s.label)}>Borrar</button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div style={{background:'rgba(0,0,0,.2)',border:'1px solid #2a3142',borderRadius:10,padding:'14px 16px'}}>
+              <div style={{fontSize:13,fontWeight:600,color:'#C9A84C',marginBottom:10}}>📊 Comparar 2 snapshots</div>
+              <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+                <select value={cmpA} onChange={e => setCmpA(e.target.value)} style={{flex:1,minWidth:160,padding:'8px 10px',borderRadius:8,border:'1px solid #2a3142',background:'rgba(0,0,0,.4)',color:'#fff',fontSize:13}}>
+                  <option value="">— Baseline —</option>
+                  {snapshots.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                </select>
+                <span style={{color:'#8B9BB4',fontSize:13}}>vs</span>
+                <select value={cmpB} onChange={e => setCmpB(e.target.value)} style={{flex:1,minWidth:160,padding:'8px 10px',borderRadius:8,border:'1px solid #2a3142',background:'rgba(0,0,0,.4)',color:'#fff',fontSize:13}}>
+                  <option value="">— Final —</option>
+                  {snapshots.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                </select>
+                <button className="ap-btn" onClick={compare} disabled={cmpLoading || !cmpA || !cmpB}>{cmpLoading ? '…' : 'Comparar'}</button>
+              </div>
+
+              {cmpResult && (
+                <div style={{marginTop:14}}>
+                  {[
+                    ['Usuarios hoy',  cmpResult.metrics.usersToday],
+                    ['Usuarios 7d',   cmpResult.metrics.users7d],
+                    ['Usuarios 30d',  cmpResult.metrics.users30d],
+                    ['Sesiones 7d',   cmpResult.metrics.sessions7d],
+                  ].filter(([,m]) => m).map(([label, m]) => (
+                    <div key={label} style={{display:'flex',justifyContent:'space-between',padding:'8px 0',borderBottom:'1px solid rgba(255,255,255,.05)',fontSize:13}}>
+                      <span style={{color:'#C8D2E0'}}>{label}</span>
+                      <span>
+                        <span style={{opacity:.6}}>{m.before ?? '–'} → {m.after ?? '–'}</span>
+                        {' '}
+                        <strong style={{color: m.abs >= 0 ? '#22c55e' : '#ef4444'}}>
+                          {m.abs >= 0 ? '+' : ''}{m.abs} ({m.pct >= 0 ? '+' : ''}{m.pct}%)
+                        </strong>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
 
       {/* Quick actions */}
       <div>
