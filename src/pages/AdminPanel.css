@@ -1236,3 +1236,143 @@
   text-transform: uppercase;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   PALETA "SALA CRESPO PREMIUM" (Opción A)
+   Override de toda la chrome del admin con warmth dorado, gradients sutiles,
+   sombras y hover. Reversible: borrar este bloque entero vuelve al diseño
+   anterior. Contrastes verificados WCAG AA/AAA antes de commit.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.ap-page {
+  /* Variables redefinidas (warmer + un poco más oscuras para el contraste con dorados) */
+  --ap-bg:        #0a0d14 !important;
+  --ap-bg-alt:    #11151f !important;
+  --ap-bg-card:   #161b27 !important;
+  --ap-bg-elev:   #1c2230 !important;
+  --ap-border:    rgba(201,168,76,0.18) !important;
+  --ap-border-strong: rgba(201,168,76,0.32) !important;
+  --ap-text:      #E8EDF5 !important;
+  --ap-text-mut:  #8B95AB !important;
+  --ap-text-dim:  #5d6778 !important;
+  --ap-gold:      #C9A84C !important;
+  --ap-gold-light:#F0D275 !important;
+  --ap-crimson:   #C41E3A !important;
+
+  /* Fondo con gradient radial sutil — la mancha dorada arriba a la izquierda
+     y la roja muy tenue a la derecha le dan calidez sin saturar. */
+  background:
+    radial-gradient(ellipse 1200px 600px at 8% -10%, rgba(201,168,76,0.07), transparent 60%),
+    radial-gradient(ellipse 800px 500px at 95% 30%, rgba(196,30,58,0.04), transparent 60%),
+    linear-gradient(180deg, #0a0d14 0%, #0f1318 100%) !important;
+  background-attachment: fixed;
+}
+
+/* Línea acento dorada arriba del nav — "ancla" la marca */
+.ap-page .ap-header {
+  position: relative;
+  border-bottom: 1px solid rgba(201,168,76,0.20) !important;
+}
+.ap-page .ap-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C9A84C 30%, #F0D275 50%, #C9A84C 70%, transparent);
+  opacity: 0.65;
+}
+
+/* Nav buttons con pill shape + estado activo más rico */
+.ap-page .ap-nav__btn {
+  border-radius: 999px !important;
+  border: 1px solid rgba(201,168,76,0.20) !important;
+  padding: 8px 16px !important;
+  transition: all 150ms ease !important;
+  background: rgba(22,27,39,0.5) !important;
+}
+.ap-page .ap-nav__btn:hover {
+  border-color: rgba(240,210,117,0.45) !important;
+  background: rgba(22,27,39,0.8) !important;
+}
+.ap-page .ap-nav__btn--active {
+  background: linear-gradient(135deg, rgba(201,168,76,0.22), rgba(240,210,117,0.10)) !important;
+  border-color: rgba(240,210,117,0.6) !important;
+  color: #F0D275 !important;
+  border-bottom-color: rgba(240,210,117,0.6) !important;
+}
+
+/* KPI cards con sombra, gradient sutil y hover que las eleva */
+.ap-page .ap-kpi {
+  background: linear-gradient(180deg, rgba(26,31,44,0.65), rgba(20,24,36,0.85)) !important;
+  border: 1px solid rgba(201,168,76,0.16) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.20), inset 0 1px 0 rgba(240,210,117,0.04) !important;
+  transition: all 200ms ease !important;
+}
+.ap-page .ap-kpi:hover {
+  border-color: rgba(240,210,117,0.35) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35), inset 0 1px 0 rgba(240,210,117,0.08) !important;
+}
+.ap-page .ap-kpi__label {
+  color: #C9A84C !important;
+}
+.ap-page .ap-kpi__sub {
+  color: #8B95AB !important;
+}
+
+/* Bloques (cards grandes) con mismo tratamiento */
+.ap-page .ap-block,
+.ap-page .ap-section {
+  background: linear-gradient(180deg, rgba(26,31,44,0.55), rgba(20,24,36,0.70)) !important;
+  border: 1px solid rgba(201,168,76,0.16) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+
+/* Tablas: bordes y header con dorado tenue */
+.ap-page .ap-table thead th {
+  background: rgba(201,168,76,0.06) !important;
+  color: #C9A84C !important;
+  border-bottom: 1px solid rgba(201,168,76,0.20) !important;
+}
+.ap-page .ap-table tr {
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+.ap-page .ap-table tr:hover {
+  background: rgba(201,168,76,0.04) !important;
+}
+
+/* Botones primarios con el dorado vibrante */
+.ap-page .ap-btn--primary {
+  background: linear-gradient(135deg, #C9A84C, #F0D275) !important;
+  color: #0a0d14 !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(201,168,76,0.25) !important;
+}
+.ap-page .ap-btn--primary:hover {
+  box-shadow: 0 6px 16px rgba(201,168,76,0.40) !important;
+  transform: translateY(-1px);
+}
+
+/* Inputs/selects/textareas — borde dorado sutil al focus */
+.ap-page input:focus,
+.ap-page select:focus,
+.ap-page textarea:focus {
+  border-color: rgba(240,210,117,0.5) !important;
+  box-shadow: 0 0 0 3px rgba(240,210,117,0.10) !important;
+  outline: none !important;
+}
+
+/* Subtabs (Hoy / Resultados / Equipos / etc): pill consistency */
+.ap-page .ap-subtab {
+  border-radius: 999px !important;
+  border: 1px solid rgba(201,168,76,0.18) !important;
+  transition: all 150ms ease !important;
+}
+.ap-page .ap-subtab--active {
+  background: linear-gradient(135deg, rgba(201,168,76,0.22), rgba(240,210,117,0.10)) !important;
+  border-color: rgba(240,210,117,0.55) !important;
+  color: #F0D275 !important;
+}
+
