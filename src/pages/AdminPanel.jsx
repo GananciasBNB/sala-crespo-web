@@ -1487,16 +1487,26 @@ function TournamentsAdmin({ token, toast }) {
     } catch (err) { toast.show(err.message, 'err') }
   }
 
-  async function handleCloseTournament(t) {
-    if (!confirm(`¿Marcar el torneo "${t.name}" como FINALIZADO? Ya no aparecerá en /torneo público.`)) return
+  async function handleCloseRegistrations(t) {
+    if (!confirm(`¿Cerrar inscripciones del torneo "${t.name}"? Deja de aceptar nuevos inscriptos pero el torneo sigue figurando hasta que se juegue.`)) return
+    try {
+      await adminUpdateTournament(token, t.id, { status: 'closed' })
+      toast.show('✓ Inscripciones cerradas')
+      loadTournaments()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleFinishTournament(t) {
+    if (!confirm(`¿Marcar el torneo "${t.name}" como FINALIZADO? Queda como histórico, no aparece en /torneo público.`)) return
     try {
       await adminUpdateTournament(token, t.id, { status: 'finished' })
-      toast.show('✓ Torneo cerrado')
+      toast.show('✓ Torneo finalizado')
       loadTournaments()
     } catch (err) { toast.show(err.message, 'err') }
   }
 
   async function handleReopenTournament(t) {
+    if (!confirm(`¿Reabrir inscripciones del torneo "${t.name}"? Volverá a aceptar nuevos inscriptos. Si hay otro torneo "ACTIVO" en simultáneo el flow puede confundirse.`)) return
     try {
       await adminUpdateTournament(token, t.id, { status: 'open' })
       toast.show('✓ Torneo reabierto')
@@ -1534,9 +1544,13 @@ function TournamentsAdmin({ token, toast }) {
     URL.revokeObjectURL(url)
   }
 
-  const filtered = registrations.filter(r =>
-    !search || r.name.toLowerCase().includes(search.toLowerCase()) || String(r.dni).includes(search)
-  )
+  const filtered = registrations.filter(r => {
+    if (!search) return true
+    const q = search.toLowerCase()
+    return r.name.toLowerCase().includes(q)
+      || String(r.dni).includes(search)
+      || (r.email || '').toLowerCase().includes(q)
+  })
 
   if (loading) return <div className="ap-block"><p>Cargando torneos…</p></div>
 
@@ -1563,24 +1577,80 @@ function TournamentsAdmin({ token, toast }) {
                   <td><strong>{t.name}</strong></td>
                   <td>{new Date(t.tournament_date).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Argentina/Buenos_Aires' })}</td>
                   <td>
-                    <span style={{
-                      padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-                      background: t.status === 'open' ? 'rgba(0,177,64,0.2)' : 'rgba(255,255,255,0.1)',
-                      color: t.status === 'open' ? '#5cd87f' : '#aaa',
-                    }}>
-                      {t.status === 'open' ? 'ACTIVO' : 'FINALIZADO'}
-                    </span>
+                    {(() => {
+                      const styles = {
+                        open:     { bg: 'rgba(0,177,64,0.2)',   fg: '#5cd87f', label: 'ACTIVO' },
+                        closed:   { bg: 'rgba(255,193,7,0.18)', fg: '#ffd166', label: 'INSCRIPCIONES CERRADAS' },
+                        finished: { bg: 'rgba(255,255,255,0.1)', fg: '#aaa',    label: 'FINALIZADO' },
+                      }
+                      const s = styles[t.status] || styles.finished
+                      return (
+                        <span style={{
+                          padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
+                          background: s.bg, color: s.fg, letterSpacing: 0.5,
+                        }}>{s.label}</span>
+                      )
+                    })()}
                   </td>
-                  <td style={{ textAlign: 'center' }}>{t.registered_count}</td>
-                  <td style={{ textAlign: 'center' }}>{t.attended_count} / {t.registered_count}</td>
-                  <td style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                    <button className="ap-btn ap-btn--small" onClick={() => loadRegistrations(t)}>Ver inscriptos</button>
-                    {t.status === 'open' ? (
-                      <button className="ap-btn ap-btn--small" onClick={() => handleCloseTournament(t)}>Cerrar</button>
-                    ) : (
-                      <button className="ap-btn ap-btn--small" onClick={() => handleReopenTournament(t)}>Reabrir</button>
-                    )}
-                    <button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => handleDeleteTournament(t)}>Borrar</button>
+                  <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 15 }}>{t.registered_count}</td>
+                  <td style={{ textAlign: 'center' }}>
+                    {t.status === 'finished' || t.attended_count > 0
+                      ? <span style={{ fontWeight: 700, fontSize: 15 }}>{t.attended_count} / {t.registered_count}</span>
+                      : <span style={{ opacity: 0.4, fontSize: 13 }}>—</span>}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                      <button
+                        className="ap-btn ap-btn--small"
+                        onClick={() => loadRegistrations(t)}
+                        style={{ background: 'rgba(116,172,223,0.14)', borderColor: 'rgba(116,172,223,0.4)', color: '#9ec5e8' }}
+                      >👥 Ver inscriptos</button>
+                      {t.status === 'open' && (
+                        <>
+                          <button
+                            className="ap-btn ap-btn--small"
+                            onClick={() => handleCloseRegistrations(t)}
+                            title="Deja de aceptar inscripciones, pero el torneo sigue en pie"
+                            style={{ background: 'rgba(255,193,7,0.14)', borderColor: 'rgba(255,193,7,0.42)', color: '#ffd166' }}
+                          >🔒 Cerrar inscripciones</button>
+                          <button
+                            className="ap-btn ap-btn--small"
+                            onClick={() => handleFinishTournament(t)}
+                            title="Marca el torneo como histórico"
+                            style={{ background: 'rgba(140,140,140,0.16)', borderColor: 'rgba(255,255,255,0.22)', color: '#ddd' }}
+                          >🏁 Finalizar</button>
+                        </>
+                      )}
+                      {t.status === 'closed' && (
+                        <>
+                          <button
+                            className="ap-btn ap-btn--small"
+                            onClick={() => handleReopenTournament(t)}
+                            style={{ background: 'rgba(0,177,64,0.14)', borderColor: 'rgba(0,177,64,0.42)', color: '#5cd87f' }}
+                          >🔓 Reabrir inscripciones</button>
+                          <button
+                            className="ap-btn ap-btn--small"
+                            onClick={() => handleFinishTournament(t)}
+                            style={{ background: 'rgba(140,140,140,0.16)', borderColor: 'rgba(255,255,255,0.22)', color: '#ddd' }}
+                          >🏁 Finalizar</button>
+                        </>
+                      )}
+                      {t.status === 'finished' && (
+                        <button
+                          className="ap-btn ap-btn--small"
+                          onClick={() => handleReopenTournament(t)}
+                          style={{ background: 'rgba(0,177,64,0.14)', borderColor: 'rgba(0,177,64,0.42)', color: '#5cd87f' }}
+                        >🔓 Reabrir</button>
+                      )}
+                      {/* Borrar solo si está finalizado Y sin inscriptos — destructivo. */}
+                      {t.status === 'finished' && t.registered_count === 0 && (
+                        <button
+                          className="ap-btn ap-btn--small ap-btn--danger"
+                          onClick={() => handleDeleteTournament(t)}
+                          title="Borrar permanentemente"
+                        >🗑️</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -1596,7 +1666,7 @@ function TournamentsAdmin({ token, toast }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
             <h4 style={{ margin: 0 }}>Inscriptos · {selected.name} <span style={{ opacity: 0.6, fontSize: 13 }}>({registrations.length})</span></h4>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <input className="ap-input" placeholder="🔍 Buscar nombre o DNI" value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 200 }} />
+              <input className="ap-input" placeholder="🔍 Buscar nombre, DNI o email" value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 220 }} />
               <button className="ap-btn ap-btn--small" onClick={exportCSV}>📥 Exportar CSV</button>
               <button className="ap-btn ap-btn--small" onClick={() => { setSelected(null); setRegistrations([]) }}>Cerrar</button>
             </div>
@@ -1608,7 +1678,7 @@ function TournamentsAdmin({ token, toast }) {
             <div className="ap-table-wrap">
               <table className="ap-table">
                 <thead>
-                  <tr><th>N°</th><th>Nombre</th><th>DNI</th><th>Tel</th><th>Origen</th><th>Asistió</th><th>Puesto</th><th></th></tr>
+                  <tr><th>N°</th><th>Nombre</th><th>DNI</th><th>Tel</th><th>Email</th><th>Origen</th><th>Asistió</th><th>Puesto</th><th></th></tr>
                 </thead>
                 <tbody>
                   {filtered.map(r => (
@@ -1617,6 +1687,7 @@ function TournamentsAdmin({ token, toast }) {
                       <td>{r.name}</td>
                       <td><code style={{ fontSize: 12 }}>{r.dni}</code></td>
                       <td>{r.tel || <span style={{ opacity: 0.4 }}>—</span>}</td>
+                      <td style={{ fontSize: 12 }}>{r.email || <span style={{ opacity: 0.4 }}>—</span>}</td>
                       <td><span style={{ fontSize: 11, opacity: 0.7 }}>{r.source}</span></td>
                       <td>
                         <button
