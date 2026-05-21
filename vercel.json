@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/optin/:path*", "destination": "https://sala-crespo-backend.onrender.com/api/optin/:path*" },
-    { "source": "/((?!api/|sitemap\\.xml|robots\\.txt|.*\\.[a-z0-9]+).*)", "destination": "/index.html" }
+    { "source": "/hub", "destination": "/hub/index.html" },
+    { "source": "/((?!api/|hub/|sitemap\\.xml|robots\\.txt|.*\\.[a-z0-9]+).*)", "destination": "/index.html" }
   ]
 }

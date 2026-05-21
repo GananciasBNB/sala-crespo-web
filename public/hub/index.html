@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#050507" />
+  <title>Hub · Pacha</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #050507;
+      --gold: #FBBF24;
+      --green: #22C55E;
+      --text: #ffffff;
+      --muted: rgba(255,255,255,.72);
+      --soft: rgba(255,255,255,.42);
+      --border: rgba(255,255,255,.10);
+      --card-bg: rgba(255,255,255,.03);
+      --card-bg-hover: rgba(255,255,255,.06);
+    }
+
+    html { background: var(--bg); }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background:
+        radial-gradient(ellipse 800px 400px at 50% -10%, rgba(251,191,36,.06), transparent 60%),
+        radial-gradient(ellipse 600px 500px at 100% 50%, rgba(34,197,94,.04), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      padding: 12px 4px 24px;
+    }
+    .header__eyebrow {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      font-weight: 900;
+      opacity: .9;
+    }
+    .header__title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(40px, 11vw, 64px);
+      line-height: 1;
+      letter-spacing: 1px;
+      margin-top: 6px;
+      color: var(--text);
+    }
+    .header__sub {
+      margin-top: 8px;
+      color: var(--soft);
+      font-size: 14px;
+    }
+
+    /* Search */
+    .search {
+      position: relative;
+      margin: 20px 0 28px;
+    }
+    .search__input {
+      width: 100%;
+      min-height: 50px;
+      padding: 14px 16px 14px 44px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text);
+      font: inherit;
+      font-size: 15px;
+      outline: none;
+      transition: border-color .15s, background .15s;
+    }
+    .search__input::placeholder { color: var(--soft); }
+    .search__input:focus {
+      border-color: rgba(251,191,36,.45);
+      background: var(--card-bg-hover);
+    }
+    .search__icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: var(--soft);
+      pointer-events: none;
+    }
+    .search__clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 30px;
+      height: 30px;
+      border: 0;
+      background: transparent;
+      color: var(--soft);
+      cursor: pointer;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .search__clear:hover { color: var(--text); background: var(--card-bg-hover); }
+    .search--has-value .search__clear { display: inline-flex; }
+
+    /* Sections */
+    .section { margin-bottom: 28px; }
+    .section__title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      margin: 0 4px 12px;
+      text-transform: uppercase;
+    }
+    .section__title-icon { font-size: 18px; line-height: 1; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    /* Card */
+    .card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      min-height: 86px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      transition: transform .12s ease, background .15s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .card:hover,
+    .card:focus-visible {
+      background: var(--card-bg-hover);
+      border-color: rgba(251,191,36,.42);
+      transform: translateY(-1px);
+      outline: none;
+    }
+    .card:active { transform: translateY(0); }
+    .card__icon {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: rgba(251,191,36,.10);
+      border: 1px solid rgba(251,191,36,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gold);
+    }
+    .card[data-accent="green"] .card__icon {
+      background: rgba(34,197,94,.10);
+      border-color: rgba(34,197,94,.30);
+      color: var(--green);
+    }
+    .card__icon svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+    .card__body {
+      flex: 1;
+      min-width: 0;
+    }
+    .card__name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 1px;
+      line-height: 1.05;
+      color: var(--text);
+    }
+    .card__desc {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .card__url {
+      margin-top: 4px;
+      color: var(--soft);
+      font-size: 11px;
+      font-family: ui-monospace, "SF Mono", Consolas, monospace;
+      letter-spacing: .2px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card__arrow {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      color: var(--soft);
+      transition: color .15s, transform .15s;
+    }
+    .card:hover .card__arrow { color: var(--gold); transform: translateX(2px); }
+
+    /* Empty state */
+    .empty {
+      text-align: center;
+      padding: 30px 16px;
+      color: var(--soft);
+      font-size: 14px;
+      display: none;
+    }
+    .wrap--no-results .empty { display: block; }
+    .wrap--no-results .section { display: none; }
+
+    /* Footer */
+    .footer {
+      margin-top: 36px;
+      padding: 20px 4px 8px;
+      border-top: 1px solid var(--border);
+      color: var(--soft);
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .footer__brand {
+      color: var(--muted);
+      font-weight: 700;
+      letter-spacing: .3px;
+    }
+
+    /* Hidden card during search */
+    .card[hidden] { display: none !important; }
+    .section[data-empty="true"] { display: none; }
+
+    @media (min-width: 540px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap" id="wrap">
+    <header class="header">
+      <div class="header__eyebrow">Hub personal</div>
+      <h1 class="header__title">Mis accesos</h1>
+      <p class="header__sub">Saltá rápido entre apps. Uso personal.</p>
+    </header>
+
+    <div class="search" id="search">
+      <svg class="search__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="20" y1="20" x2="16.5" y2="16.5"/></svg>
+      <input class="search__input" type="search" id="searchInput" placeholder="Buscar app… (ej: prode, torneo)" autocomplete="off" spellcheck="false" />
+      <button class="search__clear" id="searchClear" type="button" aria-label="Limpiar búsqueda">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <section class="section" data-section="sala-crespo">
+      <h2 class="section__title">
+        <span class="section__title-icon">🎰</span>
+        Sala Crespo
+      </h2>
+      <div class="cards">
+
+        <a class="card" href="https://saladejuegoscrespo.ar" target="_blank" rel="noopener" data-search="sala crespo web publica home">
+          <span class="card__icon">
+            <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V21a1 1 0 01-1 1h-5v-7h-6v7H4a1 1 0 01-1-1V9.5z"/></svg>
+          </span>
+          <div class="card__body">
+            <div class="card__name">Web Pública</div>
+            <div class="card__desc">Sitio público de la sala</div>
+            <div class="card__url">saladejuegoscrespo.ar</div>
+          </div>
+          <svg class="card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+
+        <a class="card" href="https://saladejuegoscrespo.ar/prode" target="_blank" rel="noopener" data-search="prode mundial 2026 inscripcion predicciones futbol">
+          <span class="card__icon">
+            <svg viewBox="0 0 24 24"><path d="M6 4h12v4a6 6 0 01-12 0V4z"/><path d="M6 6H3a2 2 0 002 3"/><path d="M18 6h3a2 2 0 01-2 3"/><line x1="12" y1="14" x2="12" y2="18"/><rect x="8" y="18" width="8" height="3" rx="1"/></svg>
+          </span>
+          <div class="card__body">
+            <div class="card__name">Prode Mundial</div>
+            <div class="card__desc">Inscripción y predicciones del Mundial 2026</div>
+            <div class="card__url">saladejuegoscrespo.ar/prode</div>
+          </div>
+          <svg class="card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+
+        <a class="card" href="https://app.saladejuegoscrespo.ar" target="_blank" rel="noopener" data-search="centro de control admin miriam cajas operativa">
+          <span class="card__icon">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          </span>
+          <div class="card__body">
+            <div class="card__name">Centro de Control</div>
+            <div class="card__desc">Panel admin operativo (Miriam)</div>
+            <div class="card__url">app.saladejuegoscrespo.ar</div>
+          </div>
+          <svg class="card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+
+        <a class="card" href="https://torneo.saladejuegoscrespo.ar" target="_blank" rel="noopener" data-search="torneo slots operador gestion ronda">
+          <span class="card__icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="8" y1="12" x2="8" y2="12"/><line x1="16" y1="10" x2="16" y2="10"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/></svg>
+          </span>
+          <div class="card__body">
+            <div class="card__name">Torneo Slots · Operador</div>
+            <div class="card__desc">Gestión del torneo en vivo</div>
+            <div class="card__url">torneo.saladejuegoscrespo.ar</div>
+          </div>
+          <svg class="card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+
+        <a class="card" data-accent="green" href="https://torneo.saladejuegoscrespo.ar/?view=public" target="_blank" rel="noopener" data-search="torneo slots tv publica proyectar sala pantalla">
+          <span class="card__icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="13" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </span>
+          <div class="card__body">
+            <div class="card__name">Torneo Slots · TV Pública</div>
+            <div class="card__desc">Para proyectar en la sala</div>
+            <div class="card__url">torneo.saladejuegoscrespo.ar/?view=public</div>
+          </div>
+          <svg class="card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+
+      </div>
+    </section>
+
+    <section class="section" data-section="trading">
+      <h2 class="section__title">
+        <span class="section__title-icon">📈</span>
+        Trading
+      </h2>
+      <div class="cards">
+
+        <a class="card" href="https://tradeprime.app" target="_blank" rel="noopener" data-search="tradeprime futuros ninjatrader plataforma">
+          <span class="card__icon">
+            <svg viewBox="0 0 24 24"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+          </span>
+          <div class="card__body">
+            <div class="card__name">TradePrime</div>
+            <div class="card__desc">Plataforma de trading · NinjaTrader 8</div>
+            <div class="card__url">tradeprime.app</div>
+          </div>
+          <svg class="card__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+
+      </div>
+    </section>
+
+    <div class="empty" id="empty">
+      Sin resultados. Probá con otra palabra.
+    </div>
+
+    <footer class="footer">
+      <span class="footer__brand">Pacha · Hub</span>
+      <span>Última actualización: <span id="lastUpdate">21-mayo-2026</span></span>
+    </footer>
+  </div>
+
+  <script>
+    (function () {
+      var wrap = document.getElementById('wrap');
+      var input = document.getElementById('searchInput');
+      var search = document.getElementById('search');
+      var clear = document.getElementById('searchClear');
+      var sections = document.querySelectorAll('.section');
+
+      function normalize(s) {
+        return (s || '').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+      }
+
+      function applyFilter() {
+        var q = normalize(input.value.trim());
+        search.classList.toggle('search--has-value', q.length > 0);
+
+        var anyVisible = false;
+        sections.forEach(function (section) {
+          var cards = section.querySelectorAll('.card');
+          var visibleCount = 0;
+          cards.forEach(function (card) {
+            if (!q) {
+              card.hidden = false;
+              visibleCount++;
+              return;
+            }
+            var hay = normalize(
+              (card.dataset.search || '') + ' ' +
+              card.querySelector('.card__name').textContent + ' ' +
+              card.querySelector('.card__desc').textContent + ' ' +
+              card.querySelector('.card__url').textContent
+            );
+            var match = hay.indexOf(q) !== -1;
+            card.hidden = !match;
+            if (match) visibleCount++;
+          });
+          section.dataset.empty = visibleCount === 0 ? 'true' : 'false';
+          if (visibleCount > 0) anyVisible = true;
+        });
+        wrap.classList.toggle('wrap--no-results', !!q && !anyVisible);
+      }
+
+      input.addEventListener('input', applyFilter);
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { input.value = ''; applyFilter(); input.blur(); }
+      });
+      clear.addEventListener('click', function () {
+        input.value = '';
+        applyFilter();
+        input.focus();
+      });
+
+      // Last update from file's build timestamp would need a server — for now we hardcode and
+      // update manually when content changes. The script also auto-formats today's date if the
+      // user wants it always-current; we keep it manual for trust.
+    })();
+  </script>
+</body>
+</html>
