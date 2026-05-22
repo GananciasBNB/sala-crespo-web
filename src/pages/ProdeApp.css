@@ -4915,6 +4915,63 @@
   margin-left: 4px;
 }
 
+/* Banners visuales arriba de Mis ligas — para creador y solicitante */
+.leagues__banner {
+  display: flex; gap: 14px;
+  align-items: flex-start;
+  padding: 16px 18px;
+  margin: 14px 0;
+  border-radius: 14px;
+  border: 1px solid;
+  animation: leagues-banner-pop .3s cubic-bezier(.2,.9,.3,1.1);
+}
+@keyframes leagues-banner-pop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.leagues__banner--owner {
+  background: linear-gradient(135deg, rgba(255,210,80,.14), rgba(255,210,80,.04));
+  border-color: rgba(255,210,80,.55);
+  box-shadow: 0 0 0 1px rgba(255,210,80,.18), 0 8px 24px rgba(255,210,80,.12);
+}
+.leagues__banner--applicant {
+  background: linear-gradient(135deg, rgba(116,172,223,.14), rgba(116,172,223,.04));
+  border-color: rgba(116,172,223,.45);
+  box-shadow: 0 8px 24px rgba(116,172,223,.1);
+}
+.leagues__banner-icon {
+  font-size: 32px; line-height: 1;
+  animation: leagues-banner-bounce 1.4s ease-in-out infinite;
+}
+@keyframes leagues-banner-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+.leagues__banner-body { flex: 1; min-width: 0; }
+.leagues__banner-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; letter-spacing: 1px;
+  color: var(--wc-gold);
+  line-height: 1.1;
+  margin-bottom: 4px;
+}
+.leagues__banner--applicant .leagues__banner-title { color: #9ec5e8; }
+.leagues__banner-sub {
+  color: var(--wc-text);
+  font-size: 14px; line-height: 1.45;
+}
+.leagues__banner-sub strong { color: var(--wc-gold); }
+.leagues__banner--applicant .leagues__banner-sub strong { color: #9ec5e8; }
+.leagues__banner-cta {
+  margin-top: 10px;
+  background: var(--wc-gold); color: #1a0e0e;
+  border: 0; border-radius: 8px;
+  padding: 9px 16px;
+  font-weight: 700; font-size: 13px; letter-spacing: .3px;
+  cursor: pointer; transition: transform .12s, box-shadow .15s;
+}
+.leagues__banner-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(255,210,80,.28); }
+
 /* MyLeagues: separate block for my pending applications */
 .leagues__pending-block {
   margin: 14px 0 8px;

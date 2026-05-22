@@ -3060,6 +3060,52 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
       {err && <div className="leagues__msg leagues__msg--err">⚠️ {err}</div>}
       {info && <div className="leagues__msg leagues__msg--ok">{info}</div>}
 
+      {/* Banner para el CREADOR: tiene solicitudes pendientes de aprobar en alguna liga */}
+      {list && (() => {
+        const pendingByLeague = (list || []).filter(lg => lg.isOwner && (lg.pendingCount || 0) > 0)
+        const total = pendingByLeague.reduce((acc, lg) => acc + (lg.pendingCount || 0), 0)
+        if (total === 0) return null
+        return (
+          <div className="leagues__banner leagues__banner--owner">
+            <div className="leagues__banner-icon">🔔</div>
+            <div className="leagues__banner-body">
+              <div className="leagues__banner-title">
+                Tenés {total} {total === 1 ? 'solicitud' : 'solicitudes'} para revisar
+              </div>
+              <div className="leagues__banner-sub">
+                {pendingByLeague.length === 1
+                  ? <>En tu liga <strong>{pendingByLeague[0].name}</strong> alguien está esperando que apruebes su acceso.</>
+                  : <>Distribuidas entre tus ligas: {pendingByLeague.map(lg => <span key={lg.code}><strong>{lg.name}</strong> ({lg.pendingCount}){' '}</span>)}</>}
+              </div>
+              {pendingByLeague.length === 1 && (
+                <button className="leagues__banner-cta" onClick={() => setSelected(pendingByLeague[0].code)}>
+                  Revisar ahora →
+                </button>
+              )}
+            </div>
+          </div>
+        )
+      })()}
+
+      {/* Banner para el SOLICITANTE: tiene solicitudes propias en estado pending */}
+      {pendingList && pendingList.length > 0 && (
+        <div className="leagues__banner leagues__banner--applicant">
+          <div className="leagues__banner-icon">⏳</div>
+          <div className="leagues__banner-body">
+            <div className="leagues__banner-title">
+              {pendingList.length === 1
+                ? 'Tu solicitud está pendiente de aprobación'
+                : `Tenés ${pendingList.length} solicitudes pendientes`}
+            </div>
+            <div className="leagues__banner-sub">
+              {pendingList.length === 1
+                ? <>El creador de <strong>{pendingList[0].name}</strong> todavía no aprobó tu acceso. Te vamos a avisar cuando esté listo.</>
+                : <>Estás esperando aprobación en: {pendingList.map(lg => <span key={lg.code}><strong>{lg.name}</strong>{' '}</span>)}</>}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="leagues__actions">
         <button
           className="leagues__btn leagues__btn--primary"
