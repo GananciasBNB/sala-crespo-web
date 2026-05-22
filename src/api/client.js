@@ -9,7 +9,12 @@ async function api(endpoint, options = {}) {
     ...restOptions,
   })
   const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(data.error || `Error ${res.status}`)
+  if (!res.ok) {
+    const err = new Error(data.error || `Error ${res.status}`)
+    err.status = res.status
+    err.body = data
+    throw err
+  }
   return data
 }
 
@@ -180,6 +185,34 @@ export const leaveLeague = (token, code) =>
 
 export const deleteLeague = (token, code) =>
   api(`/api/leagues/${encodeURIComponent(code)}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  })
+
+export const updateLeagueSettings = (token, code, settings) =>
+  api(`/api/leagues/${encodeURIComponent(code)}/settings`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: JSON.stringify(settings),
+  })
+
+export const getLeaguePending = (token, code) =>
+  api(`/api/leagues/${encodeURIComponent(code)}/pending`, { headers: authHeaders(token) })
+
+export const approveLeagueMember = (token, code, playerId) =>
+  api(`/api/leagues/${encodeURIComponent(code)}/pending/${encodeURIComponent(playerId)}/approve`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+
+export const rejectLeagueMember = (token, code, playerId) =>
+  api(`/api/leagues/${encodeURIComponent(code)}/pending/${encodeURIComponent(playerId)}/reject`, {
+    method: 'POST',
+    headers: authHeaders(token),
+  })
+
+export const removeLeagueMember = (token, code, playerId) =>
+  api(`/api/leagues/${encodeURIComponent(code)}/members/${encodeURIComponent(playerId)}`, {
     method: 'DELETE',
     headers: authHeaders(token),
   })

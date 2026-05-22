@@ -4827,6 +4827,115 @@
   text-transform: uppercase;
 }
 .lg-detail__actions { margin-top: 20px; display: flex; justify-content: center; }
+
+/* Owner panel: approval toggle + pending list */
+.lg-detail__owner-panel {
+  margin: 16px 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(255,210,80,.28);
+  background: linear-gradient(180deg, rgba(255,210,80,.05), rgba(255,255,255,.02));
+  border-radius: 14px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.lg-detail__toggle {
+  display: flex; align-items: flex-start; gap: 12px;
+  cursor: pointer; user-select: none;
+}
+.lg-detail__toggle input[type="checkbox"] {
+  width: 22px; height: 22px; margin: 2px 0 0; cursor: pointer; accent-color: var(--wc-gold);
+}
+.lg-detail__toggle span { display: flex; flex-direction: column; gap: 2px; color: var(--wc-text); font-size: 15px; }
+.lg-detail__toggle span small { color: var(--wc-muted); font-size: 12px; font-weight: 400; }
+
+.lg-detail__pending-list {
+  border-top: 1px solid rgba(255,255,255,.08);
+  padding-top: 12px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.lg-detail__pending-title {
+  color: var(--wc-gold); font-weight: 700; font-size: 13px;
+  letter-spacing: .5px; text-transform: uppercase;
+}
+.lg-detail__pending-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 10px;
+  flex-wrap: wrap;
+}
+.lg-detail__pending-name { flex: 1; color: var(--wc-text); font-size: 14px; min-width: 140px; }
+.lg-detail__pending-name small { color: var(--wc-muted); font-size: 11px; font-weight: 400; }
+.lg-detail__pending-actions { display: flex; gap: 6px; }
+.lg-detail__btn--ok {
+  background: rgba(0,177,90,.18); color: #5bd68f;
+  border: 1px solid rgba(0,177,90,.45);
+  padding: 8px 14px; font-size: 13px;
+}
+.lg-detail__btn--ok:hover { background: rgba(0,177,90,.28); }
+
+/* Pending state — viewer's own membership awaiting approval */
+.lg-detail__pending-state {
+  text-align: center;
+  padding: 40px 24px;
+  background: rgba(255,210,80,.05);
+  border: 1px solid rgba(255,210,80,.28);
+  border-radius: 14px;
+  margin-top: 18px;
+}
+.lg-detail__pending-state h3 { color: var(--wc-gold); font-family: 'Bebas Neue', sans-serif; font-size: 28px; margin: 14px 0 8px; letter-spacing: 1px; }
+.lg-detail__pending-state p { color: var(--wc-muted); margin: 0; font-size: 14px; }
+.lg-detail__pending-icon { font-size: 48px; }
+
+/* Kick button in leaderboard row */
+.lb__actions { width: 36px; text-align: right; padding-right: 4px; }
+.lb__kick {
+  width: 26px; height: 26px;
+  border: 1px solid rgba(196,30,58,.4);
+  background: rgba(196,30,58,.1);
+  color: #ff8597;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+}
+.lb__kick:hover { background: rgba(196,30,58,.22); }
+.lb__kick:disabled { opacity: .4; cursor: not-allowed; }
+
+/* MyLeagues: badge for pending count on owner cards */
+.leagues__card-pending-badge {
+  display: inline-block;
+  background: rgba(255,210,80,.18);
+  color: var(--wc-gold);
+  border: 1px solid rgba(255,210,80,.45);
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* MyLeagues: separate block for my pending applications */
+.leagues__pending-block {
+  margin: 14px 0 8px;
+  padding: 12px 14px;
+  background: rgba(255,210,80,.04);
+  border: 1px dashed rgba(255,210,80,.32);
+  border-radius: 12px;
+}
+.leagues__pending-title {
+  color: var(--wc-gold);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .6px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.leagues__card--pending {
+  cursor: default;
+  opacity: .85;
+}
+.leagues__card--pending:hover { transform: none; }
 .lg-detail__btn {
   border: none; border-radius: 10px;
   padding: 11px 22px; font-size: 14px; font-weight: 700;

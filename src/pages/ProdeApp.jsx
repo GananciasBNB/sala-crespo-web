@@ -8,6 +8,7 @@ import {
   getMyAchievements, dailyCheckin, getChampionPick, setChampionPick,
   submitStaffSuggestion,
   getMyLeagues, createLeague, joinLeague, getLeagueLeaderboard, leaveLeague, deleteLeague,
+  updateLeagueSettings, getLeaguePending, approveLeagueMember, rejectLeagueMember, removeLeagueMember,
   uploadLeagueImage,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
@@ -2950,6 +2951,7 @@ function LeagueAvatar({ league, size = 56, className = '' }) {
 
 function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
   const [list, setList] = useState(null)
+  const [pendingList, setPendingList] = useState([])  // ligas donde MI status es 'pending'
   const [selected, setSelected] = useState(null)  // code de la liga abierta
   const [showCreate, setShowCreate] = useState(false)
   const [joinCode, setJoinCode] = useState('')
@@ -2960,9 +2962,32 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
 
   function refresh() {
     if (!player?.token) return
-    getMyLeagues(player.token).then(setList).catch(() => setList([]))
+    getMyLeagues(player.token)
+      .then(data => {
+        // Backwards compat: si endpoint devuelve array, lo usamos como antes.
+        if (Array.isArray(data)) { setList(data); setPendingList([]) }
+        else { setList(data?.leagues || []); setPendingList(data?.pending || []) }
+      })
+      .catch(() => { setList([]); setPendingList([]) })
   }
   useEffect(refresh, [player?.token])
+
+  function handleJoinResult(r) {
+    if (r?.pendingApproval || (r?.alreadyMember && r?.status === 'pending')) {
+      setInfo(`✓ Tu solicitud para "${r.league.name}" quedó esperando aprobación del creador.`)
+      setErr('')
+      refresh()
+      return
+    }
+    if (r?.alreadyMember) {
+      setInfo(`Ya sos miembro de "${r.league.name}".`)
+      setErr('')
+      refresh()
+      return
+    }
+    setJoinedLeague(r.league)
+    refresh()
+  }
 
   // Auto-join si vino con ?liga=CODE en la URL
   useEffect(() => {
@@ -2970,10 +2995,7 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
     setBusy(true)
     setErr('')
     joinLeague(player.token, autoJoinCode)
-      .then(r => {
-        setJoinedLeague(r.league)
-        refresh()
-      })
+      .then(handleJoinResult)
       .catch(e => setErr(e.message || 'No se pudo unir.'))
       .finally(() => {
         setBusy(false)
@@ -2991,8 +3013,7 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
     try {
       const r = await joinLeague(player.token, code)
       setJoinCode('')
-      setJoinedLeague(r.league)
-      refresh()
+      handleJoinResult(r)
     } catch (e) {
       setErr(e.message || 'No se pudo unir.')
     }
@@ -3075,6 +3096,24 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
             <p>Creá una para invitar a tus amigos, o pegá un código que te hayan compartido.</p>
           </div>
         )}
+        {pendingList && pendingList.length > 0 && (
+          <div className="leagues__pending-block">
+            <div className="leagues__pending-title">⏳ Tus solicitudes pendientes</div>
+            {pendingList.map(lg => (
+              <div key={lg.code} className="leagues__card leagues__card--pending">
+                <div className="leagues__card-head">
+                  <LeagueAvatar league={lg} size={48} />
+                  <div className="leagues__card-info">
+                    <div className="leagues__card-name">{lg.name}</div>
+                    <div className="leagues__card-meta">
+                      Esperando que el creador apruebe tu acceso.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
         {list && list.map(lg => (
           <div
             key={lg.code}
@@ -3091,6 +3130,11 @@ function LeaguesView({ player, autoJoinCode, onAutoJoinHandled }) {
                 <div className="leagues__card-meta">
                   {lg.memberCount} {lg.memberCount === 1 ? 'jugador' : 'jugadores'}
                   {lg.isOwner && <span className="leagues__card-owner"> · sos el creador</span>}
+                  {lg.isOwner && lg.pendingCount > 0 && (
+                    <span className="leagues__card-pending-badge" title="Solicitudes pendientes de aprobar">
+                      · {lg.pendingCount} pendiente{lg.pendingCount === 1 ? '' : 's'}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="leagues__card-arrow">→</div>
@@ -3356,16 +3400,74 @@ function CreateLeagueModal({ player, onClose, onCreated }) {
 
 function LeagueDetail({ player, code, onBack }) {
   const [data, setData] = useState(null)
+  const [pending, setPending] = useState([])
   const [err, setErr] = useState('')
+  const [pendingStatusErr, setPendingStatusErr] = useState(null) // 'pending' if my own membership is awaiting approval
   const [busy, setBusy] = useState(false)
 
   function refresh() {
     if (!player?.token) return
     getLeagueLeaderboard(player.token, code)
-      .then(setData)
-      .catch(e => setErr(e.message || 'No se pudo cargar la liga.'))
+      .then(d => {
+        setData(d); setPendingStatusErr(null); setErr('')
+        // Si soy owner y hay pendingCount > 0, cargo la lista de pendientes
+        if (d?.league?.isOwner && (d.league.pendingCount || 0) > 0) {
+          getLeaguePending(player.token, code)
+            .then(p => setPending(p?.pending || []))
+            .catch(() => setPending([]))
+        } else {
+          setPending([])
+        }
+      })
+      .catch(e => {
+        // Caso especial: 403 + membershipStatus='pending' → no es error, es estado.
+        if (e?.body?.membershipStatus === 'pending' || /pendiente de aprobaci/i.test(e?.message || '')) {
+          setPendingStatusErr('pending')
+          setErr('')
+        } else {
+          setErr(e.message || 'No se pudo cargar la liga.')
+        }
+      })
   }
   useEffect(refresh, [player?.token, code])
+
+  async function handleToggleApproval(next) {
+    setBusy(true)
+    try {
+      await updateLeagueSettings(player.token, code, { requiresApproval: !!next })
+      refresh()
+    } catch (e) {
+      alert(e.message || 'No se pudo cambiar la configuración.')
+    }
+    setBusy(false)
+  }
+
+  async function handleApprove(p) {
+    setBusy(true)
+    try {
+      await approveLeagueMember(player.token, code, p.id)
+      refresh()
+    } catch (e) { alert(e.message || 'No se pudo aprobar.') }
+    setBusy(false)
+  }
+  async function handleReject(p) {
+    if (!confirm(`¿Rechazar la solicitud de ${p.name}?`)) return
+    setBusy(true)
+    try {
+      await rejectLeagueMember(player.token, code, p.id)
+      refresh()
+    } catch (e) { alert(e.message || 'No se pudo rechazar.') }
+    setBusy(false)
+  }
+  async function handleKick(member) {
+    if (!confirm(`¿Expulsar a ${member.name} de la liga? Puede volver a pedir unirse si querés.`)) return
+    setBusy(true)
+    try {
+      await removeLeagueMember(player.token, code, member.id)
+      refresh()
+    } catch (e) { alert(e.message || 'No se pudo expulsar.') }
+    setBusy(false)
+  }
 
   async function handleShare() {
     if (!data) return
@@ -3409,6 +3511,18 @@ ${url}`
     setBusy(false)
   }
 
+  if (pendingStatusErr === 'pending') {
+    return (
+      <div className="leagues">
+        <button className="leagues__back" onClick={onBack}>← Volver a mis ligas</button>
+        <div className="lg-detail__pending-state">
+          <div className="lg-detail__pending-icon">⏳</div>
+          <h3>Tu solicitud está pendiente</h3>
+          <p>El creador de la liga todavía no aprobó tu acceso. Te vamos a avisar cuando esté listo.</p>
+        </div>
+      </div>
+    )
+  }
   if (err) {
     return (
       <div className="leagues">
@@ -3419,7 +3533,8 @@ ${url}`
   }
   if (!data) return <div className="leagues__loading">Cargando liga…</div>
 
-  const { league, leaderboard } = data
+  const { league, leaderboard, members = [] } = data
+  const otherMembersById = Object.fromEntries(members.filter(m => m.id !== league.ownerId).map(m => [m.id, m]))
 
   return (
     <div className="leagues">
@@ -3444,13 +3559,45 @@ ${url}`
         </button>
       </div>
 
+      {league.isOwner && (
+        <div className="lg-detail__owner-panel">
+          <label className="lg-detail__toggle">
+            <input
+              type="checkbox"
+              checked={!!league.requiresApproval}
+              onChange={e => handleToggleApproval(e.target.checked)}
+              disabled={busy}
+            />
+            <span>
+              <strong>Requiere mi aprobación</strong>
+              <small>Si está activo, los nuevos jugadores quedan en lista de espera hasta que los apruebes.</small>
+            </span>
+          </label>
+
+          {pending.length > 0 && (
+            <div className="lg-detail__pending-list">
+              <div className="lg-detail__pending-title">⏳ Solicitudes pendientes ({pending.length})</div>
+              {pending.map(p => (
+                <div key={p.id} className="lg-detail__pending-row">
+                  <span className="lg-detail__pending-name">{p.name}<small> · DNI ···{p.dniLast3}</small></span>
+                  <div className="lg-detail__pending-actions">
+                    <button className="lg-detail__btn lg-detail__btn--ok" onClick={() => handleApprove(p)} disabled={busy}>✓ Aprobar</button>
+                    <button className="lg-detail__btn lg-detail__btn--ghost" onClick={() => handleReject(p)} disabled={busy}>✕ Rechazar</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <h3 className="lg-detail__lb-title">Tabla</h3>
       {leaderboard.length === 0 ? (
         <div className="prode-empty"><p>Sin partidos jugados todavía. ¡Cargá tus pronósticos!</p></div>
       ) : (
         <table className="lb__table">
           <thead>
-            <tr><th>#</th><th>Jugador</th><th>Pts</th></tr>
+            <tr><th>#</th><th>Jugador</th><th>Pts</th>{league.isOwner && <th></th>}</tr>
           </thead>
           <tbody>
             {leaderboard.map((p, i) => (
@@ -3458,6 +3605,18 @@ ${url}`
                 <td className="lb__pos">{i + 1}</td>
                 <td>{p.name}{p.id === player.id && <span className="lb__you"> (vos)</span>}</td>
                 <td className="lb__pts">{p.total}</td>
+                {league.isOwner && (
+                  <td className="lb__actions">
+                    {p.id !== league.ownerId && otherMembersById[p.id] && (
+                      <button
+                        className="lb__kick"
+                        onClick={() => handleKick(otherMembersById[p.id])}
+                        disabled={busy}
+                        title="Expulsar de la liga"
+                      >✕</button>
+                    )}
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
