@@ -13,6 +13,7 @@ import {
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import PromoMode from './PromoMode'
+import { trackProdeRegistration } from '../lib/metaPixel'
 import './ProdeApp.css'
 
 // ─── Mapa de nombre → ISO para flagcdn.com ────────────────────────────────────
@@ -1367,6 +1368,8 @@ function AuthModal({ onClose, onLogin, staffSignupCode = null, initialTab = null
     try {
       const player = await registerPlayer(name.trim(), dni, tel.trim(), pin, mascota, email.trim() || null, staffSignupCode || null)
       localStorage.setItem('prode_player', JSON.stringify(player))
+      // Meta Pixel: conversion event for the registration funnel.
+      trackProdeRegistration({ playerId: player?.id, source: staffSignupCode ? 'staff' : 'web' })
       onLogin(player)
     } catch (err) {
       setError(err.message)

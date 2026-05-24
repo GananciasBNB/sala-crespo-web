@@ -7,6 +7,7 @@ import {
   promoUpdateContact,
   getShows,
 } from '../api/client'
+import { trackProdeRegistration, trackTournamentRegistration, trackLead } from '../lib/metaPixel'
 import './PromoMode.css'
 
 // ─── Constantes comerciales (visibles para la promotora) ─────────────────────
@@ -128,6 +129,8 @@ export default function PromoMode({ onExit, onGoHome }) {
         dni: dni.trim(), name: formName.trim(), tel: formTel.trim(),
         email: formEmail.trim() || null, pin: formYear,
       })
+      trackProdeRegistration({ source: 'promo' })
+      if (formEmail.trim()) trackLead({ source: 'promo' })
       setLastSuccess({ name: formName.trim(), pin: formYear, action: 'prode' })
       refreshCount()
       setStep('success')
@@ -145,6 +148,8 @@ export default function PromoMode({ onExit, onGoHome }) {
         dni: dni.trim(), name: formName.trim(), tel: formTel.trim(),
         email: formEmail.trim() || null, city: 'Crespo',
       })
+      trackTournamentRegistration({ registrationNo: r.registrationNo })
+      if (formEmail.trim()) trackLead({ source: 'promo-tournament' })
       setLastSuccess({ name: formName.trim(), registrationNo: r.registrationNo, action: 'tournament' })
       refreshCount()
       setStep('success')
@@ -167,6 +172,9 @@ export default function PromoMode({ onExit, onGoHome }) {
         dni: dni.trim(), name: formName.trim(), tel: formTel.trim(),
         email: formEmail.trim() || null, city: 'Crespo',
       })
+      trackProdeRegistration({ source: 'promo' })
+      trackTournamentRegistration({ registrationNo: r.registrationNo })
+      if (formEmail.trim()) trackLead({ source: 'promo-both' })
       setLastSuccess({ name: formName.trim(), pin: formYear, registrationNo: r.registrationNo, action: 'both' })
       refreshCount()
       setStep('success')
@@ -183,6 +191,7 @@ export default function PromoMode({ onExit, onGoHome }) {
         dni: dni.trim(), name: lookup.player.name, tel: lookup.player.tel || formTel.trim(),
         email: lookup.player.email || formEmail.trim() || null, pin: formYear,
       })
+      trackProdeRegistration({ source: 'promo-status' })
       setLastSuccess({ name: lookup.player.name, pin: formYear, action: 'prode' })
       refreshCount()
       setStep('success')
@@ -199,6 +208,7 @@ export default function PromoMode({ onExit, onGoHome }) {
         dni: dni.trim(), name: lookup.player.name, tel: lookup.player.tel || formTel.trim(),
         email: lookup.player.email || null, city: 'Crespo',
       })
+      trackTournamentRegistration({ registrationNo: r.registrationNo })
       setLastSuccess({ name: lookup.player.name, registrationNo: r.registrationNo, action: 'tournament' })
       refreshCount()
       setStep('success')

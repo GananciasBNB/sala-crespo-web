@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { getActiveTournament, tournamentLookupDni, tournamentRegister } from '../api/client'
+import { trackTournamentRegistration, trackLead } from '../lib/metaPixel'
 import './TournamentLanding.css'
 
 const TZ = 'America/Argentina/Buenos_Aires'
@@ -131,6 +132,7 @@ export default function TournamentLanding() {
         dni: dni.trim(), name: lookupResult.name, tel: lookupResult.tel,
         email: lookupResult.email, city, acceptedTerms,
       })
+      trackTournamentRegistration({ tournamentName: tournament?.name, registrationNo: r?.registrationNo })
       setResult(r); setStep('success')
     } catch (err) {
       if (err.message?.includes('Ya estás inscripto')) setStep('alreadyRegistered')
@@ -150,6 +152,8 @@ export default function TournamentLanding() {
         dni: dni.trim(), name: name.trim(), tel: tel.trim(),
         email: email.trim() || null, city, acceptedTerms,
       })
+      trackTournamentRegistration({ tournamentName: tournament?.name, registrationNo: r?.registrationNo })
+      if (email.trim()) trackLead({ source: 'tournament-public' })
       setResult(r); setStep('success')
     } catch (err) {
       if (err.message?.includes('Ya estás inscripto')) setStep('alreadyRegistered')
