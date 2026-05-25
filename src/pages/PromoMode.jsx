@@ -494,18 +494,23 @@ function StatusStep({
   const [pulseId, setPulseId] = useState(null)
 
   // Editor de contacto inline
+  const [editName, setEditName] = useState(player.name || '')
   const [editTel, setEditTel] = useState(player.tel || '')
   const [editEmail, setEditEmail] = useState(player.email || '')
   const [savingContact, setSavingContact] = useState(false)
   const [contactMsg, setContactMsg] = useState('')
-  const dirty = editTel.trim() !== (player.tel || '').trim() || editEmail.trim() !== (player.email || '').trim()
+  const dirty =
+    editName.trim() !== (player.name || '').trim() ||
+    editTel.trim() !== (player.tel || '').trim() ||
+    editEmail.trim() !== (player.email || '').trim()
 
   async function saveContact() {
     setContactMsg('')
     setSavingContact(true)
     try {
-      const r = await promoUpdateContact({ dni, tel: editTel.trim(), email: editEmail.trim() })
+      const r = await promoUpdateContact({ dni, name: editName.trim(), tel: editTel.trim(), email: editEmail.trim() })
       // Mutamos el player en lugar para reflejar el cambio (lookup queda en el padre)
+      player.name = r.player.name
       player.tel = r.player.tel
       player.email = r.player.email
       setContactMsg('✓ Datos guardados')
@@ -568,6 +573,18 @@ function StatusStep({
         <div className="pm-contact__head">
           <span>📋 Validá los datos con el cliente</span>
           {contactMsg && <span className={`pm-contact__msg ${contactMsg.startsWith('✓') ? 'pm-contact__msg--ok' : 'pm-contact__msg--err'}`}>{contactMsg}</span>}
+        </div>
+        <div className="pm-contact__row">
+          <label>👤 Nombre</label>
+          <input
+            className="pm-input"
+            type="text"
+            value={editName}
+            onChange={e => setEditName(e.target.value)}
+            placeholder="Nombre y apellido"
+            disabled={savingContact}
+            autoComplete="off"
+          />
         </div>
         <div className="pm-contact__row">
           <label>📱 Teléfono</label>
