@@ -1,10 +1,31 @@
+import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import Landing from './pages/Landing'
 import ProdeApp from './pages/ProdeApp'
-import AdminPanel from './pages/AdminPanel'
-import Contacto from './pages/Contacto'
-import TournamentLanding from './pages/TournamentLanding'
+import ChunkErrorBoundary from './components/ChunkErrorBoundary'
+
+// Lazy-load routes that ad traffic never lands on, so /, /prode and /torneo
+// don't pay the cost of downloading admin / tournament-landing / contacto code.
+const AdminPanel = lazy(() => import('./pages/AdminPanel'))
+const Contacto = lazy(() => import('./pages/Contacto'))
+const TournamentLanding = lazy(() => import('./pages/TournamentLanding'))
+
+function RouteFallback() {
+  return (
+    <div style={{
+      minHeight: '60vh',
+      display: 'grid',
+      placeItems: 'center',
+      color: '#C8D2E0',
+      fontFamily: 'DM Sans, system-ui, sans-serif',
+      fontSize: 14,
+      letterSpacing: '0.04em',
+    }}>
+      Cargando…
+    </div>
+  )
+}
 
 const SITE_URL = 'https://www.saladejuegoscrespo.ar'
 
@@ -66,7 +87,11 @@ export default function App() {
             description="Inscribite gratis al próximo Torneo de Slots de Sala Crespo. Premios en tickets promocionales. San Martín 1053, Crespo, Entre Ríos."
             path="/torneo"
           />
-          <TournamentLanding />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <TournamentLanding />
+            </Suspense>
+          </ChunkErrorBoundary>
         </>
       } />
       <Route path="/contacto" element={
@@ -76,13 +101,21 @@ export default function App() {
             description="WhatsApp, email y formulario de contacto. Respondemos a la brevedad. San Martín 1053, Crespo, Entre Ríos."
             path="/contacto"
           />
-          <Contacto />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <Contacto />
+            </Suspense>
+          </ChunkErrorBoundary>
         </>
       } />
       <Route path="/admin" element={
         <>
           <PageHead title="Admin" description="" path="/admin" noindex />
-          <AdminPanel />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <AdminPanel />
+            </Suspense>
+          </ChunkErrorBoundary>
         </>
       } />
       <Route path="*" element={<NotFound />} />

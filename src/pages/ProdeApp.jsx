@@ -13,7 +13,7 @@ import {
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import PromoMode from './PromoMode'
-import { trackProdeRegistration } from '../lib/metaPixel'
+import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
 
 // ─── Mapa de nombre → ISO para flagcdn.com ────────────────────────────────────
@@ -3757,6 +3757,16 @@ export default function ProdeApp() {
 
   const showToast = useCallback((msg, type = 'ok', duration = 3000) => {
     setToast({ msg, type, duration, key: Date.now() })
+  }, [])
+
+  // Fire Meta Pixel ViewContent once when an unregistered visitor lands here.
+  // Skip promo/staff modes (internal use, not ad targets) and already-logged-in users.
+  useEffect(() => {
+    if (player) return
+    if (promoMode) return
+    if (staffPortalCode) return
+    trackViewContent({ contentName: 'Prode Mundial 2026', contentCategory: 'prode-landing' })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
