@@ -3206,6 +3206,7 @@ function EmailBlastAdmin({ token, toast }) {
     { id: 'shows',    title: '🎤 Shows del mes', desc: 'Cards visuales con los próximos shows. Trae automáticamente los que están en upcoming.', audience: 'Players con email · sin opt-out' },
     { id: 'courtesy', title: '🎁 Cortesía (bebida 48h)', desc: 'Manda mail con voucher de bebida cortesía válido 48h. Cada destinatario recibe un código único. Excelente excusa para reactivar la base.', audience: 'Players con email · sin opt-out · que no tengan voucher reciente' },
     { id: 'reminder-predictions', title: '⚽ Recordatorio "Cargá tus pronósticos"', desc: 'Mail visual con countdown al Mundial, cómo cargar pronósticos paso a paso, mockup de la app y bombo a mini-ligas. Subject dinámico con días al kickoff. Footer aclara que los premios son tickets promocionales.', audience: 'Inscriptos al Prode con pocos pronósticos cargados (configurable abajo)' },
+    { id: 'miniligas', title: '🏆 Mini-ligas privadas', desc: 'Invita a usar la feature de mini-ligas. Explica qué son, ideas de a quién invitar (familia, trabajo, fulbito, club) y los 3 pasos para crear una. Para fomentar el uso entre amigos / grupos.', audience: 'Players con email · sin opt-out' },
   ]
   const selected = TEMPLATES.find(t => t.id === template)
 
