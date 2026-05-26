@@ -1,0 +1,1020 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="robots" content="noindex, nofollow, noarchive" />
+<meta name="referrer" content="no-referrer" />
+<title>Torneo de Slots Mayo  2026 -  Sala Crespo — Reporte de convocatoria</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0d14;
+    --bg-2: #0f1320;
+    --card: #131826;
+    --card-2: #1a2032;
+    --border: #232a3d;
+    --gold: #C9A84C;
+    --gold-light: #F0D275;
+    --red: #C41E3A;
+    --green: #22c55e;
+    --text: #ffffff;
+    --muted: #98a2b3;
+    --dim: #64748b;
+  }
+  body {
+    font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 32px 16px;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; }
+  header {
+    background: linear-gradient(135deg, #1a0e0e 0%, #0f1320 60%);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute; inset: -50%;
+    background: radial-gradient(circle at 80% 20%, rgba(201,168,76,.15), transparent 60%);
+    pointer-events: none;
+  }
+  .eyebrow {
+    color: var(--gold-light);
+    font-size: 11px;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 900;
+    line-height: 1.1;
+    margin-bottom: 16px;
+    background: linear-gradient(90deg, #fff 0%, var(--gold-light) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .meta-item .label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .meta-item .value {
+    font-size: 15px;
+    color: var(--text);
+    font-weight: 500;
+  }
+  .badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 99px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #64748b22;
+    color: #64748b;
+    border: 1px solid #64748b66;
+  }
+  section { margin-bottom: 32px; }
+  h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--gold-light);
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+  }
+  .grid-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 60px; height: 60px;
+    background: radial-gradient(circle, rgba(201,168,76,.08), transparent 70%);
+  }
+  .stat .num {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 36px;
+    font-weight: 900;
+    color: var(--gold-light);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .stat .lbl {
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .12em;
+  }
+  .prizes {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .prizes-text {
+    font-size: 15px;
+    color: var(--text);
+    white-space: pre-wrap;
+    line-height: 1.7;
+  }
+  .prizes-empty { color: var(--muted); font-style: italic; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    font-size: 13px;
+  }
+  th {
+    background: var(--card-2);
+    color: var(--gold-light);
+    text-align: left;
+    padding: 12px 14px;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(201,168,76,.03); }
+  td.no { color: var(--gold-light); font-weight: 700; font-family: 'Playfair Display', serif; font-size: 15px; }
+  td.muted { color: var(--muted); }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 99px;
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    background: var(--card-2);
+    color: var(--muted);
+    border: 1px solid var(--border);
+  }
+  .pill.attended { background: #22c55e22; color: #22c55e; border-color: #22c55e66; }
+  .pill.web      { background: #3b82f622; color: #93c5fd; border-color: #3b82f666; }
+  .pill.promo    { background: #C9A84C22; color: var(--gold-light); border-color: #C9A84C66; }
+  .pill.staff    { background: #c41e3a22; color: #fca5a5; border-color: #C41E3A66; }
+  .timeline {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 140px;
+    padding: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  .bar {
+    flex: 1;
+    background: linear-gradient(180deg, var(--gold-light) 0%, var(--gold) 100%);
+    border-radius: 4px 4px 0 0;
+    position: relative;
+    min-height: 4px;
+  }
+  .bar::after {
+    content: attr(data-count);
+    position: absolute;
+    top: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold-light);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .bar::before {
+    content: attr(data-day);
+    position: absolute;
+    bottom: -22px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--muted);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+  .source-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  .source-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    text-align: center;
+  }
+  .source-card .src-num {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--gold-light);
+  }
+  .source-card .src-lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+  .cities {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .city-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 99px;
+    padding: 8px 16px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .city-chip strong {
+    color: var(--gold-light);
+    margin-left: 6px;
+    font-family: 'Playfair Display', serif;
+  }
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    color: var(--dim);
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+  }
+  footer .logo {
+    color: var(--gold-light);
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  @media (max-width: 600px) {
+    body { padding: 16px 12px; }
+    header { padding: 28px 20px; }
+    table { font-size: 12px; }
+    th, td { padding: 9px 8px; }
+    .timeline { gap: 2px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">★ Torneo de Slots · Sala de Juegos Crespo</div>
+    <h1>Torneo de Slots Mayo  2026 -  Sala Crespo</h1>
+    <div class="meta">
+      <div class="meta-item">
+        <div class="label">Fecha del torneo</div>
+        <div class="value">21 de mayo de 2026, 8:30 p. m.</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Sede</div>
+        <div class="value">San Martín 1053, Crespo, Entre Ríos</div>
+      </div>
+      <div class="meta-item">
+        <div class="label">Estado</div>
+        <div class="value"><span class="badge">Finalizado</span></div>
+      </div>
+      <div class="meta-item">
+        <div class="label">ID</div>
+        <div class="value" style="color: var(--muted); font-size: 13px;">#1</div>
+      </div>
+    </div>
+  </header>
+
+  <section>
+    <h2>Resumen de la convocatoria</h2>
+    <div class="grid-stats">
+      <div class="stat"><div class="num">85</div><div class="lbl">Inscriptos totales</div></div>
+      <div class="stat"><div class="num">23</div><div class="lbl">Con email cargado</div></div>
+      <div class="stat"><div class="num">53</div><div class="lbl">Nuevos (vía Prode)</div></div>
+      <div class="stat"><div class="num">32</div><div class="lbl">Importados de base</div></div>
+      <div class="stat"><div class="num">85</div><div class="lbl">Con ciudad declarada</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Premios</h2>
+    <div class="prizes">
+      <div class="prizes-text">Premios totales: $200.000 en tickets promocionales</div>
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Inscripciones por día</h2>
+    <div class="timeline" style="margin-bottom: 32px;">
+      <div class="bar" style="height: 100%;" data-count="14" data-day="4/5"></div><div class="bar" style="height: 57.14285714285714%;" data-count="8" data-day="5/5"></div><div class="bar" style="height: 57.14285714285714%;" data-count="8" data-day="6/5"></div><div class="bar" style="height: 42.857142857142854%;" data-count="6" data-day="7/5"></div><div class="bar" style="height: 14.285714285714285%;" data-count="2" data-day="8/5"></div><div class="bar" style="height: 35.714285714285715%;" data-count="5" data-day="9/5"></div><div class="bar" style="height: 50%;" data-count="7" data-day="10/5"></div><div class="bar" style="height: 57.14285714285714%;" data-count="8" data-day="11/5"></div><div class="bar" style="height: 7.142857142857142%;" data-count="1" data-day="15/5"></div><div class="bar" style="height: 50%;" data-count="7" data-day="16/5"></div><div class="bar" style="height: 7.142857142857142%;" data-count="1" data-day="17/5"></div><div class="bar" style="height: 14.285714285714285%;" data-count="2" data-day="18/5"></div><div class="bar" style="height: 64.28571428571429%;" data-count="9" data-day="20/5"></div><div class="bar" style="height: 42.857142857142854%;" data-count="6" data-day="21/5"></div><div class="bar" style="height: 7.142857142857142%;" data-count="1" data-day="22/5"></div>
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Origen de las inscripciones</h2>
+    <div class="source-grid">
+      
+        <div class="source-card">
+          <div class="src-num">12</div>
+          <div class="src-lbl">import</div>
+        </div>
+      
+        <div class="source-card">
+          <div class="src-num">52</div>
+          <div class="src-lbl">web</div>
+        </div>
+      
+        <div class="source-card">
+          <div class="src-num">21</div>
+          <div class="src-lbl">promotora</div>
+        </div>
+      
+    </div>
+  </section>
+
+  
+  <section>
+    <h2>Ciudades de los inscriptos (top 8)</h2>
+    <div class="cities">
+      
+        <div class="city-chip">Crespo <strong>60</strong></div>
+      
+        <div class="city-chip">Nogoya <strong>9</strong></div>
+      
+        <div class="city-chip">Nogoyá <strong>3</strong></div>
+      
+        <div class="city-chip">General Ramirez <strong>2</strong></div>
+      
+        <div class="city-chip">Aranguren <strong>2</strong></div>
+      
+        <div class="city-chip">Seguí <strong>2</strong></div>
+      
+        <div class="city-chip">Libertador San Martin <strong>1</strong></div>
+      
+        <div class="city-chip">Viale <strong>1</strong></div>
+      
+    </div>
+  </section>
+
+  <section>
+    <h2>Listado completo de inscriptos (85)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 48px;">#</th>
+          <th>Nombre</th>
+          <th>Ciudad</th>
+          <th>Origen</th>
+          <th>Inscripto</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+          <tr>
+            <td class="no">1</td>
+            <td>Claudio G.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:32 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">2</td>
+            <td>Norberto B.</td>
+            <td class="">Libertador San Martin</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:32 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">3</td>
+            <td>Viviana S.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:32 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">4</td>
+            <td>Mario G.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:32 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">5</td>
+            <td>Ana M.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:32 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">6</td>
+            <td>Elsa M.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:32 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">7</td>
+            <td>Ruben C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:33 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">8</td>
+            <td>Glarias D.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:33 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">9</td>
+            <td>Ariel H.</td>
+            <td class="">Viale</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:33 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">10</td>
+            <td>Jose O.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:33 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">11</td>
+            <td>Graf R.</td>
+            <td class="">General Ramirez</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:33 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">12</td>
+            <td>Beatriz D.</td>
+            <td class="">General Ramirez</td>
+            <td><span class="pill web">import</span></td>
+            <td class="muted">4/5, 01:33 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">14</td>
+            <td>Patochris87</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">4/5, 04:21 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">17</td>
+            <td>Beatriz N.</td>
+            <td class="">Aranguren </td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">4/5, 06:14 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">18</td>
+            <td>Fuchsk I.</td>
+            <td class="">Ramires</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:05 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">19</td>
+            <td>Bernet H.</td>
+            <td class="">Ramirez</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:06 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">20</td>
+            <td>Bruner R.</td>
+            <td class="">Aranguren</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:08 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">21</td>
+            <td>Diego H.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:11 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">22</td>
+            <td>Liliana F.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:26 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">23</td>
+            <td>Mirta L.</td>
+            <td class="">Segui. .</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:34 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">24</td>
+            <td>Jorge A.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:54 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">25</td>
+            <td>Mirta H.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 06:55 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">26</td>
+            <td>Daniel E.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 08:18 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">27</td>
+            <td>Eberle N.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 09:51 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">28</td>
+            <td>Gutiérrez C.</td>
+            <td class="">Nogoyá </td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 09:55 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">29</td>
+            <td>Ana T.</td>
+            <td class="">Nogoyá </td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 09:57 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">30</td>
+            <td>Carmelo R.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 10:03 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">31</td>
+            <td>Paredes J.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 10:05 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">32</td>
+            <td>Beisel C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 10:07 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">33</td>
+            <td>Alicia Z.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">5/5, 10:16 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">36</td>
+            <td>Nelida E.</td>
+            <td class="">Seguí </td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">6/5, 08:58 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">37</td>
+            <td>Sautier O.</td>
+            <td class="">Seguí </td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">6/5, 09:17 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">38</td>
+            <td>Irene G.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">6/5, 09:25 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">39</td>
+            <td>Brumatti N.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">6/5, 09:27 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">40</td>
+            <td>MIRTA S.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">7/5, 05:02 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">41</td>
+            <td>Ines S.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">7/5, 05:06 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">43</td>
+            <td>De A.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">8/5, 06:22 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">44</td>
+            <td>Schwindt F.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">8/5, 06:24 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">45</td>
+            <td>Carlos R.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">8/5, 10:06 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">46</td>
+            <td>Fernando R.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">8/5, 10:29 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">47</td>
+            <td>Ángel D.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">8/5, 11:20 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">48</td>
+            <td>Yael C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 12:00 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">49</td>
+            <td>Jaqueline K.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 12:09 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">50</td>
+            <td>Velázquez A.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 10:08 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">51</td>
+            <td>Diego S.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 10:44 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">52</td>
+            <td>Selena M.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 10:52 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">53</td>
+            <td>Carimi A.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 10:55 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">54</td>
+            <td>Alejandra V.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 11:47 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">55</td>
+            <td>Marcelo A.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">9/5, 11:49 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">56</td>
+            <td>Aguiar M.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">10/5, 12:36 a. m.</td>
+          </tr>
+          <tr>
+            <td class="no">57</td>
+            <td>Ramona C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">10/5, 09:54 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">58</td>
+            <td>María C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">11/5, 02:27 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">59</td>
+            <td>Marisela A.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">11/5, 03:56 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">60</td>
+            <td>Rosa B.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">11/5, 04:18 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">61</td>
+            <td>Carlos S.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">11/5, 04:19 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">62</td>
+            <td>Lucía R.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">11/5, 04:32 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">63</td>
+            <td>Juan L.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">11/5, 04:33 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">64</td>
+            <td>Raquel C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">11/5, 04:35 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">65</td>
+            <td>Lukittas D.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">15/5, 07:45 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">66</td>
+            <td>Ruben Á.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">15/5, 10:07 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">67</td>
+            <td>Joaquín C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">15/5, 10:47 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">68</td>
+            <td>Pedro C.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">15/5, 10:52 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">69</td>
+            <td>Raúl R.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">15/5, 10:55 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">70</td>
+            <td>Roberto D.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">15/5, 10:59 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">71</td>
+            <td>Elsa D.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">15/5, 11:03 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">72</td>
+            <td>Deharbe M.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">16/5, 07:50 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">73</td>
+            <td>Elio K.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">16/5, 08:18 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">74</td>
+            <td>Ezequiel</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">17/5, 08:55 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">75</td>
+            <td>Vladimir K.</td>
+            <td class="">Gdor.Etchevehere</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">17/5, 10:04 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">76</td>
+            <td>Alicia R.</td>
+            <td class="">Nogoyá </td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:35 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">77</td>
+            <td>Goro L.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:37 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">78</td>
+            <td>Patricia D.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:39 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">79</td>
+            <td>Juan J.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:39 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">80</td>
+            <td>Inés T.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:40 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">81</td>
+            <td>Maria C.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:41 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">82</td>
+            <td>Mónica M.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:42 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">83</td>
+            <td>Aliendro C.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:43 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">84</td>
+            <td>Maggio L.</td>
+            <td class="">Nogoya</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 07:45 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">85</td>
+            <td>Raúl G.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 09:12 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">86</td>
+            <td>Elsa S.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 09:13 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">87</td>
+            <td>Gilda M.</td>
+            <td class="">Segui</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">20/5, 10:38 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">88</td>
+            <td>Sergio W.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">21/5, 02:30 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">89</td>
+            <td>Vanina A.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">21/5, 07:31 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">90</td>
+            <td>Clara S.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">web</span></td>
+            <td class="muted">21/5, 07:52 p. m.</td>
+          </tr>
+          <tr>
+            <td class="no">91</td>
+            <td>Jose L.</td>
+            <td class="">Crespo</td>
+            <td><span class="pill web">promotora</span></td>
+            <td class="muted">21/5, 08:52 p. m.</td>
+          </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer>
+    <div class="logo">Sala de Juegos Crespo</div>
+    <div>San Martín 1053 · Crespo, Entre Ríos · saladejuegoscrespo.ar</div>
+    <div style="margin-top: 12px;">Reporte generado el 26/5/2026, 09:15:38</div>
+  </footer>
+
+</div>
+</body>
+</html>
