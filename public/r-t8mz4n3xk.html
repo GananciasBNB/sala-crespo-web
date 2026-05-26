@@ -46,6 +46,34 @@
     background: radial-gradient(circle at 80% 20%, rgba(201,168,76,.15), transparent 60%);
     pointer-events: none;
   }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .brand img {
+    height: 56px;
+    width: auto;
+    filter: drop-shadow(0 2px 12px rgba(201,168,76,.35));
+  }
+  .brand-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    color: var(--gold-light);
+    letter-spacing: .04em;
+  }
+  .brand-text span {
+    display: block;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
   .eyebrow {
     color: var(--gold-light);
     font-size: 11px;
@@ -139,19 +167,65 @@
     text-transform: uppercase;
     letter-spacing: .12em;
   }
-  .prizes {
+  .podium {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .podium-item {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 24px;
+    border-radius: 16px;
+    padding: 28px 18px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
   }
-  .prizes-text {
-    font-size: 15px;
+  .podium-item::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+  }
+  .podium--1::before { background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold)); }
+  .podium--2::before { background: linear-gradient(90deg, #94a3b8, #cbd5e1, #94a3b8); }
+  .podium--3::before { background: linear-gradient(90deg, #b45309, #d97706, #b45309); }
+  .podium-rank {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--muted);
+    letter-spacing: .08em;
+    margin-bottom: 8px;
+  }
+  .podium--1 .podium-rank { color: var(--gold-light); }
+  .podium--2 .podium-rank { color: #cbd5e1; }
+  .podium--3 .podium-rank { color: #d97706; }
+  .podium-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 900;
     color: var(--text);
-    white-space: pre-wrap;
-    line-height: 1.7;
+    line-height: 1;
+    margin-bottom: 8px;
   }
-  .prizes-empty { color: var(--muted); font-style: italic; }
+  .podium--1 .podium-amount { color: var(--gold-light); font-size: 38px; }
+  .podium-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .15em;
+    color: var(--muted);
+  }
+  .prizes-foot {
+    margin-top: 14px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+  @media (max-width: 600px) {
+    .podium { grid-template-columns: 1fr; }
+    .podium--1 .podium-amount { font-size: 32px; }
+  }
   table {
     width: 100%;
     border-collapse: collapse;
@@ -301,7 +375,11 @@
 <div class="wrap">
 
   <header>
-    <div class="eyebrow">★ Torneo de Slots · Sala de Juegos Crespo</div>
+    <div class="brand">
+      <img src="https://www.saladejuegoscrespo.ar/logo-sin-fondo.png" alt="Sala de Juegos Crespo" />
+      <div class="brand-text">Sala de Juegos Crespo<span>San Martín 1053 · Entre Ríos</span></div>
+    </div>
+    <div class="eyebrow">★ Torneo de Slots</div>
     <h1>Torneo de Slots Mayo  2026 -  Sala Crespo</h1>
     <div class="meta">
       <div class="meta-item">
@@ -324,21 +402,36 @@
   </header>
 
   <section>
-    <h2>Resumen de la convocatoria</h2>
-    <div class="grid-stats">
+    <h2>Convocatoria</h2>
+    <div class="grid-stats" style="grid-template-columns: minmax(220px, 360px); justify-content: start;">
       <div class="stat"><div class="num">85</div><div class="lbl">Inscriptos totales</div></div>
-      <div class="stat"><div class="num">23</div><div class="lbl">Con email cargado</div></div>
-      <div class="stat"><div class="num">53</div><div class="lbl">Nuevos (vía Prode)</div></div>
-      <div class="stat"><div class="num">32</div><div class="lbl">Importados de base</div></div>
-      <div class="stat"><div class="num">85</div><div class="lbl">Con ciudad declarada</div></div>
     </div>
   </section>
 
   <section>
     <h2>Premios</h2>
-    <div class="prizes">
-      <div class="prizes-text">Premios totales: $200.000 en tickets promocionales</div>
+    <div class="podium">
+      
+        <div class="podium-item podium--1">
+          <div class="podium-rank">1°</div>
+          <div class="podium-amount">$100.000</div>
+          <div class="podium-label">1° puesto</div>
+        </div>
+      
+        <div class="podium-item podium--2">
+          <div class="podium-rank">2°</div>
+          <div class="podium-amount">$60.000</div>
+          <div class="podium-label">2° puesto</div>
+        </div>
+      
+        <div class="podium-item podium--3">
+          <div class="podium-rank">3°</div>
+          <div class="podium-amount">$40.000</div>
+          <div class="podium-label">3° puesto</div>
+        </div>
+      
     </div>
+    <div class="prizes-foot">Premios en tickets promocionales · Total $200.000</div>
   </section>
 
   
@@ -355,18 +448,13 @@
     <div class="source-grid">
       
         <div class="source-card">
-          <div class="src-num">12</div>
-          <div class="src-lbl">import</div>
+          <div class="src-num">33</div>
+          <div class="src-lbl">promotora</div>
         </div>
       
         <div class="source-card">
           <div class="src-num">52</div>
           <div class="src-lbl">web</div>
-        </div>
-      
-        <div class="source-card">
-          <div class="src-num">21</div>
-          <div class="src-lbl">promotora</div>
         </div>
       
     </div>
@@ -1012,7 +1100,7 @@
   <footer>
     <div class="logo">Sala de Juegos Crespo</div>
     <div>San Martín 1053 · Crespo, Entre Ríos · saladejuegoscrespo.ar</div>
-    <div style="margin-top: 12px;">Reporte generado el 26/5/2026, 09:15:38</div>
+    <div style="margin-top: 12px;">Reporte generado el 26/5/2026, 09:21:29</div>
   </footer>
 
 </div>
