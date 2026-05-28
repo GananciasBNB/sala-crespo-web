@@ -3193,19 +3193,26 @@ function PromoTicketsAdmin({ token, toast }) {
     finally { setCreating(false) }
   }
 
-  async function handlePreviewTemplate() {
-    setPreviewing(true)
-    try {
-      const r = await adminPromoPreview(token, {
-        valuePesos: Number(valuePesos) || 10000,
-        validDays: Number(validDays) || 30,
-        ticketType,
-        intro: intro.trim() || null,
-      })
-      setPreviewHtml(r.html || '')
-    } catch (err) { toast.show(err.message, 'err') }
-    finally { setPreviewing(false) }
-  }
+  // Preview en vivo con debounce: cuando cambian valor/tipo/vigencia/intro,
+  // regenera el HTML del mail (igual que el tab de Email).
+  useEffect(() => {
+    const t = setTimeout(async () => {
+      setPreviewing(true)
+      try {
+        const r = await adminPromoPreview(token, {
+          valuePesos: Number(valuePesos) || 10000,
+          validDays: Number(validDays) || 30,
+          ticketType,
+          intro: intro.trim() || null,
+        })
+        setPreviewHtml(r.html || '')
+      } catch (err) {
+        setPreviewHtml(`<p style="color:#c41e3a;padding:20px;font-family:sans-serif;">Error: ${err.message}</p>`)
+      } finally { setPreviewing(false) }
+    }, 350)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [valuePesos, validDays, ticketType, intro, token])
 
   async function handleTest(camp) {
     if (!testEmail.includes('@')) return toast.show('Email de test inválido', 'err')
@@ -3279,47 +3286,45 @@ function PromoTicketsAdmin({ token, toast }) {
           </label>
         </div>
 
-        {/* Subject + cuerpo editables del mail */}
-        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
-            Asunto del mail <span style={{ color: '#64748b', fontSize: 11 }}>(opcional — si lo dejás vacío usa uno por defecto)</span>
-            <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="🎁 Te regalamos un obsequio en Sala Crespo" disabled={creating}
-              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }} />
-          </label>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
-            Cuerpo del mensaje <span style={{ color: '#64748b', fontSize: 11 }}>(opcional — el texto antes de la tarjeta del ticket. La tarjeta con QR/código va siempre)</span>
-            <textarea value={intro} onChange={e => setIntro(e.target.value)} rows={4} disabled={creating}
-              placeholder="Queríamos agradecerte por ser parte de Sala Crespo. Te dejamos este obsequio para que lo disfrutes…"
-              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', resize: 'vertical', fontFamily: 'inherit' }} />
-          </label>
-        </div>
+        {/* Contenido editable + preview en vivo (side-by-side, igual que Email) */}
+        <div style={{ marginTop: 20, paddingTop: 18, borderTop: '1px solid #2a3142' }}>
+          <h4 style={{ margin: '0 0 14px', fontSize: 14, color: '#F0D275' }}>Editá el contenido y mirá el preview</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, alignItems: 'start' }}>
+            {/* Editor */}
+            <div>
+              <label style={{ display: 'block', fontSize: 13, color: '#C9A84C', fontWeight: 600, marginBottom: 6 }}>Asunto del mail</label>
+              <input value={subject} onChange={e => setSubject(e.target.value)} disabled={creating}
+                placeholder="🎁 Te regalamos un obsequio en Sala Crespo"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 14, boxSizing: 'border-box', marginBottom: 14 }} />
+              <label style={{ display: 'block', fontSize: 13, color: '#C9A84C', fontWeight: 600, marginBottom: 6 }}>Mensaje de intro (1° párrafo del cuerpo)</label>
+              <textarea value={intro} onChange={e => setIntro(e.target.value)} rows={5} disabled={creating}
+                placeholder="Queríamos agradecerte por ser parte de Sala Crespo. Te dejamos este obsequio para que lo disfrutes…"
+                style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 14, boxSizing: 'border-box', resize: 'vertical', minHeight: 100, fontFamily: 'inherit' }} />
+              <div style={{ marginTop: 8, fontSize: 12, color: '#8B9BB4', lineHeight: 1.5 }}>
+                💡 La tarjeta del ticket (QR, código, valor, instrucciones de canje) viene del template y no se edita acá. Si dejás asunto/intro vacíos, se usan los textos por defecto.
+              </div>
+            </div>
 
-        <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <button type="submit" disabled={creating}
-            style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
-            {creating ? 'Creando…' : 'Crear campaña'}
-          </button>
-          <button type="button" onClick={handlePreviewTemplate} disabled={previewing}
-            style={{ padding: '10px 24px', borderRadius: 8, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', fontWeight: 600, cursor: 'pointer' }}>
-            {previewing ? 'Generando…' : '👁 Previsualizar mail'}
-          </button>
-        </div>
-      </form>
-
-      {/* Preview del mail */}
-      {previewHtml && (
-        <div style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <h3 style={{ margin: 0, fontSize: 14, color: '#F0D275' }}>Así se va a ver el mail (datos de ejemplo)</h3>
-            <button onClick={() => setPreviewHtml('')}
-              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>
-              Cerrar
-            </button>
+            {/* Preview en vivo */}
+            <div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                <label style={{ fontSize: 13, color: '#C9A84C', fontWeight: 600 }}>Preview del mail</label>
+                {previewing && <span style={{ fontSize: 12, color: '#8B9BB4' }}>Actualizando…</span>}
+              </div>
+              <div style={{ border: '1px solid #2a3142', borderRadius: 10, overflow: 'hidden', background: '#0a0d12' }}>
+                <iframe title="Preview promo ticket"
+                  srcDoc={previewHtml || '<p style="color:#8B9BB4;padding:30px;font-family:sans-serif;text-align:center;">Cargando preview…</p>'}
+                  style={{ width: '100%', height: 600, border: 'none', background: '#0a0d12' }} />
+              </div>
+            </div>
           </div>
-          <iframe title="Preview promo ticket" srcDoc={previewHtml}
-            style={{ width: '100%', height: 760, border: '1px solid #2a3142', borderRadius: 10, background: '#fff' }} />
         </div>
-      )}
+
+        <button type="submit" disabled={creating}
+          style={{ marginTop: 18, padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+          {creating ? 'Creando…' : 'Crear campaña'}
+        </button>
+      </form>
 
       {/* Scope + test email (compartido para los blasts) */}
       <div style={{ background: 'rgba(0,0,0,.2)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
