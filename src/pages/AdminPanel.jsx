@@ -3147,6 +3147,9 @@ function Dashboard({ token, admin, onNavigate }) {
 }
 
 // ─── Email Blast Admin ────────────────────────────────────────────────────────
+const PROMO_DEFAULT_SUBJECT = '🎁 Tenés un regalo esperándote en Sala de Juegos Crespo'
+const PROMO_DEFAULT_INTRO = 'Queríamos agradecerte por ser parte de Sala de Juegos Crespo. Te dejamos este obsequio para que lo disfrutes en tu próxima visita. ¡Te esperamos!'
+
 function PromoTicketsAdmin({ token, toast }) {
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
@@ -3155,8 +3158,8 @@ function PromoTicketsAdmin({ token, toast }) {
   const [valuePesos, setValuePesos] = useState('')
   const [validDays, setValidDays] = useState(30)
   const [ticketType, setTicketType] = useState('promo')
-  const [subject, setSubject] = useState('')
-  const [intro, setIntro] = useState('')
+  const [subject, setSubject] = useState(PROMO_DEFAULT_SUBJECT)
+  const [intro, setIntro] = useState(PROMO_DEFAULT_INTRO)
   const [creating, setCreating] = useState(false)
   // Preview del mail
   const [previewHtml, setPreviewHtml] = useState('')
@@ -3193,7 +3196,7 @@ function PromoTicketsAdmin({ token, toast }) {
     try {
       await adminCreatePromoCampaign(token, { name: name.trim(), valuePesos: value, validDays: Number(validDays) || 30, ticketType, subject: subject.trim() || null, intro: intro.trim() || null })
       toast.show('Campaña creada', 'ok')
-      setName(''); setValuePesos(''); setValidDays(30); setTicketType('promo'); setSubject(''); setIntro(''); setPreviewHtml('')
+      setName(''); setValuePesos(''); setValidDays(30); setTicketType('promo'); setSubject(PROMO_DEFAULT_SUBJECT); setIntro(PROMO_DEFAULT_INTRO); setPreviewHtml('')
       await load()
     } catch (err) { toast.show(err.message, 'err') }
     finally { setCreating(false) }
