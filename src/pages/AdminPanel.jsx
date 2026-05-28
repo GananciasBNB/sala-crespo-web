@@ -13,7 +13,7 @@ import {
   adminGetPrizes, adminGetPrizesSummary, adminGeneratePrizes, adminRedeemPrize, adminRevokePrize,
   adminEmailBlast, adminEmailPreview, adminEmailDefaults,
   adminEmailCampaigns, adminEmailCampaignDetail,
-  adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview,
+  adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview, adminPromoCandidates,
   adminDashboardStats, adminAnalyticsSnapshot,
   adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
 } from '../api/client'
@@ -3167,6 +3167,12 @@ function PromoTicketsAdmin({ token, toast }) {
   const [busy, setBusy] = useState(false)
   const [preview, setPreview] = useState(null)       // { campaign, data } del dry-run
   const [lastResult, setLastResult] = useState(null)
+  // Selección de destinatarios (tildar a quién mandar)
+  const [picker, setPicker] = useState(null)         // { campaign } cuando el panel está abierto
+  const [candidates, setCandidates] = useState([])
+  const [selectedIds, setSelectedIds] = useState(() => new Set())
+  const [candSearch, setCandSearch] = useState('')
+  const [loadingCands, setLoadingCands] = useState(false)
 
   async function load() {
     setLoading(true)
@@ -3224,21 +3230,67 @@ function PromoTicketsAdmin({ token, toast }) {
     finally { setBusy(false) }
   }
 
-  async function handlePreview(camp) {
-    setBusy(true); setPreview(null); setLastResult(null)
+  // Abre el panel de selección: carga candidatos del scope y los tilda todos.
+  async function openPicker(camp) {
+    setPicker({ campaign: camp }); setPreview(null); setLastResult(null); setCandSearch('')
+    setLoadingCands(true); setCandidates([]); setSelectedIds(new Set())
     try {
-      const data = await adminPromoCampaignBlast(token, camp.id, { scope, dryRun: true })
-      setPreview({ campaign: camp, data })
+      const r = await adminPromoCandidates(token, scope)
+      const cands = r.candidates || []
+      setCandidates(cands)
+      setSelectedIds(new Set(cands.map(c => c.id)))   // por default todos tildados
+    } catch (err) { toast.show(err.message, 'err'); setPicker(null) }
+    finally { setLoadingCands(false) }
+  }
+
+  // Recargar candidatos cuando cambia el scope con el panel abierto.
+  async function reloadCandidates(newScope) {
+    setScope(newScope); setLoadingCands(true)
+    try {
+      const r = await adminPromoCandidates(token, newScope)
+      const cands = r.candidates || []
+      setCandidates(cands)
+      setSelectedIds(new Set(cands.map(c => c.id)))
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setLoadingCands(false) }
+  }
+
+  function toggleId(id) {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
+
+  const filteredCands = candidates.filter(c => {
+    const q = candSearch.trim().toLowerCase()
+    if (!q) return true
+    return (c.name || '').toLowerCase().includes(q) || (c.email || '').toLowerCase().includes(q) || (c.dni || '').includes(q)
+  })
+  function selectAllFiltered() { setSelectedIds(prev => { const n = new Set(prev); filteredCands.forEach(c => n.add(c.id)); return n }) }
+  function clearAllFiltered() { setSelectedIds(prev => { const n = new Set(prev); filteredCands.forEach(c => n.delete(c.id)); return n }) }
+
+  // Preview (dry-run) con la selección actual.
+  async function handlePreview() {
+    if (!picker) return
+    const ids = Array.from(selectedIds)
+    if (ids.length === 0) return toast.show('Tildá al menos un destinatario', 'err')
+    setBusy(true); setPreview(null)
+    try {
+      const data = await adminPromoCampaignBlast(token, picker.campaign.id, { scope, playerIds: ids, dryRun: true })
+      setPreview({ campaign: picker.campaign, data })
     } catch (err) { toast.show(err.message, 'err') }
     finally { setBusy(false) }
   }
 
   async function handleConfirmBlast() {
     if (!preview) return
+    const ids = Array.from(selectedIds)
     setBusy(true)
     try {
-      const r = await adminPromoCampaignBlast(token, preview.campaign.id, { scope, dryRun: false })
-      setLastResult(r); setPreview(null)
+      const r = await adminPromoCampaignBlast(token, preview.campaign.id, { scope, playerIds: ids, dryRun: false })
+      setLastResult(r); setPreview(null); setPicker(null)
       toast.show(`Enviados: ${r.sent}. ${r.heldForTomorrow ? `Quedaron ${r.heldForTomorrow} para mañana.` : ''}`, 'ok')
       await load()
     } catch (err) { toast.show(err.message, 'err') }
@@ -3326,23 +3378,14 @@ function PromoTicketsAdmin({ token, toast }) {
         </button>
       </form>
 
-      {/* Scope + test email (compartido para los blasts) */}
-      <div style={{ background: 'rgba(0,0,0,.2)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
-        <div style={{ display: 'flex', gap: 16 }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#C8D2E0' }}>
-            <input type="radio" checked={scope === 'all'} onChange={() => setScope('all')} disabled={busy} />
-            Toda la base (con email, no internos)
-          </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#C8D2E0' }}>
-            <input type="radio" checked={scope === 'tournament'} onChange={() => setScope('tournament')} disabled={busy} />
-            Solo inscriptos al torneo activo
-          </label>
-        </div>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8B9BB4', marginLeft: 'auto' }}>
-          Test a:
+      {/* Email para el test individual */}
+      <div style={{ background: 'rgba(0,0,0,.2)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 14, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8B9BB4' }}>
+          📧 Test a:
           <input value={testEmail} onChange={e => setTestEmail(e.target.value)} disabled={busy}
-            style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', width: 200 }} />
+            style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', width: 240 }} />
         </label>
+        <span style={{ fontSize: 12, color: '#64748b' }}>El botón "Enviar test" de cada campaña manda 1 ticket a esta dirección.</span>
       </div>
 
       {/* Lista de campañas */}
@@ -3365,13 +3408,72 @@ function PromoTicketsAdmin({ token, toast }) {
                   style={{ padding: '8px 14px', borderRadius: 7, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer', fontSize: 13 }}>
                   Enviar test
                 </button>
-                <button onClick={() => handlePreview(c)} disabled={busy}
+                <button onClick={() => openPicker(c)} disabled={busy}
                   style={{ padding: '8px 14px', borderRadius: 7, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
-                  Preparar blast
+                  Elegir destinatarios →
                 </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Panel de selección de destinatarios (tildar) */}
+      {picker && (
+        <div style={{ marginTop: 20, background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 12, padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, flexWrap: 'wrap', gap: 10 }}>
+            <h3 style={{ margin: 0, fontSize: 15, color: '#F0D275' }}>Elegí a quién mandar · {picker.campaign.name}</h3>
+            <button onClick={() => { setPicker(null); setPreview(null) }}
+              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>
+              Cerrar
+            </button>
+          </div>
+
+          {/* Scope */}
+          <div style={{ display: 'flex', gap: 16, marginBottom: 12, fontSize: 13, flexWrap: 'wrap' }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#C8D2E0' }}>
+              <input type="radio" checked={scope === 'all'} onChange={() => reloadCandidates('all')} disabled={loadingCands || busy} />
+              Toda la base (con email, no internos)
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#C8D2E0' }}>
+              <input type="radio" checked={scope === 'tournament'} onChange={() => reloadCandidates('tournament')} disabled={loadingCands || busy} />
+              Solo inscriptos al torneo activo
+            </label>
+          </div>
+
+          {/* Buscador + acciones masivas */}
+          <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <input value={candSearch} onChange={e => setCandSearch(e.target.value)} placeholder="Buscar por nombre, email o DNI…"
+              style={{ flex: '1 1 240px', padding: '8px 12px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 13 }} />
+            <button onClick={selectAllFiltered} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer', fontSize: 12 }}>Marcar todos</button>
+            <button onClick={clearAllFiltered} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>Desmarcar todos</button>
+          </div>
+
+          <div style={{ fontSize: 13, color: '#F0D275', marginBottom: 8 }}>
+            {selectedIds.size} seleccionados de {candidates.length}
+            {candSearch && ` · mostrando ${filteredCands.length}`}
+          </div>
+
+          {/* Lista con checkboxes */}
+          {loadingCands ? <p style={{ color: '#8B9BB4' }}>Cargando clientes…</p> : (
+            <div style={{ maxHeight: 360, overflowY: 'auto', border: '1px solid #2a3142', borderRadius: 8, background: 'rgba(0,0,0,.2)' }}>
+              {filteredCands.length === 0 ? (
+                <p style={{ color: '#8B9BB4', padding: 16, margin: 0 }}>Sin resultados.</p>
+              ) : filteredCands.map(c => (
+                <label key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 14px', borderBottom: '1px solid #1a2130', cursor: 'pointer', fontSize: 13 }}>
+                  <input type="checkbox" checked={selectedIds.has(c.id)} onChange={() => toggleId(c.id)} disabled={busy} />
+                  <span style={{ flex: 1, color: '#fff' }}>{c.name}</span>
+                  <span style={{ color: '#8B9BB4', fontSize: 12 }}>{c.dni || '—'}</span>
+                  <span style={{ color: '#8B9BB4', fontSize: 12, minWidth: 180, textAlign: 'right' }}>{c.email}</span>
+                </label>
+              ))}
+            </div>
+          )}
+
+          <button onClick={handlePreview} disabled={busy || selectedIds.size === 0}
+            style={{ marginTop: 14, padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', opacity: selectedIds.size === 0 ? 0.5 : 1 }}>
+            Previsualizar envío a {selectedIds.size} →
+          </button>
         </div>
       )}
 
