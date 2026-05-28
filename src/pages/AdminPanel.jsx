@@ -3241,7 +3241,7 @@ function PromoTicketsAdmin({ token, toast }) {
       const r = await adminPromoCandidates(token, scope)
       const cands = r.candidates || []
       setCandidates(cands)
-      setSelectedIds(new Set(cands.map(c => c.id)))   // por default todos tildados
+      setSelectedIds(new Set())   // por default NINGUNO — tildás los que querés
     } catch (err) { toast.show(err.message, 'err'); setPicker(null) }
     finally { setLoadingCands(false) }
   }
@@ -3253,7 +3253,7 @@ function PromoTicketsAdmin({ token, toast }) {
       const r = await adminPromoCandidates(token, newScope)
       const cands = r.candidates || []
       setCandidates(cands)
-      setSelectedIds(new Set(cands.map(c => c.id)))
+      setSelectedIds(new Set())
     } catch (err) { toast.show(err.message, 'err') }
     finally { setLoadingCands(false) }
   }
@@ -3448,13 +3448,14 @@ function PromoTicketsAdmin({ token, toast }) {
           <div style={{ display: 'flex', gap: 10, marginBottom: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <input value={candSearch} onChange={e => setCandSearch(e.target.value)} placeholder="Buscar por nombre, email o DNI…"
               style={{ flex: '1 1 240px', padding: '8px 12px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 13 }} />
-            <button onClick={selectAllFiltered} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer', fontSize: 12 }}>Marcar todos</button>
-            <button onClick={clearAllFiltered} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>Desmarcar todos</button>
+            <button type="button" onClick={selectAllFiltered} style={{ padding: '7px 14px', borderRadius: 7, border: '1px solid #22c55e', background: 'rgba(34,197,94,.12)', color: '#86efac', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>✓ Tildar todos</button>
+            <button type="button" onClick={clearAllFiltered} style={{ padding: '7px 14px', borderRadius: 7, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 13, fontWeight: 600 }}>✕ Destildar todos</button>
           </div>
 
           <div style={{ fontSize: 13, color: '#F0D275', marginBottom: 8 }}>
             {selectedIds.size} seleccionados de {candidates.length}
             {candSearch && ` · mostrando ${filteredCands.length}`}
+            {selectedIds.size === 0 && <span style={{ color: '#8B9BB4', fontWeight: 400 }}> · tildá los que quieras enviar (o "Marcar todos" para toda la base)</span>}
           </div>
 
           {/* Lista con checkboxes */}
