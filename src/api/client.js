@@ -398,6 +398,16 @@ export const adminEmailCampaignDetail = (token, id) =>
 export const adminPlayerEmailHistory = (token, playerId) =>
   api(`/api/admin/email/player-history/${encodeURIComponent(playerId)}`, { headers: authHeaders(token) })
 
+// ─── Promo Tickets (campañas) ─────────────────────────────────────────────────
+export const adminPromoCampaigns = (token) =>
+  api('/api/admin/promo-campaigns', { headers: authHeaders(token) })
+
+export const adminCreatePromoCampaign = (token, body) =>
+  api('/api/admin/promo-campaigns', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+
+export const adminPromoCampaignBlast = (token, id, body) =>
+  api(`/api/admin/promo-campaigns/${id}/blast`, { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+
 // ─── Promo (modo promotora — público con rate-limit) ──────────────────────────
 export const promoLookupDni = (dni) =>
   api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })

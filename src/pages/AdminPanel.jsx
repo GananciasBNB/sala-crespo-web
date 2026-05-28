@@ -13,6 +13,7 @@ import {
   adminGetPrizes, adminGetPrizesSummary, adminGeneratePrizes, adminRedeemPrize, adminRevokePrize,
   adminEmailBlast, adminEmailPreview, adminEmailDefaults,
   adminEmailCampaigns, adminEmailCampaignDetail,
+  adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast,
   adminDashboardStats, adminAnalyticsSnapshot,
   adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
 } from '../api/client'
@@ -3146,6 +3147,219 @@ function Dashboard({ token, admin, onNavigate }) {
 }
 
 // ─── Email Blast Admin ────────────────────────────────────────────────────────
+function PromoTicketsAdmin({ token, toast }) {
+  const [campaigns, setCampaigns] = useState([])
+  const [loading, setLoading] = useState(true)
+  // Form crear campaña
+  const [name, setName] = useState('')
+  const [valuePesos, setValuePesos] = useState('')
+  const [validDays, setValidDays] = useState(30)
+  const [ticketType, setTicketType] = useState('promo')
+  const [creating, setCreating] = useState(false)
+  // Blast
+  const [scope, setScope] = useState('all')
+  const [testEmail, setTestEmail] = useState('urieleprieto@gmail.com')
+  const [busy, setBusy] = useState(false)
+  const [preview, setPreview] = useState(null)       // { campaign, data } del dry-run
+  const [lastResult, setLastResult] = useState(null)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const r = await adminPromoCampaigns(token)
+      setCampaigns(r.campaigns || [])
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setLoading(false) }
+  }
+  useEffect(() => { load() }, [])
+
+  async function handleCreate(e) {
+    e.preventDefault()
+    const value = Number(valuePesos)
+    if (name.trim().length < 3) return toast.show('Nombre demasiado corto', 'err')
+    if (!Number.isFinite(value) || value <= 0) return toast.show('Valor inválido', 'err')
+    setCreating(true)
+    try {
+      await adminCreatePromoCampaign(token, { name: name.trim(), valuePesos: value, validDays: Number(validDays) || 30, ticketType })
+      toast.show('Campaña creada', 'ok')
+      setName(''); setValuePesos(''); setValidDays(30); setTicketType('promo')
+      await load()
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setCreating(false) }
+  }
+
+  async function handleTest(camp) {
+    if (!testEmail.includes('@')) return toast.show('Email de test inválido', 'err')
+    setBusy(true)
+    try {
+      const r = await adminPromoCampaignBlast(token, camp.id, { testEmail })
+      toast.show(r.sent ? `Test enviado a ${testEmail} (${r.code})` : `No se envió: ${r.detail}`, r.sent ? 'ok' : 'err')
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setBusy(false) }
+  }
+
+  async function handlePreview(camp) {
+    setBusy(true); setPreview(null); setLastResult(null)
+    try {
+      const data = await adminPromoCampaignBlast(token, camp.id, { scope, dryRun: true })
+      setPreview({ campaign: camp, data })
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setBusy(false) }
+  }
+
+  async function handleConfirmBlast() {
+    if (!preview) return
+    setBusy(true)
+    try {
+      const r = await adminPromoCampaignBlast(token, preview.campaign.id, { scope, dryRun: false })
+      setLastResult(r); setPreview(null)
+      toast.show(`Enviados: ${r.sent}. ${r.heldForTomorrow ? `Quedaron ${r.heldForTomorrow} para mañana.` : ''}`, 'ok')
+      await load()
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setBusy(false) }
+  }
+
+  const fmtMoney = (n) => '$' + Number(n || 0).toLocaleString('es-AR')
+
+  return (
+    <div className="ap-section">
+      <h2 className="ap-section__title">🎁 Campañas de Promo Tickets</h2>
+      <p style={{ color: '#8B9BB4', fontSize: 14, margin: '0 0 20px', maxWidth: 720, lineHeight: 1.6 }}>
+        Cada destinatario recibe un <strong>ticket único con QR</strong> que canjea en la sala con su DNI.
+        Los internos quedan excluidos automáticamente. Respeta el límite diario de mails (Resend) —
+        si una campaña supera el cupo del día, manda hasta el límite y el resto queda para mañana
+        (re-disparás y solo procesa a los que faltan).
+      </p>
+
+      {/* Crear campaña */}
+      <form onSubmit={handleCreate} style={{ background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+        <h3 style={{ margin: '0 0 16px', fontSize: 15, color: '#F0D275' }}>Nueva campaña</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
+            Nombre
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Cortesía Junio 2026" disabled={creating}
+              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }} />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
+            Valor en pesos
+            <input type="number" min="1" value={valuePesos} onChange={e => setValuePesos(e.target.value)} placeholder="10000" disabled={creating}
+              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }} />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
+            Vigencia (días)
+            <input type="number" min="1" max="365" value={validDays} onChange={e => setValidDays(e.target.value)} disabled={creating}
+              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }} />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
+            Tipo
+            <select value={ticketType} onChange={e => setTicketType(e.target.value)} disabled={creating}
+              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }}>
+              <option value="promo">Promo (tickets en pesos)</option>
+              <option value="event">Evento (cortesía especial)</option>
+            </select>
+          </label>
+        </div>
+        <button type="submit" disabled={creating}
+          style={{ marginTop: 16, padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+          {creating ? 'Creando…' : 'Crear campaña'}
+        </button>
+      </form>
+
+      {/* Scope + test email (compartido para los blasts) */}
+      <div style={{ background: 'rgba(0,0,0,.2)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 16 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#C8D2E0' }}>
+            <input type="radio" checked={scope === 'all'} onChange={() => setScope('all')} disabled={busy} />
+            Toda la base (con email, no internos)
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', color: '#C8D2E0' }}>
+            <input type="radio" checked={scope === 'tournament'} onChange={() => setScope('tournament')} disabled={busy} />
+            Solo inscriptos al torneo activo
+          </label>
+        </div>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: '#8B9BB4', marginLeft: 'auto' }}>
+          Test a:
+          <input value={testEmail} onChange={e => setTestEmail(e.target.value)} disabled={busy}
+            style={{ padding: '5px 8px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', width: 200 }} />
+        </label>
+      </div>
+
+      {/* Lista de campañas */}
+      {loading ? <p style={{ color: '#8B9BB4' }}>Cargando…</p> : campaigns.length === 0 ? (
+        <p style={{ color: '#8B9BB4' }}>No hay campañas todavía. Creá una arriba.</p>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {campaigns.map(c => (
+            <div key={c.id} style={{ background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 10, padding: 16, display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: '#fff' }}>
+                  {c.name} {c.ticket_type === 'event' && <span style={{ fontSize: 11, color: '#F0D275', marginLeft: 6 }}>· EVENTO</span>}
+                </div>
+                <div style={{ fontSize: 13, color: '#8B9BB4', marginTop: 4 }}>
+                  {fmtMoney(c.value_pesos)} · vigencia {c.valid_days} días · creada {new Date(c.created_at).toLocaleDateString('es-AR')}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button onClick={() => handleTest(c)} disabled={busy}
+                  style={{ padding: '8px 14px', borderRadius: 7, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer', fontSize: 13 }}>
+                  Enviar test
+                </button>
+                <button onClick={() => handlePreview(c)} disabled={busy}
+                  style={{ padding: '8px 14px', borderRadius: 7, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>
+                  Preparar blast
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Preview / confirmación del blast */}
+      {preview && (
+        <div style={{ marginTop: 20, background: 'rgba(196,30,58,.08)', border: '1px solid rgba(196,30,58,.4)', borderRadius: 12, padding: 20 }}>
+          <h3 style={{ margin: '0 0 12px', fontSize: 15, color: '#F0D275' }}>Confirmar envío · {preview.campaign.name}</h3>
+          <ul style={{ margin: '0 0 16px', paddingLeft: 18, color: '#C8D2E0', fontSize: 14, lineHeight: 1.7 }}>
+            <li>Destinatarios seleccionados: <strong>{preview.data.totalSelected}</strong></li>
+            <li>Se envían <strong>hoy</strong>: <strong style={{ color: '#22c55e' }}>{preview.data.count}</strong></li>
+            {preview.data.heldForTomorrow > 0 && (
+              <li style={{ color: '#f59e0b' }}>Quedan para mañana (cupo diario): <strong>{preview.data.heldForTomorrow}</strong></li>
+            )}
+            <li style={{ color: '#8B9BB4', fontSize: 13 }}>
+              Cupo blast hoy: {preview.data.quota?.available} disponibles de {preview.data.quota?.effective}
+              (ya se enviaron {preview.data.quota?.sentToday})
+            </li>
+          </ul>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button onClick={handleConfirmBlast} disabled={busy || preview.data.count === 0}
+              style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#22c55e', color: '#06240f', fontWeight: 800, cursor: 'pointer' }}>
+              {busy ? 'Enviando…' : `Confirmar y enviar ${preview.data.count}`}
+            </button>
+            <button onClick={() => setPreview(null)} disabled={busy}
+              style={{ padding: '10px 18px', borderRadius: 8, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer' }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Resultado del último blast */}
+      {lastResult && (
+        <div style={{ marginTop: 20, background: 'rgba(34,197,94,.08)', border: '1px solid rgba(34,197,94,.4)', borderRadius: 12, padding: 20, fontSize: 14, color: '#C8D2E0', lineHeight: 1.7 }}>
+          <h3 style={{ margin: '0 0 10px', fontSize: 15, color: '#22c55e' }}>Blast completado · {lastResult.campaignName}</h3>
+          ✅ Enviados: <strong>{lastResult.sent}</strong> ·
+          ⏭️ Ya tenían ticket: <strong>{lastResult.alreadyHad || 0}</strong> ·
+          ⚠️ Fallidos: <strong>{lastResult.failed}</strong>
+          {lastResult.heldForTomorrow > 0 && (
+            <div style={{ color: '#f59e0b', marginTop: 6 }}>
+              Quedaron <strong>{lastResult.heldForTomorrow}</strong> para mañana — volvé a apretar "Preparar blast" mañana y solo procesa a los que faltan.
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
 function EmailBlastAdmin({ token, toast }) {
   const [template, setTemplate] = useState('promo')
   const [scope, setScope]       = useState('all')
@@ -3713,6 +3927,7 @@ export default function AdminPanel() {
     { id: 'shows',     label: '🎤 Shows' },
     { id: 'contenido', label: '📝 Contenido' },
     ...(admin?.role === 'superadmin' ? [{ id: 'email',  label: '📧 Email' }] : []),
+    ...(admin?.role === 'superadmin' ? [{ id: 'promo',  label: '🎁 Promo Tickets' }] : []),
     ...(admin?.role === 'superadmin' ? [{ id: 'admins', label: '👤 Admins' }] : []),
   ]
 
@@ -3768,6 +3983,7 @@ export default function AdminPanel() {
         {tab === 'shows'     && <ShowsAdmin    token={token} toast={toast} />}
         {tab === 'contenido' && <ContentAdmin  token={token} toast={toast} />}
         {tab === 'email'     && <EmailBlastAdmin token={token} toast={toast} />}
+        {tab === 'promo'     && <PromoTicketsAdmin token={token} toast={toast} />}
         {tab === 'admins'    && <AdminsAdmin   token={token} currentAdmin={admin} toast={toast} />}
       </main>
     </div>
