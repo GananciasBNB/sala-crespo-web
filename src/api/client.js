@@ -408,6 +408,9 @@ export const adminCreatePromoCampaign = (token, body) =>
 export const adminPromoCampaignBlast = (token, id, body) =>
   api(`/api/admin/promo-campaigns/${id}/blast`, { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
 
+export const adminPromoPreview = (token, body) =>
+  api('/api/admin/promo-campaigns/preview', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+
 // ─── Promo (modo promotora — público con rate-limit) ──────────────────────────
 export const promoLookupDni = (dni) =>
   api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })

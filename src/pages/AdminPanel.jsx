@@ -13,7 +13,7 @@ import {
   adminGetPrizes, adminGetPrizesSummary, adminGeneratePrizes, adminRedeemPrize, adminRevokePrize,
   adminEmailBlast, adminEmailPreview, adminEmailDefaults,
   adminEmailCampaigns, adminEmailCampaignDetail,
-  adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast,
+  adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview,
   adminDashboardStats, adminAnalyticsSnapshot,
   adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
 } from '../api/client'
@@ -3156,6 +3156,8 @@ function PromoTicketsAdmin({ token, toast }) {
   const [validDays, setValidDays] = useState(30)
   const [ticketType, setTicketType] = useState('promo')
   const [creating, setCreating] = useState(false)
+  const [previewHtml, setPreviewHtml] = useState('')
+  const [previewing, setPreviewing] = useState(false)
   // Blast
   const [scope, setScope] = useState('all')
   const [testEmail, setTestEmail] = useState('urieleprieto@gmail.com')
@@ -3186,6 +3188,15 @@ function PromoTicketsAdmin({ token, toast }) {
       await load()
     } catch (err) { toast.show(err.message, 'err') }
     finally { setCreating(false) }
+  }
+
+  async function handlePreviewTemplate() {
+    setPreviewing(true)
+    try {
+      const r = await adminPromoPreview(token, { valuePesos: Number(valuePesos) || 10000, ticketType })
+      setPreviewHtml(r.html || '')
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setPreviewing(false) }
   }
 
   async function handleTest(camp) {
@@ -3259,11 +3270,35 @@ function PromoTicketsAdmin({ token, toast }) {
             </select>
           </label>
         </div>
-        <button type="submit" disabled={creating}
-          style={{ marginTop: 16, padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
-          {creating ? 'Creando…' : 'Crear campaña'}
-        </button>
+        <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button type="submit" disabled={creating}
+            style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+            {creating ? 'Creando…' : 'Crear campaña'}
+          </button>
+          <button type="button" onClick={handlePreviewTemplate} disabled={previewing}
+            style={{ padding: '10px 24px', borderRadius: 8, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', fontWeight: 600, cursor: 'pointer' }}>
+            {previewing ? 'Generando…' : '👁 Vista previa del mail'}
+          </button>
+        </div>
       </form>
+
+      {/* Preview del template del mail */}
+      {previewHtml && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <h3 style={{ margin: 0, fontSize: 14, color: '#F0D275' }}>Vista previa del mail (datos de ejemplo)</h3>
+            <button onClick={() => setPreviewHtml('')}
+              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>
+              Cerrar
+            </button>
+          </div>
+          <iframe
+            title="Preview promo ticket"
+            srcDoc={previewHtml}
+            style={{ width: '100%', height: 720, border: '1px solid #2a3142', borderRadius: 10, background: '#fff' }}
+          />
+        </div>
+      )}
 
       {/* Scope + test email (compartido para los blasts) */}
       <div style={{ background: 'rgba(0,0,0,.2)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
