@@ -13,7 +13,7 @@ import {
   adminGetPrizes, adminGetPrizesSummary, adminGeneratePrizes, adminRedeemPrize, adminRevokePrize,
   adminEmailBlast, adminEmailPreview, adminEmailDefaults,
   adminEmailCampaigns, adminEmailCampaignDetail,
-  adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast,
+  adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview,
   adminDashboardStats, adminAnalyticsSnapshot,
   adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
 } from '../api/client'
@@ -3155,7 +3155,12 @@ function PromoTicketsAdmin({ token, toast }) {
   const [valuePesos, setValuePesos] = useState('')
   const [validDays, setValidDays] = useState(30)
   const [ticketType, setTicketType] = useState('promo')
+  const [subject, setSubject] = useState('')
+  const [intro, setIntro] = useState('')
   const [creating, setCreating] = useState(false)
+  // Preview del mail
+  const [previewHtml, setPreviewHtml] = useState('')
+  const [previewing, setPreviewing] = useState(false)
   // Blast
   const [scope, setScope] = useState('all')
   const [testEmail, setTestEmail] = useState('urieleprieto@gmail.com')
@@ -3180,12 +3185,26 @@ function PromoTicketsAdmin({ token, toast }) {
     if (!Number.isFinite(value) || value <= 0) return toast.show('Valor inválido', 'err')
     setCreating(true)
     try {
-      await adminCreatePromoCampaign(token, { name: name.trim(), valuePesos: value, validDays: Number(validDays) || 30, ticketType })
+      await adminCreatePromoCampaign(token, { name: name.trim(), valuePesos: value, validDays: Number(validDays) || 30, ticketType, subject: subject.trim() || null, intro: intro.trim() || null })
       toast.show('Campaña creada', 'ok')
-      setName(''); setValuePesos(''); setValidDays(30); setTicketType('promo')
+      setName(''); setValuePesos(''); setValidDays(30); setTicketType('promo'); setSubject(''); setIntro(''); setPreviewHtml('')
       await load()
     } catch (err) { toast.show(err.message, 'err') }
     finally { setCreating(false) }
+  }
+
+  async function handlePreviewTemplate() {
+    setPreviewing(true)
+    try {
+      const r = await adminPromoPreview(token, {
+        valuePesos: Number(valuePesos) || 10000,
+        validDays: Number(validDays) || 30,
+        ticketType,
+        intro: intro.trim() || null,
+      })
+      setPreviewHtml(r.html || '')
+    } catch (err) { toast.show(err.message, 'err') }
+    finally { setPreviewing(false) }
   }
 
   async function handleTest(camp) {
@@ -3259,11 +3278,48 @@ function PromoTicketsAdmin({ token, toast }) {
             </select>
           </label>
         </div>
-        <button type="submit" disabled={creating}
-          style={{ marginTop: 16, padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
-          {creating ? 'Creando…' : 'Crear campaña'}
-        </button>
+
+        {/* Subject + cuerpo editables del mail */}
+        <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
+            Asunto del mail <span style={{ color: '#64748b', fontSize: 11 }}>(opcional — si lo dejás vacío usa uno por defecto)</span>
+            <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="🎁 Te regalamos un obsequio en Sala Crespo" disabled={creating}
+              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }} />
+          </label>
+          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 13, color: '#C8D2E0' }}>
+            Cuerpo del mensaje <span style={{ color: '#64748b', fontSize: 11 }}>(opcional — el texto antes de la tarjeta del ticket. La tarjeta con QR/código va siempre)</span>
+            <textarea value={intro} onChange={e => setIntro(e.target.value)} rows={4} disabled={creating}
+              placeholder="Queríamos agradecerte por ser parte de Sala Crespo. Te dejamos este obsequio para que lo disfrutes…"
+              style={{ padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', resize: 'vertical', fontFamily: 'inherit' }} />
+          </label>
+        </div>
+
+        <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button type="submit" disabled={creating}
+            style={{ padding: '10px 24px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>
+            {creating ? 'Creando…' : 'Crear campaña'}
+          </button>
+          <button type="button" onClick={handlePreviewTemplate} disabled={previewing}
+            style={{ padding: '10px 24px', borderRadius: 8, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', fontWeight: 600, cursor: 'pointer' }}>
+            {previewing ? 'Generando…' : '👁 Previsualizar mail'}
+          </button>
+        </div>
       </form>
+
+      {/* Preview del mail */}
+      {previewHtml && (
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <h3 style={{ margin: 0, fontSize: 14, color: '#F0D275' }}>Así se va a ver el mail (datos de ejemplo)</h3>
+            <button onClick={() => setPreviewHtml('')}
+              style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>
+              Cerrar
+            </button>
+          </div>
+          <iframe title="Preview promo ticket" srcDoc={previewHtml}
+            style={{ width: '100%', height: 760, border: '1px solid #2a3142', borderRadius: 10, background: '#fff' }} />
+        </div>
+      )}
 
       {/* Scope + test email (compartido para los blasts) */}
       <div style={{ background: 'rgba(0,0,0,.2)', borderRadius: 10, padding: '14px 16px', marginBottom: 20, fontSize: 14, display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
