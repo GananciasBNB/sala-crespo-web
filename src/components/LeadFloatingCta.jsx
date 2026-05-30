@@ -43,7 +43,7 @@ export default function LeadFloatingCta() {
       aria-label="Suscribirme a las promos"
     >
       <span className="lead-fab__icon">🎁</span>
-      <span className="lead-fab__text">Recibir promos</span>
+      <span className="lead-fab__text">Dejá tus datos y recibí promociones exclusivas</span>
     </button>
   )
 }

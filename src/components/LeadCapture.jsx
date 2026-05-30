@@ -40,9 +40,17 @@ export default function LeadCapture() {
           <h2 className="section-title">Enterate <em>primero</em><br />de todo lo bueno</h2>
           <div className="gold-line" />
           <p className="lead__desc">
-            Dejanos tu nombre y email y te avisamos por mail cuando lancemos un torneo nuevo,
-            un show, una promo de cortesía o algo que no querés perderte. Sin spam, prometido.
+            Dejanos tu nombre y email y te mandamos directo a tu casilla las
+            <strong> promociones especiales</strong> de la sala — tickets promocionales para jugar,
+            cortesías, invitaciones a shows y torneos. Sin spam, solo lo bueno.
           </p>
+
+          <ul className="lead__benefits">
+            <li><span>🎁</span> Tickets promocionales</li>
+            <li><span>🍻</span> Bebidas y comida de cortesía</li>
+            <li><span>🎤</span> Invitaciones a shows</li>
+            <li><span>🎰</span> Acceso prioritario a torneos</li>
+          </ul>
 
           {status === 'ok' ? (
             <div className="lead__success">
