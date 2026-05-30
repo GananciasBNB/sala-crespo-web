@@ -15,7 +15,7 @@ export default function Footer() {
         <nav className="footer__nav">
           <h4>La sala</h4>
           <a href="#sala">Slots y Ruletas</a>
-          <a href="#ayb">Alimentos y Bebidas</a>
+          <a href="#ayb">Nuestro Menú</a>
           <a href="#shows">Shows en Vivo</a>
           <a href="#torneos">Torneos</a>
         </nav>

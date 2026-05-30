@@ -4,11 +4,12 @@ import './Navbar.css'
 
 const BASE_NAV_LINKS = [
   { label: 'La Sala', href: '#sala' },
-  { label: 'A&B', href: '#ayb' },
+  { label: 'Menú', href: '#ayb' },
   { label: 'Shows', href: '#shows' },
   { label: 'Torneos', href: '#torneos', key: 'torneos' },
   { label: 'Prode Mundial', href: '/prode', highlight: true },
   { label: 'Ubicación', href: '#ubicacion' },
+  { label: 'Contactanos', href: '/contacto' },
 ]
 
 export default function Navbar({ onAdminUnlock }) {

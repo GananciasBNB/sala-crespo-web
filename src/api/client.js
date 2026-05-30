@@ -414,6 +414,10 @@ export const adminPromoPreview = (token, body) =>
 export const adminPromoCandidates = (token, scope = 'all') =>
   api(`/api/admin/promo-campaigns/candidates?scope=${scope}`, { headers: authHeaders(token) })
 
+// ─── Lead capture (form público "Suscribite a las promos") ──────────────────
+export const subscribeLead = (data) =>
+  api('/api/leads/subscribe', { method: 'POST', body: JSON.stringify(data) })
+
 // ─── Promo (modo promotora — público con rate-limit) ──────────────────────────
 export const promoLookupDni = (dni) =>
   api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })

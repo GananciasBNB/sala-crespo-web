@@ -8,6 +8,7 @@ import AyB from '../components/AyB'
 import Shows from '../components/Shows'
 import Torneos from '../components/Torneos'
 import PromoMundial from '../components/PromoMundial'
+import LeadCapture from '../components/LeadCapture'
 import Ubicacion from '../components/Ubicacion'
 import Footer from '../components/Footer'
 import AdminModal from '../components/AdminModal'
@@ -27,6 +28,7 @@ export default function Landing() {
         <Shows />
         <Torneos />
         <PromoMundial />
+        <LeadCapture />
         <Ubicacion />
       </main>
       <Footer />

@@ -88,7 +88,7 @@ export default function AyB() {
       <div className="container">
         <div className="ayb__inner">
           <div className="reveal ayb__text-col">
-            <span className="eyebrow">Alimentos y Bebidas</span>
+            <span className="eyebrow">Nuestro Menú</span>
             <h2 className="section-title">Comer bien<br /><em>mientras jugás</em></h2>
             <div className="gold-line" />
             <p className="ayb__desc">
