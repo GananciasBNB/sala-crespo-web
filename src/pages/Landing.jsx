@@ -9,6 +9,7 @@ import Shows from '../components/Shows'
 import Torneos from '../components/Torneos'
 import PromoMundial from '../components/PromoMundial'
 import LeadCapture from '../components/LeadCapture'
+import LeadFloatingCta from '../components/LeadFloatingCta'
 import Ubicacion from '../components/Ubicacion'
 import Footer from '../components/Footer'
 import AdminModal from '../components/AdminModal'
@@ -32,6 +33,7 @@ export default function Landing() {
         <Ubicacion />
       </main>
       <Footer />
+      <LeadFloatingCta />
       {adminOpen && <AdminModal onClose={() => setAdminOpen(false)} />}
     </>
   )

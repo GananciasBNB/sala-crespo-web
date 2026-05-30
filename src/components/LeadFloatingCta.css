@@ -1,0 +1,52 @@
+.lead-fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 80;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #C9A84C 0%, #F0D275 60%, #C41E3A 140%);
+  color: #0C0606;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: .3px;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0,0,0,.45), 0 4px 12px rgba(201,168,76,.35);
+  opacity: 0;
+  transform: translateY(20px) scale(.92);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease, box-shadow .2s ease;
+}
+.lead-fab--show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+  animation: lead-fab-pulse 2.4s ease-in-out 1s 2;
+}
+.lead-fab:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 16px 36px rgba(0,0,0,.55), 0 6px 16px rgba(201,168,76,.5);
+}
+.lead-fab:active { transform: translateY(0) scale(.98); }
+.lead-fab__icon { font-size: 18px; line-height: 1; }
+.lead-fab__text { white-space: nowrap; }
+
+@keyframes lead-fab-pulse {
+  0%, 100% { box-shadow: 0 12px 30px rgba(0,0,0,.45), 0 4px 12px rgba(201,168,76,.35); }
+  50%      { box-shadow: 0 12px 30px rgba(0,0,0,.45), 0 0 0 8px rgba(240,210,117,.18); }
+}
+
+@media (max-width: 600px) {
+  .lead-fab {
+    right: 14px;
+    bottom: 14px;
+    padding: 12px 18px;
+    font-size: 13px;
+  }
+  .lead-fab__icon { font-size: 16px; }
+}
