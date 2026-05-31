@@ -14,6 +14,7 @@ import {
   adminEmailBlast, adminEmailPreview, adminEmailDefaults,
   adminEmailCampaigns, adminEmailCampaignDetail,
   adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview, adminPromoCandidates,
+  adminMarketingOptouts, adminReinstateMarketing,
   adminDashboardStats, adminAnalyticsSnapshot,
   adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
 } from '../api/client'
@@ -2649,12 +2650,13 @@ function PrizesAdmin({ token, toast }) {
 }
 
 // ─── Dashboard (home) ─────────────────────────────────────────────────────────
-function Dashboard({ token, admin, onNavigate }) {
+function Dashboard({ token, admin, onNavigate, toast }) {
   const [stats, setStats] = useState(null)
   const [ga, setGA]       = useState(null)
   const [gaRange, setGaRange] = useState('7d')
   const [gaLoading, setGaLoading] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [optoutsOpen, setOptoutsOpen] = useState(false)
   const [snapLabel, setSnapLabel]   = useState('')
   const [snapSaving, setSnapSaving] = useState(false)
   const [snapshots, setSnapshots]   = useState([])
@@ -2825,13 +2827,13 @@ function Dashboard({ token, admin, onNavigate }) {
         </div>
 
         {/* Optouts marketing */}
-        <div className="ap-kpi" onClick={() => admin?.role === 'superadmin' && onNavigate('email')}>
+        <div className="ap-kpi" onClick={() => setOptoutsOpen(true)} style={{cursor:'pointer'}}>
           <div className="ap-kpi__icon">📧</div>
           <div className="ap-kpi__label">Bajas marketing</div>
           <div>
             <span className="ap-kpi__value ap-kpi__value--small">{stats?.marketing?.optouts ?? '—'}</span>
           </div>
-          <p className="ap-kpi__sub">contactos que se dieron de baja del email</p>
+          <p className="ap-kpi__sub">contactos que se dieron de baja del email · ver lista →</p>
         </div>
       </div>
 
@@ -3140,6 +3142,75 @@ function Dashboard({ token, admin, onNavigate }) {
             <button className="ap-quick-btn" onClick={() => onNavigate('email')}>📧 Mandar email blast</button>
           )}
           <button className="ap-quick-btn" onClick={() => onNavigate('contenido')}>📝 Editar contenido del sitio</button>
+        </div>
+      </div>
+
+      {optoutsOpen && <MarketingOptoutsModal token={token} toast={toast} onClose={() => setOptoutsOpen(false)} />}
+    </div>
+  )
+}
+
+// ─── Modal: Bajas de marketing ────────────────────────────────────────────────
+function MarketingOptoutsModal({ token, toast, onClose }) {
+  const [items, setItems] = useState(null)
+  const [busy, setBusy] = useState(null)   // id en proceso de reinstate
+
+  async function load() {
+    try {
+      const r = await adminMarketingOptouts(token)
+      setItems(r.optouts || [])
+    } catch (err) { toast?.show?.(err.message, 'err'); setItems([]) }
+  }
+  useEffect(() => { load() }, [])
+
+  async function handleReinstate(p) {
+    if (!confirm(`Reincorporar a ${p.name} al marketing? Va a empezar a recibir los blasts de nuevo.`)) return
+    setBusy(p.id)
+    try {
+      await adminReinstateMarketing(token, p.id)
+      toast?.show?.(`${p.name} reincorporado/a al marketing`, 'ok')
+      await load()
+    } catch (err) { toast?.show?.(err.message, 'err') }
+    finally { setBusy(null) }
+  }
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,.7)', zIndex: 100,
+      display: 'grid', placeItems: 'center', padding: 20,
+    }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background: '#0f1420', border: '1px solid #2a3142', borderRadius: 14,
+        maxWidth: 720, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column',
+      }}>
+        <div style={{ padding: '18px 22px', borderBottom: '1px solid #2a3142', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ margin: 0, fontSize: 16, color: '#F0D275' }}>📧 Bajas de marketing</h3>
+          <button onClick={onClose} style={{ background: 'transparent', border: 'none', color: '#8B9BB4', fontSize: 22, cursor: 'pointer', lineHeight: 1 }}>×</button>
+        </div>
+        <div style={{ padding: '14px 22px', borderBottom: '1px solid #2a3142', fontSize: 13, color: '#C8D2E0', lineHeight: 1.6 }}>
+          Personas que clickearon el link de baja en algún mail. <strong>Quedan en la base</strong> con todos sus datos, pero el sistema NO les manda más blasts. Si te piden volver a recibir, los podés reincorporar acá.
+        </div>
+        <div style={{ overflowY: 'auto', flex: 1, padding: '8px 22px 18px' }}>
+          {items === null ? <p style={{ color: '#8B9BB4', padding: '14px 0' }}>Cargando…</p> : items.length === 0 ? (
+            <p style={{ color: '#8B9BB4', padding: '14px 0' }}>No hay bajas. Todos siguen suscriptos.</p>
+          ) : items.map(p => {
+            const tipo = p.is_employee ? 'INTERNO' : p.is_lead ? 'LEAD' : p.tournament_only ? 'IMPORTADO' : 'PRODE'
+            return (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid #1a2130' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{p.name}</div>
+                  <div style={{ fontSize: 12, color: '#8B9BB4', marginTop: 2 }}>
+                    {p.email} {p.dni && <>· DNI {p.dni}</>}
+                  </div>
+                </div>
+                <span style={{ fontSize: 10, color: '#F0D275', background: 'rgba(240,210,117,.08)', border: '1px solid rgba(240,210,117,.25)', padding: '2px 8px', borderRadius: 99, letterSpacing: '.05em', fontWeight: 700 }}>{tipo}</span>
+                <button onClick={() => handleReinstate(p)} disabled={busy === p.id}
+                  style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #22c55e', background: 'rgba(34,197,94,.12)', color: '#86efac', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                  {busy === p.id ? '…' : '↻ Reincorporar'}
+                </button>
+              </div>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -4142,7 +4213,7 @@ export default function AdminPanel() {
 
       {/* Content */}
       <main className="ap-main">
-        {tab === 'dash'      && <Dashboard      token={token} admin={admin} onNavigate={setTab} />}
+        {tab === 'dash'      && <Dashboard      token={token} admin={admin} onNavigate={setTab} toast={toast} />}
         {tab === 'clientes'  && <ClientsAdmin   token={token} toast={toast} />}
         {tab === 'prode'     && <ProdeAdmin    token={token} toast={toast} />}
         {tab === 'torneos'   && <TournamentsAdmin token={token} toast={toast} />}

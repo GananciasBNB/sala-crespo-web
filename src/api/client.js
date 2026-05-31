@@ -414,6 +414,12 @@ export const adminPromoPreview = (token, body) =>
 export const adminPromoCandidates = (token, scope = 'all') =>
   api(`/api/admin/promo-campaigns/candidates?scope=${scope}`, { headers: authHeaders(token) })
 
+export const adminMarketingOptouts = (token) =>
+  api('/api/admin/marketing-optouts', { headers: authHeaders(token) })
+
+export const adminReinstateMarketing = (token, playerId) =>
+  api(`/api/admin/players/${encodeURIComponent(playerId)}/reinstate-marketing`, { method: 'POST', headers: authHeaders(token) })
+
 // ─── Lead capture (form público "Suscribite a las promos") ──────────────────
 export const subscribeLead = (data) =>
   api('/api/leads/subscribe', { method: 'POST', body: JSON.stringify(data) })
