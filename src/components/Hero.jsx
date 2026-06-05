@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { IconTrophy } from './Icons'
+import HorarioEspecial from './HorarioEspecial'
 import './Hero.css'
 
 const STATS = [
@@ -58,6 +59,8 @@ export default function Hero() {
             Conocé la sala →
           </a>
         </div>
+
+        <HorarioEspecial />
 
         <div className="hero__stats" ref={statsRef}>
           {STATS.map(s => (

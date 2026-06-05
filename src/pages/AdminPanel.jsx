@@ -2139,6 +2139,16 @@ function ContentAdmin({ token, toast }) {
       { key: 'telefono', label: 'Teléfono',   type: 'text' },
       { key: 'horario',  label: 'Horario extra', type: 'text' },
     ]},
+    horario_especial: { label: '⏰ Horario Especial (Hero)', fields: [
+      { key: 'activo',    label: 'Mostrar el aviso en el Hero',                    type: 'toggle'   },
+      { key: 'kicker',    label: 'Eyebrow (línea de arriba, en mayúsculas)',       type: 'text'     },
+      { key: 'titulo',    label: 'Título (texto en blanco)',                       type: 'text'     },
+      { key: 'titulo_em', label: 'Título — palabras en dorado/itálica',            type: 'text'     },
+      { key: 'hora',      label: 'Hora gigante (ej. 12:00)',                       type: 'text'     },
+      { key: 'hora_sub',  label: 'Texto debajo de la hora (ej. Apertura)',         type: 'text'     },
+      { key: 'dias',      label: 'Días (separados por coma — se muestran como pills)', type: 'text' },
+      { key: 'pie',       label: 'Texto al pie (opcional, gris chico)',            type: 'text'     },
+    ]},
   }
 
   const [selected, setSelected] = useState('hero')

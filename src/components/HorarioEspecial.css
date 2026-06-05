@@ -1,0 +1,153 @@
+/* Card del horario especial — vive dentro del Hero */
+.horario {
+  margin: 26px auto 0;
+  max-width: 580px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  animation: horario-fade-in 0.9s ease-out 0.4s backwards;
+}
+.horario__inner {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(201,168,76,.14), transparent 60%),
+    linear-gradient(180deg, rgba(8,5,12,.78) 0%, rgba(20,8,26,.88) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(201,168,76,.4);
+  border-radius: 18px;
+  padding: 26px 30px 24px;
+  text-align: center;
+  overflow: hidden;
+  box-shadow:
+    0 24px 50px -22px rgba(0,0,0,.65),
+    0 0 0 1px rgba(201,168,76,.06) inset;
+  width: 100%;
+}
+.horario__inner::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px; right: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #F0D275, transparent);
+}
+.horario__inner::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; left: -1px; right: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #C41E3A, transparent);
+  opacity: 0.6;
+}
+.horario__kicker {
+  font-family: 'Playfair Display', 'DM Sans', serif;
+  font-size: 10.5px;
+  letter-spacing: 5px;
+  color: #C9A84C;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.horario__kicker::before, .horario__kicker::after {
+  content: '';
+  width: 24px;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(201,168,76,.45));
+}
+.horario__kicker::after {
+  background: linear-gradient(to left, transparent, rgba(201,168,76,.45));
+}
+.horario__title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: clamp(22px, 4.5vw, 28px);
+  color: #fff;
+  font-weight: 900;
+  line-height: 1.12;
+  margin: 0 0 10px;
+  letter-spacing: -0.4px;
+}
+.horario__title em {
+  color: #F0D275;
+  font-style: italic;
+  font-weight: 700;
+}
+.horario__hour {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(56px, 10vw, 72px);
+  line-height: 0.85;
+  background: linear-gradient(180deg, #F0D275 0%, #C9A84C 60%, #9B1F1F 130%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 2px;
+  margin: 14px 0 4px;
+  text-shadow: 0 4px 25px rgba(201,168,76,.25);
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.horario__hour-suffix {
+  font-size: 0.5em;
+  letter-spacing: 4px;
+  vertical-align: baseline;
+  -webkit-text-fill-color: #C9A84C;
+  background: none;
+  color: #C9A84C;
+}
+.horario__hour-sub {
+  font-family: 'Playfair Display', 'DM Sans', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #C9A84C;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  font-weight: 500;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+.horario__hour-sub span { color: #8c7430; }
+.horario__pills {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+.horario__pill {
+  background: rgba(201,168,76,.1);
+  border: 1px solid rgba(201,168,76,.35);
+  color: #F0D275;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: 'DM Sans', sans-serif;
+}
+.horario__pie {
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(232,237,245,.55);
+  font-style: italic;
+  letter-spacing: 0.3px;
+  line-height: 1.5;
+}
+
+@keyframes horario-fade-in {
+  from { opacity: 0; transform: translateY(20px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 600px) {
+  .horario { margin-top: 22px; }
+  .horario__inner { padding: 22px 20px 20px; border-radius: 14px; }
+  .horario__hour { font-size: 56px; }
+  .horario__pill { padding: 5px 11px; font-size: 11px; }
+}
