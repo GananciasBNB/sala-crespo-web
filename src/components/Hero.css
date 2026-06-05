@@ -86,14 +86,17 @@
     drop-shadow(0 0 48px rgba(196,30,58,0.3));
   margin-bottom: 28px;
 }
-/* Variante Edición Mundial 2026 — escudo más apaisado, lo escalamos por
-   ancho en vez de altura para que mantenga proporción y se vea grande. */
+/* Variante Edición Mundial 2026 — escudo más apaisado y con mucho detalle
+   (corona, estrellas, cintas, pelota). El PNG además tiene padding
+   transparente alrededor, así que necesita un ancho generoso para que el
+   escudo en sí se sienta protagonista. */
 .hero__logo--mundial {
   height: auto;
-  width: clamp(220px, 32vw, 360px);
+  width: clamp(300px, 44vw, 500px);
+  margin: -10px 0 18px;     /* compensa el padding transparente del PNG */
   filter:
-    drop-shadow(0 10px 28px rgba(0,0,0,.8))
-    drop-shadow(0 0 56px rgba(201,168,76,.35));
+    drop-shadow(0 12px 32px rgba(0,0,0,.8))
+    drop-shadow(0 0 64px rgba(201,168,76,.4));
 }
 
 /* Texto */
