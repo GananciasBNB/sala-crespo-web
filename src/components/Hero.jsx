@@ -1,8 +1,25 @@
+import { useEffect, useState } from 'react'
 import { IconTrophy } from './Icons'
 import HorarioEspecial from './HorarioEspecial'
+import { getContent } from '../api/client'
 import './Hero.css'
 
 export default function Hero() {
+  // Logo condicional: si content.logo_mundial.activo === 'true', usamos la
+  // versión Edición Mundial 2026; si no, el institucional. Pacha lo toggea
+  // desde el admin (Contenido → 🏆 Logo Mundial).
+  const [useMundial, setUseMundial] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    getContent()
+      .then(c => { if (!cancelled) setUseMundial(c?.logo_mundial?.activo === 'true') })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [])
+
+  const logoSrc = useMundial ? '/logo-mundial-2026.png' : '/logo-sin-fondo.png'
+  const logoClass = useMundial ? 'hero__logo hero__logo--mundial' : 'hero__logo'
+
   return (
     <section id="inicio" className="hero">
       {/* Foto de fondo con overlay cinematográfico */}
@@ -16,9 +33,9 @@ export default function Hero() {
       <div className="hero__content container">
         <div className="hero__logo-wrap">
           <img
-            src="/logo-sin-fondo.png"
+            src={logoSrc}
             alt="Sala de Juegos Crespo"
-            className="hero__logo"
+            className={logoClass}
           />
         </div>
 

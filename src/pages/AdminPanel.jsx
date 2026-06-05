@@ -2149,6 +2149,9 @@ function ContentAdmin({ token, toast }) {
       { key: 'dias',      label: 'Días (separados por coma — se muestran como pills)', type: 'text' },
       { key: 'pie',       label: 'Texto al pie (opcional, gris chico)',            type: 'text'     },
     ]},
+    logo_mundial: { label: '🏆 Logo Edición Mundial 2026', fields: [
+      { key: 'activo', label: 'Usar el logo Edición Mundial en el Hero (en vez del institucional)', type: 'toggle' },
+    ]},
   }
 
   const [selected, setSelected] = useState('hero')
