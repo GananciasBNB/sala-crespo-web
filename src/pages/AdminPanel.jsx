@@ -15,6 +15,9 @@ import {
   adminEmailCampaigns, adminEmailCampaignDetail,
   adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview, adminPromoCandidates,
   adminMarketingOptouts, adminReinstateMarketing,
+  adminLoyaltyRewards, adminLoyaltyCreateReward, adminLoyaltyUpdateReward, adminLoyaltyDeleteReward,
+  adminLoyaltyAccount, adminLoyaltyAdjust, adminLoyaltyCheckin, adminLoyaltyAyb,
+  adminLoyaltyPending, adminLoyaltyDeliver, adminLoyaltyCancel,
   adminDashboardStats, adminAnalyticsSnapshot,
   adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
 } from '../api/client'
@@ -3230,6 +3233,318 @@ function MarketingOptoutsModal({ token, toast, onClose }) {
   )
 }
 
+// ─── Sala Crespo Club Admin ──────────────────────────────────────────────────
+function ClubAdmin({ token, toast }) {
+  const [subtab, setSubtab] = useState('catalogo')
+  return (
+    <div className="ap-section">
+      <h2 className="ap-section__title">★ Sala Crespo Club</h2>
+      <p style={{ color: '#8B9BB4', fontSize: 14, margin: '0 0 18px', maxWidth: 720, lineHeight: 1.6 }}>
+        Programa de fidelización: los clientes suman puntos por visita y consumo, y los canjean por productos de la barra o tickets.
+      </p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
+        {[
+          ['catalogo', '🛍 Catálogo'],
+          ['cuenta',   '👤 Buscar cliente'],
+          ['caja',     '💁 Entregar canje'],
+          ['operar',   '⚡ Sumar puntos manual'],
+        ].map(([id, label]) => (
+          <button key={id} onClick={() => setSubtab(id)}
+            style={{
+              padding: '8px 14px', borderRadius: 8,
+              border: `1px solid ${subtab === id ? '#C9A84C' : '#2a3142'}`,
+              background: subtab === id ? 'rgba(201,168,76,.1)' : 'transparent',
+              color: subtab === id ? '#F0D275' : '#C8D2E0',
+              cursor: 'pointer', fontSize: 13, fontWeight: 600,
+            }}>{label}</button>
+        ))}
+      </div>
+      {subtab === 'catalogo' && <ClubCatalog token={token} toast={toast} />}
+      {subtab === 'cuenta'   && <ClubAccountLookup token={token} toast={toast} />}
+      {subtab === 'caja'     && <ClubDeliver token={token} toast={toast} />}
+      {subtab === 'operar'   && <ClubManualOps token={token} toast={toast} />}
+    </div>
+  )
+}
+
+const CLUB_CATEGORIES = [
+  { id: 'sin_alcohol', label: 'Sin alcohol' },
+  { id: 'cerveza',     label: 'Cervezas' },
+  { id: 'trago',       label: 'Tragos' },
+  { id: 'comida',      label: 'Comidas' },
+  { id: 'ticket',      label: 'Tickets de juego' },
+]
+
+function ClubCatalog({ token, toast }) {
+  const [rewards, setRewards] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(null)
+  const [newForm, setNewForm] = useState({ name: '', category: 'sin_alcohol', kind: 'product', points: '', valuePesos: '', sortOrder: 0 })
+
+  async function load() {
+    setLoading(true)
+    try { const r = await adminLoyaltyRewards(token); setRewards(r.rewards || []) }
+    catch (err) { toast.show(err.message, 'err') }
+    finally { setLoading(false) }
+  }
+  useEffect(() => { load() }, [])
+
+  async function handleCreate(e) {
+    e.preventDefault()
+    if (!newForm.name.trim() || !newForm.points) return toast.show('Nombre y puntos requeridos', 'err')
+    try {
+      await adminLoyaltyCreateReward(token, { ...newForm, points: Number(newForm.points), valuePesos: newForm.valuePesos ? Number(newForm.valuePesos) : null })
+      toast.show('Producto creado', 'ok')
+      setNewForm({ name: '', category: 'sin_alcohol', kind: 'product', points: '', valuePesos: '', sortOrder: 0 })
+      await load()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  async function handleUpdate(reward) {
+    try {
+      await adminLoyaltyUpdateReward(token, reward.id, {
+        name: reward.name, category: reward.category, kind: reward.kind,
+        points: Number(reward.points), valuePesos: reward.value_pesos ? Number(reward.value_pesos) : null,
+        sortOrder: Number(reward.sort_order || 0), active: reward.active,
+      })
+      toast.show('Actualizado', 'ok'); setEditing(null); await load()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  async function handleToggle(reward) {
+    try { await adminLoyaltyUpdateReward(token, reward.id, { active: !reward.active }); await load() }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  async function handleDelete(reward) {
+    if (!confirm(`Eliminar "${reward.name}" del catálogo?`)) return
+    try { await adminLoyaltyDeleteReward(token, reward.id); toast.show('Eliminado', 'ok'); await load() }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+
+  const inputStyle = { padding: '8px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 13 }
+
+  return (
+    <div>
+      {/* Form crear */}
+      <form onSubmit={handleCreate} style={{ background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 10, padding: 16, marginBottom: 18 }}>
+        <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#F0D275' }}>Agregar producto al catálogo</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10 }}>
+          <input placeholder="Nombre" value={newForm.name} onChange={e => setNewForm({ ...newForm, name: e.target.value })} style={inputStyle} />
+          <select value={newForm.category} onChange={e => setNewForm({ ...newForm, category: e.target.value })} style={inputStyle}>
+            {CLUB_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+          </select>
+          <select value={newForm.kind} onChange={e => setNewForm({ ...newForm, kind: e.target.value })} style={inputStyle}>
+            <option value="product">Producto físico</option>
+            <option value="promo_ticket">Promo ticket</option>
+          </select>
+          <input type="number" placeholder="Pts" value={newForm.points} onChange={e => setNewForm({ ...newForm, points: e.target.value })} style={inputStyle} />
+          <input type="number" placeholder="Valor $" value={newForm.valuePesos} onChange={e => setNewForm({ ...newForm, valuePesos: e.target.value })} style={inputStyle} />
+        </div>
+        <button type="submit" style={{ marginTop: 10, padding: '8px 18px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>+ Crear</button>
+      </form>
+
+      {loading ? <p style={{ color: '#8B9BB4' }}>Cargando…</p> : (
+        <div>
+          {CLUB_CATEGORIES.map(cat => {
+            const items = rewards.filter(r => r.category === cat.id)
+            if (items.length === 0) return null
+            return (
+              <div key={cat.id} style={{ marginBottom: 18 }}>
+                <h4 style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 8px' }}>{cat.label}</h4>
+                {items.map(r => editing === r.id ? (
+                  <EditableRewardRow key={r.id} initial={r} onCancel={() => setEditing(null)} onSave={handleUpdate} categories={CLUB_CATEGORIES} />
+                ) : (
+                  <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', gap: 10, alignItems: 'center', padding: '10px 14px', background: r.active ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.3)', border: '1px solid #2a3142', borderRadius: 8, marginBottom: 6, fontSize: 13 }}>
+                    <div>
+                      <strong style={{ color: r.active ? '#fff' : '#5d6b80' }}>{r.name}</strong>
+                      <span style={{ marginLeft: 8, fontSize: 11, color: '#64748b' }}>· {r.kind}</span>
+                    </div>
+                    <span style={{ color: '#F0D275', fontFamily: 'monospace', fontWeight: 700 }}>{r.points.toLocaleString('es-AR')} pts</span>
+                    <button onClick={() => handleToggle(r)} style={{ padding: '5px 10px', borderRadius: 5, border: '1px solid #2a3142', background: 'transparent', color: r.active ? '#86efac' : '#8B9BB4', cursor: 'pointer', fontSize: 11 }}>{r.active ? 'Activo' : 'Oculto'}</button>
+                    <button onClick={() => setEditing(r.id)} style={{ padding: '5px 10px', borderRadius: 5, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer', fontSize: 11 }}>Editar</button>
+                    <button onClick={() => handleDelete(r)} style={{ padding: '5px 10px', borderRadius: 5, border: '1px solid #C41E3A', background: 'transparent', color: '#fb6e8a', cursor: 'pointer', fontSize: 11 }}>×</button>
+                  </div>
+                ))}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+function EditableRewardRow({ initial, onCancel, onSave, categories }) {
+  const [r, setR] = useState({ ...initial })
+  const s = { padding: '6px 8px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 13 }
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.8fr 0.8fr auto auto', gap: 8, alignItems: 'center', padding: '8px 12px', background: 'rgba(201,168,76,.08)', border: '1px solid rgba(201,168,76,.4)', borderRadius: 8, marginBottom: 6 }}>
+      <input value={r.name} onChange={e => setR({ ...r, name: e.target.value })} style={s} />
+      <select value={r.category} onChange={e => setR({ ...r, category: e.target.value })} style={s}>
+        {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+      </select>
+      <input type="number" value={r.points} onChange={e => setR({ ...r, points: e.target.value })} style={s} />
+      <input type="number" placeholder="$" value={r.value_pesos || ''} onChange={e => setR({ ...r, value_pesos: e.target.value })} style={s} />
+      <button onClick={() => onSave(r)} style={{ padding: '6px 12px', borderRadius: 5, border: 'none', background: '#22c55e', color: '#06240f', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>✓</button>
+      <button onClick={onCancel} style={{ padding: '6px 12px', borderRadius: 5, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>×</button>
+    </div>
+  )
+}
+
+function ClubAccountLookup({ token, toast }) {
+  const [dni, setDni] = useState('')
+  const [data, setData] = useState(null)
+  const [busy, setBusy] = useState(false)
+  async function search() {
+    if (!dni.trim()) return
+    setBusy(true)
+    try { setData(await adminLoyaltyAccount(token, dni.trim())) }
+    catch (err) { toast.show(err.message, 'err'); setData(null) }
+    finally { setBusy(false) }
+  }
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input placeholder="DNI del cliente" value={dni} onChange={e => setDni(e.target.value)} onKeyDown={e => e.key === 'Enter' && search()}
+          style={{ flex: 1, maxWidth: 240, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }} />
+        <button onClick={search} disabled={busy} style={{ padding: '10px 22px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Buscar</button>
+      </div>
+      {data && (
+        <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 12, padding: 20 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, alignItems: 'baseline', flexWrap: 'wrap', gap: 12 }}>
+            <div>
+              <div style={{ fontSize: 18, color: '#fff', fontWeight: 700 }}>{data.player.name}</div>
+              <div style={{ fontSize: 12, color: '#8B9BB4' }}>DNI {data.player.dni} · {data.player.email || 'sin email'}</div>
+            </div>
+            <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 42, color: '#F0D275', lineHeight: 1 }}>
+              {data.balance.toLocaleString('es-AR')}<span style={{ fontSize: 14, color: '#C9A84C', marginLeft: 6, fontFamily: 'inherit' }}>pts</span>
+            </div>
+          </div>
+          {data.pending.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <h4 style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#fcd34d', margin: '0 0 8px' }}>📦 Canjes pendientes ({data.pending.length})</h4>
+              {data.pending.map(p => (
+                <div key={p.id} style={{ padding: '8px 12px', background: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.25)', borderRadius: 8, marginBottom: 5, fontSize: 13, display: 'flex', justifyContent: 'space-between' }}>
+                  <span><strong>{p.reward_name}</strong></span><span style={{ color: '#fcd34d' }}>{p.points_used.toLocaleString('es-AR')} pts</span>
+                </div>
+              ))}
+            </div>
+          )}
+          <h4 style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 8px' }}>Últimos movimientos</h4>
+          <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+            {data.transactions.slice(0, 25).map(t => (
+              <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255,255,255,.02)', borderBottom: '1px solid #1a2130', fontSize: 13 }}>
+                <div>
+                  <div style={{ color: '#fff' }}>{t.kind}</div>
+                  {t.reason && <div style={{ fontSize: 11, color: '#8B9BB4' }}>{t.reason}</div>}
+                </div>
+                <div style={{ color: t.points >= 0 ? '#86efac' : '#fcd34d', fontFamily: 'monospace', fontWeight: 700 }}>
+                  {t.points >= 0 ? '+' : ''}{t.points.toLocaleString('es-AR')}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ClubDeliver({ token, toast }) {
+  const [dni, setDni] = useState('')
+  const [items, setItems] = useState([])
+  const [busy, setBusy] = useState(false)
+  async function search() {
+    if (!dni.trim()) return
+    setBusy(true)
+    try { const r = await adminLoyaltyPending(token, dni.trim()); setItems(r.items || []) }
+    catch (err) { toast.show(err.message, 'err'); setItems([]) }
+    finally { setBusy(false) }
+  }
+  async function deliver(redemptionId) {
+    if (!confirm('Marcar como entregado?')) return
+    try { await adminLoyaltyDeliver(token, redemptionId, null); toast.show('Entregado ✓', 'ok'); await search() }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  async function cancel(redemptionId) {
+    const reason = prompt('Motivo de la cancelación (opcional):')
+    if (reason === null) return
+    try { await adminLoyaltyCancel(token, redemptionId, reason); toast.show('Cancelado · pts devueltos', 'ok'); await search() }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  return (
+    <div>
+      <p style={{ color: '#8B9BB4', fontSize: 13, marginBottom: 12 }}>El cliente te dice su DNI → busco sus canjes pendientes → entregás producto y marcás aquí.</p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <input placeholder="DNI" value={dni} onChange={e => setDni(e.target.value)} onKeyDown={e => e.key === 'Enter' && search()}
+          style={{ flex: 1, maxWidth: 240, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff' }} />
+        <button onClick={search} disabled={busy} style={{ padding: '10px 22px', borderRadius: 8, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Buscar pendientes</button>
+      </div>
+      {items.length === 0 ? <p style={{ color: '#8B9BB4', fontSize: 13 }}>{busy ? 'Buscando…' : 'No hay canjes pendientes para ese DNI.'}</p> : (
+        <div>
+          {items.map(it => (
+            <div key={it.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 12, alignItems: 'center', padding: 14, background: 'rgba(245,158,11,.05)', border: '1px solid rgba(245,158,11,.35)', borderRadius: 10, marginBottom: 8 }}>
+              <div>
+                <strong style={{ color: '#fff' }}>{it.reward_name}</strong>
+                <div style={{ fontSize: 12, color: '#8B9BB4', marginTop: 2 }}>{it.player_name} · {it.points_used.toLocaleString('es-AR')} pts · {new Date(it.created_at).toLocaleString('es-AR')}</div>
+              </div>
+              <button onClick={() => deliver(it.id)} style={{ padding: '8px 16px', borderRadius: 6, border: 'none', background: '#22c55e', color: '#06240f', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>✓ Entregar</button>
+              <button onClick={() => cancel(it.id)} style={{ padding: '8px 12px', borderRadius: 6, border: '1px solid #C41E3A', background: 'transparent', color: '#fb6e8a', cursor: 'pointer', fontSize: 12 }}>Cancelar</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function ClubManualOps({ token, toast }) {
+  const [dni, setDni] = useState('')
+  const [aybAmount, setAybAmount] = useState('')
+  const [adjustPts, setAdjustPts] = useState('')
+  const [adjustReason, setAdjustReason] = useState('')
+  async function doCheckin() {
+    if (!dni.trim()) return toast.show('DNI requerido', 'err')
+    try { const r = await adminLoyaltyCheckin(token, dni.trim()); toast.show(r.granted ? '+50 pts check-in ✓' : 'Ya hizo check-in hoy', r.granted ? 'ok' : 'err') }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  async function doAyb() {
+    const amt = Number(aybAmount)
+    if (!dni.trim() || !amt) return toast.show('DNI y monto requeridos', 'err')
+    try { const r = await adminLoyaltyAyb(token, { dni: dni.trim(), amountPesos: amt, paidWithPoints: false }); toast.show(`+${r.granted} pts AyB ($${amt.toLocaleString('es-AR')}) ✓`, 'ok'); setAybAmount('') }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  async function doAdjust() {
+    const pts = Number(adjustPts)
+    if (!dni.trim() || !pts) return toast.show('DNI y puntos requeridos', 'err')
+    if (!adjustReason.trim()) return toast.show('Motivo obligatorio para ajuste', 'err')
+    try { const r = await adminLoyaltyAdjust(token, { dni: dni.trim(), points: pts, reason: adjustReason }); toast.show(`Ajuste ${pts > 0 ? '+' : ''}${pts} pts ✓ Balance: ${r.balance}`, 'ok'); setAdjustPts(''); setAdjustReason('') }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  const inp = { padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 14 }
+  return (
+    <div>
+      <p style={{ color: '#8B9BB4', fontSize: 13, marginBottom: 16 }}>Operaciones manuales antes de tener tótem (check-in) e integración con Centro (AyB). Todo queda en audit log.</p>
+      <input placeholder="DNI del cliente" value={dni} onChange={e => setDni(e.target.value)} style={{ ...inp, marginBottom: 18, maxWidth: 280 }} />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 14 }}>
+        <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 10, padding: 16 }}>
+          <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#F0D275' }}>🏠 Check-in (+50 pts)</h4>
+          <p style={{ fontSize: 12, color: '#8B9BB4', marginBottom: 12 }}>Suma 50 pts una vez por día.</p>
+          <button onClick={doCheckin} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: 'none', background: '#22c55e', color: '#06240f', fontWeight: 700, cursor: 'pointer' }}>Marcar check-in</button>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 10, padding: 16 }}>
+          <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#F0D275' }}>🍺 Consumo AyB (+5%)</h4>
+          <input type="number" placeholder="Monto $ (no incluye lo pagado con pts)" value={aybAmount} onChange={e => setAybAmount(e.target.value)} style={{ ...inp, width: '100%', marginBottom: 10 }} />
+          <button onClick={doAyb} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: 'none', background: '#C9A84C', color: '#08060e', fontWeight: 700, cursor: 'pointer' }}>Cargar consumo</button>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 10, padding: 16 }}>
+          <h4 style={{ margin: '0 0 12px', fontSize: 14, color: '#F0D275' }}>🛠 Ajuste manual</h4>
+          <input type="number" placeholder="Puntos (+/-)" value={adjustPts} onChange={e => setAdjustPts(e.target.value)} style={{ ...inp, width: '100%', marginBottom: 8 }} />
+          <input placeholder="Motivo (obligatorio)" value={adjustReason} onChange={e => setAdjustReason(e.target.value)} style={{ ...inp, width: '100%', marginBottom: 10 }} />
+          <button onClick={doAdjust} style={{ width: '100%', padding: '10px 14px', borderRadius: 8, border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Aplicar ajuste</button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Email Blast Admin ────────────────────────────────────────────────────────
 const PROMO_DEFAULT_SUBJECT = '🎁 Tenés un regalo esperándote en Sala de Juegos Crespo'
 const PROMO_DEFAULT_INTRO = 'Queríamos agradecerte por ser parte de Sala de Juegos Crespo. Te dejamos este obsequio para que lo disfrutes en tu próxima visita. ¡Te esperamos!'
@@ -4179,6 +4494,7 @@ export default function AdminPanel() {
     { id: 'contenido', label: '📝 Contenido' },
     ...(admin?.role === 'superadmin' ? [{ id: 'email',  label: '📧 Email' }] : []),
     ...(admin?.role === 'superadmin' ? [{ id: 'promo',  label: '🎁 Promo Tickets' }] : []),
+    { id: 'club',     label: '★ Sala Crespo Club' },
     ...(admin?.role === 'superadmin' ? [{ id: 'admins', label: '👤 Admins' }] : []),
   ]
 
@@ -4235,6 +4551,7 @@ export default function AdminPanel() {
         {tab === 'contenido' && <ContentAdmin  token={token} toast={toast} />}
         {tab === 'email'     && <EmailBlastAdmin token={token} toast={toast} />}
         {tab === 'promo'     && <PromoTicketsAdmin token={token} toast={toast} />}
+        {tab === 'club'      && <ClubAdmin     token={token} toast={toast} />}
         {tab === 'admins'    && <AdminsAdmin   token={token} currentAdmin={admin} toast={toast} />}
       </main>
     </div>

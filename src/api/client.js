@@ -420,6 +420,41 @@ export const adminMarketingOptouts = (token) =>
 export const adminReinstateMarketing = (token, playerId) =>
   api(`/api/admin/players/${encodeURIComponent(playerId)}/reinstate-marketing`, { method: 'POST', headers: authHeaders(token) })
 
+// ─── Sala Crespo Club (loyalty) ─────────────────────────────────────────────
+// Cliente
+export const getLoyaltyCatalog = () =>
+  api('/api/loyalty/catalog')
+
+export const getLoyaltyMe = (token) =>
+  api('/api/loyalty/me', { headers: authHeaders(token) })
+
+export const redeemLoyaltyReward = (token, rewardId) =>
+  api('/api/loyalty/redeem', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ rewardId }) })
+
+// Admin
+export const adminLoyaltyRewards = (token) =>
+  api('/api/admin/loyalty/rewards', { headers: authHeaders(token) })
+export const adminLoyaltyCreateReward = (token, body) =>
+  api('/api/admin/loyalty/rewards', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminLoyaltyUpdateReward = (token, id, body) =>
+  api(`/api/admin/loyalty/rewards/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminLoyaltyDeleteReward = (token, id) =>
+  api(`/api/admin/loyalty/rewards/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+export const adminLoyaltyAccount = (token, dni) =>
+  api(`/api/admin/loyalty/account/${encodeURIComponent(dni)}`, { headers: authHeaders(token) })
+export const adminLoyaltyAdjust = (token, body) =>
+  api('/api/admin/loyalty/adjust', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminLoyaltyCheckin = (token, dni) =>
+  api('/api/admin/loyalty/checkin', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ dni }) })
+export const adminLoyaltyAyb = (token, body) =>
+  api('/api/admin/loyalty/ayb', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminLoyaltyPending = (token, dni) =>
+  api(`/api/admin/loyalty/pending/${encodeURIComponent(dni)}`, { headers: authHeaders(token) })
+export const adminLoyaltyDeliver = (token, redemptionId, operator) =>
+  api('/api/admin/loyalty/deliver', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ redemptionId, operator }) })
+export const adminLoyaltyCancel = (token, redemptionId, reason) =>
+  api('/api/admin/loyalty/cancel', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ redemptionId, reason }) })
+
 // ─── Lead capture (form público "Suscribite a las promos") ──────────────────
 export const subscribeLead = (data) =>
   api('/api/leads/subscribe', { method: 'POST', body: JSON.stringify(data) })

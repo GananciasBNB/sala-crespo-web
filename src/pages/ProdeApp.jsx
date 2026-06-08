@@ -12,6 +12,7 @@ import {
   uploadLeagueImage,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
+import ClubView from '../components/ClubView'
 import PromoMode from './PromoMode'
 import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
@@ -3875,11 +3876,13 @@ export default function ProdeApp() {
 
   // Misma estructura de tabs para clientes y empleados (UX uniforme).
   // "Mi posición" elige automáticamente la tabla correcta según player.isEmployee.
+  const ICON_STAR = (<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 17l-6.5 4 2-7.5L2 9h7z"/></svg>)
   const TABS = player ? [
     { id: 'inicio',      label: tabLabel(ICON_HOME, 'Inicio') },
     { id: 'pronosticos', label: tabLabel(ICON_TARGET, 'Mis pronósticos') },
     { id: 'tabla',       label: tabLabel(ICON_CHART, 'Mi posición') },
     { id: 'ligas',       label: tabLabel(ICON_TROPHY, 'Mis ligas'), badge: 'NUEVO' },
+    { id: 'club',        label: tabLabel(ICON_STAR, 'Sala Crespo Club'), badge: 'NUEVO' },
     { id: 'llaves',      label: tabLabel(ICON_CAL, 'Fixture') },
   ] : [
     { id: 'inicio', label: tabLabel(ICON_HOME, 'Inicio') },
@@ -3996,6 +3999,11 @@ export default function ProdeApp() {
                   onSaved={refreshPreds}
                   onUnlocked={enqueueUnlocked}
                 />
+              </div>
+            )}
+            {tab === 'club' && player && (
+              <div className="prode-content">
+                <ClubView player={player} />
               </div>
             )}
             {tab === 'llaves' && player && (
