@@ -2,14 +2,14 @@ import { useScrollRevealParent } from '../hooks/useScrollReveal'
 import './LaSala.css'
 
 const GALLERY_PHOTOS = [
-  { src: '/sala/saladesdearriba.jpg',  alt: 'Sala de Juegos Crespo — vista aérea' },
-  { src: '/sala/gonxifacai.png',       alt: 'Fiesta en la Sala Crespo' },
-  { src: '/sala/bar-luces.jpg',        alt: 'Bar con luces' },
-  { src: '/sala/interior-bn.jpg',      alt: 'Interior de la sala' },
-  { src: '/sala/IMG_3271.jpg',         alt: 'Interior de la sala' },
-  { src: '/sala/IMG_3347.jpg',         alt: 'Noche de torneo' },
-  { src: '/sala/IMG_3358.jpg',         alt: 'Sala Crespo' },
-  { src: '/sala/IMG_3360.jpg',         alt: 'Sala Crespo' },
+  { src: '/sala/saladesdearriba.jpg',  alt: 'Vista aérea de la Sala de Juegos Crespo en Entre Ríos' },
+  { src: '/sala/gonxifacai.png',       alt: 'Noche de shows en vivo en Sala Crespo' },
+  { src: '/sala/bar-luces.jpg',        alt: 'Barra y luces ambient de la sala' },
+  { src: '/sala/interior-bn.jpg',      alt: 'Interior con máquinas slots y ruletas' },
+  { src: '/sala/IMG_3271.jpg',         alt: 'Salón de juegos con clientes' },
+  { src: '/sala/IMG_3347.jpg',         alt: 'Torneo de slots nocturno en Sala Crespo' },
+  { src: '/sala/IMG_3358.jpg',         alt: 'Ambiente del casino Sala Crespo, Entre Ríos' },
+  { src: '/sala/IMG_3360.jpg',         alt: 'Detalle de las máquinas tragamonedas' },
 ]
 
 const IconSlot = () => (

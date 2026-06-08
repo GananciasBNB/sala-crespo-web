@@ -40,10 +40,10 @@ export default function HorarioEspecial() {
     <div className="horario">
       <div className="horario__inner">
         <div className="horario__kicker">{v.kicker}</div>
-        <h3 className="horario__title">
+        <h2 className="horario__title">
           {v.titulo}
           {v.titulo_em && <> <em>{v.titulo_em}</em></>}
-        </h3>
+        </h2>
         <div className="horario__hour">
           {hora.replace(/\s*hs?\s*$/i, '')}
           <span className="horario__hour-suffix">HS</span>

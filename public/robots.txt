@@ -8,6 +8,9 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/*
 Disallow: /api/
+Disallow: /h-7k9m4x
+Disallow: /h-7k9m4x/*
+Disallow: /r-t8mz4n3xk.html
 Disallow: /*?staff=*
 Disallow: /*?promo=*
 Disallow: /*?liga=*
