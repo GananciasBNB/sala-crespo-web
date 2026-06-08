@@ -73,56 +73,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Bebas+Neue&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
-    <!-- Structured data: LocalBusiness (negocio físico para Maps + sitelinks) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "EntertainmentBusiness",
-      "@id": "https://www.saladejuegoscrespo.ar/#business",
-      "name": "Sala de Juegos Crespo",
-      "alternateName": "Sala Crespo",
-      "url": "https://www.saladejuegoscrespo.ar/",
-      "logo": "https://www.saladejuegoscrespo.ar/logo-light.jpg",
-      "image": "https://www.saladejuegoscrespo.ar/logo-light.jpg",
-      "description": "Sala de juegos en Crespo, Entre Ríos. 160 slots, ruletas, shows en vivo, torneos y buffet. Prode Mundial 2026 con premios reales.",
-      "telephone": "+5493434259136",
-      "email": "info@saladejuegoscrespo.ar",
-      "priceRange": "$$",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "San Martín 1053",
-        "addressLocality": "Crespo",
-        "addressRegion": "Entre Ríos",
-        "postalCode": "3116",
-        "addressCountry": "AR"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": -32.0306,
-        "longitude": -60.3133
-      },
-      "openingHoursSpecification": [
-        { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Sunday","Monday","Tuesday","Wednesday","Thursday"], "opens": "15:00", "closes": "03:00" },
-        { "@type": "OpeningHoursSpecification", "dayOfWeek": ["Friday","Saturday","PublicHolidays"], "opens": "15:00", "closes": "04:00" }
-      ],
-      "sameAs": [
-        "https://www.instagram.com/salajuegoscrespo/",
-        "https://www.facebook.com/profile.php?id=61583318054058"
-      ]
-    }
-    </script>
-
-    <!-- Structured data: WebSite (sitelinks search box) -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Sala de Juegos Crespo",
-      "url": "https://www.saladejuegoscrespo.ar/",
-      "publisher": { "@id": "https://www.saladejuegoscrespo.ar/#business" },
-      "inLanguage": "es-AR"
-    }
-    </script>
+    <!-- Structured data (LocalBusiness + WebSite) ahora se inyecta dinámicamente
+         desde src/components/BusinessSchema.jsx para que el openingHoursSpecification
+         refleje el horario especial cuando el toggle del admin esté activo. -->
   </head>
   <body>
     <div id="root"></div>

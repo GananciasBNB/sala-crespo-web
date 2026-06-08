@@ -2,6 +2,12 @@
   "rewrites": [
     { "source": "/api/optin/:path*", "destination": "https://sala-crespo-backend.onrender.com/api/optin/:path*" },
     { "source": "/h-7k9m4x", "destination": "/h-7k9m4x/index.html" },
-    { "source": "/((?!api/|h-7k9m4x/|sitemap\\.xml|robots\\.txt|.*\\.[a-z0-9]+).*)", "destination": "/index.html" }
+
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/prode", "destination": "/index.html" },
+    { "source": "/torneo", "destination": "/index.html" },
+    { "source": "/contacto", "destination": "/index.html" },
+    { "source": "/admin", "destination": "/index.html" },
+    { "source": "/admin/:path*", "destination": "/index.html" }
   ]
 }

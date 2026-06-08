@@ -4,6 +4,7 @@ import { Helmet } from 'react-helmet-async'
 import Landing from './pages/Landing'
 import ProdeApp from './pages/ProdeApp'
 import ChunkErrorBoundary from './components/ChunkErrorBoundary'
+import BusinessSchema from './components/BusinessSchema'
 
 // Lazy-load routes that ad traffic never lands on, so /, /prode and /torneo
 // don't pay the cost of downloading admin / tournament-landing / contacto code.
@@ -59,6 +60,8 @@ function NotFound() {
 
 export default function App() {
   return (
+    <>
+      <BusinessSchema />
     <Routes>
       <Route path="/" element={
         <>
@@ -120,5 +123,6 @@ export default function App() {
       } />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </>
   )
 }
