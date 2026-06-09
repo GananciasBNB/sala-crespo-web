@@ -26,10 +26,14 @@ export default function Club() {
     <div className="club-page">
       <header className="club-page__header">
         <Link to="/" className="club-page__home">← Inicio</Link>
-        <img src="/logo-sin-fondo.png" alt="Sala de Juegos Crespo" className="club-page__logo" />
-        <div className="club-page__brand">Sala Crespo Club</div>
-        {player && (
+        <div className="club-page__brand">
+          Sala Crespo Club
+          <span>Programa de socios</span>
+        </div>
+        {player ? (
           <button className="club-page__logout" onClick={handleLogout}>Salir</button>
+        ) : (
+          <div className="club-page__logout-ghost" />
         )}
       </header>
 
@@ -42,8 +46,9 @@ export default function Club() {
       </main>
 
       <footer className="club-page__footer">
-        <strong>Sala de Juegos Crespo</strong><br />
-        San Martín 1053 · Crespo, Entre Ríos
+        <strong>Sala de Juegos Crespo</strong>
+        San Martín 1053 · Crespo, Entre Ríos<br />
+        Sala Crespo Club · Programa de socios
       </footer>
     </div>
   )
@@ -75,7 +80,7 @@ function ClubLogin({ onLogin }) {
       <div className="club-login__card">
         <div className="club-login__kicker">★ Acceso miembros</div>
         <h1 className="club-login__title">Hola de nuevo</h1>
-        <p className="club-login__sub">Ingresá con tu DNI y PIN para ver tus puntos y canjes.</p>
+        <p className="club-login__sub">Ingresá con tu DNI y PIN para ver tus puntos, canjes y el sorteo del mes.</p>
 
         <form onSubmit={handleSubmit} className="club-login__form">
           <label>
