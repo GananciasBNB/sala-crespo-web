@@ -1,0 +1,204 @@
+/* ════════════════════════════════════════════════════════════
+   TOP 10 DEL PRODE — ranking público de la landing
+   ════════════════════════════════════════════════════════════ */
+
+.top10 {
+  position: relative;
+  padding: 80px 0 60px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(201,168,76,.08), transparent 60%);
+}
+
+.top10__head {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
+}
+
+.top10__intro {
+  margin-top: 14px;
+  color: rgba(232, 223, 202, 0.7);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.top10__list {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 16px;
+}
+
+.top10__row {
+  display: grid;
+  grid-template-columns: 48px 60px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 18px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(255,255,255,.025), rgba(255,255,255,0));
+  border: 1px solid rgba(255,255,255,.06);
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.top10__row:hover {
+  background: linear-gradient(90deg, rgba(201,168,76,.05), rgba(255,255,255,0));
+  border-color: rgba(201,168,76,.18);
+}
+
+/* Podio */
+.top10__row--p1 {
+  border-color: rgba(201,168,76,.45);
+  background: linear-gradient(90deg, rgba(201,168,76,.12), rgba(255,255,255,0));
+  box-shadow: 0 0 30px rgba(201,168,76,.08) inset;
+}
+.top10__row--p2 {
+  border-color: rgba(192,192,192,.32);
+  background: linear-gradient(90deg, rgba(192,192,192,.07), rgba(255,255,255,0));
+}
+.top10__row--p3 {
+  border-color: rgba(176,141,87,.32);
+  background: linear-gradient(90deg, rgba(176,141,87,.07), rgba(255,255,255,0));
+}
+
+/* Mi posición */
+.top10__row--me {
+  border-color: rgba(34,197,94,.45);
+  background: linear-gradient(90deg, rgba(34,197,94,.08), rgba(255,255,255,0)) !important;
+  position: relative;
+}
+.top10__row--me::before {
+  content: 'VOS';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #06140a;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 99px;
+  box-shadow: 0 2px 8px rgba(34,197,94,.4);
+}
+.top10__row--mine {
+  margin-top: 18px;
+  border-top: 1px dashed rgba(34,197,94,.25);
+  padding-top: 18px;
+}
+
+/* Posición */
+.top10__pos {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  line-height: .9;
+  color: #F0D275;
+  text-align: center;
+  letter-spacing: .5px;
+}
+.top10__row--p1 .top10__pos { color: #FFD700; font-size: 36px; }
+.top10__row--p2 .top10__pos { color: #C0C0C0; font-size: 34px; }
+.top10__row--p3 .top10__pos { color: #CD7F32; font-size: 32px; }
+
+/* Avatar */
+.top10__avatar {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,168,76,.12), rgba(0,0,0,.4));
+  border: 1.5px solid rgba(201,168,76,.25);
+  display: grid;
+  place-items: center;
+  overflow: visible;
+}
+.top10__row--p1 .top10__avatar { border-color: rgba(255,215,0,.5); }
+.top10__row--p2 .top10__avatar { border-color: rgba(192,192,192,.4); }
+.top10__row--p3 .top10__avatar { border-color: rgba(205,127,50,.4); }
+.top10__avatar img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.4));
+}
+.top10__medal {
+  position: absolute;
+  bottom: -4px;
+  right: -4px;
+  font-size: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.5));
+}
+
+/* Nombre */
+.top10__name {
+  min-width: 0;
+  overflow: hidden;
+}
+.top10__name-text {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.top10__name-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: rgba(232,223,202,.55);
+  letter-spacing: .3px;
+  margin-top: 2px;
+}
+
+/* Puntos */
+.top10__pts {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26px;
+  color: #F0D275;
+  letter-spacing: 1px;
+  text-align: right;
+  line-height: 1;
+}
+.top10__pts span {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: rgba(232,223,202,.4);
+  text-transform: uppercase;
+  text-align: right;
+  margin-top: 2px;
+  font-weight: 600;
+}
+.top10__row--p1 .top10__pts { color: #FFD700; }
+
+/* CTA */
+.top10__cta {
+  text-align: center;
+  margin-top: 30px;
+}
+
+@media (max-width: 600px) {
+  .top10 { padding: 60px 0 40px; }
+  .top10__row {
+    grid-template-columns: 36px 48px 1fr auto;
+    gap: 10px;
+    padding: 10px 14px;
+  }
+  .top10__pos { font-size: 22px; }
+  .top10__row--p1 .top10__pos,
+  .top10__row--p2 .top10__pos,
+  .top10__row--p3 .top10__pos { font-size: 26px; }
+  .top10__avatar { width: 48px; height: 48px; }
+  .top10__avatar img { width: 38px; height: 38px; }
+  .top10__medal { font-size: 16px; }
+  .top10__name-text { font-size: 15px; }
+  .top10__name-sub { font-size: 10.5px; }
+  .top10__pts { font-size: 22px; }
+}

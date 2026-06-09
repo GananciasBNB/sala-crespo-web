@@ -22,8 +22,16 @@ export default function Hero() {
 
   return (
     <section id="inicio" className="hero">
-      {/* Foto de fondo con overlay cinematográfico */}
-      <div className="hero__photo-bg" />
+      {/* Fondo Mundial 2026 — video de pelota al atardecer (capa principal).
+          La foto antigua de las máquinas se reemplazó por este video durante
+          la temporada del Mundial. Si el video no carga, el overlay/grid
+          mantienen el fondo legible con el linear-gradient de fallback. */}
+      <div className="hero__mundial-video" aria-hidden="true">
+        <video autoPlay loop muted playsInline preload="auto">
+          <source src="/mundial-hero-pelota.mp4" type="video/mp4" />
+        </video>
+      </div>
+
       <div className="hero__overlay" />
 
       {/* Grid sutil encima */}

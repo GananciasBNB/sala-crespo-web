@@ -1,0 +1,170 @@
+/* ════════════════════════════════════════════════════════════
+   VENÍ A LA SALA — bloque promocional de mesa Club Mundial
+   ════════════════════════════════════════════════════════════ */
+
+.veni {
+  position: relative;
+  padding: 80px 0 60px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(245,158,11,.08), transparent 55%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,.25) 50%, transparent 100%);
+}
+
+.veni__head {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 40px;
+  padding: 0 20px;
+}
+.veni__intro {
+  margin-top: 14px;
+  color: rgba(232, 223, 202, 0.7);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.veni__split {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  gap: 0;
+  background: linear-gradient(180deg, #1a1626 0%, #13101c 100%);
+  border: 1px solid rgba(201, 168, 76, 0.25);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* Video lado izquierdo (fallback con gradient warm si el video no carga) */
+.veni__video {
+  position: relative;
+  min-height: 460px;
+  background:
+    radial-gradient(ellipse at 50% 60%, rgba(245,158,11,.35), transparent 60%),
+    radial-gradient(ellipse at 50% 30%, rgba(255,180,60,.25), transparent 50%),
+    linear-gradient(180deg, #4a2810 0%, #1a0e08 100%);
+  overflow: hidden;
+}
+.veni__video video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.veni__video-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 50%, transparent 30%, rgba(0,0,0,.45) 100%),
+    linear-gradient(90deg, rgba(0,0,0,.0) 50%, rgba(19,16,28,.5) 100%);
+}
+
+/* Cuerpo derecho */
+.veni__body {
+  padding: 50px 44px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+}
+.veni__eye {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #C9A84C;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.veni__title {
+  font-family: 'Playfair Display', serif;
+  font-size: 36px;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -.5px;
+}
+.veni__title em {
+  color: #F0D275;
+  font-style: italic;
+}
+.veni__desc {
+  font-size: 15.5px;
+  color: rgba(232,223,202,.85);
+  line-height: 1.65;
+}
+
+/* Features grid */
+.veni__features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 6px;
+}
+.veni__f {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13.5px;
+  color: rgba(232,223,202,.95);
+  line-height: 1.45;
+}
+.veni__f strong {
+  color: #F0D275;
+  font-weight: 700;
+}
+.veni__f-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #C9A84C;
+  margin-top: 7px;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(201,168,76,.5);
+}
+
+/* CTAs */
+.veni__ctas {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+}
+.veni__chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  color: #C9A84C;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: rgba(201,168,76,.08);
+  border: 1px solid rgba(201,168,76,.25);
+  padding: 7px 12px;
+  border-radius: 99px;
+}
+
+@media (max-width: 900px) {
+  .veni__split {
+    grid-template-columns: 1fr;
+    margin: 0 16px;
+  }
+  .veni__video {
+    min-height: 260px;
+  }
+  .veni__body {
+    padding: 36px 28px;
+  }
+  .veni__title { font-size: 30px; }
+}
+@media (max-width: 600px) {
+  .veni { padding: 60px 0 40px; }
+  .veni__body { padding: 28px 22px; gap: 14px; }
+  .veni__title { font-size: 26px; }
+  .veni__features { grid-template-columns: 1fr; gap: 10px; }
+  .veni__ctas { flex-direction: column; align-items: stretch; }
+}

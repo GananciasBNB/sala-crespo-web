@@ -7,6 +7,13 @@ export default function PromoMundial() {
     <section id="prode" className="prode" ref={ref}>
       <div className="container">
         <div className="reveal prode__card">
+          {/* Confetti dorado/azul de fondo — capa atmosférica, no tapa contenido */}
+          <div className="prode__confetti" aria-hidden="true">
+            <video autoPlay loop muted playsInline preload="metadata">
+              <source src="/mundial-confetti.mp4" type="video/mp4" />
+            </video>
+          </div>
+
           <div className="prode__content">
             <div className="prode__flags">
               <img src="/icons/flag-ar.svg" alt="Argentina" width="72" height="50" />
@@ -77,7 +84,11 @@ export default function PromoMundial() {
           </div>
 
           <div className="prode__deco" aria-hidden="true">
-            <div className="prode__deco-ball">⚽</div>
+            <div className="prode__deco-trophy">
+              <video autoPlay loop muted playsInline preload="metadata">
+                <source src="/mundial-trofeo.mp4" type="video/mp4" />
+              </video>
+            </div>
             <div className="prode__deco-ring" />
           </div>
         </div>
