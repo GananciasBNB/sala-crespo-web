@@ -26,7 +26,6 @@ function dominantTeam(votes, match) {
 }
 
 export default function VozDelBarrio() {
-  const ref = useScrollRevealParent()
   const [data, setData] = useState(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -37,13 +36,12 @@ export default function VozDelBarrio() {
       .finally(() => setLoaded(true))
   }, [])
 
-  // Si no hay match próximo o muy pocos votos, renderizamos un wrapper VACÍO
-  // pero con el ref puesto. Esto es clave: el hook useScrollRevealParent setupea
-  // el IntersectionObserver en el ref durante el mount. Si retornamos null al
-  // mount y el wrapper aparece después de que el fetch resuelve, el observer
-  // ya quedó con ref.current = null → nunca dispara → los .reveal quedan en
-  // opacity:0 para siempre.
+  // Renderizamos el wrapper SIEMPRE con el ref (display:none cuando no hay data)
+  // para que el IntersectionObserver siempre se monte. Pasamos hasData al hook
+  // como segunda dep: cuando el fetch resuelve y aparecen los hijos .reveal, el
+  // efecto se vuelve a ejecutar y re-bindea el observer con los hijos reales.
   const hasData = loaded && data?.match && (data?.totalVotes || 0) >= 5
+  const ref = useScrollRevealParent(0.05, hasData)
   if (!hasData) return <section id="voz-del-barrio" className="voz voz--hidden" ref={ref} aria-hidden="true" />
 
   const { match, votes, totalVotes } = data

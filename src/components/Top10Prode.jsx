@@ -36,7 +36,6 @@ function anonName(fullName = '') {
 const MEDALS = ['🥇', '🥈', '🥉']
 
 export default function Top10Prode() {
-  const ref = useScrollRevealParent()
   const [board, setBoard] = useState(null)
   const [me, setMe] = useState(null)
 
@@ -49,10 +48,11 @@ export default function Top10Prode() {
   }, [])
 
   // Wrapper SIEMPRE renderizado con ref para que el IntersectionObserver
-  // del useScrollRevealParent se setupee. Si no hay datos suficientes, el
-  // wrapper queda con display:none. Ver comentario equivalente en VozDelBarrio.
+  // del hook se setupee al mount. Cuando llega el fetch y aparecen los hijos
+  // .reveal, hasData cambia y el hook re-bindea el observer (ver useScrollReveal).
   const ranked = board ? board.filter(p => (p.played || 0) > 0) : []
   const hasData = ranked.length >= 5
+  const ref = useScrollRevealParent(0.05, hasData)
   if (!hasData) return <section id="top10-prode" className="top10 top10--hidden" ref={ref} aria-hidden="true" />
 
   const top = ranked.slice(0, 10)
