@@ -8,6 +8,7 @@
     { "source": "/torneo", "destination": "/index.html" },
     { "source": "/contacto", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
-    { "source": "/admin/:path*", "destination": "/index.html" }
+    { "source": "/admin/:path*", "destination": "/index.html" },
+    { "source": "/club", "destination": "/index.html" }
   ]
 }

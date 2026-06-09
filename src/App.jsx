@@ -11,6 +11,7 @@ import BusinessSchema from './components/BusinessSchema'
 const AdminPanel = lazy(() => import('./pages/AdminPanel'))
 const Contacto = lazy(() => import('./pages/Contacto'))
 const TournamentLanding = lazy(() => import('./pages/TournamentLanding'))
+const Club = lazy(() => import('./pages/Club'))
 
 function RouteFallback() {
   return (
@@ -117,6 +118,16 @@ export default function App() {
           <ChunkErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <AdminPanel />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/club" element={
+        <>
+          <PageHead title="Sala Crespo Club" description="" path="/club" noindex />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <Club />
             </Suspense>
           </ChunkErrorBoundary>
         </>
