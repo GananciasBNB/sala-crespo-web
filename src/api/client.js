@@ -35,8 +35,8 @@ export const forgotPin = (dni, email) =>
 // ─── Partidos y pronósticos ───────────────────────────────────────────────────
 export const getMatches = () => api('/api/matches')
 
-// Resumen de votos del próximo partido — feed para VozDelBarrio en la landing
-export const getUpcomingVote = () => api('/api/prode/upcoming-vote')
+// Resumen de votos de los próximos partidos — feed para VozDelBarrio en la landing
+export const getUpcomingVote = (limit = 4) => api(`/api/prode/upcoming-vote?limit=${limit}`)
 
 // Leaderboard público — feed para Top10Prode en la landing
 export const getLeaderboardPublic = () => api('/api/leaderboard?phase=all&audience=public')
