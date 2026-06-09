@@ -8,6 +8,8 @@
   background:
     radial-gradient(ellipse at 50% 0%, rgba(201,168,76,.08), transparent 60%);
 }
+/* Wrapper invisible mientras carga la data o si hay <5 jugadores ranked */
+.top10--hidden { display: none; }
 
 .top10__head {
   text-align: center;

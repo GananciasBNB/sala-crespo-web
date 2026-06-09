@@ -48,9 +48,12 @@ export default function Top10Prode() {
     } catch {}
   }, [])
 
-  if (!board) return null
-  const ranked = board.filter(p => (p.played || 0) > 0)
-  if (ranked.length < 5) return null
+  // Wrapper SIEMPRE renderizado con ref para que el IntersectionObserver
+  // del useScrollRevealParent se setupee. Si no hay datos suficientes, el
+  // wrapper queda con display:none. Ver comentario equivalente en VozDelBarrio.
+  const ranked = board ? board.filter(p => (p.played || 0) > 0) : []
+  const hasData = ranked.length >= 5
+  if (!hasData) return <section id="top10-prode" className="top10 top10--hidden" ref={ref} aria-hidden="true" />
 
   const top = ranked.slice(0, 10)
   const myIndex = me ? ranked.findIndex(p => p.id === me.id) : -1

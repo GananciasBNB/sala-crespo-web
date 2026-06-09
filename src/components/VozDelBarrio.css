@@ -10,6 +10,8 @@
     radial-gradient(ellipse at 50% 0%, rgba(116,172,223,.08), transparent 60%),
     linear-gradient(180deg, transparent 0%, rgba(0,0,0,.25) 50%, transparent 100%);
 }
+/* Wrapper invisible mientras carga la data o si hay <5 votos */
+.voz--hidden { display: none; }
 
 .voz__head {
   text-align: center;

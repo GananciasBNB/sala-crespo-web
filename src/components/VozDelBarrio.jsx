@@ -37,8 +37,14 @@ export default function VozDelBarrio() {
       .finally(() => setLoaded(true))
   }, [])
 
-  // No renderizar si no hay match próximo o muy pocos votos (menos de 5).
-  if (!loaded || !data?.match || (data?.totalVotes || 0) < 5) return null
+  // Si no hay match próximo o muy pocos votos, renderizamos un wrapper VACÍO
+  // pero con el ref puesto. Esto es clave: el hook useScrollRevealParent setupea
+  // el IntersectionObserver en el ref durante el mount. Si retornamos null al
+  // mount y el wrapper aparece después de que el fetch resuelve, el observer
+  // ya quedó con ref.current = null → nunca dispara → los .reveal quedan en
+  // opacity:0 para siempre.
+  const hasData = loaded && data?.match && (data?.totalVotes || 0) >= 5
+  if (!hasData) return <section id="voz-del-barrio" className="voz voz--hidden" ref={ref} aria-hidden="true" />
 
   const { match, votes, totalVotes } = data
   const pct = {
