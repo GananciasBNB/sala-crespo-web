@@ -24,6 +24,31 @@ export function isPushSupported() {
   )
 }
 
+// ¿Es un dispositivo iOS (iPhone / iPad)?
+export function isIOS() {
+  if (typeof navigator === 'undefined') return false
+  const ua = navigator.userAgent || ''
+  // iPhone / iPad / iPod, e iPad moderno que se reporta como Mac con touch
+  return /iPad|iPhone|iPod/.test(ua) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+}
+
+// ¿La PWA está corriendo en modo "instalado" (standalone, agregada a inicio)?
+// En iOS las push solo funcionan en standalone. En Safari normal no.
+export function isStandalone() {
+  if (typeof window === 'undefined') return false
+  return (
+    window.navigator.standalone === true || // iOS Safari
+    (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
+  )
+}
+
+// En iOS, si no está instalada la PWA, hay que mostrar instrucciones
+// de "Agregar a inicio" en vez del botón de activar (que no funciona).
+export function needsIOSInstall() {
+  return isIOS() && !isStandalone()
+}
+
 export function getPermission() {
   if (!isPushSupported()) return 'unsupported'
   return Notification.permission // 'default' | 'granted' | 'denied'

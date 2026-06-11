@@ -24,6 +24,34 @@
   background: linear-gradient(135deg, rgba(120, 120, 120, 0.12), rgba(80, 80, 80, 0.18));
   border-color: rgba(160, 160, 160, 0.35);
 }
+.push-banner--ios {
+  background: linear-gradient(135deg, rgba(0, 87, 168, 0.12), rgba(116, 172, 223, 0.16));
+  border-color: rgba(116, 172, 223, 0.45);
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+}
+.push-banner__ios-steps {
+  margin: 10px 0 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: rgba(232, 223, 202, 0.85);
+  line-height: 1.7;
+}
+.push-banner__ios-steps li { margin-bottom: 2px; }
+.push-banner__ios-steps strong { color: #fff; font-weight: 700; }
+.push-banner__ios-share {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: #0a84ff;
+  color: #fff;
+  border-radius: 5px;
+  font-size: 13px;
+  vertical-align: middle;
+  margin: 0 2px;
+}
 
 .push-banner__icon {
   font-size: 28px;

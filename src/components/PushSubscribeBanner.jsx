@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   isPushSupported, getPermission, getCurrentSubscription,
-  subscribeToPush, unsubscribeFromPush,
+  subscribeToPush, unsubscribeFromPush, needsIOSInstall,
 } from '../lib/push'
 import './PushSubscribeBanner.css'
 
@@ -27,7 +27,6 @@ export default function PushSubscribeBanner({ player }) {
     let cancelled = false
     async function check() {
       if (!player?.token) { setState('hidden'); return }
-      if (!isPushSupported()) { setState('hidden'); return }
 
       // Dismiss reciente?
       try {
@@ -37,6 +36,12 @@ export default function PushSubscribeBanner({ player }) {
           if (ageH < DISMISS_HOURS) { setState('hidden'); return }
         }
       } catch {}
+
+      // iPhone sin la PWA instalada: push no funciona en Safari, mostramos
+      // instrucciones de "Agregar a inicio" en vez de ocultar el banner.
+      if (needsIOSInstall()) { setState('ios-install'); return }
+
+      if (!isPushSupported()) { setState('hidden'); return }
 
       const perm = getPermission()
       if (perm === 'denied') {
@@ -88,6 +93,27 @@ export default function PushSubscribeBanner({ player }) {
   }
 
   if (state === 'loading' || state === 'hidden') return null
+
+  if (state === 'ios-install') {
+    return (
+      <div className="push-banner push-banner--ios">
+        <div className="push-banner__icon">📲</div>
+        <div className="push-banner__body">
+          <div className="push-banner__title">Activá las notificaciones en tu iPhone</div>
+          <div className="push-banner__sub">
+            Para recibir avisos de los partidos en iPhone, agregá Sala Crespo a tu pantalla de inicio:
+          </div>
+          <ol className="push-banner__ios-steps">
+            <li>Tocá el botón <strong>Compartir</strong> <span className="push-banner__ios-share">􀈂</span> (abajo, en el centro)</li>
+            <li>Bajá y elegí <strong>«Agregar a inicio»</strong></li>
+            <li>Abrí Sala Crespo desde el ícono nuevo</li>
+            <li>Volvé acá y activá las notificaciones</li>
+          </ol>
+        </div>
+        <button className="push-banner__dismiss" onClick={handleDismiss} aria-label="Ahora no">×</button>
+      </div>
+    )
+  }
 
   if (state === 'subscribed') {
     return (
