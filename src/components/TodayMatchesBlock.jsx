@@ -142,10 +142,22 @@ function MatchRow({ match, myPred, player, onPredictionSaved, stats, liveData })
     : null
   const [showForm, setShowForm] = useState(false)
 
+  // "Gap" = ESPN ya marca el partido como terminado, pero el resultado oficial
+  // todavía no llegó a nuestra base (el cron carga cada ~10 min). Mostramos el
+  // marcador final + "calculando puntos" en vez de "Empezando".
+  const isFinishingGap = state === 'starting' && liveData?.status === 'finished'
+  const isLiveNow = state === 'starting' && liveData?.status === 'in_progress'
+
   const StateBadge = () => {
     if (state === 'finished') return <span className="today__state today__state--finished">FINAL</span>
-    if (state === 'starting' && liveData) {
-      // Marcador en vivo desde ESPN
+    if (isFinishingGap) {
+      return (
+        <span className="today__state today__state--finishing">
+          <span className="today__finishing-spin" /> FINAL · cargando…
+        </span>
+      )
+    }
+    if (isLiveNow) {
       return (
         <span className="today__state today__state--livescore">
           <span className="today__livedot" /> EN VIVO
@@ -221,11 +233,16 @@ function MatchRow({ match, myPred, player, onPredictionSaved, stats, liveData })
             )
       )}
 
-      {/* Partido empezando — sin form, solo info */}
+      {/* Partido empezando / terminando — sin form, solo info */}
       {player && state === 'starting' && (
-        myPred
-          ? <PredScoreboard pred={myPred} />
-          : <div className="today__pred-locked">⏱ El partido ya empezó — pronóstico cerrado</div>
+        <>
+          {myPred
+            ? <PredScoreboard pred={myPred} />
+            : <div className="today__pred-locked">⏱ El partido ya empezó — pronóstico cerrado</div>}
+          {isFinishingGap && (
+            <div className="today__calc">⏳ Calculando puntos del partido…</div>
+          )}
+        </>
       )}
 
       {/* Verdict post-partido */}
@@ -262,7 +279,6 @@ function MatchRow({ match, myPred, player, onPredictionSaved, stats, liveData })
           {stats.acceptedWinner > 0 && (
             <span className="today__stats-item">✓ {stats.acceptedWinner} ganador</span>
           )}
-          <span className="today__stats-item today__stats-item--total">{stats.total} jugaron</span>
         </div>
       )}
     </div>

@@ -849,16 +849,20 @@ function ProdeAdmin({ token, toast }) {
 // ─── ESPN test sync ─────────────────────────────────────────────────────────
 // Sandbox para validar el flow de sync automático contra partidos reales de
 // Premier, La Liga, etc. NO toca la tabla `results` real del Prode.
+// Durante el Mundial dejamos solo FIFA World Cup. Las demás ligas (Premier,
+// La Liga, Champions, etc.) eran del sandbox de testing previo y se quitaron
+// para no confundir. Quedan comentadas por si hace falta probar el sync otra
+// vez fuera de temporada de Mundial.
 const ESPN_LEAGUES = [
-  { slug: 'eng.1', label: 'Premier League (ENG)' },
-  { slug: 'esp.1', label: 'La Liga (ESP)' },
-  { slug: 'ita.1', label: 'Serie A (ITA)' },
-  { slug: 'ger.1', label: 'Bundesliga (GER)' },
-  { slug: 'fra.1', label: 'Ligue 1 (FRA)' },
-  { slug: 'arg.1', label: 'Liga Argentina' },
-  { slug: 'uefa.champions', label: 'UEFA Champions League' },
-  { slug: 'conmebol.libertadores', label: 'CONMEBOL Libertadores' },
   { slug: 'fifa.world', label: 'FIFA World Cup 2026' },
+  // { slug: 'eng.1', label: 'Premier League (ENG)' },
+  // { slug: 'esp.1', label: 'La Liga (ESP)' },
+  // { slug: 'ita.1', label: 'Serie A (ITA)' },
+  // { slug: 'ger.1', label: 'Bundesliga (GER)' },
+  // { slug: 'fra.1', label: 'Ligue 1 (FRA)' },
+  // { slug: 'arg.1', label: 'Liga Argentina' },
+  // { slug: 'uefa.champions', label: 'UEFA Champions League' },
+  // { slug: 'conmebol.libertadores', label: 'CONMEBOL Libertadores' },
 ]
 const ESPN_STATUS_LABEL = {
   waiting:     { txt: 'Programado',  color: '#94a3b8' },

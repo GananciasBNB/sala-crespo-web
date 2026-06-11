@@ -28,7 +28,26 @@ export default function PushSubscribeBanner({ player }) {
     async function check() {
       if (!player?.token) { setState('hidden'); return }
 
-      // Dismiss reciente?
+      // iPhone sin la PWA instalada: push no funciona en Safari, mostramos
+      // instrucciones de "Agregar a inicio" en vez de ocultar el banner.
+      if (needsIOSInstall()) { setState('ios-install'); return }
+
+      if (!isPushSupported()) { setState('hidden'); return }
+
+      const perm = getPermission()
+
+      // Si ya está suscrito, SIEMPRE mostramos el estado verde "activadas"
+      // (informativo, con botón Desactivar). No lo ocultamos por dismiss —
+      // el usuario quiere ver que tiene las notificaciones encendidas.
+      const sub = await getCurrentSubscription()
+      if (cancelled) return
+      if (sub && perm === 'granted') { setState('subscribed'); return }
+
+      // No suscrito + permiso bloqueado → instrucciones para desbloquear
+      if (perm === 'denied') { setState('denied'); return }
+
+      // No suscrito y no bloqueado: invitación a activar. Acá SÍ respetamos
+      // el dismiss (si lo cerró, no insistimos por una semana).
       try {
         const v = localStorage.getItem(DISMISS_KEY)
         if (v) {
@@ -37,25 +56,7 @@ export default function PushSubscribeBanner({ player }) {
         }
       } catch {}
 
-      // iPhone sin la PWA instalada: push no funciona en Safari, mostramos
-      // instrucciones de "Agregar a inicio" en vez de ocultar el banner.
-      if (needsIOSInstall()) { setState('ios-install'); return }
-
-      if (!isPushSupported()) { setState('hidden'); return }
-
-      const perm = getPermission()
-      if (perm === 'denied') {
-        if (!cancelled) setState('denied')
-        return
-      }
-
-      const sub = await getCurrentSubscription()
-      if (cancelled) return
-      if (sub && perm === 'granted') {
-        setState('subscribed')
-      } else {
-        setState('invite')
-      }
+      setState('invite')
     }
     check()
     return () => { cancelled = true }

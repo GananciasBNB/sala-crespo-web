@@ -146,6 +146,34 @@
   border-left: 1px solid rgba(255, 255, 255, 0.4);
   color: #ffe2c0;
 }
+/* Estado "terminando": ESPN dice FINAL pero el resultado oficial aún no llegó */
+.today__state--finishing {
+  background: rgba(246, 180, 14, 0.18);
+  color: #F6B40E;
+  border: 1px solid rgba(246, 180, 14, 0.5);
+  letter-spacing: 1.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.today__finishing-spin {
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(246, 180, 14, 0.3);
+  border-top-color: #F6B40E;
+  border-radius: 50%;
+  animation: today-spin 0.7s linear infinite;
+}
+@keyframes today-spin { to { transform: rotate(360deg); } }
+.today__calc {
+  text-align: center;
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  color: #F6B40E;
+}
+
 /* Marcador en vivo: mismo box que el final pero con borde rojo pulsante */
 .today__match-score--live {
   border-color: #ff3b54;
