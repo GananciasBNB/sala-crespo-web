@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { getMyNotifications, markNotificationsRead } from '../api/client'
 import './NotificationBell.css'
 
@@ -30,6 +31,7 @@ export default function NotificationBell({ player }) {
   const [items, setItems] = useState([])
   const [unread, setUnread] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [pos, setPos] = useState({ top: 60, right: 12 }) // posición del panel (portal)
   const panelRef = useRef(null)
   const btnRef = useRef(null)
 
@@ -67,6 +69,11 @@ export default function NotificationBell({ player }) {
 
   async function toggle() {
     const next = !open
+    if (next && btnRef.current) {
+      // Calcular posición del panel a partir del botón (coordenadas de viewport)
+      const r = btnRef.current.getBoundingClientRect()
+      setPos({ top: Math.round(r.bottom + 10), right: Math.round(window.innerWidth - r.right) })
+    }
     setOpen(next)
     if (next) {
       setLoading(true)
@@ -99,8 +106,12 @@ export default function NotificationBell({ player }) {
         {unread > 0 && <span className="notif-bell__badge">{unread > 9 ? '9+' : unread}</span>}
       </button>
 
-      {open && (
-        <div className="notif-bell__panel" ref={panelRef}>
+      {open && createPortal(
+        <div
+          className="notif-bell__panel"
+          ref={panelRef}
+          style={{ top: pos.top, right: pos.right }}
+        >
           <div className="notif-bell__head">
             <span className="notif-bell__title">Notificaciones</span>
             {unread > 0 && <span className="notif-bell__count">{unread} sin leer</span>}
@@ -133,7 +144,8 @@ export default function NotificationBell({ player }) {
               ))
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
