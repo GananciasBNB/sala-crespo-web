@@ -3930,6 +3930,15 @@ function PromoTicketsAdmin({ token, toast }) {
 // ─── Push broadcast manual a TODOS los suscritos ────────────────────────────
 // Una sola plantilla simple: título + mensaje + URL opcional. Confirmación
 // obligatoria antes de enviar.
+const PUSH_URL_OPTIONS = [
+  { value: '/',         label: '🏠 Inicio (saladejuegoscrespo.ar)' },
+  { value: '/prode',    label: '⚽ Prode Mundial' },
+  { value: '/torneo',   label: '🎰 Torneo de Slots' },
+  { value: '/club',     label: '★ Sala Crespo Club' },
+  { value: '/contacto', label: '✉ Contacto' },
+]
+const PUSH_EMOJIS = ['⚽','🏆','🎰','🔥','🎉','💰','🍺','📣','⭐','🎁','🇦🇷','⏰','🥇','🎯','✅','📲']
+
 function PushBroadcastAdmin({ token, toast }) {
   const [stats, setStats] = useState(null)
   const [title, setTitle] = useState('')
@@ -3937,6 +3946,32 @@ function PushBroadcastAdmin({ token, toast }) {
   const [url, setUrl] = useState('/')
   const [busy, setBusy] = useState(false)
   const [lastResult, setLastResult] = useState(null)
+  // Qué campo tuvo foco último, para saber dónde insertar el emoji
+  const [activeField, setActiveField] = useState('body')
+  const titleRef = useRef(null)
+  const bodyRef = useRef(null)
+
+  function insertEmoji(emoji) {
+    const isTitle = activeField === 'title'
+    const ref = isTitle ? titleRef : bodyRef
+    const value = isTitle ? title : body
+    const setter = isTitle ? setTitle : setBody
+    const max = isTitle ? 100 : 250
+    const el = ref.current
+    // Insertar en la posición del cursor si el campo tiene foco
+    const start = el?.selectionStart ?? value.length
+    const end = el?.selectionEnd ?? value.length
+    const next = (value.slice(0, start) + emoji + value.slice(end)).slice(0, max)
+    setter(next)
+    // Reposicionar el cursor después del emoji
+    requestAnimationFrame(() => {
+      if (el) {
+        el.focus()
+        const pos = start + emoji.length
+        try { el.setSelectionRange(pos, pos) } catch {}
+      }
+    })
+  }
 
   async function loadStats() {
     try {
@@ -3987,7 +4022,9 @@ function PushBroadcastAdmin({ token, toast }) {
           <label style={{ fontSize: 12, color: '#C9A84C', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700 }}>
             Título (máx. 100)
             <input
+              ref={titleRef}
               type="text" maxLength={100} value={title}
+              onFocus={() => setActiveField('title')}
               onChange={e => setTitle(e.target.value)}
               placeholder="🎰 Esta noche torneo de slots"
               style={{ display: 'block', width: '100%', marginTop: 4, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 15 }}
@@ -3996,19 +4033,46 @@ function PushBroadcastAdmin({ token, toast }) {
           <label style={{ fontSize: 12, color: '#C9A84C', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700 }}>
             Mensaje (máx. 250)
             <textarea
+              ref={bodyRef}
               maxLength={250} value={body} rows={3}
+              onFocus={() => setActiveField('body')}
               onChange={e => setBody(e.target.value)}
               placeholder="22hs, premios por $200.000. Inscripción gratis."
               style={{ display: 'block', width: '100%', marginTop: 4, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 14, resize: 'vertical' }}
             />
           </label>
+
+          {/* Barra de emojis — inserta en el campo que tuvo foco último */}
+          <div>
+            <div style={{ fontSize: 11, color: '#8B9BB4', letterSpacing: 1, textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>
+              Emojis rápidos (insertan en {activeField === 'title' ? 'el título' : 'el mensaje'})
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+              {PUSH_EMOJIS.map(em => (
+                <button
+                  key={em} type="button"
+                  onMouseDown={e => { e.preventDefault(); insertEmoji(em) }}
+                  style={{ fontSize: 20, lineHeight: 1, padding: '6px 8px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(255,255,255,0.04)', cursor: 'pointer' }}
+                >{em}</button>
+              ))}
+            </div>
+          </div>
+
           <label style={{ fontSize: 12, color: '#C9A84C', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700 }}>
-            URL al hacer click
+            ¿A dónde lleva al tocar la notificación?
+            <select
+              value={PUSH_URL_OPTIONS.some(o => o.value === url) ? url : '__custom'}
+              onChange={e => { if (e.target.value !== '__custom') setUrl(e.target.value) }}
+              style={{ display: 'block', width: '100%', marginTop: 4, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 14 }}
+            >
+              {PUSH_URL_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              <option value="__custom">Otra URL (escribir abajo)…</option>
+            </select>
             <input
               type="text" value={url}
               onChange={e => setUrl(e.target.value)}
-              placeholder="/"
-              style={{ display: 'block', width: '100%', marginTop: 4, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 14 }}
+              placeholder="/prode"
+              style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.2)', color: '#8B9BB4', fontSize: 13 }}
             />
           </label>
           <button
