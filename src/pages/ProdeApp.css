@@ -70,7 +70,9 @@
   border-bottom: 1px solid var(--wc-border);
   position: sticky;
   top: 0;
-  z-index: 200;
+  /* z-index alto: el header + su dropdown de la campanita tienen que quedar
+     por encima de todo el contenido (banners, botones rojos, etc.). */
+  z-index: 500;
 }
 .prode-header__inner {
   max-width: 1100px;
