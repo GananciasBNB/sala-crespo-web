@@ -4016,9 +4016,26 @@ function PushBroadcastAdmin({ token, toast }) {
         <h3 className="ap-block__title">🔔 Enviar notificación push</h3>
 
         {stats && (
-          <div style={{ marginBottom: 18, padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid #2a3142', borderRadius: 10, fontSize: 13.5 }}>
-            <strong>Suscriptos:</strong> {stats.n} dispositivos de {stats.players} jugadores
-            {!stats.ready && <span style={{ color: '#fb6e8a', marginLeft: 12 }}>· ⚠ VAPID keys no configuradas en el server</span>}
+          <div style={{ marginBottom: 18, padding: '14px 16px', background: 'rgba(255,255,255,0.04)', border: '1px solid #2a3142', borderRadius: 10, fontSize: 13.5 }}>
+            <div style={{ marginBottom: stats.subscribers?.length ? 12 : 0 }}>
+              <strong>Suscriptos:</strong> {stats.n} dispositivos de {stats.players} jugadores
+              {!stats.ready && <span style={{ color: '#fb6e8a', marginLeft: 12 }}>· ⚠ VAPID keys no configuradas en el server</span>}
+            </div>
+            {stats.subscribers?.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, borderTop: '1px solid #2a3142', paddingTop: 12 }}>
+                {stats.subscribers.map(s => {
+                  const icon = s.device === 'iphone' ? '📱' : s.device === 'android' ? '🤖' : s.device === 'desktop' ? '💻' : '❓'
+                  const when = new Date(s.createdAt).toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+                  return (
+                    <div key={s.id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+                      <span style={{ fontSize: 16 }}>{icon}</span>
+                      <strong style={{ color: '#E8EDF5' }}>{s.name}</strong>
+                      <span style={{ color: '#8B9BB4', marginLeft: 'auto', fontFamily: 'monospace', fontSize: 11.5 }}>{when}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
 
