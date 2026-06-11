@@ -270,6 +270,29 @@
   text-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
 }
 
+/* Form inline expandido para cargar pronóstico */
+.today__pred-form {
+  background: linear-gradient(180deg, rgba(196, 30, 58, 0.1), rgba(0, 0, 0, 0.35));
+  border: 1px solid rgba(246, 180, 14, 0.45);
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+  text-align: center;
+}
+.today__pred-eye--cta { color: #F6B40E; margin-bottom: 10px; }
+
+/* Estado: partido empezó pero no había cargado pronóstico */
+.today__pred-locked {
+  text-align: center;
+  font-size: 12.5px;
+  padding: 11px 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: #998d75;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.3px;
+}
+
 /* CTA para cargar pronóstico */
 .today__pred-cta {
   display: block;

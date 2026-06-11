@@ -1,0 +1,166 @@
+/* ════════════════════════════════════════════════════════════
+   UPCOMING MATCHES — Bloque "Próximos partidos sin pronóstico"
+   ════════════════════════════════════════════════════════════ */
+
+.upcoming {
+  background: linear-gradient(135deg, #0d1424 0%, #0a0c14 60%, #0a060f 100%);
+  border: 1px solid rgba(246, 180, 14, 0.3);
+  border-radius: 16px;
+  padding: 24px 22px 22px;
+  margin: 0 auto 24px;
+  max-width: 640px;
+  position: relative;
+  overflow: hidden;
+}
+.upcoming::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #F6B40E 50%, transparent);
+}
+
+.upcoming__head {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.upcoming__eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: #F6B40E;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.upcoming__title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(18px, 3.2vw, 22px);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.2px;
+  line-height: 1.2;
+  margin: 0 0 6px;
+}
+.upcoming__sub {
+  font-size: 13px;
+  color: rgba(232, 223, 202, 0.6);
+  margin: 0;
+}
+
+.upcoming__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ─── Match row compacta ─── */
+.upcoming__match {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.25));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.upcoming__match--arg { border-color: rgba(116, 172, 223, 0.4); }
+.upcoming__match--saved {
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.08), rgba(0, 0, 0, 0.25));
+  border-color: rgba(34, 197, 94, 0.4);
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+}
+
+.upcoming__match-info {
+  text-align: center;
+}
+.upcoming__match--saved .upcoming__match-info { text-align: left; flex: 1; }
+
+.upcoming__match-teams {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+.upcoming__match--saved .upcoming__match-teams {
+  justify-content: flex-start;
+  font-size: 14px;
+}
+.upcoming__flag {
+  height: 18px;
+  width: auto;
+  border-radius: 2.5px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  flex-shrink: 0;
+  object-fit: cover;
+}
+.upcoming__flag-fallback { font-size: 16px; line-height: 1; }
+.upcoming__vs {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: rgba(246, 180, 14, 0.7);
+  text-transform: uppercase;
+  font-weight: 700;
+}
+.upcoming__match-date {
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(232, 223, 202, 0.55);
+  letter-spacing: 0.3px;
+}
+.upcoming__arg {
+  color: #74ACDF;
+  font-weight: 700;
+}
+.upcoming__saved {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  padding: 5px 12px;
+  border-radius: 99px;
+  flex-shrink: 0;
+}
+
+.upcoming__more {
+  text-align: center;
+  margin-top: 18px;
+}
+.upcoming__see-all {
+  background: transparent;
+  border: 1px solid rgba(246, 180, 14, 0.45);
+  color: #F6B40E;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 10px 22px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background .15s, transform .15s;
+}
+.upcoming__see-all:hover {
+  background: rgba(246, 180, 14, 0.08);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 480px) {
+  .upcoming { padding: 22px 16px 18px; }
+  .upcoming__match-teams { font-size: 13.5px; gap: 6px; }
+  .upcoming__flag { height: 16px; }
+}

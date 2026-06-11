@@ -13,6 +13,7 @@ import {
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
 import TodayMatchesBlock from '../components/TodayMatchesBlock'
+import UpcomingMatchesBlock from '../components/UpcomingMatchesBlock'
 import PromoMode from './PromoMode'
 import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
@@ -2278,7 +2279,7 @@ function LoggedInBanner({ player, onParticipa }) {
   )
 }
 
-function PublicHome({ player, onParticipa, matches, myPreds }) {
+function PublicHome({ player, onParticipa, matches, myPreds, onPredictionSaved }) {
   const [showMedalleroFull, setShowMedalleroFull] = useState(false)
   const [showShare, setShowShare] = useState(false)
 
@@ -2354,6 +2355,16 @@ function PublicHome({ player, onParticipa, matches, myPreds }) {
           myPreds={myPreds}
           player={player}
           onParticipa={onParticipa}
+          onPredictionSaved={onPredictionSaved}
+        />
+
+        {/* Próximos partidos sin pronóstico — carga in-place */}
+        <UpcomingMatchesBlock
+          matches={matches}
+          myPreds={myPreds}
+          player={player}
+          onPredictionSaved={onPredictionSaved}
+          onSeeAll={onParticipa}
         />
 
         {/* Profeta + Medallero — la información de valor para el que ya juega */}
@@ -2424,6 +2435,7 @@ function PublicHome({ player, onParticipa, matches, myPreds }) {
         myPreds={myPreds}
         player={player}
         onParticipa={onParticipa}
+        onPredictionSaved={onPredictionSaved}
       />
 
       {/* Premios — gancho monetario */}
@@ -3980,6 +3992,7 @@ export default function ProdeApp() {
                 onParticipa={() => player ? setTab('pronosticos') : setShowAuth(true)}
                 matches={matches}
                 myPreds={myPreds}
+                onPredictionSaved={(mid, h, a) => setMyPreds(prev => ({ ...prev, [mid]: { home: h, away: a } }))}
               />
             )}
             {tab === 'tabla' && (

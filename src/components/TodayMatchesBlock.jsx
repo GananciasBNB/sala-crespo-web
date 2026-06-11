@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from 'react'
 import { getMatchStats } from '../api/client'
+import InlinePredForm from './InlinePredForm'
 import './TodayMatchesBlock.css'
+import './InlinePredForm.css'
 
 // "HOY JUEGA" — bloque que aparece en el tab "Inicio" del Prode.
 // Muestra los partidos del día con estado (pre / starting / finished).
@@ -121,12 +123,13 @@ function PredScoreboard({ pred }) {
 }
 
 // ─── Card individual por match ──────────────────────────────────────────────
-function MatchRow({ match, myPred, player, onParticipa, stats }) {
+function MatchRow({ match, myPred, player, onPredictionSaved, stats }) {
   const state = matchState(match)
   const isArgentina = match.isArgentina
   const pts = (state === 'finished' && myPred)
     ? calcPoints(myPred, match.result, isArgentina)
     : null
+  const [showForm, setShowForm] = useState(false)
 
   const StateBadge = () => {
     if (state === 'finished') return <span className="today__state today__state--finished">FINAL</span>
@@ -164,12 +167,36 @@ function MatchRow({ match, myPred, player, onParticipa, stats }) {
       </div>
 
       {/* Pronóstico pre / starting */}
-      {player && state !== 'finished' && (
-        myPred ? <PredScoreboard pred={myPred} /> : (
-          <button className="today__pred-cta" onClick={onParticipa}>
-            ⚠ No cargaste pronóstico · Cargar ahora →
-          </button>
-        )
+      {player && state === 'pre' && (
+        myPred
+          ? <PredScoreboard pred={myPred} />
+          : showForm
+            ? (
+              <div className="today__pred-form">
+                <div className="today__pred-eye today__pred-eye--cta">★ Tu pronóstico</div>
+                <InlinePredForm
+                  matchId={match.id}
+                  token={player.token}
+                  onSaved={(mid, h, a) => {
+                    onPredictionSaved?.(mid, h, a)
+                    setShowForm(false)
+                  }}
+                  onCancel={() => setShowForm(false)}
+                />
+              </div>
+            )
+            : (
+              <button className="today__pred-cta" onClick={() => setShowForm(true)}>
+                ⚠ No cargaste pronóstico · Cargar ahora →
+              </button>
+            )
+      )}
+
+      {/* Partido empezando — sin form, solo info */}
+      {player && state === 'starting' && (
+        myPred
+          ? <PredScoreboard pred={myPred} />
+          : <div className="today__pred-locked">⏱ El partido ya empezó — pronóstico cerrado</div>
       )}
 
       {/* Verdict post-partido */}
@@ -214,7 +241,7 @@ function MatchRow({ match, myPred, player, onParticipa, stats }) {
 }
 
 // ─── Bloque principal ─────────────────────────────────────────────────────────
-export default function TodayMatchesBlock({ matches, myPreds, player, onParticipa }) {
+export default function TodayMatchesBlock({ matches, myPreds, player, onParticipa, onPredictionSaved }) {
   const todayAR = todayARDate()
   const todayMatches = useMemo(
     () => (matches || []).filter(m => matchARDate(m.date) === todayAR),
@@ -267,7 +294,7 @@ export default function TodayMatchesBlock({ matches, myPreds, player, onParticip
             match={m}
             myPred={myPreds?.[m.id] || null}
             player={player}
-            onParticipa={onParticipa}
+            onPredictionSaved={onPredictionSaved}
             stats={statsByMatch[m.id] || null}
           />
         ))}
