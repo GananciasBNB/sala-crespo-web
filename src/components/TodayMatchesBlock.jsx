@@ -3,17 +3,57 @@ import { getMatchStats } from '../api/client'
 import './TodayMatchesBlock.css'
 
 // "HOY JUEGA" — bloque que aparece en el tab "Inicio" del Prode.
-// Muestra los partidos del día con su estado (pre / live / finished).
-// - Antes del kickoff: kickoff time + mi pronóstico cargado o CTA para cargarlo.
-// - Durante el partido: cuenta como pre con etiqueta "Empezando" hasta que llega resultado.
-// - Terminado: resultado final + acierto/error + cuántos socios acertaron.
+// Muestra los partidos del día con estado (pre / starting / finished).
 // Si no hay partidos hoy (en TZ Argentina), no renderiza nada.
-//
-// Cero dependencias backend nuevas para el render base: usa matches y myPreds
-// que ya tiene el ProdeApp en su state. Solo llama /api/prode/match/:id/stats
-// para los partidos terminados (opcional, no rompe si falla).
 
 const WORLDCUP_DAY_1_ART = '2026-06-11'
+
+// Mapeo nombre del fixture → código ISO para flagcdn.com.
+// Copia local: las mismas claves están en ProdeApp.jsx. No vale la pena
+// centralizar todavía porque son las únicas 2 vistas que usan banderas reales.
+const NAME_TO_ISO = {
+  'México':'mx','Sudáfrica':'za','República de Corea':'kr','República Checa':'cz',
+  'Canadá':'ca','Bosnia y Herzegovina':'ba','Catar':'qa','Suiza':'ch',
+  'Brasil':'br','Marruecos':'ma','Haití':'ht','Escocia':'gb-sct',
+  'Estados Unidos':'us','Paraguay':'py','Australia':'au','Turquía':'tr',
+  'Alemania':'de','Curazao':'cw','Costa de Marfil':'ci','Ecuador':'ec',
+  'Países Bajos':'nl','Japón':'jp','Suecia':'se','Túnez':'tn',
+  'Bélgica':'be','Egipto':'eg','RI de Irán':'ir','Nueva Zelanda':'nz',
+  'España':'es','Cabo Verde':'cv','Arabia Saudí':'sa','Uruguay':'uy',
+  'Francia':'fr','Senegal':'sn','Irak':'iq','Noruega':'no',
+  'Argentina':'ar','Argelia':'dz','Austria':'at','Jordania':'jo',
+  'Portugal':'pt','RD Congo':'cd','Uzbekistán':'uz','Colombia':'co',
+  'Inglaterra':'gb-eng','Croacia':'hr','Ghana':'gh','Panamá':'pa',
+}
+
+// Nombres cortos para títulos donde los oficiales son largos
+const SHORT_NAMES = {
+  'República de Corea':   'Corea del Sur',
+  'República Checa':      'Chequia',
+  'Bosnia y Herzegovina': 'Bosnia',
+  'Estados Unidos':       'EE.UU.',
+  'Arabia Saudí':         'Arabia Saudí',
+  'RI de Irán':           'Irán',
+  'Costa de Marfil':      'Costa de Marfil',
+  'Países Bajos':         'Países Bajos',
+  'Nueva Zelanda':        'N. Zelanda',
+  'Cabo Verde':           'Cabo Verde',
+}
+const shortName = n => SHORT_NAMES[n] || n
+
+function FlagImg({ name, size = 28 }) {
+  const iso = NAME_TO_ISO[name]
+  if (!iso) return <span className="today__flag-fallback" title={name}>🏳</span>
+  return (
+    <img
+      src={`https://flagcdn.com/w80/${iso}.png`}
+      alt={name}
+      width={size}
+      className="today__flag"
+      onError={e => { e.currentTarget.style.opacity = '0.3' }}
+    />
+  )
+}
 
 // YYYY-MM-DD de "hoy" en TZ Argentina (no depende del TZ del cliente)
 function todayARDate() {
@@ -22,8 +62,6 @@ function todayARDate() {
     year: 'numeric', month: '2-digit', day: '2-digit',
   }).format(new Date())
 }
-
-// YYYY-MM-DD del kickoff del partido en TZ Argentina
 function matchARDate(iso) {
   if (!iso) return ''
   return new Intl.DateTimeFormat('en-CA', {
@@ -31,14 +69,12 @@ function matchARDate(iso) {
     year: 'numeric', month: '2-digit', day: '2-digit',
   }).format(new Date(iso))
 }
-
 function dayOfWorldCup() {
   const todayMs = new Date(todayARDate() + 'T12:00:00-03:00').getTime()
   const day1Ms  = new Date(WORLDCUP_DAY_1_ART + 'T12:00:00-03:00').getTime()
   const diff    = Math.floor((todayMs - day1Ms) / (24 * 60 * 60 * 1000))
   return diff + 1
 }
-
 function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString('es-AR', {
     timeZone: 'America/Argentina/Buenos_Aires',
@@ -47,7 +83,6 @@ function fmtTime(iso) {
 }
 
 // Match state: 'pre' | 'starting' | 'finished'
-// 'starting' = ya pasó el kickoff pero no llegó el resultado.
 function matchState(match) {
   if (match.result) return 'finished'
   const now = Date.now()
@@ -56,9 +91,8 @@ function matchState(match) {
   return 'pre'
 }
 
-// Calcula puntos de un pronóstico igual que el backend (server.js calcPoints).
-// 10 pts exacto, 5 pts ganador/empate correcto, 1 pt total de goles correcto.
-// Doble si es partido de Argentina.
+// Puntos según fórmula del backend: 10 exacto, 5 ganador correcto, 1 total
+// de goles. Doble en Argentina.
 function calcPoints(pred, result, isArgentina) {
   if (!pred || !result) return 0
   const { home: ph, away: pa } = pred
@@ -71,79 +105,90 @@ function calcPoints(pred, result, isArgentina) {
   return pts
 }
 
-// ─── Card individual por match ────────────────────────────────────────────────
+// ─── Mini scoreboard del pronóstico cargado ─────────────────────────────────
+function PredScoreboard({ pred }) {
+  return (
+    <div className="today__pred-board">
+      <div className="today__pred-eye">★ Tu pronóstico</div>
+      <div className="today__pred-row">
+        <span className="today__pred-cell">{pred.home}</span>
+        <span className="today__pred-dash">—</span>
+        <span className="today__pred-cell">{pred.away}</span>
+        <span className="today__pred-check">✓</span>
+      </div>
+    </div>
+  )
+}
+
+// ─── Card individual por match ──────────────────────────────────────────────
 function MatchRow({ match, myPred, player, onParticipa, stats }) {
   const state = matchState(match)
   const isArgentina = match.isArgentina
-
   const pts = (state === 'finished' && myPred)
     ? calcPoints(myPred, match.result, isArgentina)
     : null
 
+  const StateBadge = () => {
+    if (state === 'finished') return <span className="today__state today__state--finished">FINAL</span>
+    if (state === 'starting') return <span className="today__state today__state--live">● Empezando</span>
+    return <span className="today__state today__state--pre">{fmtTime(match.date)}</span>
+  }
+
   return (
     <div className={`today__match today__match--${state} ${isArgentina ? 'today__match--arg' : ''}`}>
-      <div className="today__match-time">
-        {state === 'finished'
-          ? <span className="today__match-state today__match-state--finished">✓ Final</span>
-          : state === 'starting'
-            ? <span className="today__match-state today__match-state--live">● Empezando</span>
-            : <span className="today__match-state today__match-state--pre">⏰ {fmtTime(match.date)}</span>}
+      <div className="today__match-head">
+        <StateBadge />
+        {isArgentina && <span className="today__arg-badge">★ ×2 Argentina</span>}
       </div>
 
       <div className="today__match-teams">
         <div className="today__team">
-          <span className="today__team-flag">{match.homeFlag || '🏳️'}</span>
-          <span className="today__team-name">{match.homeName}</span>
+          <FlagImg name={match.homeName} size={28} />
+          <span className="today__team-name">{shortName(match.homeName)}</span>
         </div>
 
         {state === 'finished' && match.result ? (
           <div className="today__match-score">
-            <span className="today__match-score-num">{match.result.home}</span>
-            <span className="today__match-score-sep">-</span>
-            <span className="today__match-score-num">{match.result.away}</span>
+            <span>{match.result.home}</span>
+            <em>-</em>
+            <span>{match.result.away}</span>
           </div>
         ) : (
-          <span className="today__match-vs">vs</span>
+          <span className="today__match-vs">VS</span>
         )}
 
         <div className="today__team today__team--right">
-          <span className="today__team-name">{match.awayName}</span>
-          <span className="today__team-flag">{match.awayFlag || '🏳️'}</span>
+          <span className="today__team-name">{shortName(match.awayName)}</span>
+          <FlagImg name={match.awayName} size={28} />
         </div>
       </div>
 
-      {isArgentina && (
-        <div className="today__arg-badge">★ Argentina · puntos dobles</div>
-      )}
-
-      {/* Pronóstico del jugador */}
+      {/* Pronóstico pre / starting */}
       {player && state !== 'finished' && (
-        myPred ? (
-          <div className="today__pred today__pred--ok">
-            Tu pronóstico: <strong>{myPred.home}-{myPred.away}</strong> ✓
-          </div>
-        ) : (
-          <button className="today__pred today__pred--cta" onClick={onParticipa}>
+        myPred ? <PredScoreboard pred={myPred} /> : (
+          <button className="today__pred-cta" onClick={onParticipa}>
             ⚠ No cargaste pronóstico · Cargar ahora →
           </button>
         )
       )}
 
-      {/* Resultado del jugador post-partido */}
+      {/* Verdict post-partido */}
       {player && state === 'finished' && (
         <div className={`today__verdict ${pts > 0 ? 'today__verdict--ok' : 'today__verdict--miss'}`}>
           {myPred ? (
             <>
-              <div className="today__verdict-line">
-                Pronosticaste <strong>{myPred.home}-{myPred.away}</strong>
+              <div className="today__verdict-pred">
+                Pronosticaste <strong>{myPred.home}—{myPred.away}</strong>
               </div>
-              <div className="today__verdict-pts">
-                {pts >= 10 && '🎯 ¡Exacto!'}
-                {pts === 5 && '✓ Acertaste el resultado'}
-                {pts === 10 && isArgentina && ' (×2 Argentina)'}
+              <div className="today__verdict-line">
+                {pts >= 10 && '🎯 ¡Acertaste el resultado exacto!'}
+                {pts === 5 && '✓ Acertaste el ganador'}
                 {pts >= 1 && pts < 5 && '· Total de goles correcto'}
                 {pts === 0 && '✗ No acertaste'}
-                <span className="today__verdict-pts-num">{pts > 0 ? `+${pts}` : '0'} pts</span>
+              </div>
+              <div className="today__verdict-pts">
+                {pts > 0 ? `+${pts}` : '0'}
+                <em>pts{isArgentina && pts > 0 ? ' ×2' : ''}</em>
               </div>
             </>
           ) : (
@@ -152,16 +197,16 @@ function MatchRow({ match, myPred, player, onParticipa, stats }) {
         </div>
       )}
 
-      {/* Stats del partido (post) */}
+      {/* Stats del partido */}
       {state === 'finished' && stats && stats.total > 0 && (
         <div className="today__stats">
           {stats.acceptedExact > 0 && (
-            <span className="today__stats-item">🎯 {stats.acceptedExact} acertaron exacto</span>
+            <span className="today__stats-item">🎯 {stats.acceptedExact} exacto</span>
           )}
           {stats.acceptedWinner > 0 && (
-            <span className="today__stats-item">✓ {stats.acceptedWinner} acertaron el resultado</span>
+            <span className="today__stats-item">✓ {stats.acceptedWinner} ganador</span>
           )}
-          <span className="today__stats-item today__stats-item--total">{stats.total} pronosticaron</span>
+          <span className="today__stats-item today__stats-item--total">{stats.total} jugaron</span>
         </div>
       )}
     </div>
@@ -176,7 +221,6 @@ export default function TodayMatchesBlock({ matches, myPreds, player, onParticip
     [matches, todayAR]
   )
 
-  // Fetch stats SOLO para los partidos terminados de hoy (no rompe si falla).
   const finishedMatchIds = useMemo(
     () => todayMatches.filter(m => !!m.result).map(m => m.id),
     [todayMatches]
@@ -188,9 +232,7 @@ export default function TodayMatchesBlock({ matches, myPreds, player, onParticip
     let cancelled = false
     Promise.all(
       finishedMatchIds.map(id =>
-        getMatchStats(id)
-          .then(s => ({ id, stats: s }))
-          .catch(() => ({ id, stats: null }))
+        getMatchStats(id).then(s => ({ id, stats: s })).catch(() => ({ id, stats: null }))
       )
     ).then(results => {
       if (cancelled) return
@@ -203,7 +245,6 @@ export default function TodayMatchesBlock({ matches, myPreds, player, onParticip
 
   if (todayMatches.length === 0) return null
 
-  // Ordenar por fecha
   const sorted = [...todayMatches].sort((a, b) => new Date(a.date) - new Date(b.date))
   const dayN = dayOfWorldCup()
 
