@@ -2409,14 +2409,8 @@ function PublicHome({ player, onParticipa, matches, myPreds, onPredictionSaved }
   // ─── LAYOUT NO LOGUEADO: hero comercial + premios + info para convencer ───────
   return (
     <div className="pub-home">
-      {/* Hero completo */}
+      {/* Hero completo — el video va al fondo de toda la página (.prode-page__bg-video) */}
       <div className="pub-hero">
-        {/* Video pelota al atardecer como fondo cinematográfico — graceful si el mp4 falta */}
-        <div className="pub-hero__video" aria-hidden="true">
-          <video autoPlay loop muted playsInline preload="auto">
-            <source src="/mundial-hero-pelota.mp4" type="video/mp4" />
-          </video>
-        </div>
         <div className="pub-hero__bg" />
         <div className="pub-hero__content">
           <div className="pub-hero__eyebrow">CRESPO, ENTRE RÍOS</div>
@@ -3934,6 +3928,15 @@ export default function ProdeApp() {
 
   return (
     <div className="prode-page">
+      {/* Video pelota al atardecer como fondo cinematográfico de toda la página.
+          Fixed para que no scrollee. Si el mp4 falta, los gradientes radiales
+          del .prode-page siguen dando profundidad. */}
+      <div className="prode-page__bg-video" aria-hidden="true">
+        <video autoPlay loop muted playsInline preload="auto">
+          <source src="/mundial-hero-pelota.mp4" type="video/mp4" />
+        </video>
+      </div>
+
       {/* Header */}
       <header className="prode-header">
         <div className="prode-header__inner">
