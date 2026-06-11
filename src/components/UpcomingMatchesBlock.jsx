@@ -113,26 +113,52 @@ function UpcomingRow({ match, player, onPredictionSaved }) {
 
 // ─── Bloque principal ──────────────────────────────────────────────────────
 export default function UpcomingMatchesBlock({ matches, myPreds, player, onPredictionSaved, onSeeAll }) {
-  const upcoming = useMemo(() => {
-    if (!player) return []
+  // Solo partidos de fase de grupos pueden pronosticarse "de verdad" — los
+  // de eliminatorias tienen homeDesc/awayDesc placeholder tipo "2º Grupo A"
+  // y no se conoce el equipo real hasta que terminan los grupos.
+  const { upcoming, hasGroupMatchesPending, allGroupsDone } = useMemo(() => {
+    if (!player) return { upcoming: [], hasGroupMatchesPending: false, allGroupsDone: false }
     const now = Date.now()
-    return (matches || [])
-      .filter(m => {
-        // Solo partidos futuros (kickoff > now)
-        if (new Date(m.date).getTime() <= now) return false
-        // Sin resultado
-        if (m.result) return false
-        // Sin pronóstico cargado todavía
-        if (myPreds?.[m.id]) return false
-        // Equipos definidos (no placeholder de knockouts)
-        if (!m.homeName || !m.awayName || m.homeName === 'Por definir' || m.awayName === 'Por definir') return false
-        return true
-      })
-      .sort((a, b) => new Date(a.date) - new Date(b.date))
-      .slice(0, LIMIT)
+    const candidates = (matches || []).filter(m => {
+      if (m.phase !== 'group') return false
+      if (new Date(m.date).getTime() <= now) return false
+      if (m.result) return false
+      if (!m.homeName || !m.awayName) return false
+      return true
+    })
+    const pending = candidates.filter(m => !myPreds?.[m.id])
+    return {
+      upcoming: pending.sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, LIMIT),
+      hasGroupMatchesPending: pending.length > 0,
+      // Todos los de grupos están pronosticados (o ya jugados) y NO quedan
+      // partidos de grupos en el futuro sin pronóstico
+      allGroupsDone: pending.length === 0 && candidates.length === 0,
+    }
   }, [matches, myPreds, player])
 
-  if (upcoming.length === 0) return null
+  // Si no hay player o no hay nada que mostrar y NO terminaron los grupos, no renderizamos
+  if (!player) return null
+  if (!hasGroupMatchesPending && !allGroupsDone) return null
+
+  // Cargaron todo: mensaje educativo en vez del listado
+  if (allGroupsDone) {
+    return (
+      <section className="upcoming upcoming--done">
+        <div className="upcoming__done">
+          <div className="upcoming__done-icon">🎉</div>
+          <h3 className="upcoming__done-title">¡Cargaste todos los partidos de grupos!</h3>
+          <p className="upcoming__done-sub">
+            Cuando terminen las eliminatorias, vas a poder cargar los octavos, cuartos y la final desde acá mismo.
+          </p>
+          {onSeeAll && (
+            <button className="upcoming__see-all" onClick={onSeeAll}>
+              Revisar todos mis pronósticos →
+            </button>
+          )}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="upcoming">

@@ -10,6 +10,16 @@ import './InlinePredForm.css'
 
 const WORLDCUP_DAY_1_ART = '2026-06-11'
 
+// Etiquetas de fase para el badge cuando NO es 'group'
+const PHASE_LABEL = {
+  round32: '16avos de Final',
+  round16: 'Octavos de Final',
+  quarter: 'Cuartos de Final',
+  semi:    'Semifinal',
+  third:   'Tercer Puesto',
+  final:   '🏆 Final',
+}
+
 // Mapeo nombre del fixture → código ISO para flagcdn.com.
 // Copia local: las mismas claves están en ProdeApp.jsx. No vale la pena
 // centralizar todavía porque son las únicas 2 vistas que usan banderas reales.
@@ -140,6 +150,9 @@ function MatchRow({ match, myPred, player, onPredictionSaved, stats }) {
   return (
     <div className={`today__match today__match--${state} ${isArgentina ? 'today__match--arg' : ''}`}>
       <div className="today__match-head">
+        {match.phase !== 'group' && PHASE_LABEL[match.phase] && (
+          <span className="today__phase-badge">{PHASE_LABEL[match.phase]}</span>
+        )}
         <StateBadge />
         {isArgentina && <span className="today__arg-badge">★ ×2 Argentina</span>}
       </div>

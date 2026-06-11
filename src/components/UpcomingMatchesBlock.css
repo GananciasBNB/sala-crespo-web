@@ -159,8 +159,55 @@
   transform: translateY(-1px);
 }
 
+/* Estado "ya cargaste todos los partidos de grupos" */
+.upcoming--done {
+  background: linear-gradient(135deg, #102a18 0%, #0a1a10 60%, #08120c 100%);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+.upcoming--done::before {
+  background: linear-gradient(90deg, transparent, #22c55e 50%, transparent);
+}
+.upcoming__done {
+  text-align: center;
+  padding: 8px 4px;
+}
+.upcoming__done-icon {
+  font-size: 42px;
+  line-height: 1;
+  margin-bottom: 14px;
+  filter: drop-shadow(0 4px 12px rgba(34, 197, 94, 0.4));
+}
+.upcoming__done-title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(20px, 3.4vw, 24px);
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.2px;
+  line-height: 1.2;
+  margin: 0 0 10px;
+}
+.upcoming__done-title em {
+  font-style: italic;
+  color: #86efac;
+}
+.upcoming__done-sub {
+  font-size: 13.5px;
+  color: rgba(232, 223, 202, 0.65);
+  line-height: 1.5;
+  margin: 0 auto 18px;
+  max-width: 360px;
+}
+.upcoming--done .upcoming__see-all {
+  border-color: rgba(34, 197, 94, 0.55);
+  color: #86efac;
+}
+.upcoming--done .upcoming__see-all:hover {
+  background: rgba(34, 197, 94, 0.1);
+}
+
 @media (max-width: 480px) {
   .upcoming { padding: 22px 16px 18px; }
   .upcoming__match-teams { font-size: 13.5px; gap: 6px; }
   .upcoming__flag { height: 16px; }
+  .upcoming__done-icon { font-size: 36px; }
 }

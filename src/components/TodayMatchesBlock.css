@@ -130,6 +130,20 @@
   padding: 4px 11px;
 }
 
+/* Badge de fase — aparece solo cuando NO es fase de grupos */
+.today__phase-badge {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #C41E3A, #9B1F1F);
+  border-radius: 99px;
+  padding: 4px 12px;
+  box-shadow: 0 2px 8px rgba(196, 30, 58, 0.4);
+}
+
 /* Teams row */
 .today__match-teams {
   display: grid;
