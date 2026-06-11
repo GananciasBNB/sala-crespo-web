@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from 'react'
 import { getMatchStats } from '../api/client'
 import InlinePredForm from './InlinePredForm'
+import { useLiveMatches } from '../hooks/useLiveMatches'
 import './TodayMatchesBlock.css'
 import './InlinePredForm.css'
 
@@ -133,7 +134,7 @@ function PredScoreboard({ pred }) {
 }
 
 // ─── Card individual por match ──────────────────────────────────────────────
-function MatchRow({ match, myPred, player, onPredictionSaved, stats }) {
+function MatchRow({ match, myPred, player, onPredictionSaved, stats, liveData }) {
   const state = matchState(match)
   const isArgentina = match.isArgentina
   const pts = (state === 'finished' && myPred)
@@ -143,6 +144,15 @@ function MatchRow({ match, myPred, player, onPredictionSaved, stats }) {
 
   const StateBadge = () => {
     if (state === 'finished') return <span className="today__state today__state--finished">FINAL</span>
+    if (state === 'starting' && liveData) {
+      // Marcador en vivo desde ESPN
+      return (
+        <span className="today__state today__state--livescore">
+          <span className="today__livedot" /> EN VIVO
+          {liveData.minute && <span className="today__livemin">{liveData.minute}</span>}
+        </span>
+      )
+    }
     if (state === 'starting') return <span className="today__state today__state--live">● Empezando</span>
     return <span className="today__state today__state--pre">{fmtTime(match.date)}</span>
   }
@@ -168,6 +178,12 @@ function MatchRow({ match, myPred, player, onPredictionSaved, stats }) {
             <span>{match.result.home}</span>
             <em>-</em>
             <span>{match.result.away}</span>
+          </div>
+        ) : liveData && (liveData.homeScore !== null || liveData.awayScore !== null) ? (
+          <div className="today__match-score today__match-score--live">
+            <span>{liveData.homeScore ?? 0}</span>
+            <em>-</em>
+            <span>{liveData.awayScore ?? 0}</span>
           </div>
         ) : (
           <span className="today__match-vs">VS</span>
@@ -283,6 +299,12 @@ export default function TodayMatchesBlock({ matches, myPreds, player, onParticip
     return () => { cancelled = true }
   }, [finishedMatchIds.join(',')])
 
+  // Solo pollear live cuando hay un partido en estado "starting" (ya pasó
+  // el kickoff pero no llegó el resultado final). No tiene sentido pollear
+  // si todos los partidos del día son pre o finished.
+  const hasStarting = todayMatches.some(m => matchState(m) === 'starting')
+  const { byAbbr: liveByAbbr } = useLiveMatches({ enabled: hasStarting, intervalMs: 60000 })
+
   if (todayMatches.length === 0) return null
 
   const sorted = [...todayMatches].sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -309,6 +331,7 @@ export default function TodayMatchesBlock({ matches, myPreds, player, onParticip
             player={player}
             onPredictionSaved={onPredictionSaved}
             stats={statsByMatch[m.id] || null}
+            liveData={liveByAbbr[`${m.home}-${m.away}`] || null}
           />
         ))}
       </div>

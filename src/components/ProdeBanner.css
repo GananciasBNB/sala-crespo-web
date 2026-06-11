@@ -124,3 +124,85 @@
   .prode-bar__text { font-size: 11px; }
   .prode-bar__badge { display: none; }
 }
+
+/* ─── Modo LIVE: marcador en vivo en el cintillo ─── */
+.prode-bar--live {
+  background: linear-gradient(90deg,
+    #0d0204 0%, #1e0508 15%,
+    #b00d28 40%, #b00d28 60%,
+    #1e0508 85%, #0d0204 100%);
+  border-bottom-color: rgba(255, 60, 90, 0.6);
+  box-shadow: 0 2px 24px rgba(255, 60, 90, 0.35);
+}
+.prode-bar__live-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  margin-right: 8px;
+  box-shadow: 0 0 10px #fff;
+  animation: prode-bar-pulse 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes prode-bar-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(1.4); }
+}
+.prode-bar__text--live {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #fff;
+}
+.prode-bar__text--live strong {
+  font-family: 'Cinzel', serif;
+  letter-spacing: 3px;
+  font-weight: 700;
+  color: #fff;
+}
+.prode-bar__live-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #fff;
+}
+.prode-bar__live-flag {
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.prode-bar__live-score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 24px;
+  letter-spacing: 2px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.45);
+  padding: 1px 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  line-height: 1.1;
+}
+.prode-bar__live-min {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #ffd2c4;
+  letter-spacing: 0.5px;
+  padding-left: 8px;
+  border-left: 1px solid rgba(255, 255, 255, 0.3);
+  margin-left: 4px;
+}
+
+@media (max-width: 600px) {
+  .prode-bar__text--live { font-size: 11px; gap: 6px; }
+  .prode-bar__live-team { font-size: 10.5px; letter-spacing: 1px; }
+  .prode-bar__live-flag { width: 14px; height: 11px; }
+  .prode-bar__live-score { font-size: 18px; padding: 0 8px; }
+  .prode-bar__live-min { font-size: 10px; padding-left: 6px; }
+}

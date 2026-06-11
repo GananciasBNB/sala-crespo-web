@@ -41,6 +41,10 @@ export const getUpcomingVote = (limit = 4) => api(`/api/prode/upcoming-vote?limi
 // Stats por partido — totales, votos, cuántos acertaron exacto/ganador si hay resultado
 export const getMatchStats = (matchId) => api(`/api/prode/match/${matchId}/stats`)
 
+// Marcador en vivo de los partidos del Mundial que ESPN reporta como in_progress.
+// Cache server-side de 30s — múltiples polls del cliente NO spammean ESPN.
+export const getLiveMatches = () => api('/api/prode/live')
+
 // Leaderboard público — feed para Top10Prode en la landing
 export const getLeaderboardPublic = () => api('/api/leaderboard?phase=all&audience=public')
 
