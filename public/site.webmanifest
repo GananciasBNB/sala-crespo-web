@@ -9,7 +9,7 @@
   "theme_color": "#9B1F1F",
   "background_color": "#0C0606",
   "display": "standalone",
-  "start_url": "/",
+  "start_url": "/prode",
   "scope": "/",
   "lang": "es-AR"
 }
