@@ -30,24 +30,10 @@
   font-size: 16px; /* base legible para 60+ */
   position: relative;
 }
-/* Grid dorado sutil estilo cancha aérea — uniforme en todo el viewport,
-   fijo al scroll. Coherente con el grid del hero de saladejuegoscrespo. */
-.prode-page::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(201, 168, 76, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(201, 168, 76, 0.04) 1px, transparent 1px);
-  background-size: 60px 60px;
-  /* Máscara radial: el grid se desvanece hacia los bordes para no parecer una jaula */
-  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, black 0%, transparent 100%);
-          mask-image: radial-gradient(ellipse 75% 65% at 50% 45%, black 0%, transparent 100%);
-}
-/* Contenido por encima del pattern */
-.prode-page > * { position: relative; z-index: 1; }
+/* Sin pattern de grid — los gradientes radiales del .prode-page ya dan la
+   sensación de profundidad. Probamos primero con cancha SVG (quedaba como
+   render bug) y después con grid dorado (quedaba como hoja cuadriculada).
+   Mejor decisión: dejar solo los gradientes y que el contenido respire. */
 
 /* ─── Header ──────────────────────────────────────────────────── */
 .prode-header {
