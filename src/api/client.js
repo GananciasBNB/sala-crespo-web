@@ -38,6 +38,9 @@ export const getMatches = () => api('/api/matches')
 // Resumen de votos de los próximos partidos — feed para VozDelBarrio en la landing
 export const getUpcomingVote = (limit = 4) => api(`/api/prode/upcoming-vote?limit=${limit}`)
 
+// Stats por partido — totales, votos, cuántos acertaron exacto/ganador si hay resultado
+export const getMatchStats = (matchId) => api(`/api/prode/match/${matchId}/stats`)
+
 // Leaderboard público — feed para Top10Prode en la landing
 export const getLeaderboardPublic = () => api('/api/leaderboard?phase=all&audience=public')
 

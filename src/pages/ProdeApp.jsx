@@ -12,6 +12,7 @@ import {
   uploadLeagueImage,
 } from '../api/client'
 import MundialCountdown from '../components/MundialCountdown'
+import TodayMatchesBlock from '../components/TodayMatchesBlock'
 import PromoMode from './PromoMode'
 import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
@@ -2277,7 +2278,7 @@ function LoggedInBanner({ player, onParticipa }) {
   )
 }
 
-function PublicHome({ player, onParticipa }) {
+function PublicHome({ player, onParticipa, matches, myPreds }) {
   const [showMedalleroFull, setShowMedalleroFull] = useState(false)
   const [showShare, setShowShare] = useState(false)
 
@@ -2347,6 +2348,14 @@ function PublicHome({ player, onParticipa }) {
       <div className="pub-home">
         <LoggedInBanner player={player} onParticipa={onParticipa} />
 
+        {/* HOY JUEGA — bloque que solo aparece si hay partidos hoy en TZ Argentina */}
+        <TodayMatchesBlock
+          matches={matches}
+          myPreds={myPreds}
+          player={player}
+          onParticipa={onParticipa}
+        />
+
         {/* Profeta + Medallero — la información de valor para el que ya juega */}
         <div className="medallero-section">
           <ChampionPickCard player={player} />
@@ -2408,6 +2417,14 @@ function PublicHome({ player, onParticipa }) {
           {['⚽','🌎','⚽','🌎','⚽'].map((e,i) => <span key={i} className={`pub-hero__ball pub-hero__ball--${i}`}>{e}</span>)}
         </div>
       </div>
+
+      {/* HOY JUEGA — también para visitantes, no muestra "mi pronóstico" pero da contexto del Mundial en marcha */}
+      <TodayMatchesBlock
+        matches={matches}
+        myPreds={myPreds}
+        player={player}
+        onParticipa={onParticipa}
+      />
 
       {/* Premios — gancho monetario */}
       <PrizeCards />
@@ -3961,6 +3978,8 @@ export default function ProdeApp() {
               <PublicHome
                 player={player}
                 onParticipa={() => player ? setTab('pronosticos') : setShowAuth(true)}
+                matches={matches}
+                myPreds={myPreds}
               />
             )}
             {tab === 'tabla' && (
