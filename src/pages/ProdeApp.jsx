@@ -16,6 +16,7 @@ import TodayMatchesBlock from '../components/TodayMatchesBlock'
 import UpcomingMatchesBlock from '../components/UpcomingMatchesBlock'
 import PushSubscribeBanner from '../components/PushSubscribeBanner'
 import ResultsTicker from '../components/ResultsTicker'
+import NotificationBell from '../components/NotificationBell'
 import PromoMode from './PromoMode'
 import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
@@ -3959,6 +3960,7 @@ export default function ProdeApp() {
           <div className="prode-header__right">
             {player ? (
               <>
+                <NotificationBell player={player} />
                 <span className="prode-header__player-name" style={{ display:'flex', alignItems:'center', gap:'8px' }}>
                   <PlayerAvatar mascotId={player.mascota} size={32} name={player.name} />
                   {player.name}

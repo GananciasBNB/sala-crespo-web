@@ -45,6 +45,12 @@ export const getMatchStats = (matchId) => api(`/api/prode/match/${matchId}/stats
 // Cache server-side de 30s — múltiples polls del cliente NO spammean ESPN.
 export const getLiveMatches = () => api('/api/prode/live')
 
+// ─── Notificaciones in-app (campanita) ────────────────────────────────────────
+export const getMyNotifications = (token) =>
+  api('/api/me/notifications', { headers: authHeaders(token) })
+export const markNotificationsRead = (token) =>
+  api('/api/me/notifications/read', { method: 'POST', headers: authHeaders(token) })
+
 // ─── Push notifications admin ────────────────────────────────────────────────
 export const adminPushStats = (token) =>
   api('/api/admin/push/stats', { headers: authHeaders(token) })
