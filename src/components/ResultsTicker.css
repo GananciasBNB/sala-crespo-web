@@ -1,0 +1,125 @@
+/* ════════════════════════════════════════════════════════════
+   RESULTS TICKER — cinta "bolsa de NY" con los partidos del día
+   ════════════════════════════════════════════════════════════ */
+
+.rtick {
+  overflow: hidden;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+
+.rtick__track {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  animation: rtick-scroll 60s linear infinite;
+  will-change: transform;
+}
+@keyframes rtick-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-33.333%); }
+}
+/* Pausa al pasar el mouse (desktop) para poder leer */
+.rtick:hover .rtick__track { animation-play-state: paused; }
+
+/* ─── Item ─── */
+.rtick__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.3px;
+  position: relative;
+}
+/* Separador entre items */
+.rtick__item::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 14px;
+  background: rgba(201, 168, 76, 0.25);
+}
+
+.rtick__flag {
+  width: 18px;
+  height: 13px;
+  border-radius: 2px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+}
+.rtick__abbr {
+  font-weight: 700;
+  color: #E8DFCA;
+  letter-spacing: 1px;
+}
+.rtick__score {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 1px;
+  color: #fff;
+  padding: 0 4px;
+}
+.rtick__item--final .rtick__score { color: #F6B40E; }
+.rtick__score--live { color: #ff8595; }
+.rtick__vs {
+  font-size: 10px;
+  color: #8B9BB4;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  padding: 0 4px;
+}
+
+/* Tags de estado */
+.rtick__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 99px;
+  margin-left: 2px;
+}
+.rtick__tag--ft {
+  background: rgba(246, 180, 14, 0.16);
+  color: #F6B40E;
+  border: 1px solid rgba(246, 180, 14, 0.4);
+}
+.rtick__tag--live {
+  background: rgba(255, 60, 90, 0.22);
+  color: #ff8595;
+  border: 1px solid rgba(255, 60, 90, 0.5);
+}
+.rtick__tag--time {
+  background: rgba(255, 255, 255, 0.06);
+  color: #C8D2E0;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.rtick__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff3b54;
+  box-shadow: 0 0 6px #ff3b54;
+  animation: rtick-pulse 1.2s ease-in-out infinite;
+}
+@keyframes rtick-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+@media (max-width: 600px) {
+  .rtick__item { padding: 5px 13px; font-size: 11px; gap: 5px; }
+  .rtick__score { font-size: 16px; }
+  .rtick__flag { width: 16px; height: 11px; }
+  .rtick__track { animation-duration: 45s; }
+}

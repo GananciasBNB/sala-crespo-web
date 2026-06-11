@@ -1,5 +1,7 @@
+import { useState } from 'react'
 import MundialCountdown from './MundialCountdown'
 import { useLiveMatches } from '../hooks/useLiveMatches'
+import ResultsTicker from './ResultsTicker'
 import './ProdeBanner.css'
 
 // Selección de selecciones del Mundial 2026 — ticker decorativo
@@ -29,23 +31,29 @@ export default function ProdeBanner() {
   // Polleamos siempre — el endpoint corta solo si no hay partidos en vivo
   const { matches: liveMatches } = useLiveMatches({ intervalMs: 60000 })
   const live = liveMatches?.[0] || null  // Mostramos solo uno en el cintillo
+  // Si hay partidos hoy, el ticker de resultados reemplaza la cinta de banderas
+  const [noMatchesToday, setNoMatchesToday] = useState(null) // null = no sé aún
 
   return (
     <div className={`prode-bar ${live ? 'prode-bar--live' : ''}`}>
-      {/* Fila de banderas animada */}
-      <div className="prode-bar__ticker" aria-hidden="true">
-        <div className="prode-bar__ticker-track">
-          {[...all, ...all].map((iso, i) => (
-            <img
-              key={i}
-              src={`https://flagcdn.com/w20/${iso}.png`}
-              alt=""
-              className="prode-bar__flag"
-              loading="eager"
-            />
-          ))}
+      {/* Cinta de resultados del día — devuelve null si no hay partidos hoy */}
+      <ResultsTicker onEmpty={setNoMatchesToday} />
+      {/* Banderas decorativas — solo los días sin partidos */}
+      {noMatchesToday === true && (
+        <div className="prode-bar__ticker" aria-hidden="true">
+          <div className="prode-bar__ticker-track">
+            {[...all, ...all].map((iso, i) => (
+              <img
+                key={i}
+                src={`https://flagcdn.com/w20/${iso}.png`}
+                alt=""
+                className="prode-bar__flag"
+                loading="eager"
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Contenido principal — cambia a marcador en vivo si hay partido jugándose */}
       <div className="prode-bar__content">

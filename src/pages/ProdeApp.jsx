@@ -15,6 +15,7 @@ import MundialCountdown from '../components/MundialCountdown'
 import TodayMatchesBlock from '../components/TodayMatchesBlock'
 import UpcomingMatchesBlock from '../components/UpcomingMatchesBlock'
 import PushSubscribeBanner from '../components/PushSubscribeBanner'
+import ResultsTicker from '../components/ResultsTicker'
 import PromoMode from './PromoMode'
 import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
@@ -3940,6 +3941,9 @@ export default function ProdeApp() {
           <source src="/mundial-hero-pelota.mp4" type="video/mp4" />
         </video>
       </div>
+
+      {/* Cinta de resultados del día — se oculta sola si no hay partidos hoy */}
+      <ResultsTicker />
 
       {/* Header */}
       <header className="prode-header">
