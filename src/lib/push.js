@@ -3,6 +3,11 @@
 
 const SW_PATH = '/sw.js'
 
+// Mismo BASE que api/client.js: en producción apunta al backend de Render
+// (VITE_API_URL). Sin esto, fetch('/api/...') iría al dominio de Vercel donde
+// el endpoint no existe → devuelve el index.html (no-JSON) → error genérico.
+const API_BASE = import.meta.env.VITE_API_URL || ''
+
 // Convierte la VAPID public key (base64url) a Uint8Array, que es lo que pide
 // el navegador. Sin esta conversión PushManager.subscribe falla con un error
 // confuso "applicationServerKey is not a valid type".
@@ -84,7 +89,7 @@ export async function getCurrentSubscription() {
 async function fetchVapidPublicKey() {
   const envKey = import.meta.env.VITE_VAPID_PUBLIC_KEY
   if (envKey) return envKey
-  const r = await fetch('/api/push/public-key')
+  const r = await fetch(`${API_BASE}/api/push/public-key`)
   if (!r.ok) throw new Error('No se pudo obtener la VAPID public key.')
   const j = await r.json()
   return j.publicKey
@@ -120,14 +125,17 @@ export async function subscribeToPush(token) {
 
   // 4. POST al backend
   const subJson = subscription.toJSON()
-  const r = await fetch('/api/push/subscribe', {
+  if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
+    throw new Error('El navegador no generó las claves de push (keys vacías). Probá cerrar y reabrir la app.')
+  }
+  const r = await fetch(`${API_BASE}/api/push/subscribe`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
     body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys }),
   })
   if (!r.ok) {
     const j = await r.json().catch(() => ({}))
-    throw new Error(j.error || 'No se pudo guardar la suscripción en el servidor.')
+    throw new Error(`${j.error || 'No se pudo guardar la suscripción'} (HTTP ${r.status})`)
   }
   return { ok: true, subscription }
 }
@@ -138,7 +146,7 @@ export async function unsubscribeFromPush(token) {
   const sub = await getCurrentSubscription()
   if (!sub) return { ok: true }
   try {
-    await fetch('/api/push/unsubscribe', {
+    await fetch(`${API_BASE}/api/push/unsubscribe`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ endpoint: sub.endpoint }),
