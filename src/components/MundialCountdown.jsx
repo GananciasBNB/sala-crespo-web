@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import './MundialCountdown.css'
 
-const KICKOFF = new Date('2026-06-11T20:00:00-03:00') // 11 jun 2026, 20hs ART
+// 11 jun 2026 16:00 hs ART — México vs Sudáfrica, partido inaugural en Azteca.
+// Cuando esta fecha ya pasó, el componente muestra "EL MUNDIAL ESTÁ EN MARCHA".
+const KICKOFF = new Date('2026-06-11T16:00:00-03:00')
 
 function calcDiff() {
   const now = new Date()
