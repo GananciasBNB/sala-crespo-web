@@ -5,6 +5,7 @@ import Landing from './pages/Landing'
 import ProdeApp from './pages/ProdeApp'
 import ChunkErrorBoundary from './components/ChunkErrorBoundary'
 import BusinessSchema from './components/BusinessSchema'
+import InstallAppBanner from './components/InstallAppBanner'
 
 // Lazy-load routes that ad traffic never lands on, so /, /prode and /torneo
 // don't pay the cost of downloading admin / tournament-landing / contacto code.
@@ -134,6 +135,8 @@ export default function App() {
       } />
       <Route path="*" element={<NotFound />} />
     </Routes>
+    {/* Banner global "Instalá la app" — aparece en todas las páginas si la PWA no está instalada */}
+    <InstallAppBanner />
     </>
   )
 }
