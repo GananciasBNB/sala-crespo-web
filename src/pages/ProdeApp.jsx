@@ -14,6 +14,7 @@ import {
 import MundialCountdown from '../components/MundialCountdown'
 import TodayMatchesBlock from '../components/TodayMatchesBlock'
 import UpcomingMatchesBlock from '../components/UpcomingMatchesBlock'
+import PushSubscribeBanner from '../components/PushSubscribeBanner'
 import PromoMode from './PromoMode'
 import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
@@ -2348,6 +2349,9 @@ function PublicHome({ player, onParticipa, matches, myPreds, onPredictionSaved }
     return (
       <div className="pub-home">
         <LoggedInBanner player={player} onParticipa={onParticipa} />
+
+        {/* Activar notificaciones — solo visible si el browser soporta + no está dismissed */}
+        <PushSubscribeBanner player={player} />
 
         {/* HOY JUEGA — bloque que solo aparece si hay partidos hoy en TZ Argentina */}
         <TodayMatchesBlock

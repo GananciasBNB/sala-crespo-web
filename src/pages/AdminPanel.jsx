@@ -20,6 +20,7 @@ import {
   adminLoyaltyPending, adminLoyaltyDeliver, adminLoyaltyCancel,
   adminDashboardStats, adminAnalyticsSnapshot,
   adminSaveAnalyticsSnapshot, adminListAnalyticsSnapshots, adminDeleteAnalyticsSnapshot, adminCompareAnalyticsSnapshots,
+  adminPushStats, adminPushBroadcast,
 } from '../api/client'
 import './AdminPanel.css'
 
@@ -3926,6 +3927,114 @@ function PromoTicketsAdmin({ token, toast }) {
   )
 }
 
+// ─── Push broadcast manual a TODOS los suscritos ────────────────────────────
+// Una sola plantilla simple: título + mensaje + URL opcional. Confirmación
+// obligatoria antes de enviar.
+function PushBroadcastAdmin({ token, toast }) {
+  const [stats, setStats] = useState(null)
+  const [title, setTitle] = useState('')
+  const [body, setBody] = useState('')
+  const [url, setUrl] = useState('/')
+  const [busy, setBusy] = useState(false)
+  const [lastResult, setLastResult] = useState(null)
+
+  async function loadStats() {
+    try {
+      const s = await adminPushStats(token)
+      setStats(s)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  useEffect(() => { loadStats() }, [])
+
+  async function handleSend() {
+    if (busy) return
+    if (!title.trim() || !body.trim()) {
+      toast.show('Faltan título y mensaje', 'err')
+      return
+    }
+    const total = stats?.n || 0
+    const players = stats?.players || 0
+    if (!confirm(`Enviar push a ${total} dispositivos (${players} jugadores)?\n\nTítulo: ${title}\n\n${body}`)) return
+
+    setBusy(true)
+    try {
+      const r = await adminPushBroadcast(token, { title: title.trim(), body: body.trim(), url: url.trim() || '/' })
+      setLastResult(r)
+      toast.show(`✓ Enviadas: ${r.sent} · Fallaron: ${r.failed}`, 'ok')
+      setTitle(''); setBody(''); setUrl('/')
+      await loadStats()
+    } catch (err) {
+      toast.show(err.message, 'err')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="ap-section">
+      <div className="ap-block">
+        <h3 className="ap-block__title">🔔 Enviar notificación push</h3>
+
+        {stats && (
+          <div style={{ marginBottom: 18, padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid #2a3142', borderRadius: 10, fontSize: 13.5 }}>
+            <strong>Suscriptos:</strong> {stats.n} dispositivos de {stats.players} jugadores
+            {!stats.ready && <span style={{ color: '#fb6e8a', marginLeft: 12 }}>· ⚠ VAPID keys no configuradas en el server</span>}
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gap: 12, maxWidth: 600 }}>
+          <label style={{ fontSize: 12, color: '#C9A84C', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700 }}>
+            Título (máx. 100)
+            <input
+              type="text" maxLength={100} value={title}
+              onChange={e => setTitle(e.target.value)}
+              placeholder="🎰 Esta noche torneo de slots"
+              style={{ display: 'block', width: '100%', marginTop: 4, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 15 }}
+            />
+          </label>
+          <label style={{ fontSize: 12, color: '#C9A84C', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700 }}>
+            Mensaje (máx. 250)
+            <textarea
+              maxLength={250} value={body} rows={3}
+              onChange={e => setBody(e.target.value)}
+              placeholder="22hs, premios por $200.000. Inscripción gratis."
+              style={{ display: 'block', width: '100%', marginTop: 4, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 14, resize: 'vertical' }}
+            />
+          </label>
+          <label style={{ fontSize: 12, color: '#C9A84C', letterSpacing: 1.5, textTransform: 'uppercase', fontWeight: 700 }}>
+            URL al hacer click
+            <input
+              type="text" value={url}
+              onChange={e => setUrl(e.target.value)}
+              placeholder="/"
+              style={{ display: 'block', width: '100%', marginTop: 4, padding: '10px 14px', borderRadius: 8, border: '1px solid #2a3142', background: 'rgba(0,0,0,0.3)', color: '#fff', fontSize: 14 }}
+            />
+          </label>
+          <button
+            onClick={handleSend} disabled={busy || !stats?.ready}
+            style={{
+              padding: '14px 28px', border: 'none', borderRadius: 10,
+              background: 'linear-gradient(135deg, #C9A84C, #F0D275)', color: '#0a0612',
+              fontFamily: "'Cinzel', serif", fontSize: 13, letterSpacing: 3, textTransform: 'uppercase', fontWeight: 700,
+              cursor: busy ? 'wait' : 'pointer', opacity: busy ? 0.6 : 1,
+              boxShadow: '0 6px 18px rgba(201,168,76,0.35)',
+              alignSelf: 'flex-start',
+            }}
+          >
+            {busy ? 'Enviando…' : 'Enviar a todos →'}
+          </button>
+          {lastResult && (
+            <div style={{ marginTop: 8, padding: '10px 14px', background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: 8, fontSize: 13, color: '#86efac' }}>
+              Última: enviadas {lastResult.sent}, fallaron {lastResult.failed} de {lastResult.total} totales
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function EmailBlastAdmin({ token, toast }) {
   const [template, setTemplate] = useState('promo')
   const [scope, setScope]       = useState('all')
@@ -4493,6 +4602,7 @@ export default function AdminPanel() {
     { id: 'shows',     label: '🎤 Shows' },
     { id: 'contenido', label: '📝 Contenido' },
     ...(admin?.role === 'superadmin' ? [{ id: 'email',  label: '📧 Email' }] : []),
+    ...(admin?.role === 'superadmin' ? [{ id: 'push',   label: '🔔 Push' }] : []),
     ...(admin?.role === 'superadmin' ? [{ id: 'promo',  label: '🎁 Promo Tickets' }] : []),
     { id: 'club',     label: '★ Sala Crespo Club' },
     ...(admin?.role === 'superadmin' ? [{ id: 'admins', label: '👤 Admins' }] : []),
@@ -4550,6 +4660,7 @@ export default function AdminPanel() {
         {tab === 'shows'     && <ShowsAdmin    token={token} toast={toast} />}
         {tab === 'contenido' && <ContentAdmin  token={token} toast={toast} />}
         {tab === 'email'     && <EmailBlastAdmin token={token} toast={toast} />}
+        {tab === 'push'      && <PushBroadcastAdmin token={token} toast={toast} />}
         {tab === 'promo'     && <PromoTicketsAdmin token={token} toast={toast} />}
         {tab === 'club'      && <ClubAdmin     token={token} toast={toast} />}
         {tab === 'admins'    && <AdminsAdmin   token={token} currentAdmin={admin} toast={toast} />}

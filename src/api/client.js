@@ -45,6 +45,16 @@ export const getMatchStats = (matchId) => api(`/api/prode/match/${matchId}/stats
 // Cache server-side de 30s — múltiples polls del cliente NO spammean ESPN.
 export const getLiveMatches = () => api('/api/prode/live')
 
+// ─── Push notifications admin ────────────────────────────────────────────────
+export const adminPushStats = (token) =>
+  api('/api/admin/push/stats', { headers: authHeaders(token) })
+export const adminPushBroadcast = (token, { title, body, url }) =>
+  api('/api/admin/push/broadcast', {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify({ title, body, url }),
+  })
+
 // Leaderboard público — feed para Top10Prode en la landing
 export const getLeaderboardPublic = () => api('/api/leaderboard?phase=all&audience=public')
 
