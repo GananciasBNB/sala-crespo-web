@@ -2411,6 +2411,12 @@ function PublicHome({ player, onParticipa, matches, myPreds, onPredictionSaved }
     <div className="pub-home">
       {/* Hero completo */}
       <div className="pub-hero">
+        {/* Video pelota al atardecer como fondo cinematográfico — graceful si el mp4 falta */}
+        <div className="pub-hero__video" aria-hidden="true">
+          <video autoPlay loop muted playsInline preload="auto">
+            <source src="/mundial-hero-pelota.mp4" type="video/mp4" />
+          </video>
+        </div>
         <div className="pub-hero__bg" />
         <div className="pub-hero__content">
           <div className="pub-hero__eyebrow">CRESPO, ENTRE RÍOS</div>
