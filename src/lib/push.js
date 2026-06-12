@@ -97,9 +97,10 @@ async function fetchVapidPublicKey() {
 
 // Flujo completo: pedir permiso → registrar SW → suscribirse → enviar al backend.
 // Retorna { ok: true, subscription } o tira error con mensaje legible.
+// token es OPCIONAL: si hay, la subscription se asocia al jugador; si no,
+// queda anónima (recibe avisos generales: resultados, promos).
 export async function subscribeToPush(token) {
   if (!isPushSupported()) throw new Error('Tu navegador no soporta notificaciones.')
-  if (!token) throw new Error('Tenés que estar logueado para activar notificaciones.')
 
   // 1. Permiso
   const perm = await Notification.requestPermission()
@@ -128,9 +129,11 @@ export async function subscribeToPush(token) {
   if (!subJson.endpoint || !subJson.keys?.p256dh || !subJson.keys?.auth) {
     throw new Error('El navegador no generó las claves de push (keys vacías). Probá cerrar y reabrir la app.')
   }
+  const headers = { 'Content-Type': 'application/json' }
+  if (token) headers.Authorization = `Bearer ${token}` // sin token = anónimo
   const r = await fetch(`${API_BASE}/api/push/subscribe`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    headers,
     body: JSON.stringify({ endpoint: subJson.endpoint, keys: subJson.keys }),
   })
   if (!r.ok) {
