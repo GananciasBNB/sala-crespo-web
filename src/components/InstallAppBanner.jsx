@@ -91,6 +91,9 @@ export default function InstallAppBanner() {
 
   // iPhone sin la app instalada: copy específico que anticipa "instalar"
   const iphone = needsIOSInstall()
+  // ¿Ya está corriendo como app instalada? Entonces NO mencionamos instalar,
+  // solo activar notificaciones.
+  const installed = isStandalone()
 
   if (state === 'success') {
     return (
@@ -109,7 +112,12 @@ export default function InstallAppBanner() {
       <div className="sub-banner">
         <div className="sub-banner__icon">{iphone ? '📲' : '🔔'}</div>
         <div className="sub-banner__text">
-          {iphone ? (
+          {installed ? (
+            <>
+              <strong>Activá las notificaciones</strong>
+              <span>Enterate de promos exclusivas, shows y resultados del Mundial al instante.</span>
+            </>
+          ) : iphone ? (
             <>
               <strong>Instalá Sala Crespo en tu iPhone</strong>
               <span>Agregala a tu inicio y recibí promos exclusivas, shows y resultados. Te enseñamos cómo.</span>
