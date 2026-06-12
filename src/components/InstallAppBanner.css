@@ -235,6 +235,75 @@
   vertical-align: middle;
   margin: 0 3px;
 }
+
+/* Cuerpo del paso (texto + diagrama) */
+.install-modal__step-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+
+/* Diagrama del botón Compartir de Safari */
+.install-modal__demo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(10, 132, 255, 0.08);
+  border: 1px solid rgba(10, 132, 255, 0.3);
+  border-radius: 10px;
+  padding: 8px 12px;
+  align-self: flex-start;
+}
+.install-modal__share-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(10, 132, 255, 0.12);
+  border: 1px solid rgba(10, 132, 255, 0.4);
+  border-radius: 9px;
+  flex-shrink: 0;
+  animation: demo-pulse 2s ease-in-out infinite;
+}
+@keyframes demo-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(10, 132, 255, 0.4); }
+  50% { box-shadow: 0 0 0 6px rgba(10, 132, 255, 0); }
+}
+.install-modal__demo-label {
+  font-size: 12px;
+  color: #5ab0ff;
+  font-weight: 600;
+}
+
+/* Diagrama de la opción "Agregar a inicio" del menú de iOS */
+.install-modal__menu-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 10px 14px;
+  align-self: stretch;
+  justify-content: space-between;
+}
+.install-modal__menu-text {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+  flex: 1;
+}
+.install-modal__menu-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  flex-shrink: 0;
+  order: 2;
+}
 .install-modal__ok {
   width: 100%;
   padding: 14px;

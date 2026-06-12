@@ -89,6 +89,9 @@ export default function InstallAppBanner() {
 
   if (state === 'hidden') return null
 
+  // iPhone sin la app instalada: copy específico que anticipa "instalar"
+  const iphone = needsIOSInstall()
+
   if (state === 'success') {
     return (
       <div className="sub-banner sub-banner--success">
@@ -104,14 +107,23 @@ export default function InstallAppBanner() {
   return (
     <>
       <div className="sub-banner">
-        <div className="sub-banner__icon">🔔</div>
+        <div className="sub-banner__icon">{iphone ? '📲' : '🔔'}</div>
         <div className="sub-banner__text">
-          <strong>Sumate y no te pierdas nada</strong>
-          <span>Instalá la app y activá notificaciones: promos exclusivas, shows y resultados del Mundial.</span>
+          {iphone ? (
+            <>
+              <strong>Instalá Sala Crespo en tu iPhone</strong>
+              <span>Agregala a tu inicio y recibí promos exclusivas, shows y resultados. Te enseñamos cómo.</span>
+            </>
+          ) : (
+            <>
+              <strong>Sumate y no te pierdas nada</strong>
+              <span>Instalá la app y activá notificaciones: promos exclusivas, shows y resultados del Mundial.</span>
+            </>
+          )}
           {err && <span className="sub-banner__err">{err}</span>}
         </div>
         <button className="sub-banner__cta" onClick={handleActivate} disabled={state === 'busy'}>
-          {state === 'busy' ? 'Activando…' : (deferredPrompt ? 'Sumarme →' : 'Activar 🔔')}
+          {state === 'busy' ? 'Activando…' : iphone ? 'Cómo instalar →' : (deferredPrompt ? 'Sumarme →' : 'Activar 🔔')}
         </button>
         <button className="sub-banner__close" onClick={dismiss} aria-label="Cerrar">×</button>
       </div>
@@ -121,26 +133,51 @@ export default function InstallAppBanner() {
           <div className="install-modal__card" onClick={e => e.stopPropagation()}>
             <button className="install-modal__close" onClick={() => setShowIOSModal(false)} aria-label="Cerrar">×</button>
             <div className="install-modal__icon">📲</div>
-            <h3 className="install-modal__title">Activá las notificaciones en tu iPhone</h3>
-            <p className="install-modal__sub">En iPhone, primero hay que agregar Sala Crespo a tu inicio:</p>
+            <h3 className="install-modal__title">Instalá Sala Crespo en tu iPhone</h3>
+            <p className="install-modal__sub">Es gratis y rápido. Seguí estos 3 pasos:</p>
+
             <ol className="install-modal__steps">
               <li>
                 <span className="install-modal__num">1</span>
-                <span>Tocá <strong>Compartir</strong> <span className="install-modal__share">􀈂</span> (abajo, centro de Safari)</span>
+                <div className="install-modal__step-body">
+                  <span>Tocá el botón <strong>Compartir</strong> en la barra de abajo de Safari</span>
+                  {/* Diagrama del botón Compartir de Safari */}
+                  <div className="install-modal__demo">
+                    <div className="install-modal__share-btn">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
+                        <path d="M12 16V4" />
+                        <path d="M8 8l4-4 4 4" />
+                        <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+                      </svg>
+                    </div>
+                    <span className="install-modal__demo-label">Botón Compartir</span>
+                  </div>
+                </div>
               </li>
               <li>
                 <span className="install-modal__num">2</span>
-                <span>Elegí <strong>«Agregar a inicio»</strong></span>
+                <div className="install-modal__step-body">
+                  <span>Bajá y elegí <strong>«Agregar a inicio»</strong></span>
+                  {/* Diagrama de la opción Agregar a inicio */}
+                  <div className="install-modal__menu-row">
+                    <div className="install-modal__menu-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#E8DFCA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                        <rect x="3" y="3" width="18" height="18" rx="4" />
+                        <path d="M12 8v8M8 12h8" />
+                      </svg>
+                    </div>
+                    <span className="install-modal__menu-text">Agregar a inicio</span>
+                  </div>
+                </div>
               </li>
               <li>
                 <span className="install-modal__num">3</span>
-                <span>Abrí <strong>Sala Crespo</strong> desde el ícono nuevo</span>
-              </li>
-              <li>
-                <span className="install-modal__num">4</span>
-                <span>Tocá <strong>«Activar 🔔»</strong> y listo</span>
+                <div className="install-modal__step-body">
+                  <span>Abrí <strong>Sala Crespo</strong> desde el ícono nuevo y activá las notificaciones 🔔</span>
+                </div>
               </li>
             </ol>
+
             <button className="install-modal__ok" onClick={() => setShowIOSModal(false)}>Entendido</button>
           </div>
         </div>
