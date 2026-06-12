@@ -129,49 +129,58 @@ export default function InstallAppBanner() {
       </div>
 
       {showIOSModal && (
-        <div className="install-modal" onClick={() => setShowIOSModal(false)}>
+        <div className="install-modal install-modal--top" onClick={() => setShowIOSModal(false)}>
           <div className="install-modal__card" onClick={e => e.stopPropagation()}>
             <button className="install-modal__close" onClick={() => setShowIOSModal(false)} aria-label="Cerrar">×</button>
             <div className="install-modal__icon">📲</div>
             <h3 className="install-modal__title">Instalá Sala Crespo en tu iPhone</h3>
-            <p className="install-modal__sub">Es gratis y rápido. Seguí estos 3 pasos:</p>
+            <p className="install-modal__sub">Seguí los pasos sin cerrar esta ventana 👇</p>
 
             <ol className="install-modal__steps">
               <li>
                 <span className="install-modal__num">1</span>
                 <div className="install-modal__step-body">
-                  <span>Tocá el botón <strong>Compartir</strong> en la barra de abajo de Safari</span>
-                  {/* Diagrama del botón Compartir de Safari */}
+                  <span>Tocá los <strong>3 puntos</strong> abajo a la derecha de Safari</span>
                   <div className="install-modal__demo">
-                    <div className="install-modal__share-btn">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="26" height="26">
-                        <path d="M12 16V4" />
-                        <path d="M8 8l4-4 4 4" />
-                        <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
-                      </svg>
+                    <div className="install-modal__share-btn install-modal__share-btn--dots">
+                      <span /><span /><span />
                     </div>
-                    <span className="install-modal__demo-label">Botón Compartir</span>
+                    <span className="install-modal__demo-label">abajo a la derecha ↘</span>
                   </div>
                 </div>
               </li>
               <li>
                 <span className="install-modal__num">2</span>
                 <div className="install-modal__step-body">
-                  <span>Bajá y elegí <strong>«Agregar a inicio»</strong></span>
-                  {/* Diagrama de la opción Agregar a inicio */}
+                  <span>En el menú, tocá <strong>Compartir</strong></span>
                   <div className="install-modal__menu-row">
+                    <span className="install-modal__menu-text">Compartir</span>
+                    <div className="install-modal__menu-icon">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="#0a84ff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
+                        <path d="M12 16V4" /><path d="M8 8l4-4 4 4" />
+                        <path d="M5 12v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              <li>
+                <span className="install-modal__num">3</span>
+                <div className="install-modal__step-body">
+                  <span>Bajá, tocá <strong>«Ver más»</strong> si hace falta, y elegí <strong>«Agregar a inicio»</strong></span>
+                  <div className="install-modal__menu-row">
+                    <span className="install-modal__menu-text">Agregar a inicio</span>
                     <div className="install-modal__menu-icon">
                       <svg viewBox="0 0 24 24" fill="none" stroke="#E8DFCA" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
                         <rect x="3" y="3" width="18" height="18" rx="4" />
                         <path d="M12 8v8M8 12h8" />
                       </svg>
                     </div>
-                    <span className="install-modal__menu-text">Agregar a inicio</span>
                   </div>
                 </div>
               </li>
               <li>
-                <span className="install-modal__num">3</span>
+                <span className="install-modal__num">4</span>
                 <div className="install-modal__step-body">
                   <span>Abrí <strong>Sala Crespo</strong> desde el ícono nuevo y activá las notificaciones 🔔</span>
                 </div>

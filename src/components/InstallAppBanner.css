@@ -141,6 +141,14 @@
   padding: 20px;
   animation: install-fade 0.25s ease;
 }
+/* Variante "arriba": el modal se ancla arriba para no tapar la barra de
+   Safari de abajo. Así el usuario puede tocar los 3 puntos / Compartir
+   mientras lee los pasos (el modal no se cierra al interactuar con Safari). */
+.install-modal--top {
+  place-items: start center;
+  padding-top: max(16px, env(safe-area-inset-top, 16px));
+  background: rgba(0, 0, 0, 0.55);
+}
 @keyframes install-fade { from { opacity: 0; } to { opacity: 1; } }
 
 .install-modal__card {
@@ -265,6 +273,21 @@
   border-radius: 9px;
   flex-shrink: 0;
   animation: demo-pulse 2s ease-in-out infinite;
+}
+/* Botón de 3 puntos (•••) de Safari */
+.install-modal__share-btn--dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.install-modal__share-btn--dots span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #C8D2E0;
 }
 @keyframes demo-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(10, 132, 255, 0.4); }
