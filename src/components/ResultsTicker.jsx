@@ -74,7 +74,7 @@ function TickerItem({ m, live }) {
   } else {
     cls += ' rtick__item--pre'
     scoreEl = <span className="rtick__vs">vs</span>
-    statusEl = <span className="rtick__tag rtick__tag--time">{fmtTime(m.date)}</span>
+    statusEl = <span className="rtick__tag rtick__tag--time">PRONTO</span>
   }
 
   const homeFlag = flagUrl(m.homeName)
@@ -82,6 +82,7 @@ function TickerItem({ m, live }) {
 
   return (
     <span className={cls}>
+      <span className="rtick__hour">{fmtTime(m.date)}</span>
       {homeFlag && <img src={homeFlag} alt="" className="rtick__flag" loading="eager" />}
       <span className="rtick__abbr">{home}</span>
       {scoreEl}
@@ -114,15 +115,25 @@ export default function ResultsTicker({ onEmpty }) {
 
   if (todayMatches.length === 0) return null
 
+  // ¿Hay algún partido en vivo ahora mismo? (para el label)
+  const anyLive = todayMatches.some(m => liveByAbbr[`${m.home}-${m.away}`]?.status === 'in_progress')
+
   // Duplicamos la lista para que el scroll sea infinito y continuo
   const loop = [...todayMatches, ...todayMatches, ...todayMatches]
 
   return (
-    <div className="rtick" aria-label="Resultados de hoy">
-      <div className="rtick__track">
-        {loop.map((m, i) => (
-          <TickerItem key={`${m.id}-${i}`} m={m} live={liveByAbbr[`${m.home}-${m.away}`] || null} />
-        ))}
+    <div className="rtick" aria-label="Partidos de hoy">
+      {/* Label fijo a la izquierda — no scrollea, indica que son los de HOY */}
+      <div className={`rtick__label ${anyLive ? 'rtick__label--live' : ''}`}>
+        <span className="rtick__label-dot" />
+        {anyLive ? 'EN VIVO' : 'HOY'}
+      </div>
+      <div className="rtick__viewport">
+        <div className="rtick__track">
+          {loop.map((m, i) => (
+            <TickerItem key={`${m.id}-${i}`} m={m} live={liveByAbbr[`${m.home}-${m.away}`] || null} />
+          ))}
+        </div>
       </div>
     </div>
   )

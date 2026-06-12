@@ -3,11 +3,53 @@
    ════════════════════════════════════════════════════════════ */
 
 .rtick {
-  overflow: hidden;
+  display: flex;
+  align-items: stretch;
   width: 100%;
   background: rgba(0, 0, 0, 0.3);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  overflow: hidden;
+}
+
+/* Label fijo a la izquierda — no scrollea */
+.rtick__label {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 14px;
+  background: linear-gradient(135deg, #C9A84C, #F0D275);
+  color: #0a0612;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  text-transform: uppercase;
+  z-index: 2;
+  box-shadow: 4px 0 12px rgba(0, 0, 0, 0.4);
+}
+.rtick__label--live {
+  background: linear-gradient(135deg, #ff3b54, #C41E3A);
+  color: #fff;
+}
+.rtick__label-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0a0612;
+}
+.rtick__label--live .rtick__label-dot {
+  background: #fff;
+  box-shadow: 0 0 6px #fff;
+  animation: rtick-pulse 1.2s ease-in-out infinite;
+}
+
+/* Viewport scrolleable a la derecha del label */
+.rtick__viewport {
+  flex: 1;
+  overflow: hidden;
+  min-width: 0;
+  -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
+          mask-image: linear-gradient(90deg, #000 85%, transparent);
 }
 
 .rtick__track {
@@ -45,6 +87,15 @@
   width: 1px;
   height: 14px;
   background: rgba(201, 168, 76, 0.25);
+}
+
+/* Hora del kickoff al inicio de cada item */
+.rtick__hour {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: #8B9BB4;
+  letter-spacing: 0.5px;
+  margin-right: 4px;
 }
 
 .rtick__flag {
