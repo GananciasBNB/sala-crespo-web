@@ -30,7 +30,10 @@ export default function ProdeBanner() {
   const all = [...FLAGS, ...FLAGS]
   // Polleamos siempre — el endpoint corta solo si no hay partidos en vivo
   const { matches: liveMatches } = useLiveMatches({ intervalMs: 60000 })
-  const live = liveMatches?.[0] || null  // Mostramos solo uno en el cintillo
+  // SOLO un partido realmente en juego va al cintillo "EN VIVO". El endpoint
+  // también devuelve los recién terminados (para el gap del HOY JUEGA), pero
+  // esos NO deben aparecer como "EN VIVO" — el ticker ya los muestra con FT.
+  const live = liveMatches?.find(m => m.status === 'in_progress') || null
   // Si hay partidos hoy, el ticker de resultados reemplaza la cinta de banderas
   const [noMatchesToday, setNoMatchesToday] = useState(null) // null = no sé aún
 
