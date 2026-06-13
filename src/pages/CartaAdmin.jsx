@@ -5,6 +5,7 @@ import {
   adminCreateMenuItem, adminUpdateMenuItem, adminDeleteMenuItem, adminReorderMenuItems, adminMoveMenuItem,
   adminMenuBulkPrice, adminMenuBatchPrices, adminMenuSetCost, adminMenuPriceHistory,
   adminUploadImage, morphiPending, morphiMarkAllSynced,
+  adminMenuSnapshots, adminMenuSnapshotCreate, adminMenuSnapshotRestore, adminMenuSnapshotDelete,
 } from '../api/client'
 import html2canvas from 'html2canvas-pro'
 import './CartaAdmin.css'
@@ -556,6 +557,7 @@ function PricesView({ menu, token, flash, reload }) {
   const [saving, setSaving] = useState(false)
   const [histOpen, setHistOpen] = useState(false)
   const [morphiOpen, setMorphiOpen] = useState(false)
+  const [snapOpen, setSnapOpen] = useState(false)
 
   // Filtro: secciones visibles + búsqueda por nombre
   const q = search.trim().toLowerCase()
@@ -627,6 +629,7 @@ function PricesView({ menu, token, flash, reload }) {
           <span className="ca__ctl-lbl">Filtrar</span>
           <input className="ca__input ca__search" placeholder="🔍 Buscar producto…" value={search} onChange={(e) => setSearch(e.target.value)} />
           <button className="ca__btn ca__btn--ghost" onClick={() => setHistOpen(true)}>🕓 Historial</button>
+          <button className="ca__btn ca__btn--ghost" onClick={() => setSnapOpen(true)}>💾 Versiones</button>
           <button className="ca__btn ca__btn--gold" onClick={() => setMorphiOpen(true)}>📋 Para Morphi</button>
         </div>
         <div className="ca__fchips">
@@ -702,7 +705,68 @@ function PricesView({ menu, token, flash, reload }) {
 
       {histOpen && <PriceHistoryModal token={token} onClose={() => setHistOpen(false)} />}
       {morphiOpen && <MorphiModal onClose={() => setMorphiOpen(false)} flash={flash} />}
+      {snapOpen && <SnapshotsModal token={token} flash={flash} reload={reload} onClose={() => setSnapOpen(false)} />}
     </div>
+  )
+}
+
+/* ─────────── Versiones de precios (guardar / restaurar) ─────────── */
+function SnapshotsModal({ token, flash, reload, onClose }) {
+  const [snaps, setSnaps] = useState(null)
+  const [name, setName] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  const load = () => adminMenuSnapshots(token).then((d) => setSnaps(d.snapshots || [])).catch((e) => setErr(e.message || 'Error'))
+  useEffect(() => { load() }, []) // eslint-disable-line
+
+  const save = async () => {
+    if (!name.trim()) { setErr('Poné un nombre (ej. "Lista junio 2026").'); return }
+    setBusy(true); setErr('')
+    try { await adminMenuSnapshotCreate(token, name.trim()); setName(''); flash('Versión guardada ✓'); load() }
+    catch (e) { setErr(e.message || 'Error') } finally { setBusy(false) }
+  }
+  const restore = async (s) => {
+    if (!confirm(`¿Restaurar la versión "${s.name}"?\n\nTodos los precios vuelven al estado de esa versión. Los cambios quedan registrados para Morphi.`)) return
+    setBusy(true)
+    try { const r = await adminMenuSnapshotRestore(token, s.id); flash(`${r.changed} precios restaurados ✓`); reload(); onClose() }
+    catch (e) { setErr(e.message || 'Error'); setBusy(false) }
+  }
+  const remove = async (s) => {
+    if (!confirm(`¿Borrar la versión "${s.name}"? (no afecta los precios actuales)`)) return
+    try { await adminMenuSnapshotDelete(token, s.id); load() } catch (e) { setErr(e.message || 'Error') }
+  }
+  const fmtDate = (s) => { try { return new Date(s).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }) } catch { return s } }
+
+  return (
+    <Modal onClose={onClose} title="💾 Versiones de precios" wide>
+      <p className="ca__morphi-intro">Guardá el estado actual de TODOS los precios con un nombre. Si después cambiás y te arrepentís, restaurás esa versión y vuelve todo de un toque.</p>
+      <div className="ca__snap-save">
+        <input className="ca__input" placeholder='Nombre de la versión (ej. "Lista pre-aumento")' value={name}
+          onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') save() }} />
+        <button className="ca__btn ca__btn--gold" onClick={save} disabled={busy}>💾 Guardar actual</button>
+      </div>
+      {err && <p className="ca__form-err">{err}</p>}
+
+      {!snaps && <p className="ca__loading">Cargando…</p>}
+      {snaps?.length === 0 && <p className="ca__morphi-empty">Todavía no guardaste ninguna versión.</p>}
+      {snaps?.length > 0 && (
+        <div className="ca__snap-list">
+          {snaps.map((s) => (
+            <div key={s.id} className="ca__snap-row">
+              <div className="ca__snap-info">
+                <span className="ca__snap-name">{s.name}</span>
+                <span className="ca__snap-meta">{fmtDate(s.created_at)} · {s.items_count} productos</span>
+              </div>
+              <div className="ca__snap-actions">
+                <button className="ca__btn ca__btn--apply" onClick={() => restore(s)} disabled={busy}>↩ Restaurar</button>
+                <button className="ca__ico ca__ico--danger" onClick={() => remove(s)} title="Borrar versión">🗑</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Modal>
   )
 }
 

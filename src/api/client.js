@@ -518,6 +518,16 @@ export const adminMenuBatchPrices = (token, updates) =>
   api('/api/admin/menu/prices/batch', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ updates }) })
 export const adminMenuSetCost = (token, id, cost) =>
   api(`/api/admin/menu/items/${id}/cost`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify({ cost }) })
+// Versiones de precios (snapshots)
+export const adminMenuSnapshots = (token) =>
+  api('/api/admin/menu/snapshots', { headers: authHeaders(token) })
+export const adminMenuSnapshotCreate = (token, name) =>
+  api('/api/admin/menu/snapshots', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ name }) })
+export const adminMenuSnapshotRestore = (token, id) =>
+  api(`/api/admin/menu/snapshots/${id}/restore`, { method: 'POST', headers: authHeaders(token) })
+export const adminMenuSnapshotDelete = (token, id) =>
+  api(`/api/admin/menu/snapshots/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+
 // Morphi (sincronización de precios con la caja) — acceso con código simple
 export const morphiPending = (k) => api(`/api/morphi/pending?k=${encodeURIComponent(k)}`)
 export const morphiMarkSynced = (k, itemId) =>

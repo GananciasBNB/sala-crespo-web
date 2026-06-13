@@ -197,6 +197,16 @@
 .ca__morphi-new { color:#34d399; font-weight:800; font-size:1.1rem; }
 .ca__morphi-sheet-foot { margin-top:12px; padding-top:10px; border-top:1px solid rgba(216,178,90,0.25); font-size:0.78rem; color:#b9bfae; text-align:center; }
 
+/* ── Modal Versiones de precios ── */
+.ca__snap-save { display:flex; gap:10px; margin-bottom:6px; flex-wrap:wrap; }
+.ca__snap-save .ca__input { flex:1; min-width:180px; }
+.ca__snap-list { display:flex; flex-direction:column; gap:9px; margin-top:14px; max-height:360px; overflow-y:auto; }
+.ca__snap-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 14px; background:var(--bg-2); border:1px solid var(--line); border-radius:12px; }
+.ca__snap-info { min-width:0; }
+.ca__snap-name { display:block; font-size:0.98rem; font-weight:700; }
+.ca__snap-meta { font-size:0.76rem; color:var(--muted); }
+.ca__snap-actions { display:flex; align-items:center; gap:7px; flex:0 0 auto; }
+
 /* Toast */
 .ca__toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:200; padding:13px 22px; border-radius:12px; font-size:0.9rem; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,0.4); animation:caToast 0.2s ease; }
 @keyframes caToast { from { opacity:0; transform:translate(-50%,10px); } to { opacity:1; transform:translateX(-50%); } }
