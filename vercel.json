@@ -9,6 +9,7 @@
     { "source": "/contacto", "destination": "/index.html" },
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/admin/:path*", "destination": "/index.html" },
-    { "source": "/club", "destination": "/index.html" }
+    { "source": "/club", "destination": "/index.html" },
+    { "source": "/carta", "destination": "/index.html" }
   ]
 }
