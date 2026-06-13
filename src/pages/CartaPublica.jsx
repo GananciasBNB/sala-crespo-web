@@ -152,13 +152,14 @@ function MailBlock() {
   const [hp, setHp] = useState('')
   const [mail, setMail] = useState('idle') // idle | sending | done
   const [mailErr, setMailErr] = useState('')
+  const [gotCortesia, setGotCortesia] = useState(false)
   const submit = async (e) => {
     e.preventDefault()
     if (hp) { setMail('done'); return }
     if (name.trim().length < 2) { setMailErr('Poné tu nombre'); return }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) { setMailErr('Email inválido'); return }
     setMail('sending'); setMailErr('')
-    try { await subscribeLead({ name: name.trim(), email: email.trim() }); setMail('done') }
+    try { const r = await subscribeLead({ name: name.trim(), email: email.trim() }); setGotCortesia(!!r?.courtesy); setMail('done') }
     catch (err) { setMailErr(err.message || 'No se pudo, probá de nuevo'); setMail('idle') }
   }
   return (
@@ -166,7 +167,7 @@ function MailBlock() {
       <h3 className="mailcta__title">¿Preferís las promos por mail?</h3>
       <p className="mailcta__sub">Dejanos tus datos y te avisamos de cada promo y sorteo.</p>
       {mail === 'done' ? (
-        <p className="mailcta__ok">¡Listo! Te vamos a avisar 🎉</p>
+        <p className="mailcta__ok">{gotCortesia ? '¡Listo! Te mandamos una bebida de cortesía a tu mail 🎁🍺' : '¡Listo! Te vamos a avisar de las promos 🎉'}</p>
       ) : (
         <form onSubmit={submit} className="mailcta__form">
           <input className="mailcta__input" placeholder="Tu nombre" value={name} onChange={(e) => setName(e.target.value)} />
