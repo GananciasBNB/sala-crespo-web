@@ -6,6 +6,8 @@ import {
   adminMenuBulkPrice, adminMenuBatchPrices, adminMenuSetCost, adminMenuPriceHistory,
   adminUploadImage, morphiPending, morphiMarkAllSynced,
   adminMenuSnapshots, adminMenuSnapshotCreate, adminMenuSnapshotRestore, adminMenuSnapshotDelete,
+  adminIngredients, adminIngredientCreate, adminIngredientUpdate, adminIngredientDelete,
+  adminGetRecipe, adminSetRecipe,
 } from '../api/client'
 import html2canvas from 'html2canvas-pro'
 import './CartaAdmin.css'
@@ -37,7 +39,7 @@ export default function CartaAdmin() {
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState(null)
-  const [view, setView] = useState('board') // 'board' | 'prices'
+  const [view, setView] = useState('board') // 'board' | 'prices' | 'recipes'
   const [bulkOpen, setBulkOpen] = useState(false)
   const [itemModal, setItemModal] = useState(null)
   const [catModal, setCatModal] = useState(null)
@@ -117,6 +119,8 @@ export default function CartaAdmin() {
 
       {menu && view === 'prices' && <PricesView menu={menu} token={token} flash={flash} reload={load} />}
 
+      {menu && view === 'recipes' && <RecipesView menu={menu} token={token} flash={flash} reload={load} />}
+
       {menu && view === 'board' && (
         <div className="ca__kanban">
           {GROUPS.map((g) => (
@@ -182,7 +186,7 @@ function Header({ stats, view, setView, onNewCat, onReload }) {
       <div className="ca__header-top">
         <div className="ca__brand">
           <span className="ca__brand-icon">🍺</span>
-          <div><h1>Carta — {view === 'prices' ? 'Precios' : 'Tablero'}</h1><p>Sala Crespo Bar</p></div>
+          <div><h1>Carta — {view === 'prices' ? 'Precios' : view === 'recipes' ? 'Recetas' : 'Tablero'}</h1><p>Sala Crespo Bar</p></div>
         </div>
         <a className="ca__view-public" href="/carta" target="_blank" rel="noreferrer">Ver carta ↗</a>
       </div>
@@ -196,6 +200,7 @@ function Header({ stats, view, setView, onNewCat, onReload }) {
         <div className="ca__viewtabs">
           <button className={view === 'board' ? 'is-on' : ''} onClick={() => setView('board')}>🗂️ Tablero</button>
           <button className={view === 'prices' ? 'is-on' : ''} onClick={() => setView('prices')}>💲 Precios</button>
+          <button className={view === 'recipes' ? 'is-on' : ''} onClick={() => setView('recipes')}>🍹 Recetas</button>
         </div>
         {view === 'board' && <button className="ca__btn" onClick={onNewCat}><span>＋</span> Nueva sección</button>}
         <button className="ca__btn ca__btn--ghost" onClick={onReload}><span>↻</span> Refrescar</button>
@@ -544,6 +549,201 @@ function BulkPriceModal({ token, menu, onClose, onApplied }) {
 /* ─────────── Pantalla de Precios (tabla editable + costo/margen + historial) ─────────── */
 const roundUp = (n, r) => (r > 0 ? Math.ceil(n / r) * r : Math.round(n))
 const QUICK_PCTS = [5, 10, 15, 20]
+
+/* ─────────── Recetas (insumos + composición → costo automático) ─────────── */
+const UNITS = [
+  { v: 'medida', label: 'medida (50ml)' },
+  { v: 'ml', label: 'ml' },
+  { v: 'unidad', label: 'unidad' },
+]
+const unitLabel = (u) => (UNITS.find((x) => x.v === u)?.label || u)
+
+function RecipesView({ menu, token, flash, reload }) {
+  const [tab, setTab] = useState('recipes') // 'recipes' | 'ingredients'
+  const [ings, setIngs] = useState(null)
+
+  const loadIngs = async () => {
+    try { const d = await adminIngredients(token); setIngs(d.ingredients || []) }
+    catch (e) { flash(e.message || 'Error', 'err') }
+  }
+  useEffect(() => { loadIngs() }, []) // eslint-disable-line
+
+  return (
+    <div className="ca__recipes">
+      <div className="ca__rtabs">
+        <button className={tab === 'recipes' ? 'is-on' : ''} onClick={() => setTab('recipes')}>🍹 Tragos y medidas</button>
+        <button className={tab === 'ingredients' ? 'is-on' : ''} onClick={() => setTab('ingredients')}>🧴 Insumos {ings ? `(${ings.length})` : ''}</button>
+      </div>
+      <p className="ca__rhint">El costo de cada trago se calcula solo: <b>suma de (cantidad × costo del insumo)</b>. Cambiás el costo de un insumo y se actualizan todos los tragos que lo usan.</p>
+      {tab === 'ingredients'
+        ? <IngredientsPanel ings={ings} token={token} flash={flash} reload={loadIngs} reloadMenu={reload} />
+        : <RecipesPanel menu={menu} ings={ings || []} token={token} flash={flash} reloadMenu={reload} />}
+    </div>
+  )
+}
+
+function IngredientsPanel({ ings, token, flash, reload, reloadMenu }) {
+  const [nw, setNw] = useState({ name: '', unit: 'medida', unitCost: '' })
+  const [busy, setBusy] = useState(false)
+
+  const saveField = async (id, body) => {
+    try {
+      const d = await adminIngredientUpdate(token, id, body)
+      const n = d.ingredient?.recalculated?.filter((r) => r.hasRecipe).length || 0
+      flash(n ? `Guardado · ${n} trago(s) recalculados` : 'Guardado ✓')
+      reload(); if (n) reloadMenu()
+    } catch (e) { flash(e.message || 'Error', 'err') }
+  }
+  const add = async () => {
+    if (!nw.name.trim()) { flash('Poné un nombre', 'err'); return }
+    setBusy(true)
+    try {
+      await adminIngredientCreate(token, { name: nw.name.trim(), unit: nw.unit, unitCost: Number(nw.unitCost) || 0 })
+      setNw({ name: '', unit: 'medida', unitCost: '' }); flash('Insumo agregado ✓'); reload()
+    } catch (e) { flash(e.message || 'Error', 'err') } finally { setBusy(false) }
+  }
+  const del = async (id, name) => {
+    if (!window.confirm(`¿Borrar el insumo "${name}"? Se quita de las recetas que lo usan y esos tragos se recalculan.`)) return
+    try { await adminIngredientDelete(token, id); flash('Insumo borrado'); reload(); reloadMenu() }
+    catch (e) { flash(e.message || 'Error', 'err') }
+  }
+
+  if (!ings) return <p className="ca__loading">Cargando insumos…</p>
+
+  return (
+    <div className="ca__ingredients">
+      <div className="ca__ing-head">
+        <span>Insumo</span><span>Unidad</span><span className="ca__col-num">Costo x unidad</span><span className="ca__col-num">Usado en</span><span />
+      </div>
+      {ings.map((i) => (
+        <div key={i.id} className="ca__ing-row">
+          <input className="ca__input" defaultValue={i.name} onBlur={(e) => e.target.value.trim() && e.target.value !== i.name && saveField(i.id, { name: e.target.value.trim() })} />
+          <select className="ca__input" defaultValue={i.unit} onChange={(e) => saveField(i.id, { unit: e.target.value })}>
+            {UNITS.map((u) => <option key={u.v} value={u.v}>{u.label}</option>)}
+          </select>
+          <span className="ca__ing-costbox">$<input className="ca__input ca__input--num" type="number" defaultValue={Math.round(i.unit_cost)} onBlur={(e) => Number(e.target.value) !== Math.round(i.unit_cost) && saveField(i.id, { unitCost: Number(e.target.value) || 0 })} /></span>
+          <span className="ca__col-num ca__ing-used">{i.used_in || 0}</span>
+          <button className="ca__ing-del" onClick={() => del(i.id, i.name)} title="Borrar insumo">✕</button>
+        </div>
+      ))}
+      <div className="ca__ing-row ca__ing-row--new">
+        <input className="ca__input" placeholder="Nuevo insumo (ej. Gin Heredero)" value={nw.name} onChange={(e) => setNw({ ...nw, name: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && add()} />
+        <select className="ca__input" value={nw.unit} onChange={(e) => setNw({ ...nw, unit: e.target.value })}>
+          {UNITS.map((u) => <option key={u.v} value={u.v}>{u.label}</option>)}
+        </select>
+        <span className="ca__ing-costbox">$<input className="ca__input ca__input--num" type="number" placeholder="0" value={nw.unitCost} onChange={(e) => setNw({ ...nw, unitCost: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && add()} /></span>
+        <span />
+        <button className="ca__btn ca__btn--gold" onClick={add} disabled={busy}>＋</button>
+      </div>
+    </div>
+  )
+}
+
+function RecipesPanel({ menu, ings, token, flash, reloadMenu }) {
+  const [search, setSearch] = useState('')
+  const [openId, setOpenId] = useState(null)
+  const q = search.trim().toLowerCase()
+  const items = menu
+    .flatMap((c) => (c.items || []).map((i) => ({ ...i, catName: c.name, foodGroup: c.food_group })))
+    .filter((i) => !q || i.name.toLowerCase().includes(q) || i.catName.toLowerCase().includes(q))
+
+  if (!ings.length) {
+    return <p className="ca__rempty">Primero cargá insumos en la pestaña <b>Insumos</b> para armar recetas.</p>
+  }
+
+  return (
+    <div className="ca__rpanel">
+      <input className="ca__input ca__search" placeholder="🔍 Buscar trago o producto…" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="ca__rlist">
+        {items.map((it) => {
+          const isOpen = openId === it.id
+          const price = Math.round(Number(it.price))
+          const cost = it.cost != null ? Math.round(Number(it.cost)) : null
+          const margin = cost != null && price > 0 ? Math.round(((price - cost) / price) * 100) : null
+          return (
+            <div key={it.id} className={`ca__ritem ${isOpen ? 'is-open' : ''}`}>
+              <button className="ca__ritem-head" onClick={() => setOpenId(isOpen ? null : it.id)}>
+                <span className="ca__ritem-name">{it.name}<i>{it.catName}</i></span>
+                <span className="ca__ritem-nums">
+                  <span className="ca__ritem-cost">{cost != null ? `costo ${money(cost)}` : 'sin receta'}</span>
+                  {margin != null && <span className={`ca__ritem-margin ${margin < 0 ? 'neg' : ''}`}>{margin}%</span>}
+                  <span className="ca__ritem-arrow">{isOpen ? '▲' : '▼'}</span>
+                </span>
+              </button>
+              {isOpen && <RecipeEditor item={it} ings={ings} token={token} flash={flash} reloadMenu={reloadMenu} />}
+            </div>
+          )
+        })}
+        {items.length === 0 && <p className="ca__loading">Nada coincide con la búsqueda.</p>}
+      </div>
+    </div>
+  )
+}
+
+function RecipeEditor({ item, ings, token, flash, reloadMenu }) {
+  const [lines, setLines] = useState(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    (async () => {
+      try { const d = await adminGetRecipe(token, item.id); setLines((d.recipe || []).map((r) => ({ ingredient_id: String(r.ingredient_id), quantity: String(r.quantity) }))) }
+      catch (e) { flash(e.message || 'Error', 'err'); setLines([]) }
+    })()
+  }, [item.id]) // eslint-disable-line
+
+  if (!lines) return <div className="ca__recipe"><p className="ca__loading">Cargando receta…</p></div>
+
+  const ingOf = (id) => ings.find((i) => String(i.id) === String(id))
+  const total = lines.reduce((s, l) => { const ing = ingOf(l.ingredient_id); return s + (ing ? Number(ing.unit_cost) * (Number(l.quantity) || 0) : 0) }, 0)
+  const price = Math.round(Number(item.price))
+  const margin = price > 0 ? Math.round(((price - total) / price) * 100) : null
+
+  const setLine = (idx, patch) => setLines((ls) => ls.map((l, i) => i === idx ? { ...l, ...patch } : l))
+  const addLine = () => setLines((ls) => [...ls, { ingredient_id: String(ings[0]?.id || ''), quantity: '1' }])
+  const delLine = (idx) => setLines((ls) => ls.filter((_, i) => i !== idx))
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      const payload = lines.filter((l) => l.ingredient_id && Number(l.quantity) > 0).map((l) => ({ ingredientId: Number(l.ingredient_id), quantity: Number(l.quantity) }))
+      const d = await adminSetRecipe(token, item.id, payload)
+      flash(d.hasRecipe ? `Receta guardada · costo ${money(d.cost || 0)}` : 'Receta vaciada')
+      reloadMenu()
+    } catch (e) { flash(e.message || 'Error', 'err') } finally { setSaving(false) }
+  }
+
+  return (
+    <div className="ca__recipe">
+      {lines.map((l, idx) => {
+        const ing = ingOf(l.ingredient_id)
+        const lineCost = ing ? Number(ing.unit_cost) * (Number(l.quantity) || 0) : 0
+        return (
+          <div key={idx} className="ca__rline">
+            <select className="ca__input" value={l.ingredient_id} onChange={(e) => setLine(idx, { ingredient_id: e.target.value })}>
+              {ings.map((i) => <option key={i.id} value={i.id}>{i.name}</option>)}
+            </select>
+            <span className="ca__rline-qty">
+              <input className="ca__input ca__input--num" type="number" step="0.1" min="0" value={l.quantity} onChange={(e) => setLine(idx, { quantity: e.target.value })} />
+              <i>{ing ? unitLabel(ing.unit).split(' ')[0] : ''}</i>
+            </span>
+            <span className="ca__rline-cost">{money(lineCost)}</span>
+            <button className="ca__rline-del" onClick={() => delLine(idx)} title="Quitar">✕</button>
+          </div>
+        )
+      })}
+      <button className="ca__rline-add" onClick={addLine}>＋ Agregar insumo</button>
+
+      <div className="ca__recipe-foot">
+        <div className="ca__recipe-totals">
+          <span className="ca__recipe-total">Costo: <b>{money(total)}</b></span>
+          <span className="ca__recipe-sale">Venta: {money(price)}</span>
+          {margin != null && <span className={`ca__recipe-margin ${margin < 0 ? 'neg' : ''}`}>Margen {margin}%</span>}
+        </div>
+        <button className="ca__btn ca__btn--apply" onClick={save} disabled={saving}>{saving ? 'Guardando…' : '✓ Guardar receta'}</button>
+      </div>
+    </div>
+  )
+}
 
 function PricesView({ menu, token, flash, reload }) {
   const [draft, setDraft] = useState({})        // { id: newPriceString }

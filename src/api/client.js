@@ -528,6 +528,20 @@ export const adminMenuSnapshotRestore = (token, id) =>
 export const adminMenuSnapshotDelete = (token, id) =>
   api(`/api/admin/menu/snapshots/${id}`, { method: 'DELETE', headers: authHeaders(token) })
 
+// Recetas (insumos + composición → costo automático)
+export const adminIngredients = (token) =>
+  api('/api/admin/menu/ingredients', { headers: authHeaders(token) })
+export const adminIngredientCreate = (token, body) =>
+  api('/api/admin/menu/ingredients', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminIngredientUpdate = (token, id, body) =>
+  api(`/api/admin/menu/ingredients/${id}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminIngredientDelete = (token, id) =>
+  api(`/api/admin/menu/ingredients/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+export const adminGetRecipe = (token, itemId) =>
+  api(`/api/admin/menu/items/${itemId}/recipe`, { headers: authHeaders(token) })
+export const adminSetRecipe = (token, itemId, lines) =>
+  api(`/api/admin/menu/items/${itemId}/recipe`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify({ lines }) })
+
 // Morphi (sincronización de precios con la caja) — acceso con código simple
 export const morphiPending = (k) => api(`/api/morphi/pending?k=${encodeURIComponent(k)}`)
 export const morphiMarkSynced = (k, itemId) =>

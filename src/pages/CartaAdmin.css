@@ -305,6 +305,58 @@
 .ca__hist-meta { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex:0 0 auto; font-size:0.74rem; color:var(--muted); }
 .ca__hist-src { padding:1px 8px; border-radius:6px; background:var(--panel-2); border:1px solid var(--line); }
 
+/* ════════════════ RECETAS ════════════════ */
+.ca__recipes { display:flex; flex-direction:column; gap:14px; }
+.ca__rtabs { display:flex; gap:8px; }
+.ca__rtabs button { padding:10px 18px; border-radius:11px; border:1px solid var(--line-2); background:var(--panel-2); color:var(--txt); font-family:inherit; font-size:0.9rem; font-weight:700; cursor:pointer; }
+.ca__rtabs button.is-on { background:linear-gradient(135deg,var(--gold),var(--gold-soft)); border-color:var(--gold-soft); color:#1a1205; }
+.ca__rhint { margin:0; font-size:0.84rem; color:var(--muted); line-height:1.5; }
+.ca__rhint b { color:var(--gold-soft); }
+.ca__rempty, .ca__loading { color:var(--muted); padding:24px; text-align:center; }
+
+/* Insumos */
+.ca__ingredients { display:flex; flex-direction:column; gap:8px; }
+.ca__ing-head { display:grid; grid-template-columns:1fr 140px 130px 80px 40px; gap:10px; padding:0 4px; font-size:0.74rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); }
+.ca__ing-head .ca__col-num { text-align:right; }
+.ca__ing-row { display:grid; grid-template-columns:1fr 140px 130px 80px 40px; gap:10px; align-items:center; }
+.ca__ing-row--new { padding-top:8px; border-top:1px dashed var(--line-2); margin-top:4px; }
+.ca__ing-costbox { display:flex; align-items:center; gap:4px; color:var(--muted); }
+.ca__input--num { text-align:right; }
+.ca__ing-used { color:var(--muted); font-size:0.9rem; }
+.ca__ing-del { width:32px; height:32px; border-radius:8px; border:1px solid rgba(248,113,113,0.35); background:transparent; color:var(--red); cursor:pointer; font-size:0.85rem; }
+.ca__ing-del:hover { background:rgba(248,113,113,0.12); }
+
+/* Lista de recetas */
+.ca__rpanel { display:flex; flex-direction:column; gap:12px; }
+.ca__rlist { display:flex; flex-direction:column; gap:8px; }
+.ca__ritem { border:1px solid var(--line); border-radius:12px; background:var(--bg-2); overflow:hidden; }
+.ca__ritem.is-open { border-color:var(--gold-soft); }
+.ca__ritem-head { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:13px 16px; background:transparent; border:none; color:var(--txt); font-family:inherit; cursor:pointer; text-align:left; }
+.ca__ritem-name { font-size:1rem; font-weight:700; min-width:0; }
+.ca__ritem-name i { display:block; font-style:normal; font-size:0.74rem; color:var(--muted); font-weight:400; margin-top:1px; }
+.ca__ritem-nums { display:flex; align-items:center; gap:12px; flex:0 0 auto; }
+.ca__ritem-cost { font-size:0.84rem; color:var(--muted); white-space:nowrap; }
+.ca__ritem-margin { font-size:0.82rem; font-weight:800; color:#34d399; padding:2px 9px; border-radius:999px; background:rgba(52,211,153,0.14); }
+.ca__ritem-margin.neg { color:var(--red); background:rgba(248,113,113,0.14); }
+.ca__ritem-arrow { font-size:0.66rem; color:var(--muted); }
+
+/* Editor de receta */
+.ca__recipe { padding:6px 16px 16px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:9px; }
+.ca__rline { display:grid; grid-template-columns:1fr 120px 80px 36px; gap:10px; align-items:center; }
+.ca__rline-qty { display:flex; align-items:center; gap:6px; }
+.ca__rline-qty i { font-style:normal; font-size:0.74rem; color:var(--muted); }
+.ca__rline-cost { text-align:right; font-size:0.9rem; font-weight:700; color:var(--gold-soft); }
+.ca__rline-del { width:30px; height:30px; border-radius:8px; border:1px solid var(--line-2); background:transparent; color:var(--muted); cursor:pointer; }
+.ca__rline-del:hover { color:var(--red); border-color:rgba(248,113,113,0.4); }
+.ca__rline-add { align-self:flex-start; padding:8px 14px; border-radius:9px; border:1px dashed var(--line-2); background:transparent; color:var(--gold-soft); font-family:inherit; font-weight:700; font-size:0.84rem; cursor:pointer; }
+.ca__rline-add:hover { border-color:var(--gold-soft); }
+.ca__recipe-foot { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-top:6px; padding-top:12px; border-top:1px dashed var(--line-2); }
+.ca__recipe-totals { display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:0.92rem; }
+.ca__recipe-total b { color:var(--gold-soft); font-size:1.05rem; }
+.ca__recipe-sale { color:var(--muted); }
+.ca__recipe-margin { font-weight:800; color:#34d399; }
+.ca__recipe-margin.neg { color:var(--red); }
+
 @media (max-width:640px) {
   .ca__stats { grid-template-columns:repeat(2,1fr); }
   .ca__bulk-row { grid-template-columns:1fr; }
@@ -317,4 +369,11 @@
   .ca__prow-name { order:1; flex:1 1 60%; white-space:normal; }
   .ca__pcell { flex-direction:column; align-items:flex-start; gap:1px; }
   .ca__plabel { display:block; }
+  /* Recetas: grillas más compactas en mobile */
+  .ca__ing-head { display:none; }
+  .ca__ing-row { grid-template-columns:1fr 1fr; gap:8px; padding:10px; border:1px solid var(--line); border-radius:10px; }
+  .ca__ing-row .ca__input:first-child { grid-column:1 / -1; }
+  .ca__ing-del { justify-self:end; }
+  .ca__rline { grid-template-columns:1fr 90px 36px; }
+  .ca__rline-cost { grid-column:1 / -1; text-align:left; }
 }
