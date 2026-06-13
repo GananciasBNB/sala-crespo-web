@@ -518,6 +518,13 @@ export const adminMenuBatchPrices = (token, updates) =>
   api('/api/admin/menu/prices/batch', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ updates }) })
 export const adminMenuSetCost = (token, id, cost) =>
   api(`/api/admin/menu/items/${id}/cost`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify({ cost }) })
+// Morphi (sincronización de precios con la caja) — acceso con código simple
+export const morphiPending = (k) => api(`/api/morphi/pending?k=${encodeURIComponent(k)}`)
+export const morphiMarkSynced = (k, itemId) =>
+  api('/api/morphi/synced', { method: 'POST', body: JSON.stringify({ k, itemId }) })
+export const morphiMarkAllSynced = (k) =>
+  api('/api/morphi/synced-all', { method: 'POST', body: JSON.stringify({ k }) })
+
 export const adminMenuPriceHistory = (token, { itemId, limit = 100 } = {}) => {
   const qs = new URLSearchParams()
   if (itemId) qs.set('itemId', itemId)

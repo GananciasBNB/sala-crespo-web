@@ -4,9 +4,15 @@ import {
   adminCreateMenuCategory, adminUpdateMenuCategory, adminDeleteMenuCategory, adminReorderMenuCategories,
   adminCreateMenuItem, adminUpdateMenuItem, adminDeleteMenuItem, adminReorderMenuItems, adminMoveMenuItem,
   adminMenuBulkPrice, adminMenuBatchPrices, adminMenuSetCost, adminMenuPriceHistory,
-  adminUploadImage,
+  adminUploadImage, morphiPending, morphiMarkAllSynced,
 } from '../api/client'
+import html2canvas from 'html2canvas-pro'
 import './CartaAdmin.css'
+
+// Código de acceso de la cajera al checklist /morphi (default del backend).
+// Si cambiás MORPHI_KEY en Render, actualizá también esta constante.
+const MORPHI_K = 'caja-crespo'
+const MORPHI_LINK = `https://www.saladejuegoscrespo.ar/morphi?k=${MORPHI_K}`
 
 const fmt = new Intl.NumberFormat('es-AR')
 const money = (n) => `$${fmt.format(Math.round(Number(n) || 0))}`
@@ -549,6 +555,7 @@ function PricesView({ menu, token, flash, reload }) {
   const [hiddenCats, setHiddenCats] = useState(() => new Set()) // secciones ocultas del filtro
   const [saving, setSaving] = useState(false)
   const [histOpen, setHistOpen] = useState(false)
+  const [morphiOpen, setMorphiOpen] = useState(false)
 
   // Filtro: secciones visibles + búsqueda por nombre
   const q = search.trim().toLowerCase()
@@ -620,6 +627,7 @@ function PricesView({ menu, token, flash, reload }) {
           <span className="ca__ctl-lbl">Filtrar</span>
           <input className="ca__input ca__search" placeholder="🔍 Buscar producto…" value={search} onChange={(e) => setSearch(e.target.value)} />
           <button className="ca__btn ca__btn--ghost" onClick={() => setHistOpen(true)}>🕓 Historial</button>
+          <button className="ca__btn ca__btn--gold" onClick={() => setMorphiOpen(true)}>📋 Para Morphi</button>
         </div>
         <div className="ca__fchips">
           {hiddenCats.size > 0 && <button className="ca__fchip-all" onClick={() => setHiddenCats(new Set())}>Ver todas</button>}
@@ -693,7 +701,73 @@ function PricesView({ menu, token, flash, reload }) {
       </div>
 
       {histOpen && <PriceHistoryModal token={token} onClose={() => setHistOpen(false)} />}
+      {morphiOpen && <MorphiModal onClose={() => setMorphiOpen(false)} flash={flash} />}
     </div>
+  )
+}
+
+/* ─────────── Cambios para Morphi (imagen + link cajera) ─────────── */
+function MorphiModal({ onClose, flash }) {
+  const [pending, setPending] = useState(null)
+  const [err, setErr] = useState('')
+  const [copied, setCopied] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const sheetRef = useRef(null)
+  const today = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+  useEffect(() => {
+    morphiPending(MORPHI_K).then((d) => setPending(d.pending || [])).catch((e) => setErr(e.message || 'Error'))
+  }, [])
+
+  const copyLink = async () => {
+    try { await navigator.clipboard.writeText(MORPHI_LINK); setCopied(true); setTimeout(() => setCopied(false), 1600) } catch {}
+  }
+  const exportImg = async () => {
+    if (!sheetRef.current) return
+    setExporting(true)
+    try {
+      const canvas = await html2canvas(sheetRef.current, { backgroundColor: '#0c1f17', scale: 2 })
+      const link = document.createElement('a')
+      link.download = `precios-morphi-${new Date().toISOString().slice(0, 10)}.png`
+      link.href = canvas.toDataURL('image/png')
+      link.click()
+    } catch { flash?.('No se pudo generar la imagen', 'err') } finally { setExporting(false) }
+  }
+
+  return (
+    <Modal onClose={onClose} title="📋 Cambios para Morphi" wide>
+      <p className="ca__morphi-intro">Estos precios cambiaron y faltan cargar en Morphi. Pasale la imagen a la cajera o el link para que vaya tildando.</p>
+
+      <div className="ca__morphi-actions">
+        <button className="ca__btn ca__btn--gold" onClick={exportImg} disabled={exporting || !pending?.length}>{exporting ? 'Generando…' : '📸 Descargar imagen'}</button>
+        <button className="ca__btn ca__btn--ghost" onClick={copyLink}>{copied ? '✓ Link copiado' : '🔗 Copiar link de la cajera'}</button>
+      </div>
+      <p className="ca__morphi-link">{MORPHI_LINK}</p>
+
+      {err && <p className="ca__form-err">{err}</p>}
+      {!pending && !err && <p className="ca__loading">Cargando…</p>}
+      {pending?.length === 0 && <p className="ca__morphi-empty">✅ Todo al día — no hay cambios pendientes.</p>}
+
+      {pending?.length > 0 && (
+        <div ref={sheetRef} className="ca__morphi-sheet">
+          <div className="ca__morphi-sheet-head">
+            <span className="ca__morphi-sheet-title">Cambios de precio — Sala Crespo Bar</span>
+            <span className="ca__morphi-sheet-date">{today}</span>
+          </div>
+          {pending.map((it) => (
+            <div key={it.item_id} className="ca__morphi-row">
+              <span className="ca__morphi-row-name">{it.item_name}</span>
+              <span className="ca__morphi-row-prices">
+                <span className="ca__morphi-old">{money(it.old_price)}</span>
+                <span className="ca__morphi-arrow">→</span>
+                <span className="ca__morphi-new">{money(it.new_price)}</span>
+              </span>
+            </div>
+          ))}
+          <div className="ca__morphi-sheet-foot">Cargar estos precios nuevos en Morphi · {pending.length} producto{pending.length > 1 ? 's' : ''}</div>
+        </div>
+      )}
+    </Modal>
   )
 }
 

@@ -178,6 +178,25 @@
 .ca__preview-arrow { color:var(--gold); }
 .ca__preview-new { color:var(--green); font-weight:700; }
 
+/* ── Modal Cambios para Morphi ── */
+.ca__morphi-intro { margin:0 0 14px; font-size:0.88rem; color:var(--muted); line-height:1.5; }
+.ca__morphi-actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px; }
+.ca__morphi-link { margin:0 0 16px; font-size:0.78rem; color:var(--gold-soft); word-break:break-all; background:var(--bg-2); padding:8px 12px; border-radius:9px; border:1px solid var(--line); }
+.ca__morphi-empty { text-align:center; color:var(--green); font-weight:600; padding:24px; }
+/* El "sheet" que se exporta como imagen */
+.ca__morphi-sheet { background:#0c1f17; border:1px solid rgba(216,178,90,0.3); border-radius:14px; padding:20px; }
+.ca__morphi-sheet-head { display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding-bottom:12px; margin-bottom:8px; border-bottom:1px solid rgba(216,178,90,0.25); }
+.ca__morphi-sheet-title { font-family:'Oswald','DM Sans',sans-serif; font-weight:700; font-size:1.05rem; color:#f0d275; text-transform:uppercase; letter-spacing:0.03em; }
+.ca__morphi-sheet-date { font-size:0.82rem; color:#b9bfae; white-space:nowrap; }
+.ca__morphi-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px dashed rgba(216,178,90,0.15); }
+.ca__morphi-row:last-of-type { border-bottom:none; }
+.ca__morphi-row-name { font-size:0.95rem; font-weight:600; color:#fff; }
+.ca__morphi-row-prices { display:flex; align-items:center; gap:8px; white-space:nowrap; }
+.ca__morphi-old { color:#8a93a3; text-decoration:line-through; font-size:0.92rem; }
+.ca__morphi-arrow { color:#d8b25a; }
+.ca__morphi-new { color:#34d399; font-weight:800; font-size:1.1rem; }
+.ca__morphi-sheet-foot { margin-top:12px; padding-top:10px; border-top:1px solid rgba(216,178,90,0.25); font-size:0.78rem; color:#b9bfae; text-align:center; }
+
 /* Toast */
 .ca__toast { position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:200; padding:13px 22px; border-radius:12px; font-size:0.9rem; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,0.4); animation:caToast 0.2s ease; }
 @keyframes caToast { from { opacity:0; transform:translate(-50%,10px); } to { opacity:1; transform:translateX(-50%); } }

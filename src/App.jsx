@@ -15,6 +15,7 @@ const TournamentLanding = lazy(() => import('./pages/TournamentLanding'))
 const Club = lazy(() => import('./pages/Club'))
 const CartaPublica = lazy(() => import('./pages/CartaPublica'))
 const CartaAdmin = lazy(() => import('./pages/CartaAdmin'))
+const MorphiSync = lazy(() => import('./pages/MorphiSync'))
 
 function RouteFallback() {
   return (
@@ -158,6 +159,16 @@ export default function App() {
           <ChunkErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <CartaAdmin />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/morphi" element={
+        <>
+          <PageHead title="Precios para Morphi" description="" path="/morphi" noindex />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <MorphiSync />
             </Suspense>
           </ChunkErrorBoundary>
         </>
