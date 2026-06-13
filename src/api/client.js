@@ -534,6 +534,8 @@ export const morphiMarkSynced = (k, itemId) =>
   api('/api/morphi/synced', { method: 'POST', body: JSON.stringify({ k, itemId }) })
 export const morphiMarkSyncedMany = (k, itemIds) =>
   api('/api/morphi/synced-many', { method: 'POST', body: JSON.stringify({ k, itemIds }) })
+export const morphiMarkUnsynced = (k, itemId) =>
+  api('/api/morphi/unsynced', { method: 'POST', body: JSON.stringify({ k, itemId }) })
 export const morphiMarkAllSynced = (k) =>
   api('/api/morphi/synced-all', { method: 'POST', body: JSON.stringify({ k }) })
 

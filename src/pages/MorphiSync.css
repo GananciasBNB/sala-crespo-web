@@ -28,6 +28,9 @@
   background: rgba(216,178,90,0.16); border: 1px solid rgba(216,178,90,0.4);
   color: #f0d275; font-weight: 700; font-size: 0.85rem;
 }
+.morphi__count--done {
+  background: rgba(52,211,153,0.14); border-color: rgba(52,211,153,0.4); color: #34d399;
+}
 .morphi__count-cats {
   display: inline-block; padding: 5px 14px; border-radius: 999px;
   background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
@@ -44,6 +47,8 @@
 }
 .morphi__chip b { color: #f0d275; margin-left: 3px; }
 .morphi__chip.is-open { background: rgba(216,178,90,0.16); border-color: rgba(216,178,90,0.45); color: #fff; }
+.morphi__chip.is-done { border-color: rgba(52,211,153,0.4); color: #8a93a3; }
+.morphi__chip.is-done b { color: #34d399; }
 
 /* Secciones colapsables */
 .morphi__groups { display: flex; flex-direction: column; gap: 12px; }
@@ -63,6 +68,8 @@
   flex: 0 0 auto; min-width: 26px; text-align: center; padding: 3px 9px; border-radius: 999px;
   background: rgba(216,178,90,0.2); color: #f0d275; font-weight: 800; font-size: 0.85rem;
 }
+.morphi__group-badge.is-done { background: rgba(52,211,153,0.2); color: #34d399; }
+.morphi__group.is-done { border-color: rgba(52,211,153,0.28); }
 .morphi__group-arrow { flex: 0 0 auto; color: #8a93a3; font-size: 0.7rem; }
 .morphi__group-all {
   width: 100%; margin-top: 12px; padding: 14px; border-radius: 12px; border: 1px dashed rgba(52,211,153,0.5);
@@ -81,6 +88,11 @@
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .morphi__item.is-busy { opacity: 0.5; }
+.morphi__item.is-done {
+  background: rgba(52,211,153,0.07); border-color: rgba(52,211,153,0.32);
+}
+.morphi__item.is-done .morphi__name { color: #9fb3a8; text-decoration: line-through; }
+.morphi__item.is-done .morphi__new { color: #6aa68c; }
 .morphi__info { flex: 1; min-width: 0; }
 .morphi__name { display: block; font-size: 1.05rem; font-weight: 700; color: #fff; margin-bottom: 4px; }
 .morphi__prices { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; }
@@ -96,7 +108,16 @@
 .morphi__done:hover:not(:disabled) { transform: translateY(-1px); }
 .morphi__done:disabled { opacity: 0.6; }
 
+.morphi__undo {
+  flex: 0 0 auto; padding: 13px 16px; border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.18); background: transparent;
+  color: #b9bfae; font-family: inherit; font-size: 0.88rem; font-weight: 700;
+  cursor: pointer; white-space: nowrap; transition: background 0.12s ease, color 0.12s ease;
+}
+.morphi__undo:hover:not(:disabled) { background: rgba(255,255,255,0.06); color: #fff; }
+.morphi__undo:disabled { opacity: 0.6; }
+
 @media (max-width: 420px) {
   .morphi__item { flex-wrap: wrap; }
-  .morphi__done { width: 100%; }
+  .morphi__done, .morphi__undo { width: 100%; }
 }
