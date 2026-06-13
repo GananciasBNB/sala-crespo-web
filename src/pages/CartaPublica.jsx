@@ -13,11 +13,12 @@ const LOGO = '/logo-mundial-2026.png'
 const SECTION_VIDEOS = {
   'minutas': '/hamburguesa.mp4',
   'papas': '/papas.mp4',
+  'pizza': '/pizza.mp4',
   'cervezas individuales': '/cerveza.mp4',
   'tragos': '/trago.mp4',
   // Pendientes de generar en Flow → descomentar al subir el .mp4:
-  // 'pizza': '/pizza.mp4',
   // 'espumantes': '/espumante.mp4',
+  // 'casino' / cierre → casino.mp4
 }
 const sectionVideo = (name) => SECTION_VIDEOS[(name || '').toLowerCase().trim()] || null
 
