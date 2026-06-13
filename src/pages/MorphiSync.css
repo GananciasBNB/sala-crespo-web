@@ -48,6 +48,7 @@
 /* Secciones colapsables */
 .morphi__groups { display: flex; flex-direction: column; gap: 12px; }
 .morphi__group {
+  padding: 0; /* override del section{padding} global */
   background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08);
   border-radius: 16px; overflow: hidden;
 }
