@@ -397,6 +397,7 @@ export default function CartaPublica() {
       {menu?.length > 0 && (
         <section className="closing">
           <img className="closing__logo" src={LOGO} alt="" aria-hidden />
+          <VideoSlot src="/casino.mp4" className="closing__video" />
           <p className="closing__top">ACÁ EL TIEMPO SE DETIENE…</p>
           <p className="closing__sub">AL MENOS HASTA QUE TRAEN LA CUENTA</p>
           <p className="closing__mid">No te apures a irte</p>

@@ -218,8 +218,10 @@
 .sect__video { display: flex; justify-content: center; margin: -4px 0 20px; }
 .sect__video-el {
   width: clamp(150px, 48vw, 220px); aspect-ratio: 1; object-fit: cover; display: block;
-  -webkit-mask: radial-gradient(circle at 50% 50%, #000 56%, transparent 76%);
-  mask: radial-gradient(circle at 50% 50%, #000 56%, transparent 76%);
+  /* Difuminado amplio: empieza a fundirse antes del borde para que no se vea el
+     "corte" recto en los lados (sobre todo si el fondo del video no es verde puro). */
+  -webkit-mask: radial-gradient(circle at 50% 50%, #000 38%, transparent 68%);
+  mask: radial-gradient(circle at 50% 50%, #000 38%, transparent 68%);
 }
 
 /* Reveal on scroll */
