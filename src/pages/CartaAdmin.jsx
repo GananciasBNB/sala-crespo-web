@@ -21,7 +21,8 @@ const fmt = new Intl.NumberFormat('es-AR')
 const money = (n) => `$${fmt.format(Math.round(Number(n) || 0))}`
 const ICONS = ['🍔', '⭐', '🍟', '☕', '🥤', '🍺', '🍻', '🍷', '🥂', '🍾', '🥃', '🍸', '🧊', '🍕', '🌭', '🍰', '🥩', '🍤']
 
-const BADGE_PRESETS = ['Promo', 'Ticket promocional de regalo', 'Nuevo', 'Tiempo limitado', 'Recomendado', 'Más pedido']
+const TICKET_BADGE = 'Ticket promocional de regalo'
+const BADGE_PRESETS = ['Promo', TICKET_BADGE, 'Nuevo', 'Tiempo limitado', 'Recomendado', 'Más pedido']
 const BADGE_COLORS = {
   'promo': '#c1272d', 'ticket promocional de regalo': '#0e7490', 'nuevo': '#16a34a',
   'tiempo limitado': '#d97706', 'recomendado': '#caa14e', 'más pedido': '#7c3aed',
@@ -351,6 +352,7 @@ function ItemModal({ token, data, categories, onClose, onSaved }) {
     price: it.price != null ? String(Math.round(it.price)) : '',
     promoNote: it.promo_note || '', photoUrl: it.photo_url || '',
     badges: asArray(it.badges),
+    ticketAmount: it.ticket_amount != null ? String(Math.round(it.ticket_amount)) : '',
   })
   const [custom, setCustom] = useState('')
   const [busy, setBusy] = useState(false)
@@ -380,6 +382,7 @@ function ItemModal({ token, data, categories, onClose, onSaved }) {
       isPromo: form.badges.includes('Promo'),
       promoNote: form.promoNote.trim() || null, photoUrl: form.photoUrl.trim() || null,
       badges: form.badges,
+      ticketAmount: form.badges.includes(TICKET_BADGE) && form.ticketAmount !== '' ? Number(form.ticketAmount) : null,
     }
     try { if (editing) await adminUpdateMenuItem(token, it.id, body); else await adminCreateMenuItem(token, body); onSaved() }
     catch (e) { setErr(e.message || 'Error'); setBusy(false) }
@@ -415,6 +418,13 @@ function ItemModal({ token, data, categories, onClose, onSaved }) {
               {form.badges.filter((b) => !BADGE_PRESETS.includes(b)).map((b) => (
                 <button key={b} type="button" className="ca__badge-opt is-on" style={{ background: badgeColor(b), borderColor: badgeColor(b), color: '#fff' }} onClick={() => toggleBadge(b)}>{b} ✕</button>
               ))}
+            </div>
+          )}
+          {form.badges.includes(TICKET_BADGE) && (
+            <div className="ca__ticket-amount">
+              <span className="ca__ticket-amount-lbl">🎟 Monto del ticket de regalo</span>
+              <span className="ca__ticket-amount-field">$<input className="ca__input" type="number" value={form.ticketAmount} onChange={(e) => set('ticketAmount', e.target.value)} placeholder="5000" /></span>
+              <small>Se muestra en una cápsula dorada junto al badge. Dejalo vacío para no mostrar monto.</small>
             </div>
           )}
         </Field>

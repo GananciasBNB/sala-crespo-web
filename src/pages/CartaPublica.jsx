@@ -33,6 +33,20 @@ const itemBadges = (it) => {
   if (b.length) return b
   return it.is_promo ? ['Promo'] : []
 }
+const TICKET_BADGE = 'ticket promocional de regalo'
+const badgeFmt = new Intl.NumberFormat('es-AR')
+// Badge destacado. Si es el de ticket de regalo y el producto tiene monto,
+// le agrega una cápsula dorada con el valor (ej. "TICKET DE REGALO $5.000").
+function BadgePill({ label, item, className }) {
+  const isTicket = (label || '').toLowerCase() === TICKET_BADGE
+  const amount = isTicket && item.ticket_amount ? Math.round(Number(item.ticket_amount)) : null
+  return (
+    <span className={className} style={{ background: badgeColor(label) }}>
+      {label}
+      {amount != null && <b className="badge__amount">${badgeFmt.format(amount)}</b>}
+    </span>
+  )
+}
 
 // Etiqueta grande de grupo (MENÚ / BEBIDAS) según food_group
 const GROUP_LABEL = { menu: 'MENÚ', bebidas: 'BEBIDAS' }
@@ -377,7 +391,7 @@ export default function CartaPublica() {
                             {it.photo_url && <img src={it.photo_url} alt={it.name} loading="lazy" />}
                             {badges.length > 0 && (
                               <div className="card__badges">
-                                {badges.map((b) => <span key={b} className="card__badge" style={{ background: badgeColor(b) }}>{b}</span>)}
+                                {badges.map((b) => <BadgePill key={b} label={b} item={it} className="card__badge" />)}
                               </div>
                             )}
                             <span className="card__price">{money(it.price)}</span>
@@ -400,7 +414,7 @@ export default function CartaPublica() {
                           <div className="row__top">
                             <span className="row__name">
                               {it.name}
-                              {badges.map((b) => <span key={b} className="row__badge" style={{ background: badgeColor(b) }}>{b}</span>)}
+                              {badges.map((b) => <BadgePill key={b} label={b} item={it} className="row__badge" />)}
                               {it.description && !longDesc && <span className="row__desc-inline">{it.description}</span>}
                             </span>
                             <span className="row__dots" aria-hidden />
