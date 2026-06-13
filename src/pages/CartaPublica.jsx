@@ -274,7 +274,7 @@ export default function CartaPublica() {
         <span className="cover__art cover__art--br" aria-hidden>{Art.burger}</span>
 
         <div className="cover__inner">
-          <VideoSlot src="/logo-chef.mp4" className="cover__logo-video" />
+          <img className="cover__logo" src={LOGO} alt="Sala de Juegos Crespo" />
           <h1 className="cover__menu">MENÚ</h1>
           <VideoSlot src="/mascota-portada.mp4" className="cover__video" />
           <p className="cover__ask">Preguntá por nuestras</p>
