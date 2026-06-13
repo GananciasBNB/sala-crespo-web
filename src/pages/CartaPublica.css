@@ -81,12 +81,14 @@
   width: clamp(200px, 64vw, 280px); height: auto; margin: 0 auto 2px; display: block;
   filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
 }
-/* Logo animado (video con gorro de chef). object-fit: contain para no cortar el
-   escudo; el fondo verde del video se funde con la portada. */
+/* Logo animado (video con gorro de chef). Difuminado elíptico que "encierra" el
+   logo: funde el borde del video hacia el verde y tapa la marca de agua (✦) de
+   la esquina. Elíptico porque el escudo es más ancho que alto. */
 .cover__logo-video {
-  width: clamp(240px, 74vw, 340px); aspect-ratio: 1; object-fit: contain;
-  margin: 0 auto -6px; display: block;
-  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45));
+  width: clamp(300px, 92vw, 430px); height: auto; display: block;
+  margin: 0 auto -14px;
+  -webkit-mask: radial-gradient(ellipse 56% 60% at 50% 44%, #000 52%, transparent 80%);
+  mask: radial-gradient(ellipse 56% 60% at 50% 44%, #000 52%, transparent 80%);
 }
 .cover__menu {
   font-family: 'Anton', sans-serif;
