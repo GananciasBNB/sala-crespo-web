@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useLayoutEffect } from 'react'
 import MundialCountdown from './MundialCountdown'
 import { useLiveMatches } from '../hooks/useLiveMatches'
 import ResultsTicker from './ResultsTicker'
@@ -37,8 +37,21 @@ export default function ProdeBanner() {
   // Si hay partidos hoy, el ticker de resultados reemplaza la cinta de banderas
   const [noMatchesToday, setNoMatchesToday] = useState(null) // null = no sé aún
 
+  // Reporta la altura real del banner como CSS var → el navbar y el hero se
+  // acomodan solos (antes estaba hardcodeado en 68px y el banner creció).
+  const barRef = useRef(null)
+  useLayoutEffect(() => {
+    const el = barRef.current
+    if (!el) return
+    const apply = () => document.documentElement.style.setProperty('--prode-bar-h', `${el.offsetHeight}px`)
+    apply()
+    const ro = new ResizeObserver(apply)
+    ro.observe(el)
+    return () => { ro.disconnect(); document.documentElement.style.removeProperty('--prode-bar-h') }
+  }, [])
+
   return (
-    <div className={`prode-bar ${live ? 'prode-bar--live' : ''}`}>
+    <div ref={barRef} className={`prode-bar ${live ? 'prode-bar--live' : ''}`}>
       {/* Cinta de resultados del día — devuelve null si no hay partidos hoy */}
       <ResultsTicker onEmpty={setNoMatchesToday} />
       {/* Banderas decorativas — solo los días sin partidos */}

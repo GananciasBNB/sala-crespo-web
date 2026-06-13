@@ -15,7 +15,7 @@ const CARTA_HIGHLIGHTS = [
   'Cositas dulces',
 ]
 
-const CARTA_URL = 'https://cartamenusalacrespo.my.canva.site/?utm_source=ig&utm_medium=social&utm_content=link_in_bio'
+const CARTA_URL = '/carta'
 
 export default function VeniALaSala() {
   const ref = useScrollRevealParent()

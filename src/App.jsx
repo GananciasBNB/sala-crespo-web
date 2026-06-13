@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import Landing from './pages/Landing'
 import ProdeApp from './pages/ProdeApp'
@@ -13,6 +13,8 @@ const AdminPanel = lazy(() => import('./pages/AdminPanel'))
 const Contacto = lazy(() => import('./pages/Contacto'))
 const TournamentLanding = lazy(() => import('./pages/TournamentLanding'))
 const Club = lazy(() => import('./pages/Club'))
+const CartaPublica = lazy(() => import('./pages/CartaPublica'))
+const CartaAdmin = lazy(() => import('./pages/CartaAdmin'))
 
 function RouteFallback() {
   return (
@@ -61,6 +63,9 @@ function NotFound() {
 }
 
 export default function App() {
+  // La carta tiene su propia barra inferior fija → ahí el banner global se pisa.
+  const { pathname } = useLocation()
+  const hideInstallBanner = pathname.startsWith('/carta')
   return (
     <>
       <BusinessSchema />
@@ -133,10 +138,34 @@ export default function App() {
           </ChunkErrorBoundary>
         </>
       } />
+      <Route path="/carta" element={
+        <>
+          <PageHead
+            title="Carta — Sala de Juegos Crespo (Bar)"
+            description="Carta del bar de Sala de Juegos Crespo: minutas, cervezas, vinos, tragos y más. San Martín 1053, Crespo, Entre Ríos."
+            path="/carta"
+          />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <CartaPublica />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/admin/carta" element={
+        <>
+          <PageHead title="Gestión de Carta" description="" path="/admin/carta" noindex />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <CartaAdmin />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
       <Route path="*" element={<NotFound />} />
     </Routes>
-    {/* Banner global "Instalá la app" — aparece en todas las páginas si la PWA no está instalada */}
-    <InstallAppBanner />
+    {/* Banner global "Instalá la app" — en todas las páginas salvo la carta (tiene barra propia) */}
+    {!hideInstallBanner && <InstallAppBanner />}
     </>
   )
 }

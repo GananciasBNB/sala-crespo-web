@@ -1,6 +1,6 @@
 .navbar {
   position: fixed;
-  top: 68px; /* altura del ProdeBanner */
+  top: var(--prode-bar-h, 68px); /* altura real del ProdeBanner (dinámica) */
   left: 0;
   right: 0;
   z-index: 500;

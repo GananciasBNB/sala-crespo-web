@@ -104,9 +104,7 @@ export default function AyB() {
               </p>
             </div>
             <a
-              href="https://cartamenusalacrespo.my.canva.site/?utm_source=ig&utm_medium=social&utm_content=link_in_bio"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/carta"
               className="btn-gold ayb__menu-btn"
             >
               Ver nuestra carta completa →

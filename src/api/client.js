@@ -484,6 +484,47 @@ export const adminLoyaltyDeliver = (token, redemptionId, operator) =>
 export const adminLoyaltyCancel = (token, redemptionId, reason) =>
   api('/api/admin/loyalty/cancel', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ redemptionId, reason }) })
 
+// ─── Carta digital (menú del bar) ─────────────────────────────────────────
+// Pública (la lee /carta y el QR)
+export const getMenu = () => api('/api/menu')
+
+// Admin
+export const adminGetMenu = (token) =>
+  api('/api/admin/menu', { headers: authHeaders(token) })
+
+export const adminCreateMenuCategory = (token, body) =>
+  api('/api/admin/menu/categories', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminUpdateMenuCategory = (token, id, body) =>
+  api(`/api/admin/menu/categories/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminDeleteMenuCategory = (token, id) =>
+  api(`/api/admin/menu/categories/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+export const adminReorderMenuCategories = (token, updates) =>
+  api('/api/admin/menu/categories/reorder', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ updates }) })
+
+export const adminCreateMenuItem = (token, body) =>
+  api('/api/admin/menu/items', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminUpdateMenuItem = (token, id, body) =>
+  api(`/api/admin/menu/items/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminDeleteMenuItem = (token, id) =>
+  api(`/api/admin/menu/items/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+export const adminReorderMenuItems = (token, updates) =>
+  api('/api/admin/menu/items/reorder', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ updates }) })
+export const adminMoveMenuItem = (token, id, body) =>
+  api(`/api/admin/menu/items/${id}/move`, { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+
+export const adminMenuBulkPrice = (token, body) =>
+  api('/api/admin/menu/bulk-price', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminMenuBatchPrices = (token, updates) =>
+  api('/api/admin/menu/prices/batch', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ updates }) })
+export const adminMenuSetCost = (token, id, cost) =>
+  api(`/api/admin/menu/items/${id}/cost`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify({ cost }) })
+export const adminMenuPriceHistory = (token, { itemId, limit = 100 } = {}) => {
+  const qs = new URLSearchParams()
+  if (itemId) qs.set('itemId', itemId)
+  if (limit) qs.set('limit', limit)
+  return api(`/api/admin/menu/price-history?${qs}`, { headers: authHeaders(token) })
+}
+
 // ─── Lead capture (form público "Suscribite a las promos") ──────────────────
 export const subscribeLead = (data) =>
   api('/api/leads/subscribe', { method: 'POST', body: JSON.stringify(data) })

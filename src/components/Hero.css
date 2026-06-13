@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding-top: 148px; /* 68px banner + 80px navbar */
+  padding-top: calc(var(--prode-bar-h, 68px) + 80px); /* banner real + navbar */
   margin-bottom: -2px; /* elimina raya entre hero y sección siguiente */
 }
 
