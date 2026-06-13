@@ -12,9 +12,12 @@ const LOGO = '/logo-mundial-2026.png'
 // Generados con Flow, fondo verde #1e4034 para fundirse con la carta.
 const SECTION_VIDEOS = {
   'minutas': '/hamburguesa.mp4',
-  'papas / pizza': '/papas.mp4',
+  'papas': '/papas.mp4',
   'cervezas individuales': '/cerveza.mp4',
   'tragos': '/trago.mp4',
+  // Pendientes de generar en Flow → descomentar al subir el .mp4:
+  // 'pizza': '/pizza.mp4',
+  // 'espumantes': '/espumante.mp4',
 }
 const sectionVideo = (name) => SECTION_VIDEOS[(name || '').toLowerCase().trim()] || null
 
