@@ -328,6 +328,9 @@
 
 /* Lista de recetas */
 .ca__rpanel { display:flex; flex-direction:column; gap:12px; }
+.ca__rpanel-bar { display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+.ca__rfood { display:inline-flex; align-items:center; gap:7px; font-size:0.84rem; color:var(--muted); cursor:pointer; white-space:nowrap; }
+.ca__rfood input { width:16px; height:16px; accent-color:var(--gold); }
 .ca__rlist { display:flex; flex-direction:column; gap:8px; }
 .ca__ritem { border:1px solid var(--line); border-radius:12px; background:var(--bg-2); overflow:hidden; }
 .ca__ritem.is-open { border-color:var(--gold-soft); }

@@ -642,8 +642,10 @@ function IngredientsPanel({ ings, token, flash, reload, reloadMenu }) {
 function RecipesPanel({ menu, ings, token, flash, reloadMenu }) {
   const [search, setSearch] = useState('')
   const [openId, setOpenId] = useState(null)
+  const [showFood, setShowFood] = useState(false) // por defecto solo bebidas
   const q = search.trim().toLowerCase()
   const items = menu
+    .filter((c) => showFood || c.food_group !== 'menu') // 'menu' = comida; el resto = bebidas
     .flatMap((c) => (c.items || []).map((i) => ({ ...i, catName: c.name, foodGroup: c.food_group })))
     .filter((i) => !q || i.name.toLowerCase().includes(q) || i.catName.toLowerCase().includes(q))
 
@@ -653,7 +655,10 @@ function RecipesPanel({ menu, ings, token, flash, reloadMenu }) {
 
   return (
     <div className="ca__rpanel">
-      <input className="ca__input ca__search" placeholder="🔍 Buscar trago o producto…" value={search} onChange={(e) => setSearch(e.target.value)} />
+      <div className="ca__rpanel-bar">
+        <input className="ca__input ca__search" placeholder="🔍 Buscar trago o producto…" value={search} onChange={(e) => setSearch(e.target.value)} />
+        <label className="ca__rfood"><input type="checkbox" checked={showFood} onChange={(e) => setShowFood(e.target.checked)} /> Mostrar comida</label>
+      </div>
       <div className="ca__rlist">
         {items.map((it) => {
           const isOpen = openId === it.id
