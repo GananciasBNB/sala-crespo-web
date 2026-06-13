@@ -42,8 +42,8 @@ export default function LeadFloatingCta() {
       className={`lead-fab ${show ? 'lead-fab--show' : ''}`}
       aria-label="Suscribirme a las promos"
     >
-      <span className="lead-fab__icon">🎁</span>
-      <span className="lead-fab__text">Dejá tus datos y recibí promociones exclusivas</span>
+      <span className="lead-fab__icon">🍺</span>
+      <span className="lead-fab__text">Dejá tus datos y te invitamos una bebida de cortesía</span>
     </button>
   )
 }

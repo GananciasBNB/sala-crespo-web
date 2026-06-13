@@ -163,9 +163,10 @@ function MailBlock() {
     catch (err) { setMailErr(err.message || 'No se pudo, probá de nuevo'); setMail('idle') }
   }
   return (
-    <div className="mailcta">
-      <h3 className="mailcta__title">¿Preferís las promos por mail?</h3>
-      <p className="mailcta__sub">Dejanos tus datos y te avisamos de cada promo y sorteo.</p>
+    <div className="mailcta" id="sumate-mail">
+      <span className="mailcta__badge">🍺 1ª bebida de cortesía</span>
+      <h3 className="mailcta__title">Sumate y te invitamos una bebida</h3>
+      <p className="mailcta__sub">Dejá tus datos: promos exclusivas + una <b>bebida de cortesía de bienvenida</b> si es tu primera vez en la sala.</p>
       {mail === 'done' ? (
         <p className="mailcta__ok">{gotCortesia ? '¡Listo! Te mandamos una bebida de cortesía a tu mail 🎁🍺' : '¡Listo! Te vamos a avisar de las promos 🎉'}</p>
       ) : (
@@ -254,6 +255,7 @@ export default function CartaPublica() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   const goToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' })
+  const goToJoin = () => { const el = document.getElementById('sumate-mail'); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' }) }
 
   // Grupo activo (MENÚ / BEBIDAS) según la categoría visible — para la barra inferior
   const activeGroup = (() => {
@@ -283,6 +285,10 @@ export default function CartaPublica() {
           <span className="cover__rule" />
           <button className="cover__cta" onClick={goToMenu}>
             Ver la carta <span className="cover__cta-arrow">↓</span>
+          </button>
+          <button className="cover__seal" onClick={goToJoin}>
+            <span className="cover__seal-ico">🍺</span>
+            <span className="cover__seal-txt">Tu 1ª bebida, <b>de cortesía</b></span>
           </button>
         </div>
       </section>

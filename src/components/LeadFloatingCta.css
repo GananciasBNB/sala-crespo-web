@@ -37,7 +37,16 @@
 }
 .lead-fab:active { transform: translateY(0) scale(.98); }
 .lead-fab__icon { font-size: 18px; line-height: 1; flex-shrink: 0; }
+.lead-fab--show .lead-fab__icon { animation: lead-fab-ico 2.8s ease-in-out infinite; transform-origin: 50% 80%; }
 .lead-fab__text { white-space: normal; }
+
+@keyframes lead-fab-ico {
+  0%, 86%, 100% { transform: rotate(0) scale(1); }
+  90% { transform: rotate(-12deg) scale(1.12); }
+  94% { transform: rotate(10deg) scale(1.12); }
+  98% { transform: rotate(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .lead-fab--show .lead-fab__icon { animation: none; } }
 
 @keyframes lead-fab-pulse {
   0%, 100% { box-shadow: 0 12px 30px rgba(0,0,0,.45), 0 4px 12px rgba(201,168,76,.35); }

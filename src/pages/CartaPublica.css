@@ -133,6 +133,27 @@
 .cover__cta:hover { transform: translateY(-2px); box-shadow: 0 14px 34px rgba(194,163,95,0.44); }
 .cover__cta-arrow { animation: bob 1.6s ease-in-out infinite; }
 @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
+
+/* Sellito "1ª bebida de cortesía" — invita y lleva al form, con wiggle sutil */
+.cover__seal {
+  display: inline-flex; align-items: center; gap: 9px;
+  margin: 16px auto 0; padding: 9px 18px;
+  background: rgba(216,178,90,0.12);
+  border: 1.5px solid var(--gold);
+  border-radius: 999px;
+  color: var(--gold-soft); cursor: pointer;
+  font-family: 'Oswald', sans-serif; font-size: 0.82rem; font-weight: 600;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 18px rgba(194,163,95,0.18);
+  animation: sealWiggle 2.6s ease-in-out infinite;
+  transition: background 0.15s ease;
+}
+.cover__seal:hover { background: rgba(216,178,90,0.22); animation-play-state: paused; }
+.cover__seal-ico { font-size: 1.1rem; animation: sealPulse 2.6s ease-in-out infinite; }
+.cover__seal-txt b { color: var(--cream); }
+@keyframes sealWiggle { 0%,92%,100% { transform: rotate(0deg); } 95% { transform: rotate(-3deg); } 98% { transform: rotate(3deg); } }
+@keyframes sealPulse { 0%,90%,100% { transform: scale(1); } 95% { transform: scale(1.2); } }
+@media (prefers-reduced-motion: reduce) { .cover__seal, .cover__seal-ico { animation: none; } }
 .cover__scroll {
   position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
   font-size: 0.66rem; letter-spacing: 0.3em; text-transform: uppercase;
@@ -351,6 +372,13 @@
 
 /* ════════════════ PROMOS POR MAIL (en el cierre) ════════════════ */
 .mailcta { max-width: 380px; margin: 36px auto 0; width: 100%; }
+.mailcta__badge {
+  display: inline-block; margin-bottom: 10px; padding: 5px 14px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-soft));
+  color: #1c1405; border-radius: 999px;
+  font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 0.74rem;
+  letter-spacing: 0.04em; text-transform: uppercase;
+}
 .mailcta__title {
   margin: 0; font-family: 'Oswald', sans-serif; font-weight: 700;
   font-size: 1.05rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gold-soft);
