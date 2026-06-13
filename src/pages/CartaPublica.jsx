@@ -293,19 +293,17 @@ export default function CartaPublica() {
           </button>
 
           <div className="cover__pay">
-            <svg className="cover__pay-art" viewBox="0 0 64 48" fill="none" aria-hidden>
+            <svg className="cover__pay-art" viewBox="0 0 52 40" fill="none" aria-hidden>
               {/* tarjeta */}
-              <g className="cover__pay-card">
-                <rect x="20" y="9" width="34" height="22" rx="3.2" fill="rgba(216,178,90,0.14)" stroke="currentColor" strokeWidth="1.6" />
-                <rect x="20" y="14" width="34" height="4.2" fill="currentColor" opacity="0.85" />
-                <rect x="25" y="23.5" width="13" height="2.6" rx="1.3" fill="currentColor" opacity="0.7" />
-                {/* chip */}
-                <rect x="25" y="20" width="6" height="5" rx="1" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.8" />
-              </g>
-              {/* ondas contactless */}
-              <g stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" className="cover__pay-wave">
-                <path d="M9 18 a8 8 0 0 1 0 12" />
-                <path d="M4.5 14 a14 14 0 0 1 0 20" />
+              <rect x="3" y="9" width="36" height="23" rx="3.2" fill="rgba(216,178,90,0.16)" stroke="currentColor" strokeWidth="1.7" />
+              <rect x="3" y="14" width="36" height="4.5" fill="currentColor" opacity="0.85" />
+              {/* chip */}
+              <rect x="8" y="23" width="7" height="5.5" rx="1.2" fill="none" stroke="currentColor" strokeWidth="1.2" opacity="0.85" />
+              {/* ondas contactless saliendo de la tarjeta */}
+              <g stroke="currentColor" strokeLinecap="round" fill="none" className="cover__pay-wave">
+                <path d="M41 14 a7 7 0 0 1 0 12" strokeWidth="1.8" />
+                <path d="M45 10 a13 13 0 0 1 0 20" strokeWidth="1.8" opacity="0.8" />
+                <path d="M49 6 a19 19 0 0 1 0 28" strokeWidth="1.8" opacity="0.55" />
               </g>
             </svg>
             <span className="cover__pay-txt"><b>Aceptamos</b><br/>débito y crédito</span>
