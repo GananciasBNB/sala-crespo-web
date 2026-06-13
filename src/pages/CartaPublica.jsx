@@ -166,7 +166,7 @@ function MailBlock() {
     <div className="mailcta" id="sumate-mail">
       <span className="mailcta__badge">🍺 1ª bebida de cortesía</span>
       <h3 className="mailcta__title">Sumate y te invitamos una bebida</h3>
-      <p className="mailcta__sub">Dejá tus datos: promos exclusivas + una <b>bebida de cortesía de bienvenida</b> si es tu primera vez en la sala.</p>
+      <p className="mailcta__sub">Dejá tus datos: promos exclusivas + una <b>bebida de cortesía de bienvenida</b> 🍺</p>
       {mail === 'done' ? (
         <p className="mailcta__ok">{gotCortesia ? '¡Listo! Te mandamos una bebida de cortesía a tu mail 🎁🍺' : '¡Listo! Te vamos a avisar de las promos 🎉'}</p>
       ) : (
@@ -280,15 +280,16 @@ export default function CartaPublica() {
           <VideoSlot src="/logo-chef.mp4" className="cover__logo-video" />
           <h1 className="cover__menu">MENÚ</h1>
           <VideoSlot src="/mascota-portada.mp4" className="cover__video" />
+          <button className="cover__seal" onClick={goToJoin} aria-label="Bebida de cortesía, dejá tus datos">
+            <span className="cover__seal-ico">🍺</span>
+            <span className="cover__seal-main">Bebida<br/>de cortesía</span>
+            <span className="cover__seal-sub">Dejá tus datos</span>
+          </button>
           <p className="cover__ask">Preguntá por nuestras</p>
           <p className="cover__promos">PROMOCIONES</p>
           <span className="cover__rule" />
           <button className="cover__cta" onClick={goToMenu}>
             Ver la carta <span className="cover__cta-arrow">↓</span>
-          </button>
-          <button className="cover__seal" onClick={goToJoin}>
-            <span className="cover__seal-ico">🍺</span>
-            <span className="cover__seal-txt">Tu 1ª bebida, <b>de cortesía</b></span>
           </button>
         </div>
       </section>

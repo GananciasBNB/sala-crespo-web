@@ -134,26 +134,41 @@
 .cover__cta-arrow { animation: bob 1.6s ease-in-out infinite; }
 @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(4px); } }
 
-/* Sellito "1ª bebida de cortesía" — invita y lleva al form, con wiggle sutil */
+/* Sello "Bebida de cortesía" — estilo estampa circular, dorado, flota sutil */
 .cover__seal {
-  display: inline-flex; align-items: center; gap: 9px;
-  margin: 16px auto 0; padding: 9px 18px;
-  background: rgba(216,178,90,0.12);
-  border: 1.5px solid var(--gold);
-  border-radius: 999px;
+  position: relative;
+  width: clamp(120px, 36vw, 144px); height: clamp(120px, 36vw, 144px);
+  margin: 18px auto 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 1px; text-align: center;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: radial-gradient(circle at 50% 38%, rgba(216,178,90,0.24), rgba(7,20,13,0.5));
   color: var(--gold-soft); cursor: pointer;
-  font-family: 'Oswald', sans-serif; font-size: 0.82rem; font-weight: 600;
-  letter-spacing: 0.02em;
-  box-shadow: 0 6px 18px rgba(194,163,95,0.18);
-  animation: sealWiggle 2.6s ease-in-out infinite;
-  transition: background 0.15s ease;
+  box-shadow: 0 10px 26px rgba(0,0,0,0.42), inset 0 0 20px rgba(194,163,95,0.16);
+  transform: rotate(-7deg);
+  animation: sealFloat 3.2s ease-in-out infinite;
+  transition: transform 0.2s ease;
 }
-.cover__seal:hover { background: rgba(216,178,90,0.22); animation-play-state: paused; }
-.cover__seal-ico { font-size: 1.1rem; animation: sealPulse 2.6s ease-in-out infinite; }
-.cover__seal-txt b { color: var(--cream); }
-@keyframes sealWiggle { 0%,92%,100% { transform: rotate(0deg); } 95% { transform: rotate(-3deg); } 98% { transform: rotate(3deg); } }
-@keyframes sealPulse { 0%,90%,100% { transform: scale(1); } 95% { transform: scale(1.2); } }
-@media (prefers-reduced-motion: reduce) { .cover__seal, .cover__seal-ico { animation: none; } }
+.cover__seal::before {
+  content: ''; position: absolute; inset: 7px; border-radius: 50%;
+  border: 1.5px dashed rgba(216,178,90,0.55);
+}
+.cover__seal:hover { transform: rotate(0deg) scale(1.06); animation-play-state: paused; }
+.cover__seal-ico { font-size: 1.55rem; line-height: 1; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4)); }
+.cover__seal-main {
+  font-family: 'Anton', sans-serif; font-size: 0.95rem; line-height: 0.98;
+  color: var(--cream); text-transform: uppercase; letter-spacing: 0.02em; margin-top: 3px;
+}
+.cover__seal-sub {
+  font-family: 'Oswald', sans-serif; font-weight: 600; font-size: 0.58rem;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-soft); margin-top: 4px;
+}
+@keyframes sealFloat {
+  0%, 100% { transform: rotate(-7deg) translateY(0); }
+  50% { transform: rotate(-4deg) translateY(-5px); }
+}
+@media (prefers-reduced-motion: reduce) { .cover__seal { animation: none; } }
 .cover__scroll {
   position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
   font-size: 0.66rem; letter-spacing: 0.3em; text-transform: uppercase;
