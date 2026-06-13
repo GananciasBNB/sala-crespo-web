@@ -22,11 +22,56 @@
 .morphi__empty-title { margin: 14px 0 4px; font-size: 1.4rem; font-weight: 800; color: #34d399; }
 .morphi__empty span { color: #b9bfae; }
 
+.morphi__summary { display: flex; align-items: center; gap: 10px; margin: 0 0 14px; }
 .morphi__count {
-  display: inline-block; margin: 0 0 12px; padding: 5px 14px; border-radius: 999px;
+  display: inline-block; padding: 5px 14px; border-radius: 999px;
   background: rgba(216,178,90,0.16); border: 1px solid rgba(216,178,90,0.4);
   color: #f0d275; font-weight: 700; font-size: 0.85rem;
 }
+.morphi__count-cats {
+  display: inline-block; padding: 5px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+  color: #b9bfae; font-weight: 600; font-size: 0.82rem;
+}
+
+/* Chips de salto rápido por sección */
+.morphi__chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 18px; }
+.morphi__chip {
+  padding: 7px 12px; border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  color: #d7dce4; font-family: inherit; font-size: 0.82rem; font-weight: 600;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.morphi__chip b { color: #f0d275; margin-left: 3px; }
+.morphi__chip.is-open { background: rgba(216,178,90,0.16); border-color: rgba(216,178,90,0.45); color: #fff; }
+
+/* Secciones colapsables */
+.morphi__groups { display: flex; flex-direction: column; gap: 12px; }
+.morphi__group {
+  background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; overflow: hidden;
+}
+.morphi__group.is-open { border-color: rgba(216,178,90,0.3); }
+.morphi__group-head {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 16px 18px; cursor: pointer; border: none; background: transparent;
+  color: #fff; font-family: inherit; text-align: left;
+}
+.morphi__group-name { flex: 1; min-width: 0; font-size: 1.08rem; font-weight: 800; }
+.morphi__group-badge {
+  flex: 0 0 auto; min-width: 26px; text-align: center; padding: 3px 9px; border-radius: 999px;
+  background: rgba(216,178,90,0.2); color: #f0d275; font-weight: 800; font-size: 0.85rem;
+}
+.morphi__group-arrow { flex: 0 0 auto; color: #8a93a3; font-size: 0.7rem; }
+.morphi__group-all {
+  width: 100%; margin-top: 12px; padding: 14px; border-radius: 12px; border: 1px dashed rgba(52,211,153,0.5);
+  background: rgba(52,211,153,0.08); color: #34d399; font-family: inherit; font-weight: 800;
+  font-size: 0.95rem; cursor: pointer; transition: background 0.15s ease;
+}
+.morphi__group-all:hover:not(:disabled) { background: rgba(52,211,153,0.16); }
+.morphi__group-all:disabled { opacity: 0.6; cursor: default; }
+.morphi__group .morphi__list { padding: 0 14px 14px; }
+
 .morphi__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
 .morphi__item {
   display: flex; align-items: center; gap: 12px;

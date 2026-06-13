@@ -404,7 +404,6 @@ export default function CartaPublica() {
       {/* ── CIERRE ── */}
       {menu?.length > 0 && (
         <section className="closing">
-          <img className="closing__logo" src={LOGO} alt="" aria-hidden />
           <VideoSlot src="/casino.mp4" className="closing__video" />
           <p className="closing__top">ACÁ EL TIEMPO SE DETIENE…</p>
           <p className="closing__sub">AL MENOS HASTA QUE TRAEN LA CUENTA</p>
@@ -413,6 +412,14 @@ export default function CartaPublica() {
           <p className="closing__wait">NOSOTROS TE ESPERAMOS SIEMPRE</p>
           <VideoSlot src="/mascota-cierre.mp4" className="closing__video" />
           <MailBlock />
+          <div className="closing__pay">
+            <svg className="closing__pay-ico" viewBox="0 0 24 24" width="20" height="20" aria-hidden>
+              <rect x="2" y="5" width="20" height="14" rx="2.5" fill="none" stroke="currentColor" strokeWidth="1.6" />
+              <rect x="2" y="8.5" width="20" height="3" fill="currentColor" />
+              <rect x="5" y="15" width="6" height="1.8" rx="0.9" fill="currentColor" />
+            </svg>
+            <span className="closing__pay-txt">Aceptamos débito y crédito</span>
+          </div>
           <div className="closing__info">
             <p className="closing__name">Sala de Juegos Crespo</p>
             <p className="closing__addr">San Martín 1053 · Crespo, Entre Ríos · saladejuegoscrespo.ar</p>

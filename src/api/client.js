@@ -532,6 +532,8 @@ export const adminMenuSnapshotDelete = (token, id) =>
 export const morphiPending = (k) => api(`/api/morphi/pending?k=${encodeURIComponent(k)}`)
 export const morphiMarkSynced = (k, itemId) =>
   api('/api/morphi/synced', { method: 'POST', body: JSON.stringify({ k, itemId }) })
+export const morphiMarkSyncedMany = (k, itemIds) =>
+  api('/api/morphi/synced-many', { method: 'POST', body: JSON.stringify({ k, itemIds }) })
 export const morphiMarkAllSynced = (k) =>
   api('/api/morphi/synced-all', { method: 'POST', body: JSON.stringify({ k }) })
 
