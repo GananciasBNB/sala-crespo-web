@@ -81,6 +81,13 @@
   width: clamp(200px, 64vw, 280px); height: auto; margin: 0 auto 2px; display: block;
   filter: drop-shadow(0 8px 24px rgba(0,0,0,0.5));
 }
+/* Logo animado (video con gorro de chef). object-fit: contain para no cortar el
+   escudo; el fondo verde del video se funde con la portada. */
+.cover__logo-video {
+  width: clamp(240px, 74vw, 340px); aspect-ratio: 1; object-fit: contain;
+  margin: 0 auto -6px; display: block;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.45));
+}
 .cover__menu {
   font-family: 'Anton', sans-serif;
   font-size: clamp(3.6rem, 19vw, 6.5rem);
