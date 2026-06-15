@@ -171,6 +171,7 @@
   border-radius: 3px;
 }
 
-@media (max-width: 420px) {
-  .notif-bell__panel { width: calc(100vw - 24px); right: -8px; }
+@media (max-width: 480px) {
+  /* Full-width con margen fijo a ambos lados (el right inline lo pone el JS en 12px). */
+  .notif-bell__panel { width: calc(100vw - 24px); }
 }

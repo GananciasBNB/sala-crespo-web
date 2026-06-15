@@ -70,9 +70,13 @@ export default function NotificationBell({ player }) {
   async function toggle() {
     const next = !open
     if (next && btnRef.current) {
-      // Calcular posición del panel a partir del botón (coordenadas de viewport)
+      // Calcular posición del panel a partir del botón (coordenadas de viewport).
+      // En mobile el panel es casi full-width: lo anclamos con margen fijo (12px)
+      // para que no se desborde por la izquierda si el botón no está pegado al borde.
       const r = btnRef.current.getBoundingClientRect()
-      setPos({ top: Math.round(r.bottom + 10), right: Math.round(window.innerWidth - r.right) })
+      const isMobile = window.innerWidth <= 480
+      const right = isMobile ? 12 : Math.round(window.innerWidth - r.right)
+      setPos({ top: Math.round(r.bottom + 10), right })
     }
     setOpen(next)
     if (next) {
