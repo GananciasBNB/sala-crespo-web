@@ -11,7 +11,7 @@ import {
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
   adminGetPrizes, adminGetPrizesSummary, adminGeneratePrizes, adminRedeemPrize, adminRevokePrize,
-  adminEmailBlast, adminEmailPreview, adminEmailDefaults,
+  adminEmailBlast, adminEmailPreview, adminEmailDefaults, adminSegmentCounts,
   adminEmailCampaigns, adminEmailCampaignDetail,
   adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview, adminPromoCandidates,
   adminMarketingOptouts, adminReinstateMarketing,
@@ -4138,6 +4138,11 @@ function EmailBlastAdmin({ token, toast }) {
   // de pronósticos cargados. 'all' = sin filtro. Default 30 = solo los que están flojos.
   const [maxPredictions, setMaxPredictions] = useState(30)
   const [unfilteredPredictions, setUnfilteredPredictions] = useState(false)
+  // Filtro por segmento (X/Y/Z + 'SIN' sin clasificar). [] = toda la base.
+  const [segments, setSegments] = useState([])
+  const [segCounts, setSegCounts] = useState(null)
+  // El segmento solo aplica a plantillas que usan la base general de clientes.
+  const usesBaseAudience = !['reminder', 'reminder-predictions'].includes(template)
   const [showHistory, setShowHistory] = useState(false)
   const [campaigns, setCampaigns] = useState([])
   const [campaignDetail, setCampaignDetail] = useState(null)
@@ -4184,10 +4189,18 @@ function EmailBlastAdmin({ token, toast }) {
   ]
   const selected = TEMPLATES.find(t => t.id === template)
 
-  // Cargar defaults al inicio
+  // Cargar defaults + conteo por segmento al inicio
   useEffect(() => {
     adminEmailDefaults(token).then(r => setDefaults(r.defaults)).catch(() => {})
+    adminSegmentCounts(token).then(r => setSegCounts(r.counts)).catch(() => {})
   }, [token])
+
+  // Agrega el filtro de segmento al body si aplica.
+  function withSegments(body) {
+    if (usesBaseAudience && segments.length) body.segments = segments
+    return body
+  }
+  const toggleSeg = (s) => setSegments(arr => arr.includes(s) ? arr.filter(x => x !== s) : [...arr, s])
 
   // Cuando cambia template (o se cargan defaults), precargar inputs con los defaults
   useEffect(() => {
@@ -4245,7 +4258,7 @@ function EmailBlastAdmin({ token, toast }) {
   async function dryRun() {
     setBusy(true); setLastResult(null)
     try {
-      const body = withReminderPredictionsBody({ template, scope, dryRun: true })
+      const body = withSegments(withReminderPredictionsBody({ template, scope, dryRun: true }))
       if (excludeRecent) body.excludeRecentDays = excludeDays
       const r = await adminEmailBlast(token, body)
       const list = r.recipients || r.sample || []
@@ -4262,7 +4275,7 @@ function EmailBlastAdmin({ token, toast }) {
   async function blast() {
     setBusy(true); setLastResult(null); setConfirmBlast(false)
     try {
-      const body = withReminderPredictionsBody({ template, scope, customSubject, customIntro })
+      const body = withSegments(withReminderPredictionsBody({ template, scope, customSubject, customIntro }))
       if (excludeRecent) body.excludeRecentDays = excludeDays
       if (template === 'shows' && customShowsToSend.length > 0) body.customShows = customShowsToSend
       const r = await adminEmailBlast(token, body)
@@ -4495,6 +4508,40 @@ function EmailBlastAdmin({ token, toast }) {
               <input type="radio" checked={scope === 'tournament'} onChange={() => setScope('tournament')} disabled={busy} />
               <span>Solo inscriptos al torneo activo</span>
             </label>
+          </div>
+        )}
+
+        {/* Filtro por segmento (clasificación de Miriam) */}
+        {usesBaseAudience && scope === 'all' && (
+          <div style={{margin:'0 0 14px', padding:'10px 14px', background:'rgba(0,0,0,.2)', borderRadius:8, fontSize:13}}>
+            <div style={{marginBottom:8, color:'#94a3b8'}}>Filtrar por clasificación de cliente:</div>
+            <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
+              {[
+                { v: 'all', label: 'Todos', n: segCounts ? (segCounts.X + segCounts.Y + segCounts.Z + segCounts.sin) : null },
+                { v: 'Z', label: 'Z', n: segCounts?.Z },
+                { v: 'Y', label: 'Y', n: segCounts?.Y },
+                { v: 'X', label: 'X', n: segCounts?.X },
+                { v: 'SIN', label: 'Sin clasificar', n: segCounts?.sin },
+              ].map(({ v, label, n }) => {
+                const on = v === 'all' ? segments.length === 0 : segments.includes(v)
+                return (
+                  <button
+                    key={v}
+                    type="button"
+                    onClick={() => v === 'all' ? setSegments([]) : toggleSeg(v)}
+                    disabled={busy}
+                    style={{
+                      padding:'6px 13px', borderRadius:999, cursor:'pointer', fontSize:13, fontWeight:700,
+                      border:`1px solid ${on ? '#caa14e' : '#2a3142'}`,
+                      background: on ? 'rgba(202,161,78,.18)' : 'transparent',
+                      color: on ? '#f0d275' : '#94a3b8',
+                    }}
+                  >
+                    {label}{n != null ? ` · ${n}` : ''}
+                  </button>
+                )
+              })}
+            </div>
           </div>
         )}
 

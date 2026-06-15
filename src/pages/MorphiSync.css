@@ -14,6 +14,45 @@
 .morphi__head p { margin: 8px 0 0; font-size: 0.9rem; color: #b9bfae; line-height: 1.5; }
 .morphi__head b { color: #fff; }
 
+/* Pestañas Precios / Clientes */
+.morphi__tabs { display: flex; gap: 8px; margin: 0 0 16px; }
+.morphi__tabs button {
+  flex: 1; padding: 12px; border-radius: 12px; cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12);
+  color: #d7dce4; font-family: inherit; font-size: 0.95rem; font-weight: 700;
+}
+.morphi__tabs button.is-on { background: rgba(216,178,90,0.16); border-color: rgba(216,178,90,0.5); color: #f0d275; }
+.morphi__intro { margin: 0 0 16px; font-size: 0.9rem; color: #b9bfae; line-height: 1.5; text-align: center; }
+.morphi__intro b { color: #fff; }
+.morphi__searchbox {
+  width: 100%; padding: 12px 14px; margin: 0 0 14px; border-radius: 12px;
+  background: #14241b; border: 1px solid rgba(255,255,255,0.12); color: #fff;
+  font-family: inherit; font-size: 0.95rem; outline: none;
+}
+.morphi__searchbox:focus { border-color: rgba(216,178,90,0.5); }
+
+/* Lista de clientes a clasificar */
+.morphi__clients { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.morphi__client {
+  display: flex; align-items: center; gap: 12px;
+  background: #14241b; border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 12px 14px; transition: opacity 0.2s ease;
+}
+.morphi__client.is-busy { opacity: 0.5; }
+.morphi__client-info { flex: 1; min-width: 0; }
+.morphi__client-name { display: block; font-size: 1.02rem; font-weight: 700; color: #fff; }
+.morphi__client-mail { display: block; font-size: 0.82rem; color: #8a93a3; margin-top: 2px; font-family: 'JetBrains Mono', monospace; }
+.morphi__segbtns { display: flex; gap: 6px; flex: 0 0 auto; }
+.morphi__segbtn {
+  width: 44px; height: 44px; border-radius: 11px; cursor: pointer;
+  background: rgba(216,178,90,0.1); border: 1px solid rgba(216,178,90,0.35);
+  color: #f0d275; font-family: inherit; font-size: 1.05rem; font-weight: 800;
+  transition: background 0.12s ease, transform 0.1s ease;
+}
+.morphi__segbtn:hover:not(:disabled) { background: rgba(216,178,90,0.22); transform: translateY(-1px); }
+.morphi__segbtn:active { transform: translateY(0); }
+.morphi__segbtn:disabled { opacity: 0.5; }
+
 .morphi__error { background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.4); color: #ffb4ab; padding: 14px; border-radius: 12px; text-align: center; }
 .morphi__loading { text-align: center; color: #b9bfae; padding: 40px; }
 

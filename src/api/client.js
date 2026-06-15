@@ -411,6 +411,8 @@ export const adminDeleteAdmin = (token, id) =>
 // ─── Email blast (admin) ──────────────────────────────────────────────────────
 export const adminEmailBlast = (token, body) =>
   api('/api/admin/email/blast', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminSegmentCounts = (token) =>
+  api('/api/admin/segments/counts', { headers: authHeaders(token) })
 
 export const adminEmailPreview = (token, body) =>
   api('/api/admin/email/preview', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
@@ -550,6 +552,10 @@ export const morphiMarkSyncedMany = (k, itemIds) =>
   api('/api/morphi/synced-many', { method: 'POST', body: JSON.stringify({ k, itemIds }) })
 export const morphiMarkUnsynced = (k, itemId) =>
   api('/api/morphi/unsynced', { method: 'POST', body: JSON.stringify({ k, itemId }) })
+// Segmentación de clientes (Miriam clasifica X/Y/Z)
+export const morphiClients = (k) => api(`/api/morphi/clients?k=${encodeURIComponent(k)}`)
+export const morphiSetSegment = (k, playerId, segment) =>
+  api('/api/morphi/segment', { method: 'POST', body: JSON.stringify({ k, playerId, segment }) })
 export const morphiMarkAllSynced = (k) =>
   api('/api/morphi/synced-all', { method: 'POST', body: JSON.stringify({ k }) })
 

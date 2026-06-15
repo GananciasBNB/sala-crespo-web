@@ -1,34 +1,58 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { morphiPending, morphiMarkSynced, morphiMarkSyncedMany, morphiMarkUnsynced } from '../api/client'
+import { morphiPending, morphiMarkSynced, morphiMarkSyncedMany, morphiMarkUnsynced, morphiClients, morphiSetSegment } from '../api/client'
 import './MorphiSync.css'
 
 const fmt = new Intl.NumberFormat('es-AR')
 const money = (n) => `$${fmt.format(Math.round(Number(n) || 0))}`
 
-// Checklist para la cajera: ve los cambios de precio agrupados por sección.
-// Al tildar "✓ Cargado" el ítem NO se borra: queda en verde con opción de
-// deshacer (evita perder de vista lo que ya cargó). Acceso con ?k=CODE.
+// Página de Miriam (acceso con ?k=CODE). Dos pestañas:
+//  - Precios: checklist de cambios para cargar en Morphi.
+//  - Clientes: clasificar la base (X/Y/Z) — al asignar, el cliente desaparece.
 export default function MorphiSync() {
   const k = new URLSearchParams(window.location.search).get('k') || ''
+  const [tab, setTab] = useState('prices')
+  const noKey = !k
+
+  return (
+    <div className="morphi">
+      <header className="morphi__head">
+        <img src="https://www.saladejuegoscrespo.ar/logo-sin-fondo.png" alt="" className="morphi__logo" />
+        <h1>Sala Crespo · Caja</h1>
+      </header>
+
+      {noKey ? (
+        <p className="morphi__error">Falta el código de acceso en el link.</p>
+      ) : (
+        <>
+          <div className="morphi__tabs">
+            <button className={tab === 'prices' ? 'is-on' : ''} onClick={() => setTab('prices')}>💲 Precios</button>
+            <button className={tab === 'clients' ? 'is-on' : ''} onClick={() => setTab('clients')}>👥 Clientes</button>
+          </div>
+          {tab === 'prices' ? <PricesTab k={k} /> : <ClientsTab k={k} />}
+        </>
+      )}
+    </div>
+  )
+}
+
+/* ─────────── Precios (checklist Morphi) ─────────── */
+function PricesTab({ k }) {
   const [pending, setPending] = useState(null)
   const [error, setError] = useState('')
   const [busyId, setBusyId] = useState(null)
   const [busyCat, setBusyCat] = useState(null)
-  const [open, setOpen] = useState(() => new Set()) // secciones expandidas
+  const [open, setOpen] = useState(() => new Set())
 
   const load = useCallback(async () => {
-    if (!k) { setError('Falta el código de acceso en el link.'); return }
     try { const d = await morphiPending(k); setPending(d.pending || []); setError('') }
     catch (e) { setError(e.status === 401 ? 'Código inválido. Pedí el link correcto.' : (e.message || 'Error al cargar')) }
   }, [k])
 
   useEffect(() => { load(); const id = setInterval(load, 20000); return () => clearInterval(id) }, [load])
 
-  // Actualiza un ítem en el estado local sin recargar (para tildar/deshacer al toque).
   const patch = (itemId, synced) => setPending((p) =>
     (p || []).map((x) => String(x.item_id) === String(itemId) ? { ...x, synced } : x))
 
-  // Agrupa por sección, conservando el orden del backend.
   const groups = useMemo(() => {
     const map = new Map()
     for (const it of (pending || [])) {
@@ -36,10 +60,7 @@ export default function MorphiSync() {
       if (!map.has(cat)) map.set(cat, [])
       map.get(cat).push(it)
     }
-    return Array.from(map, ([name, items]) => ({
-      name, items,
-      left: items.filter((i) => !i.synced).length, // pendientes en la sección
-    }))
+    return Array.from(map, ([name, items]) => ({ name, items, left: items.filter((i) => !i.synced).length }))
   }, [pending])
 
   const toggle = (cat) => setOpen((s) => { const n = new Set(s); n.has(cat) ? n.delete(cat) : n.add(cat); return n })
@@ -70,13 +91,8 @@ export default function MorphiSync() {
   const left = (pending || []).filter((i) => !i.synced).length
 
   return (
-    <div className="morphi">
-      <header className="morphi__head">
-        <img src="https://www.saladejuegoscrespo.ar/logo-sin-fondo.png" alt="" className="morphi__logo" />
-        <h1>Precios para cargar en Morphi</h1>
-        <p>Cargá cada precio en Morphi y tocá <b>“✓ Cargado”</b>. Quedan marcados en verde; si te equivocás, tocá <b>“Deshacer”</b>.</p>
-      </header>
-
+    <>
+      <p className="morphi__intro">Cargá cada precio en Morphi y tocá <b>“✓ Cargado”</b>. Quedan en verde; si te equivocás, tocá <b>“Deshacer”</b>.</p>
       {error && <p className="morphi__error">{error}</p>}
       {!pending && !error && <p className="morphi__loading">Cargando…</p>}
 
@@ -96,7 +112,6 @@ export default function MorphiSync() {
             <span className="morphi__count-cats">{groups.length} sección{groups.length !== 1 ? 'es' : ''}</span>
           </div>
 
-          {/* Chips de salto rápido por sección */}
           <div className="morphi__chips">
             {groups.map((g) => (
               <button key={g.name} className={`morphi__chip ${open.has(g.name) ? 'is-open' : ''} ${g.left === 0 ? 'is-done' : ''}`} onClick={() => toggle(g.name)}>
@@ -115,7 +130,6 @@ export default function MorphiSync() {
                     <span className={`morphi__group-badge ${g.left === 0 ? 'is-done' : ''}`}>{g.left === 0 ? '✓' : g.left}</span>
                     <span className="morphi__group-arrow">{isOpen ? '▲' : '▼'}</span>
                   </button>
-
                   {isOpen && (
                     <>
                       <ul className="morphi__list">
@@ -130,13 +144,9 @@ export default function MorphiSync() {
                               </span>
                             </div>
                             {it.synced ? (
-                              <button className="morphi__undo" onClick={() => undo(it.item_id)} disabled={busyId === it.item_id}>
-                                ↩ Deshacer
-                              </button>
+                              <button className="morphi__undo" onClick={() => undo(it.item_id)} disabled={busyId === it.item_id}>↩ Deshacer</button>
                             ) : (
-                              <button className="morphi__done" onClick={() => markDone(it.item_id)} disabled={busyId === it.item_id}>
-                                ✓ Cargado
-                              </button>
+                              <button className="morphi__done" onClick={() => markDone(it.item_id)} disabled={busyId === it.item_id}>✓ Cargado</button>
                             )}
                           </li>
                         ))}
@@ -154,6 +164,75 @@ export default function MorphiSync() {
           </div>
         </>
       )}
-    </div>
+    </>
+  )
+}
+
+/* ─────────── Clientes (clasificación X/Y/Z) ─────────── */
+const SEGS = ['X', 'Y', 'Z']
+function ClientsTab({ k }) {
+  const [clients, setClients] = useState(null)
+  const [error, setError] = useState('')
+  const [busyId, setBusyId] = useState(null)
+  const [search, setSearch] = useState('')
+
+  const load = useCallback(async () => {
+    try { const d = await morphiClients(k); setClients(d.clients || []); setError('') }
+    catch (e) { setError(e.status === 401 ? 'Código inválido. Pedí el link correcto.' : (e.message || 'Error al cargar')) }
+  }, [k])
+
+  useEffect(() => { load() }, [load])
+
+  const assign = async (playerId, segment) => {
+    setBusyId(playerId)
+    try {
+      await morphiSetSegment(k, playerId, segment)
+      setClients((c) => (c || []).filter((x) => String(x.id) !== String(playerId))) // desaparece
+    } catch (e) { setError(e.message || 'No se pudo guardar') }
+    finally { setBusyId(null) }
+  }
+
+  const q = search.trim().toLowerCase()
+  const list = (clients || []).filter((c) => !q || (c.name || '').toLowerCase().includes(q) || (c.emailMasked || '').toLowerCase().includes(q))
+
+  return (
+    <>
+      <p className="morphi__intro">Clasificá a cada cliente con <b>X</b>, <b>Y</b> o <b>Z</b> según cuánto lo conozcas. Al elegir, sale de la lista.</p>
+      {error && <p className="morphi__error">{error}</p>}
+      {!clients && !error && <p className="morphi__loading">Cargando…</p>}
+
+      {clients?.length === 0 && (
+        <div className="morphi__empty">
+          <span className="morphi__empty-icon">✅</span>
+          <p className="morphi__empty-title">¡Todos clasificados!</p>
+          <span>No quedan clientes por clasificar.</span>
+        </div>
+      )}
+
+      {clients?.length > 0 && (
+        <>
+          <div className="morphi__summary">
+            <span className="morphi__count">{clients.length} por clasificar</span>
+          </div>
+          <input className="morphi__searchbox" placeholder="🔍 Buscar por nombre…" value={search} onChange={(e) => setSearch(e.target.value)} />
+          <ul className="morphi__clients">
+            {list.map((c) => (
+              <li key={c.id} className={`morphi__client ${busyId === c.id ? 'is-busy' : ''}`}>
+                <div className="morphi__client-info">
+                  <span className="morphi__client-name">{c.name || 'Sin nombre'}</span>
+                  <span className="morphi__client-mail">{c.emailMasked}</span>
+                </div>
+                <div className="morphi__segbtns">
+                  {SEGS.map((s) => (
+                    <button key={s} className="morphi__segbtn" onClick={() => assign(c.id, s)} disabled={busyId === c.id}>{s}</button>
+                  ))}
+                </div>
+              </li>
+            ))}
+            {list.length === 0 && <p className="morphi__loading">Nadie coincide con la búsqueda.</p>}
+          </ul>
+        </>
+      )}
+    </>
   )
 }
