@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from 'react'
-import { morphiPending, morphiMarkSynced, morphiMarkSyncedMany, morphiMarkUnsynced, morphiClients, morphiSetSegment } from '../api/client'
+import { morphiPending, morphiMarkSynced, morphiMarkSyncedMany, morphiMarkUnsynced, morphiClients, morphiSetSegment, morphiSetNote } from '../api/client'
 import './MorphiSync.css'
 
 const fmt = new Intl.NumberFormat('es-AR')
@@ -191,6 +191,13 @@ function ClientsTab({ k }) {
     } catch (e) { setError(e.message || 'No se pudo guardar') }
     finally { setBusyId(null) }
   }
+  // Guarda la nota (opcional) sin sacar al cliente de la lista.
+  const saveNote = async (playerId, note, prev) => {
+    if ((note || '') === (prev || '')) return
+    setClients((c) => (c || []).map((x) => String(x.id) === String(playerId) ? { ...x, note } : x))
+    try { await morphiSetNote(k, playerId, note) }
+    catch (e) { setError(e.message || 'No se pudo guardar la nota') }
+  }
 
   const q = search.trim().toLowerCase()
   const list = (clients || []).filter((c) => !q || (c.name || '').toLowerCase().includes(q) || (c.emailMasked || '').toLowerCase().includes(q))
@@ -218,15 +225,23 @@ function ClientsTab({ k }) {
           <ul className="morphi__clients">
             {list.map((c) => (
               <li key={c.id} className={`morphi__client ${busyId === c.id ? 'is-busy' : ''}`}>
-                <div className="morphi__client-info">
-                  <span className="morphi__client-name">{c.name || 'Sin nombre'}</span>
-                  <span className="morphi__client-mail">{c.emailMasked}</span>
+                <div className="morphi__client-top">
+                  <div className="morphi__client-info">
+                    <span className="morphi__client-name">{c.name || 'Sin nombre'}</span>
+                    <span className="morphi__client-mail">{c.emailMasked}</span>
+                  </div>
+                  <div className="morphi__segbtns">
+                    {SEGS.map((s) => (
+                      <button key={s} className="morphi__segbtn" onClick={() => assign(c.id, s)} disabled={busyId === c.id}>{s}</button>
+                    ))}
+                  </div>
                 </div>
-                <div className="morphi__segbtns">
-                  {SEGS.map((s) => (
-                    <button key={s} className="morphi__segbtn" onClick={() => assign(c.id, s)} disabled={busyId === c.id}>{s}</button>
-                  ))}
-                </div>
+                <input
+                  className="morphi__client-note"
+                  defaultValue={c.note || ''}
+                  placeholder="📝 Nota (opcional): a qué se dedica, dónde trabaja, con quién viene…"
+                  onBlur={(e) => saveNote(c.id, e.target.value.trim(), c.note || '')}
+                />
               </li>
             ))}
             {list.length === 0 && <p className="morphi__loading">Nadie coincide con la búsqueda.</p>}

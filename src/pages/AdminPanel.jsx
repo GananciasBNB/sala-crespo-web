@@ -685,7 +685,7 @@ function ProdeAdmin({ token, toast }) {
                       </div>
                       <button
                         className="ap-btn"
-                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}
+                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '', segment: p.segment || '', note: p.note || '' })}
                       >Editar</button>
                     </div>
                   </div>
@@ -815,7 +815,7 @@ function ProdeAdmin({ token, toast }) {
                     <td className="ap-table__actions">
                       <button
                         className="ap-btn ap-btn--sm"
-                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}
+                        onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '', segment: p.segment || '', note: p.note || '' })}
                       >Editar</button>
                       <button
                         className="ap-btn ap-btn--sm"
@@ -1114,6 +1114,8 @@ function ClientsAdmin({ token, toast }) {
         dni: dniClean || null,
         tel: editingPlayer.tel,
         email: editingPlayer.email || null,
+        segment: editingPlayer.segment || '',
+        note: editingPlayer.note || '',
       })
       toast.show('Cliente actualizado')
       setEditingPlayer(null)
@@ -1348,7 +1350,7 @@ function ClientsAdmin({ token, toast }) {
                   </div>
                   <button
                     className="ap-btn"
-                    onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}
+                    onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '', segment: p.segment || '', note: p.note || '' })}
                   >Editar</button>
                 </div>
               </div>
@@ -1406,6 +1408,26 @@ function ClientsAdmin({ token, toast }) {
           <input className="ap-input" value={editingPlayer.tel || ''} onChange={e => setEditingPlayer(p => ({ ...p, tel: e.target.value }))} placeholder="Ej: 3435 123456" />
           <label className="ap-label">Email (opcional)</label>
           <input className="ap-input" type="email" value={editingPlayer.email || ''} onChange={e => setEditingPlayer(p => ({ ...p, email: e.target.value }))} placeholder="ejemplo@correo.com" />
+          <label className="ap-label">Clasificación</label>
+          <div style={{ display: 'flex', gap: 6, marginBottom: 4 }}>
+            {['', 'X', 'Y', 'Z'].map(s => {
+              const on = (editingPlayer.segment || '') === s
+              return (
+                <button key={s || 'none'} type="button"
+                  onClick={() => setEditingPlayer(p => ({ ...p, segment: s }))}
+                  style={{ flex: 1, padding: '8px 0', borderRadius: 8, cursor: 'pointer', fontWeight: 700,
+                    border: `1px solid ${on ? '#caa14e' : '#2a3142'}`,
+                    background: on ? 'rgba(202,161,78,.18)' : 'transparent',
+                    color: on ? '#f0d275' : '#94a3b8' }}>
+                  {s || '—'}
+                </button>
+              )
+            })}
+          </div>
+          <label className="ap-label">Nota (a qué se dedica, dónde trabaja, etc.)</label>
+          <textarea className="ap-input" rows={2} value={editingPlayer.note || ''} maxLength={500}
+            onChange={e => setEditingPlayer(p => ({ ...p, note: e.target.value }))}
+            placeholder="Ej: contador, juega los viernes, amigo de…" style={{ resize: 'vertical', fontFamily: 'inherit' }} />
           <div className="ap-edit-modal__btns">
             <button className="ap-btn ap-btn--primary" onClick={handleEditPlayerSave}>Guardar</button>
             <button className="ap-btn" onClick={() => setEditingPlayer(null)}>Cancelar</button>
@@ -1431,7 +1453,7 @@ function ClientsAdmin({ token, toast }) {
                 <td>{p.email ? <span title={p.email}>{p.email.length > 22 ? p.email.slice(0,20) + '…' : p.email}</span> : <span className="ap-muted">—</span>}</td>
                 <td>{new Date(p.createdAt).toLocaleDateString('es-AR')}</td>
                 <td className="ap-table__actions">
-                  <button className="ap-btn ap-btn--sm" onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '' })}>Editar</button>
+                  <button className="ap-btn ap-btn--sm" onClick={() => setEditingPlayer({ id: p.id, name: p.name, dni: p.dni || '', tel: p.tel || '', email: p.email || '', segment: p.segment || '', note: p.note || '' })}>Editar</button>
                   {!p.tournamentOnly && (
                     <button className="ap-btn ap-btn--sm" onClick={() => handleResetPin(p)} title="Generar PIN nuevo">🔑 Reset PIN</button>
                   )}

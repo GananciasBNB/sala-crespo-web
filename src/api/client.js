@@ -556,6 +556,8 @@ export const morphiMarkUnsynced = (k, itemId) =>
 export const morphiClients = (k) => api(`/api/morphi/clients?k=${encodeURIComponent(k)}`)
 export const morphiSetSegment = (k, playerId, segment) =>
   api('/api/morphi/segment', { method: 'POST', body: JSON.stringify({ k, playerId, segment }) })
+export const morphiSetNote = (k, playerId, note) =>
+  api('/api/morphi/note', { method: 'POST', body: JSON.stringify({ k, playerId, note }) })
 export const morphiMarkAllSynced = (k) =>
   api('/api/morphi/synced-all', { method: 'POST', body: JSON.stringify({ k }) })
 
