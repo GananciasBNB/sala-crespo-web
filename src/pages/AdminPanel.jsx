@@ -24,6 +24,21 @@ import {
 } from '../api/client'
 import './AdminPanel.css'
 
+// Badge de clasificación (X/Y/Z) + ícono si tiene nota — para ver de un vistazo.
+// El 📝 muestra la nota en hover (tooltip nativo).
+function ClientTags({ segment, note }) {
+  if (!segment && !note) return null
+  return (
+    <>
+      {segment && (
+        <span style={{ fontSize: 10, fontWeight: 800, background: 'rgba(202,161,78,0.18)', color: '#f0d275',
+          padding: '2px 8px', borderRadius: 999, marginLeft: 8, border: '1px solid rgba(202,161,78,0.4)' }}>{segment}</span>
+      )}
+      {note && <span title={note} style={{ marginLeft: 6, cursor: 'help', fontSize: 12 }}>📝</span>}
+    </>
+  )
+}
+
 // ─── Toast ────────────────────────────────────────────────────────────────────
 function Toast({ msg, type, onDone }) {
   useEffect(() => {
@@ -1342,6 +1357,7 @@ function ClientsAdmin({ token, toast }) {
                       {p.name}
                       {p.tournamentOnly && <span style={{ fontSize: 10, background: 'rgba(255,209,102,0.15)', color: '#ffd166', padding: '2px 8px', borderRadius: 999, marginLeft: 8, letterSpacing: 0.5, textTransform: 'uppercase' }}>Importado torneo</span>}
                       {p.isEmployee && <span style={{ fontSize: 10, background: 'rgba(155,31,31,0.2)', color: '#fca5a5', padding: '2px 8px', borderRadius: 999, marginLeft: 8 }}>Empleado</span>}
+                      <ClientTags segment={p.segment} note={p.note} />
                     </div>
                     <div style={{ fontSize: 13, color: '#a0a0b0', marginTop: 4 }}>DNI: {p.dni} · Tel: {p.tel || '—'}</div>
                     <div style={{ fontSize: 13, color: p.email ? '#86efac' : '#fca5a5', marginTop: 4, wordBreak: 'break-all' }}>
@@ -1447,6 +1463,7 @@ function ClientsAdmin({ token, toast }) {
                   {p.name}
                   {p.isEmployee && <span title="Empleado interno" style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', background: 'rgba(155,31,31,0.2)', border: '1px solid rgba(155,31,31,0.5)', color: '#FF8888', borderRadius: 4, letterSpacing: 0.5 }}>🏢 INTERNO</span>}
                   {p.tournamentOnly && <span title="Importado del torneo" style={{ marginLeft: 6, fontSize: 11, padding: '2px 6px', background: 'rgba(255,209,102,0.15)', border: '1px solid rgba(255,209,102,0.4)', color: '#FFD166', borderRadius: 4, letterSpacing: 0.5 }}>📋 IMPORTADO</span>}
+                  <ClientTags segment={p.segment} note={p.note} />
                 </td>
                 <td><code className="ap-code">{p.dni}</code></td>
                 <td>{p.tel || '—'}</td>
