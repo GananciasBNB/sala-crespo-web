@@ -2622,7 +2622,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
                 <div className="sp-hook-card__icon">🏆</div>
                 <div className="sp-hook-card__title">Qué te llevás</div>
                 <div className="sp-hook-card__text">
-                  <strong>$100.000 en órdenes de Clauser</strong> para el podio + medallas por logros.
+                  <strong>$200.000 en órdenes de Clauser</strong> para el podio + medallas por logros.
                 </div>
               </div>
               <div className="sp-hook-card">
@@ -2764,17 +2764,17 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
             <div className="sp-prize sp-prize--gold">
               <div className="sp-prize__medal">🥇</div>
               <div className="sp-prize__pos">1er puesto</div>
-              <div className="sp-prize__amount">$50.000</div>
+              <div className="sp-prize__amount">$100.000</div>
             </div>
             <div className="sp-prize sp-prize--silver">
               <div className="sp-prize__medal">🥈</div>
               <div className="sp-prize__pos">2do puesto</div>
-              <div className="sp-prize__amount">$30.000</div>
+              <div className="sp-prize__amount">$50.000</div>
             </div>
             <div className="sp-prize sp-prize--bronze">
               <div className="sp-prize__medal">🥉</div>
               <div className="sp-prize__pos">3er puesto</div>
-              <div className="sp-prize__amount">$20.000</div>
+              <div className="sp-prize__amount">$50.000</div>
             </div>
           </div>
           {isLoggedIn ? (
