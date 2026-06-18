@@ -122,7 +122,7 @@ function StoryCard({ match, isToday }) {
 
         <div className="story__when">
           <div className="story__day">{isToday ? 'Hoy · ' : ''}{dayLabel(match.date)}</div>
-          <div className="story__time">{fmtTime(match.date)}<span> hs</span></div>
+          <div className="story__time">{fmtTime(match.date)}<span>hs</span></div>
         </div>
 
         <p className="story__invite">Vení a vivirlo en <b>pantallas grandes</b>, con clima de hinchada y la mejor compañía. ⚽</p>

@@ -91,7 +91,7 @@
   display: inline-block; font-size: 13px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;
   color: #fff; background: rgba(196,30,58,.85); padding: 5px 16px; border-radius: 8px; margin-bottom: 10px;
 }
-.story__time { font-family: 'Anton', sans-serif; font-size: 52px; font-weight: 900; line-height: 1; color: #F0D275; letter-spacing: 1px; }
+.story__time { display: flex; align-items: baseline; justify-content: center; gap: 5px; font-family: 'Anton', sans-serif; font-size: 52px; font-weight: 900; line-height: 1; color: #F0D275; letter-spacing: 1px; }
 .story__time span { font-size: 21px; color: #C8D2E0; font-weight: 700; }
 
 .story__invite { font-size: 14px; color: #C8D2E0; line-height: 1.45; margin: 14px 6px 0; }
@@ -108,7 +108,7 @@
 }
 .story__promos-title { font-size: 10px; letter-spacing: 2px; font-weight: 800; text-transform: uppercase; color: #C9A84C; margin-bottom: 5px; }
 .story__promos-sub { font-size: 14px; color: #fff; font-weight: 700; margin-bottom: 10px; }
-.story__promos-deal { font-size: 13px; color: #C8D2E0; font-weight: 600; padding-top: 9px; border-top: 1px solid rgba(201,168,76,.25); }
+.story__promos-deal { display: flex; align-items: baseline; justify-content: center; gap: 6px; flex-wrap: wrap; font-size: 13px; color: #C8D2E0; font-weight: 600; padding-top: 9px; border-top: 1px solid rgba(201,168,76,.25); }
 .story__promos-deal b { color: #F0D275; font-family: 'Anton', sans-serif; font-size: 18px; letter-spacing: .5px; }
 
 .story__foot { margin-top: 12px; font-size: 11px; color: #7c8595; line-height: 1.5; }
