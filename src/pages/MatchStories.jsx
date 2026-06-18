@@ -99,16 +99,12 @@ function StoryCard({ match, isToday }) {
   return (
     <div className="ms__item">
       <div className="story" ref={ref}>
-        <div className="story__flags">
-          {DECO_FLAGS.map(c => <img key={c} src={`https://flagcdn.com/w80/${c}.png`} alt="" crossOrigin="anonymous" />)}
-        </div>
-
         <div className="story__logos">
           <img className="story__logo" src="/logo-mundial-2026.png" alt="Sala Crespo Mundial 2026" />
           <span className="story__logo-sep" />
           <img className="story__logo-casino" src="/casino-er-blanco.png" alt="Casinos de Entre Ríos" />
         </div>
-        <div className="story__floor">⚽ Primer piso · Nuevo espacio deportivo</div>
+        <div className="story__floor">Nuevo espacio deportivo (Primer piso)</div>
 
         <div className="story__eyebrow">{isToday ? 'Hoy te esperamos para ver' : 'Te esperamos para ver'}</div>
 
@@ -131,17 +127,10 @@ function StoryCard({ match, isToday }) {
 
         <p className="story__invite">Vení a vivirlo en <b>pantallas grandes</b>, con clima de hinchada y la mejor compañía. ⚽</p>
 
-        {ICONS}
-
         <div className="story__promos">
           <div className="story__promos-title">🍔 Para acompañar el partido</div>
           <div className="story__promos-sub">Hamburguesas · Pizzas · Empanadas · Picadas</div>
           <div className="story__promos-deal">🎉 Promos para compartir desde <b>$18.000</b></div>
-        </div>
-
-        <div className="story__foot">
-          <b>Sala de Juegos Crespo</b><br />
-          San Martín 1053, Crespo · @saladejuegoscrespo
         </div>
       </div>
 
