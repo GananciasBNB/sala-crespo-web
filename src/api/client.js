@@ -153,6 +153,12 @@ export const getMyAchievements = (token) =>
 export const dailyCheckin = (token) =>
   api('/api/me/checkin', { method: 'POST', headers: authHeaders(token) })
 
+// Medallas pendientes de mostrar (pop-up al abrir) + marcarlas vistas
+export const getUnseenAchievements = (token) =>
+  api('/api/me/achievements/unseen', { headers: authHeaders(token) })
+export const markAchievementsSeen = (token, slugs) =>
+  api('/api/me/achievements/seen', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ slugs }) })
+
 // ─── Portal de staff — sugerencias ────────────────────────────────────────────
 export const submitStaffSuggestion = (name, email, text, kind = 'otro', attachments = []) =>
   api('/api/staff/suggestion', {

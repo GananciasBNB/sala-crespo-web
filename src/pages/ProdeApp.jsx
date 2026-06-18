@@ -5,7 +5,7 @@ import {
   getMatches, getMyPredictions, savePrediction, savePredictionsBatch,
   getLeaderboard, getEmployeesLeaderboard, getRegistrationStatus,
   getContent,
-  getMyAchievements, dailyCheckin, getChampionPick, setChampionPick,
+  getMyAchievements, dailyCheckin, getUnseenAchievements, markAchievementsSeen, getChampionPick, setChampionPick,
   submitStaffSuggestion,
   getMyLeagues, createLeague, joinLeague, getLeagueLeaderboard, leaveLeague, deleteLeague,
   updateLeagueSettings, getLeaguePending, approveLeagueMember, rejectLeagueMember, removeLeagueMember,
@@ -3829,7 +3829,10 @@ export default function ProdeApp() {
   useEffect(() => {
     if (!player?.token) return
     let cancelled = false
+    // Check-in (genera medallas de fidelidad) y luego traigo TODAS las no vistas
+    // (incluye las que otorgó el cron de resultados con el jugador offline).
     dailyCheckin(player.token)
+      .then(() => getUnseenAchievements(player.token))
       .then(r => { if (!cancelled) enqueueUnlocked(r?.unlockedAchievements || []) })
       .catch(() => {})
     return () => { cancelled = true }
@@ -3864,8 +3867,9 @@ export default function ProdeApp() {
     if (typeof window !== 'undefined') {
       setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50)
     }
-    // Check-in diario al loguearse: registra visita + dispara medallas de fidelidad
+    // Check-in al loguearse + traigo todas las medallas no vistas (fidelidad + las del cron)
     dailyCheckin(p.token)
+      .then(() => getUnseenAchievements(p.token))
       .then(r => enqueueUnlocked(r.unlockedAchievements || []))
       .catch(() => {})
     const firstName = (p.name || '').split(' ')[0] || ''
@@ -3992,7 +3996,12 @@ export default function ProdeApp() {
       {unlockedQueue.length > 0 && (
         <UnlockModal
           achievements={unlockedQueue}
-          onClose={() => setUnlockedQueue([])}
+          onClose={() => {
+            // Marcar vistas las medallas mostradas → no vuelven a aparecer al reabrir
+            const slugs = unlockedQueue.map(a => a.slug).filter(Boolean)
+            if (player?.token && slugs.length) markAchievementsSeen(player.token, slugs).catch(() => {})
+            setUnlockedQueue([])
+          }}
         />
       )}
 
