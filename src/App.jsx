@@ -16,6 +16,7 @@ const Club = lazy(() => import('./pages/Club'))
 const CartaPublica = lazy(() => import('./pages/CartaPublica'))
 const CartaAdmin = lazy(() => import('./pages/CartaAdmin'))
 const MorphiSync = lazy(() => import('./pages/MorphiSync'))
+const MatchStories = lazy(() => import('./pages/MatchStories'))
 
 function RouteFallback() {
   return (
@@ -169,6 +170,16 @@ export default function App() {
           <ChunkErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <MorphiSync />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/historias" element={
+        <>
+          <PageHead title="Historias IG" description="" path="/historias" noindex />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <MatchStories />
             </Suspense>
           </ChunkErrorBoundary>
         </>
