@@ -167,7 +167,9 @@ export default function MatchStories() {
 
   // Partidos con banderas conocidas (descarta cruces sin equipos definidos), agrupados por día.
   const groups = useMemo(() => {
-    const valid = (matches || []).filter(m => NAME_TO_ISO[m.homeName] && NAME_TO_ISO[m.awayName])
+    const today = todayARDate()
+    // Solo de hoy en adelante (los días pasados no sirven para invitar).
+    const valid = (matches || []).filter(m => NAME_TO_ISO[m.homeName] && NAME_TO_ISO[m.awayName] && matchARDate(m.date) >= today)
     const map = new Map()
     for (const m of valid) {
       const d = matchARDate(m.date)
