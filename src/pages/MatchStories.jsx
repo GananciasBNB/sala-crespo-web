@@ -70,21 +70,34 @@ function StoryCard({ match }) {
   const download = async () => {
     setBusy(true)
     try {
-      const canvas = await html2canvas(ref.current, { scale: 1080 / 405, useCORS: true, backgroundColor: null })
-      const link = document.createElement('a')
+      // Esperar a que las fuentes web (Anton, etc.) estén listas → si no, el texto
+      // grande sale en una tipografía de respaldo y se ve mal.
+      if (document.fonts?.ready) { try { await document.fonts.ready } catch {} }
+      const canvas = await html2canvas(ref.current, { scale: 3, useCORS: true, backgroundColor: null, imageTimeout: 15000 })
       const slug = `${home}-${away}`.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-')
-      link.download = `historia-${slug}.png`
-      link.href = canvas.toDataURL('image/png')
-      link.click()
-    } catch (e) { alert('No se pudo generar la imagen: ' + (e?.message || e)) }
-    finally { setBusy(false) }
+      const blob = await new Promise(res => canvas.toBlob(res, 'image/png'))
+      const file = new File([blob], `historia-${slug}.png`, { type: 'image/png' })
+      // En celular: menú de compartir nativo → "Guardar imagen" (Fotos) o Instagram directo.
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Historia Sala Crespo' })
+      } else {
+        // Desktop: descarga clásica
+        const link = document.createElement('a')
+        link.download = file.name
+        link.href = URL.createObjectURL(blob)
+        link.click()
+        URL.revokeObjectURL(link.href)
+      }
+    } catch (e) {
+      if (e?.name !== 'AbortError') alert('No se pudo generar la imagen: ' + (e?.message || e))
+    } finally { setBusy(false) }
   }
 
   return (
     <div className="ms__item">
       <div className="story" ref={ref}>
         <div className="story__flags">
-          {DECO_FLAGS.map(c => <img key={c} src={`https://flagcdn.com/w40/${c}.png`} alt="" crossOrigin="anonymous" />)}
+          {DECO_FLAGS.map(c => <img key={c} src={`https://flagcdn.com/w80/${c}.png`} alt="" crossOrigin="anonymous" />)}
         </div>
 
         <div className="story__logos">
@@ -98,12 +111,12 @@ function StoryCard({ match }) {
 
         <div className="story__match">
           <div className="story__team">
-            {homeIso ? <img src={`https://flagcdn.com/w320/${homeIso}.png`} alt={home} crossOrigin="anonymous" /> : <div className="story__team-noflag">🏳</div>}
+            {homeIso ? <img src={`https://flagcdn.com/w640/${homeIso}.png`} alt={home} crossOrigin="anonymous" /> : <div className="story__team-noflag">🏳</div>}
             <span className="story__team-name">{shortName(home)}</span>
           </div>
           <span className="story__vs">VS</span>
           <div className="story__team">
-            {awayIso ? <img src={`https://flagcdn.com/w320/${awayIso}.png`} alt={away} crossOrigin="anonymous" /> : <div className="story__team-noflag">🏳</div>}
+            {awayIso ? <img src={`https://flagcdn.com/w640/${awayIso}.png`} alt={away} crossOrigin="anonymous" /> : <div className="story__team-noflag">🏳</div>}
             <span className="story__team-name">{shortName(away)}</span>
           </div>
         </div>
@@ -130,7 +143,7 @@ function StoryCard({ match }) {
       </div>
 
       <button className="ms__dl" onClick={download} disabled={busy}>
-        {busy ? 'Generando…' : '⬇ Descargar PNG'}
+        {busy ? 'Generando…' : '📲 Guardar / Compartir'}
       </button>
     </div>
   )
