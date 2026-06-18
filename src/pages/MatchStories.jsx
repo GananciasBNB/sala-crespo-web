@@ -1,10 +1,10 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import html2canvas from 'html2canvas-pro'
 import { getMatches } from '../api/client'
 import './MatchStories.css'
 
-// Generador de historias 9:16 para la CM: una card por partido del día.
-// Descarga cada una como PNG 1080x1920 para subir directo a la historia de IG.
+// Generador de historias 9:16 para la CM: una card por partido, con filtro por
+// día (todo el Mundial). Descarga/comparte cada una como PNG para la historia de IG.
 
 const NAME_TO_ISO = {
   'México':'mx','Sudáfrica':'za','República de Corea':'kr','República Checa':'cz',
@@ -31,9 +31,16 @@ const AR_TZ = 'America/Argentina/Buenos_Aires'
 const todayARDate = () => new Intl.DateTimeFormat('en-CA', { timeZone: AR_TZ, year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date())
 const matchARDate = iso => iso ? new Intl.DateTimeFormat('en-CA', { timeZone: AR_TZ, year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date(iso)) : ''
 const fmtTime = iso => new Date(iso).toLocaleTimeString('es-AR', { timeZone: AR_TZ, hour:'2-digit', minute:'2-digit', hour12:false })
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1)
 function dayLabel(iso) {
   const d = new Intl.DateTimeFormat('es-AR', { timeZone: AR_TZ, weekday:'long', day:'2-digit', month:'2-digit' }).format(new Date(iso))
-  return d.charAt(0).toUpperCase() + d.slice(1) // "Miércoles 18/06"
+  return cap(d) // "Miércoles 18/06"
+}
+function chipLabel(date, iso, todayStr) {
+  if (date === todayStr) return 'HOY'
+  const wd = new Intl.DateTimeFormat('es-AR', { timeZone: AR_TZ, weekday:'short' }).format(new Date(iso)).replace('.', '')
+  const dm = new Intl.DateTimeFormat('es-AR', { timeZone: AR_TZ, day:'2-digit', month:'2-digit' }).format(new Date(iso))
+  return `${cap(wd)} ${dm}`
 }
 
 const ICONS = (
@@ -61,7 +68,7 @@ const ICONS = (
   </div>
 )
 
-function StoryCard({ match }) {
+function StoryCard({ match, isToday }) {
   const ref = useRef(null)
   const [busy, setBusy] = useState(false)
   const home = match.homeName, away = match.awayName
@@ -70,18 +77,14 @@ function StoryCard({ match }) {
   const download = async () => {
     setBusy(true)
     try {
-      // Esperar a que las fuentes web (Anton, etc.) estén listas → si no, el texto
-      // grande sale en una tipografía de respaldo y se ve mal.
       if (document.fonts?.ready) { try { await document.fonts.ready } catch {} }
       const canvas = await html2canvas(ref.current, { scale: 3, useCORS: true, backgroundColor: null, imageTimeout: 15000 })
       const slug = `${home}-${away}`.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-')
       const blob = await new Promise(res => canvas.toBlob(res, 'image/png'))
       const file = new File([blob], `historia-${slug}.png`, { type: 'image/png' })
-      // En celular: menú de compartir nativo → "Guardar imagen" (Fotos) o Instagram directo.
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file], title: 'Historia Sala Crespo' })
       } else {
-        // Desktop: descarga clásica
         const link = document.createElement('a')
         link.download = file.name
         link.href = URL.createObjectURL(blob)
@@ -107,7 +110,7 @@ function StoryCard({ match }) {
         </div>
         <div className="story__floor">⚽ Primer piso · Nuevo espacio deportivo</div>
 
-        <div className="story__eyebrow">Hoy te esperamos para ver</div>
+        <div className="story__eyebrow">{isToday ? 'Hoy te esperamos para ver' : 'Te esperamos para ver'}</div>
 
         <div className="story__match">
           <div className="story__team">
@@ -122,7 +125,7 @@ function StoryCard({ match }) {
         </div>
 
         <div className="story__when">
-          <div className="story__day">Hoy · {dayLabel(match.date)}</div>
+          <div className="story__day">{isToday ? 'Hoy · ' : ''}{dayLabel(match.date)}</div>
           <div className="story__time">{fmtTime(match.date)}<span> hs</span></div>
         </div>
 
@@ -152,6 +155,7 @@ function StoryCard({ match }) {
 export default function MatchStories() {
   const [matches, setMatches] = useState(null)
   const [error, setError] = useState('')
+  const [selectedDate, setSelectedDate] = useState(null)
 
   useEffect(() => {
     getMatches()
@@ -160,25 +164,58 @@ export default function MatchStories() {
   }, [])
 
   const todayAR = todayARDate()
-  const todayMatches = (matches || [])
-    .filter(m => matchARDate(m.date) === todayAR && NAME_TO_ISO[m.homeName] !== undefined)
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+  // Partidos con banderas conocidas (descarta cruces sin equipos definidos), agrupados por día.
+  const groups = useMemo(() => {
+    const valid = (matches || []).filter(m => NAME_TO_ISO[m.homeName] && NAME_TO_ISO[m.awayName])
+    const map = new Map()
+    for (const m of valid) {
+      const d = matchARDate(m.date)
+      if (!map.has(d)) map.set(d, [])
+      map.get(d).push(m)
+    }
+    return [...map.entries()]
+      .map(([date, ms]) => ({ date, matches: ms.sort((a, b) => new Date(a.date) - new Date(b.date)) }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+  }, [matches])
+
+  // Día por defecto: hoy si hay partidos, si no el próximo día con partidos.
+  useEffect(() => {
+    if (!groups.length || selectedDate) return
+    const pick = groups.find(g => g.date === todayAR) || groups.find(g => g.date >= todayAR) || groups[0]
+    setSelectedDate(pick.date)
+  }, [groups, selectedDate, todayAR])
+
+  const current = groups.find(g => g.date === selectedDate)
 
   return (
     <div className="ms">
       <header className="ms__head">
         <h1>Historias para Instagram</h1>
-        <p>Una imagen por partido de <b>hoy</b>. Tocá <b>“Descargar PNG”</b>, guardá la imagen y subila a la historia para invitar a verlo en el local. 📲</p>
+        <p>Elegí el <b>día</b> y bajá una imagen por partido. Tocá <b>“Guardar / Compartir”</b> → en el celu va directo a Fotos o a Instagram. 📲</p>
       </header>
 
       {error && <p className="ms__msg ms__msg--err">{error}</p>}
       {!matches && !error && <p className="ms__msg">Cargando partidos…</p>}
-      {matches && todayMatches.length === 0 && (
-        <p className="ms__msg">No hay partidos hoy. Volvé un día que se juegue. ⚽</p>
+      {matches && groups.length === 0 && <p className="ms__msg">No hay partidos cargados todavía. ⚽</p>}
+
+      {groups.length > 0 && (
+        <div className="ms__dates">
+          {groups.map(g => (
+            <button
+              key={g.date}
+              className={`ms__date ${g.date === selectedDate ? 'is-on' : ''} ${g.date === todayAR ? 'is-today' : ''}`}
+              onClick={() => setSelectedDate(g.date)}
+            >
+              {chipLabel(g.date, g.matches[0].date, todayAR)}
+              <span className="ms__date-count">{g.matches.length}</span>
+            </button>
+          ))}
+        </div>
       )}
 
       <div className="ms__grid">
-        {todayMatches.map(m => <StoryCard key={m.id} match={m} />)}
+        {current?.matches.map(m => <StoryCard key={m.id} match={m} isToday={current.date === todayAR} />)}
       </div>
     </div>
   )

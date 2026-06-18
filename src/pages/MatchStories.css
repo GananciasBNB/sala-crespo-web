@@ -12,6 +12,27 @@
 .ms__msg { text-align: center; color: #b9bfae; padding: 30px; }
 .ms__msg--err { color: #ffb4ab; }
 
+/* Filtro de fechas (chips por día) */
+.ms__dates {
+  display: flex; gap: 9px; overflow-x: auto; padding: 6px 4px 14px;
+  max-width: 920px; margin: 0 auto 6px; scrollbar-width: thin;
+}
+.ms__date {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 15px; border-radius: 999px; cursor: pointer;
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14);
+  color: #d7dce4; font-family: inherit; font-size: 0.86rem; font-weight: 700; white-space: nowrap;
+  transition: background .15s ease, border-color .15s ease;
+}
+.ms__date:hover { background: rgba(255,255,255,0.09); }
+.ms__date.is-on { background: linear-gradient(135deg, #C9A84C, #F0D275); border-color: #F0D275; color: #1a1205; }
+.ms__date.is-today:not(.is-on) { border-color: rgba(196,30,58,.6); color: #fff; }
+.ms__date-count {
+  min-width: 18px; text-align: center; font-size: 0.72rem; font-weight: 800;
+  padding: 1px 6px; border-radius: 999px; background: rgba(0,0,0,0.18);
+}
+.ms__date.is-on .ms__date-count { background: rgba(0,0,0,0.22); color: #1a1205; }
+
 .ms__grid {
   display: flex; flex-wrap: wrap; justify-content: center; gap: 28px;
   max-width: 1100px; margin: 0 auto;
