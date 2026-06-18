@@ -90,7 +90,7 @@ function StoryCard({ match }) {
         <div className="story__logos">
           <img className="story__logo" src="/logo-mundial-2026.png" alt="Sala Crespo Mundial 2026" />
           <span className="story__logo-sep" />
-          <img className="story__logo-casino" src="/casino-er-blanco.png" alt="Casinos de Entre Ríos" crossOrigin="anonymous" />
+          <img className="story__logo-casino" src="/casino-er-blanco.png" alt="Casinos de Entre Ríos" />
         </div>
         <div className="story__floor">⚽ Primer piso · Nuevo espacio deportivo</div>
 
