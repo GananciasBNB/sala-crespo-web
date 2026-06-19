@@ -12,6 +12,7 @@
     { "source": "/club", "destination": "/index.html" },
     { "source": "/carta", "destination": "/carta.html" },
     { "source": "/morphi", "destination": "/index.html" },
-    { "source": "/historias", "destination": "/index.html" }
+    { "source": "/historias", "destination": "/index.html" },
+    { "source": "/promo", "destination": "/index.html" }
   ]
 }

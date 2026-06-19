@@ -17,6 +17,7 @@ const CartaPublica = lazy(() => import('./pages/CartaPublica'))
 const CartaAdmin = lazy(() => import('./pages/CartaAdmin'))
 const MorphiSync = lazy(() => import('./pages/MorphiSync'))
 const MatchStories = lazy(() => import('./pages/MatchStories'))
+const PromoPartido = lazy(() => import('./pages/PromoPartido'))
 
 function RouteFallback() {
   return (
@@ -180,6 +181,16 @@ export default function App() {
           <ChunkErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <MatchStories />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/promo" element={
+        <>
+          <PageHead title="Promo Argentina" description="" path="/promo" noindex />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <PromoPartido />
             </Suspense>
           </ChunkErrorBoundary>
         </>

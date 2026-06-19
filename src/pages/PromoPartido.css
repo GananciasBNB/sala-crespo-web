@@ -1,0 +1,115 @@
+/* Promo "Viví Argentina en Sala" — pantalla operativa (mobile-first) */
+.pp {
+  min-height: 100dvh;
+  background: linear-gradient(180deg, #0a0d14 0%, #1a0e0e 60%, #0a0612 100%);
+  color: #fff;
+  padding: 16px 14px 40px;
+  max-width: 560px;
+  margin: 0 auto;
+  box-sizing: border-box;
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-wrap: break-word;
+}
+.pp * { min-width: 0; box-sizing: border-box; }
+
+.pp__head {
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 14px; margin-bottom: 14px;
+  border-bottom: 1px solid rgba(201, 168, 76, .25);
+}
+.pp__logo { height: 38px; width: auto; }
+.pp__head h1 { font-size: 1.05rem; margin: 0; font-weight: 700; }
+.pp__err, .pp__loading { text-align: center; padding: 40px 12px; color: #C8D2E0; }
+
+.pp__tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.pp__tabs button {
+  flex: 1; padding: 11px; border-radius: 12px; border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04); color: #C8D2E0; font-weight: 700; font-size: .95rem; cursor: pointer;
+}
+.pp__tabs button.is-on { background: linear-gradient(135deg, #C9A84C, #9B1F1F); color: #fff; border-color: transparent; }
+
+.pp__panel { display: flex; flex-direction: column; gap: 14px; }
+.pp__intro { color: #C8D2E0; font-size: .92rem; margin: 0; }
+.pp__create { display: flex; flex-direction: column; gap: 10px; }
+
+/* Fixture: elegir partido de Argentina con un toque */
+.pp__fixture { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.pp__fixbtn {
+  width: 100%; display: flex; flex-direction: column; gap: 4px; align-items: flex-start;
+  padding: 15px 16px; border-radius: 14px; cursor: pointer; text-align: left;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(201,168,76,.25); color: #fff;
+}
+.pp__fixbtn:active { transform: scale(.99); }
+.pp__fixbtn:disabled { opacity: .5; }
+.pp__fixteams { font-size: 1.1rem; font-weight: 800; }
+.pp__fixdate { font-size: .82rem; color: #F0D275; text-transform: capitalize; }
+.pp__linkbtn { align-self: center; background: none; border: none; color: #94a3b8; font-size: .88rem; cursor: pointer; text-decoration: underline; padding: 6px; }
+
+.pp__input {
+  width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06); color: #fff; font-size: 1.1rem; text-align: center;
+}
+.pp__input::placeholder { color: #6b7686; }
+
+.pp__btn { padding: 13px 16px; border-radius: 12px; border: none; font-weight: 700; font-size: 1rem; cursor: pointer; }
+.pp__btn--gold { background: linear-gradient(135deg, #F0D275, #C9A84C); color: #1a0e0e; }
+.pp__btn--ghost { background: rgba(255,255,255,.06); color: #C8D2E0; border: 1px solid rgba(255,255,255,.14); }
+.pp__btn--close { background: rgba(155,31,31,.25); color: #ff9a9a; border: 1px solid rgba(196,30,58,.4); }
+.pp__btn:disabled { opacity: .5; }
+
+/* Barra del partido */
+.pp__matchbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+}
+.pp__matchname { font-size: 1.15rem; font-weight: 800; }
+.pp__status { font-size: .8rem; font-weight: 700; margin-top: 2px; }
+.pp__status--open { color: #86efac; }
+.pp__status--post { color: #F0D275; }
+.pp__status--closed { color: #94a3b8; }
+.pp__goalsbox { text-align: center; }
+.pp__goalsbox span { display: block; font-size: .7rem; color: #C8D2E0; text-transform: uppercase; letter-spacing: .5px; }
+.pp__goalsbox b { font-size: 2rem; line-height: 1; color: #F0D275; }
+
+/* Botón GOL gigante */
+.pp__goalbtn {
+  width: 100%; padding: 26px 16px; border-radius: 16px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #4f9fd6, #6fb1d8);
+  color: #fff; font-size: 1.5rem; font-weight: 900; letter-spacing: .5px;
+  box-shadow: 0 8px 24px rgba(79,159,214,.35);
+}
+.pp__goalbtn:active { transform: scale(.98); }
+.pp__goalbtn:disabled { opacity: .6; }
+.pp__undo { align-self: center; background: none; border: none; color: #94a3b8; font-size: .85rem; cursor: pointer; text-decoration: underline; }
+
+/* Check-in */
+.pp__checkin { padding: 14px; border-radius: 14px; background: rgba(201,168,76,.07); border: 1px solid rgba(201,168,76,.2); }
+.pp__checkin-lbl { font-size: .82rem; color: #F0D275; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+.pp__checkin-row { display: flex; gap: 8px; }
+.pp__checkin-row .pp__input { flex: 1; font-size: 1.05rem; }
+.pp__checkin-row .pp__btn { white-space: nowrap; }
+
+.pp__phase { display: flex; flex-direction: column; gap: 8px; }
+
+/* Resumen */
+.pp__summary { display: flex; gap: 14px; align-items: center; font-size: .88rem; color: #C8D2E0; padding: 0 4px; flex-wrap: wrap; }
+.pp__summary-total { margin-left: auto; color: #F0D275; font-weight: 800; font-size: 1rem; }
+
+/* Lista de presentes */
+.pp__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.pp__person {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08);
+}
+.pp__person.is-post { border-color: rgba(201,168,76,.3); background: rgba(201,168,76,.06); }
+.pp__person.is-over { opacity: .55; }
+.pp__person-info { display: flex; flex-direction: column; flex: 1; }
+.pp__person-name { font-weight: 700; font-size: .98rem; }
+.pp__person-sub { font-size: .78rem; color: #94a3b8; }
+.pp__person-tickets { font-weight: 800; color: #86efac; font-size: 1.05rem; white-space: nowrap; }
+.pp__person.is-over .pp__person-tickets { color: #94a3b8; }
+.pp__deliver { padding: 9px 12px; border-radius: 10px; border: none; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; font-weight: 700; cursor: pointer; font-size: .85rem; white-space: nowrap; }
+.pp__deliver:disabled { opacity: .5; }
+.pp__empty { text-align: center; color: #6b7686; padding: 20px; font-size: .9rem; }
+
+.pp__msg { text-align: center; color: #F0D275; font-size: .9rem; margin: 4px 0 0; min-height: 1.2em; }

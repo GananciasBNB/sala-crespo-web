@@ -564,6 +564,27 @@ export const morphiSetSegment = (k, playerId, segment) =>
   api('/api/morphi/segment', { method: 'POST', body: JSON.stringify({ k, playerId, segment }) })
 export const morphiSetNote = (k, playerId, note) =>
   api('/api/morphi/note', { method: 'POST', body: JSON.stringify({ k, playerId, note }) })
+
+// Promo "Viví Argentina en Sala" (acceso por código, operada por la promotora)
+const pq = k => `k=${encodeURIComponent(k)}`
+export const promoActive = (k) => api(`/api/promo/active?${pq(k)}`)
+export const promoMatches = (k) => api(`/api/promo/matches?${pq(k)}`)
+export const promoCreateMatch = (k, label, matchDate) =>
+  api('/api/promo/match', { method: 'POST', body: JSON.stringify({ k, label, matchDate }) })
+export const promoSetStatus = (k, id, status) =>
+  api(`/api/promo/match/${id}/status`, { method: 'POST', body: JSON.stringify({ k, status }) })
+export const promoGoal = (k, id) =>
+  api(`/api/promo/match/${id}/goal`, { method: 'POST', body: JSON.stringify({ k }) })
+export const promoUndoGoal = (k, id) =>
+  api(`/api/promo/match/${id}/goal/undo`, { method: 'POST', body: JSON.stringify({ k }) })
+export const promoCheckin = (k, id, dni, name, isPost) =>
+  api(`/api/promo/match/${id}/checkin`, { method: 'POST', body: JSON.stringify({ k, dni, name, isPost }) })
+export const promoAttendance = (k, id) => api(`/api/promo/match/${id}/attendance?${pq(k)}`)
+export const promoClose = (k, id) =>
+  api(`/api/promo/match/${id}/close`, { method: 'POST', body: JSON.stringify({ k }) })
+export const promoPending = (k, dni) => api(`/api/promo/pending?${pq(k)}&dni=${encodeURIComponent(dni)}`)
+export const promoDeliver = (k, attendanceId) =>
+  api('/api/promo/deliver', { method: 'POST', body: JSON.stringify({ k, attendanceId }) })
 export const morphiMarkAllSynced = (k) =>
   api('/api/morphi/synced-all', { method: 'POST', body: JSON.stringify({ k }) })
 
