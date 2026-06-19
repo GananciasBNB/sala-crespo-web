@@ -47,6 +47,7 @@ function Operativo({ k }) {
   const [msg, setMsg] = useState('')
   const [argMatches, setArgMatches] = useState([])
   const [manual, setManual] = useState(false)
+  const [err, setErr] = useState('')
 
   // Cuando no hay partido activo, traigo del fixture los próximos de Argentina
   useEffect(() => {
@@ -67,10 +68,11 @@ function Operativo({ k }) {
 
   const load = useCallback(async () => {
     try {
+      setErr('')
       const d = await promoActive(k)
       setMatch(d.match || null)
       if (d.match) loadAtt(d.match.id)
-    } catch (e) { setMsg(e.message || 'Error') }
+    } catch (e) { setErr(e.message || 'Error de conexión') }
   }, [k, loadAtt])
 
   useEffect(() => { load() }, [load])
@@ -124,6 +126,16 @@ function Operativo({ k }) {
     } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
 
+  if (err && match === undefined) return (
+    <div className="pp__panel">
+      <p className="pp__err">
+        {err === 'Código inválido.'
+          ? 'El código de acceso del link no es válido. Revisá la URL (o falta setear PROMO_KEY en el servidor).'
+          : `No se pudo conectar: ${err}`}
+      </p>
+      <button className="pp__btn pp__btn--ghost" onClick={load}>Reintentar</button>
+    </div>
+  )
   if (match === undefined) return <p className="pp__loading">Cargando…</p>
 
   // No hay partido activo → arrancar desde el fixture (o manual)
