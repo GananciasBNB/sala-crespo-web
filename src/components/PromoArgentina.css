@@ -1,0 +1,124 @@
+/* Promo "Viví Argentina en Sala" — DISEÑO PROPIO (no es clon del bloque Prode).
+   Una columna centrada, "tickets" estilizados en vez de cards de premios,
+   acento celeste de Argentina sobre la paleta dark/dorada del sitio.
+   Slot de video Flow pendiente (va de fondo del .vivi__card). */
+.vivi { background: var(--onyx); padding: clamp(48px, 6vw, 80px) 0; }
+.vivi__card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(108,176,235,0.28);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(108,176,235,0.16), transparent 60%),
+    linear-gradient(180deg, #0d1726 0%, var(--dark) 70%);
+  padding: clamp(36px, 5vw, 72px) clamp(24px, 4vw, 56px);
+}
+/* Línea celeste-dorada superior, firma del bloque */
+.vivi__card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #6cb0eb 0%, #f0d275 50%, #6cb0eb 100%);
+  opacity: 0.85;
+}
+
+.vivi__inner {
+  position: relative;
+  z-index: 2;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+}
+.vivi__title { margin-top: 10px; }
+.vivi__title em { color: #6cb0eb; font-style: italic; }
+.vivi__rule {
+  width: 64px; height: 3px; margin: 16px auto 0;
+  background: linear-gradient(90deg, #6cb0eb, var(--gold));
+  border-radius: 2px;
+}
+.vivi__desc { color: var(--text2); font-size: 16px; line-height: 1.75; margin-top: 18px; }
+.vivi__desc strong { color: var(--cream); }
+.vivi__how {
+  margin: 16px 0 0;
+  font-size: 15px;
+  color: var(--cream);
+  background: rgba(108,176,235,0.1);
+  border: 1px solid rgba(108,176,235,0.25);
+  border-radius: 10px;
+  padding: 10px 16px;
+  display: inline-block;
+}
+.vivi__how strong { color: #bcdcff; }
+
+/* Tickets — el destacado propio (no cards de premios) */
+.vivi__tickets {
+  display: flex;
+  gap: 14px;
+  margin: 26px 0 18px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.vivi__ticket {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 220px;
+  max-width: 300px;
+  text-align: left;
+  padding: 18px 20px 18px 22px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-left: 4px solid var(--gold);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "ico amt" "ico txt";
+  column-gap: 14px;
+  align-items: center;
+}
+.vivi__ticket--blue {
+  border-color: rgba(108,176,235,0.35);
+  border-left-color: #6cb0eb;
+  background: linear-gradient(135deg, rgba(108,176,235,0.12), rgba(255,255,255,0.03));
+}
+/* "Perforación" de ticket */
+.vivi__ticket::after {
+  content: '';
+  position: absolute;
+  right: -8px; top: 50%;
+  width: 16px; height: 16px;
+  transform: translateY(-50%);
+  border-radius: 50%;
+  background: var(--dark);
+  box-shadow: inset 0 0 0 1px rgba(201,168,76,0.25);
+}
+.vivi__ticket-ico { grid-area: ico; font-size: 28px; align-self: center; }
+.vivi__ticket-amt {
+  grid-area: amt;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 40px;
+  line-height: 1;
+  color: var(--gold);
+  letter-spacing: 1px;
+}
+.vivi__ticket--blue .vivi__ticket-amt { color: #8cc4f5; }
+.vivi__ticket-txt { grid-area: txt; font-size: 13px; color: var(--text2); line-height: 1.35; margin-top: 4px; }
+.vivi__ticket-txt strong { color: var(--cream); }
+
+.vivi__fine { font-size: 12.5px; color: var(--text3); line-height: 1.6; margin: 0 auto; max-width: 460px; }
+
+/* Bases — link chico, sin botón (el "cómo participar" ya está en la card) */
+.vivi__baseslink {
+  display: inline-block;
+  margin-top: 22px;
+  font-size: 13px;
+  color: var(--text2);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color .2s;
+}
+.vivi__baseslink:hover { color: var(--gold); }
+
+@media (max-width: 560px) {
+  .vivi__ticket { max-width: 100%; }
+}
