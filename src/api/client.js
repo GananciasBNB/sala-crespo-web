@@ -581,6 +581,8 @@ export const promoUndoGoal = (k, id) =>
   api(`/api/promo/match/${id}/goal/undo`, { method: 'POST', body: JSON.stringify({ k }) })
 export const promoCheckin = (k, id, dni, name, isPost) =>
   api(`/api/promo/match/${id}/checkin`, { method: 'POST', body: JSON.stringify({ k, dni, name, isPost }) })
+export const promoLead = (k, { dni, name, tel, email, matchId }) =>
+  api(`/api/promo/lead`, { method: 'POST', body: JSON.stringify({ k, dni, name, tel, email, matchId }) })
 export const promoAttendance = (k, id) => api(`/api/promo/match/${id}/attendance?${pq(k)}`)
 export const promoRemoveCheckin = (k, attendanceId) =>
   api(`/api/promo/checkin/${attendanceId}/remove`, { method: 'POST', body: JSON.stringify({ k }) })

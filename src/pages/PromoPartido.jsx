@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   promoActive, promoCreateMatch, promoSetStatus, promoGoal, promoUndoGoal,
-  promoCheckin, promoAttendance, promoClose, promoPending, promoDeliver, promoRemoveCheckin, promoPayout, promoDiscardMatch, getMatches,
+  promoCheckin, promoLead, promoAttendance, promoClose, promoPending, promoDeliver, promoRemoveCheckin, promoPayout, promoDiscardMatch, getMatches,
 } from '../api/client'
 
 const TICKET_GOAL = 2500 // para mostrar el desglose en la entrega (debe coincidir con el backend)
@@ -87,6 +87,8 @@ function Operativo({ k }) {
   const [justAdded, setJustAdded] = useState('') // último DNI anotado, para confirmación grande
   const [showList, setShowList] = useState(false) // lista de presentes colapsable durante el partido
   const [showMore, setShowMore] = useState(false) // acciones peligrosas (descartar) escondidas
+  const [lead, setLead] = useState(null) // {dni} cuando el DNI anotado NO está en la base → pedir datos
+  const [leadForm, setLeadForm] = useState({ name: '', tel: '', email: '' })
 
   // Cuando no hay partido activo, traigo del fixture los próximos de Argentina
   useEffect(() => {
@@ -189,9 +191,21 @@ function Operativo({ k }) {
     if (!/^\d{7,8}$/.test(v)) return flash('DNI: 7 u 8 dígitos')
     setBusy(true)
     try {
-      await promoCheckin(k, match.id, v, null, match.status === 'post')
+      const r = await promoCheckin(k, match.id, v, null, match.status === 'post')
       setDni(''); loadAtt(match.id)
       setJustAdded(v); setTimeout(() => setJustAdded(''), 3500) // confirmación grande, sin tener que mirar la lista
+      // DNI nuevo: ya quedó anotado, ahora pedimos sus datos para sumarlo a la base.
+      if (r?.isNew) { setLeadForm({ name: '', tel: '', email: '' }); setLead({ dni: v }) }
+    } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
+  }
+  // Guarda al cliente nuevo en la base (nombre obligatorio; tel/email opcionales).
+  const saveLead = async () => {
+    const name = leadForm.name.trim()
+    if (name.length < 3) return flash('Poné nombre y apellido')
+    setBusy(true)
+    try {
+      await promoLead(k, { dni: lead.dni, name, tel: leadForm.tel.trim() || null, email: leadForm.email.trim() || null, matchId: match.id })
+      setLead(null); loadAtt(match.id); flash('✓ Cliente nuevo sumado a la base 🎉')
     } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const setStatus = async (status) => {
@@ -292,16 +306,36 @@ function Operativo({ k }) {
       {/* PROTAGONISTA: anotar por DNI — es el 90% del trabajo, va primero y grande */}
       {!isClosed && (
         <div className="pp__checkin pp__checkin--hero">
-          <div className="pp__checkin-lbl">{isPost ? '📋 Anotá a los que llegan ahora' : '📋 Anotá a cada persona en la sala'}</div>
-          <div className="pp__checkin-row">
-            <input className="pp__input pp__input--big" inputMode="numeric" maxLength={8} value={dni} autoFocus
-              onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))} placeholder="DNI"
-              onKeyDown={(e) => e.key === 'Enter' && checkin()} />
-            <button className="pp__btn pp__btn--gold pp__btn--anotar" onClick={checkin} disabled={busy}>✓ Anotar</button>
-          </div>
-          {justAdded
-            ? <div className="pp__added">✓ Anotado: {fmtDni(justAdded)} · van {capN}</div>
-            : <div className="pp__added pp__added--idle">Tipeá el DNI y tocá Anotar</div>}
+          {lead ? (
+            /* DNI nuevo: ya quedó anotado, sumamos sus datos a la base de clientes */
+            <div className="pp__lead">
+              <div className="pp__lead-title">🆕 Cliente nuevo · DNI {fmtDni(lead.dni)}</div>
+              <div className="pp__lead-sub">Ya quedó anotado ✓. Sumalo a la base — tarda nada:</div>
+              <input className="pp__input" placeholder="Nombre y apellido" value={leadForm.name} autoFocus
+                onChange={(e) => setLeadForm((f) => ({ ...f, name: e.target.value }))} />
+              <input className="pp__input" inputMode="tel" placeholder="Teléfono (opcional)" value={leadForm.tel}
+                onChange={(e) => setLeadForm((f) => ({ ...f, tel: e.target.value.replace(/[^\d+\s-]/g, '') }))} />
+              <input className="pp__input" inputMode="email" placeholder="Email (opcional → bebida de cortesía)" value={leadForm.email}
+                onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))} />
+              <div className="pp__lead-actions">
+                <button className="pp__btn pp__btn--gold" onClick={saveLead} disabled={busy}>✓ Guardar en la base</button>
+                <button className="pp__btn pp__btn--ghost" onClick={() => setLead(null)} disabled={busy}>Omitir</button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="pp__checkin-lbl">{isPost ? '📋 Anotá a los que llegan ahora' : '📋 Anotá a cada persona en la sala'}</div>
+              <div className="pp__checkin-row">
+                <input className="pp__input pp__input--big" inputMode="numeric" maxLength={8} value={dni} autoFocus
+                  onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))} placeholder="DNI"
+                  onKeyDown={(e) => e.key === 'Enter' && checkin()} />
+                <button className="pp__btn pp__btn--gold pp__btn--anotar" onClick={checkin} disabled={busy}>✓ Anotar</button>
+              </div>
+              {justAdded
+                ? <div className="pp__added">✓ Anotado: {fmtDni(justAdded)} · van {capN}</div>
+                : <div className="pp__added pp__added--idle">Tipeá el DNI y tocá Anotar</div>}
+            </>
+          )}
         </div>
       )}
 

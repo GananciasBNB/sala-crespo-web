@@ -126,6 +126,14 @@
   background: rgba(34,197,94,.16); border: 1px solid rgba(34,197,94,.4); color: #86efac; }
 .pp__added--idle { background: transparent; border: 1px dashed rgba(255,255,255,.12); color: #6b7686; font-weight: 600; font-size: .85rem; }
 
+/* Captura de cliente nuevo (DNI desconocido en el check-in) */
+.pp__lead { display: flex; flex-direction: column; gap: 9px; }
+.pp__lead-title { font-size: 1rem; font-weight: 800; color: #86efac; }
+.pp__lead-sub { font-size: .85rem; color: #C8D2E0; margin-bottom: 2px; }
+.pp__lead .pp__input { font-size: 1.05rem; text-align: left; }
+.pp__lead-actions { display: flex; gap: 8px; margin-top: 2px; }
+.pp__lead-actions .pp__btn { flex: 1; }
+
 /* GOL — secundario (se usa poco pero tiene que ser inconfundible) */
 .pp__golzone { padding: 12px 14px; border-radius: 14px; background: rgba(79,159,214,.08); border: 1px solid rgba(79,159,214,.28); display: flex; flex-direction: column; gap: 8px; }
 .pp__golzone-lbl { font-size: .82rem; color: #bcd9f5; font-weight: 700; }
