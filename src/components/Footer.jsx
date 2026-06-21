@@ -58,6 +58,7 @@ export default function Footer() {
           <a href="/legal/03-politica-privacidad.html" target="_blank" rel="noopener noreferrer">Política de privacidad</a>
           <a href="/legal/04-politica-cookies.html" target="_blank" rel="noopener noreferrer">Política de cookies</a>
           <a href="/legal/05-bases-prode-publico.html" target="_blank" rel="noopener noreferrer">Bases del Prode Mundial 2026</a>
+          <a href="/legal/08-bases-promo-argentina.html" target="_blank" rel="noopener noreferrer">Bases Promo "Viví Argentina en Sala"</a>
           <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer">Bases del Torneo de Slots</a>
         </nav>
       </div>
