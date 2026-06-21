@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   promoActive, promoCreateMatch, promoSetStatus, promoGoal, promoUndoGoal,
-  promoCheckin, promoAttendance, promoClose, promoPending, promoDeliver, promoRemoveCheckin, promoPayout, getMatches,
+  promoCheckin, promoAttendance, promoClose, promoPending, promoDeliver, promoRemoveCheckin, promoPayout, promoDiscardMatch, getMatches,
 } from '../api/client'
 
 const TICKET_GOAL = 2500 // para mostrar el desglose en la entrega (debe coincidir con el backend)
@@ -34,12 +34,36 @@ export default function PromoPartido() {
       <header className="pp__head">
         <img src="/logo-mundial-2026.png" alt="" className="pp__logo" />
         <h1>Promo · Viví Argentina en Sala</h1>
+        <a href="/" className="pp__home" title="Volver al inicio del sitio">⌂ Inicio</a>
       </header>
       <div className="pp__tabs">
-        <button className={tab === 'op' ? 'is-on' : ''} onClick={() => setTab('op')}>⚽ Operativo</button>
-        <button className={tab === 'deliver' ? 'is-on' : ''} onClick={() => setTab('deliver')}>🎟️ Entregar</button>
+        <button className={tab === 'op' ? 'is-on' : ''} onClick={() => setTab('op')}>
+          <span className="pp__tab-t">⚽ Operativo</span>
+          <span className="pp__tab-s">Anotar gente y goles</span>
+        </button>
+        <button className={tab === 'deliver' ? 'is-on' : ''} onClick={() => setTab('deliver')}>
+          <span className="pp__tab-t">🎟️ Entregar</span>
+          <span className="pp__tab-s">Dar los tickets por DNI</span>
+        </button>
       </div>
       {tab === 'op' ? <Operativo k={k} /> : <Entregar k={k} />}
+    </div>
+  )
+}
+
+// Guía que le dice a la promotora QUÉ hacer según la fase del partido.
+function PhaseGuide({ status }) {
+  const map = {
+    open: { title: '🔴 Partido EN VIVO', steps: ['Anotá a cada persona que entra, con su DNI.', 'Tocá ⚽ GOL cada vez que Argentina convierte.', 'Si alguien se va antes, tocá 💵 para que cobre lo que vio.', 'Cuando termina el partido, tocá “Terminó el partido”.'] },
+    post: { title: '🏁 Post-partido', steps: ['Anotá con el DNI a los que entran AHORA (esos cobran el bono por venir).', 'Cuando ya no entra más nadie, tocá “Cerrar promo”.'] },
+    closed: { title: '✅ Promo cerrada', steps: ['Los montos quedaron calculados y fijos.', 'Pasá a la pestaña 🎟️ Entregar para dar los tickets buscando por DNI.'] },
+  }
+  const h = map[status]
+  if (!h) return null
+  return (
+    <div className={`pp__guide pp__guide--${status}`}>
+      <div className="pp__guide-title">{h.title}</div>
+      <ol className="pp__guide-steps">{h.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
     </div>
   )
 }
@@ -103,6 +127,22 @@ function Operativo({ k }) {
     const rival = m.homeName === 'Argentina' ? m.awayName : m.homeName
     setBusy(true)
     try { const d = await promoCreateMatch(k, `Argentina vs ${rival}`, m.date); setMatch(d.match); setAtt([]) }
+    catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
+  }
+  // Partido de PRUEBA: para practicar el flujo cuantas veces quieras, después se descarta.
+  const startTest = async () => {
+    setBusy(true)
+    try { const d = await promoCreateMatch(k, 'PRUEBA — practicá tranquila', null, true); setMatch(d.match); setAtt([]) }
+    catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
+  }
+  // Descarta el partido actual y vuelve a la pantalla de elegir.
+  const discardMatch = async () => {
+    const msg = match.is_test
+      ? '¿Borrar este partido de PRUEBA y empezar de nuevo?'
+      : '¿DESCARTAR este partido? Se borra todo lo cargado (no se puede si ya entregaste tickets).'
+    if (!window.confirm(msg)) return
+    setBusy(true)
+    try { await promoDiscardMatch(k, match.id); setMatch(null); setAtt([]); flash('Partido descartado') }
     catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const goal = async () => {
@@ -200,6 +240,11 @@ function Operativo({ k }) {
             <button className="pp__btn pp__btn--gold" onClick={createMatch} disabled={busy}>Crear partido</button>
           </div>
         )}
+
+        <div className="pp__testzone">
+          <p className="pp__testzone-lbl">¿Primera vez? Practicá sin miedo 👇</p>
+          <button className="pp__btn pp__btn--test" onClick={startTest} disabled={busy}>🧪 Probar el flujo (partido de prueba)</button>
+        </div>
         {msg && <p className="pp__msg">{msg}</p>}
       </div>
     )
@@ -215,6 +260,7 @@ function Operativo({ k }) {
 
   return (
     <div className="pp__panel">
+      {match.is_test && <div className="pp__testbanner">🧪 MODO PRUEBA · esto NO es real, practicá lo que quieras y después descartalo</div>}
       <div className="pp__matchbar">
         <div>
           <div className="pp__matchname">{match.label}</div>
@@ -222,6 +268,8 @@ function Operativo({ k }) {
         </div>
         <div className="pp__goalsbox"><span>Goles</span><b>{totalGoals}</b></div>
       </div>
+
+      <PhaseGuide status={match.status} />
 
       {match.status === 'open' && (
         <>
@@ -282,6 +330,10 @@ function Operativo({ k }) {
         ))}
         {att.length === 0 && <li className="pp__empty">Todavía no hay nadie anotado.</li>}
       </ul>
+
+      <button className="pp__discard" onClick={discardMatch} disabled={busy}>
+        {match.is_test ? '🗑️ Descartar prueba y empezar de nuevo' : '🗑️ Descartar partido (empezar de nuevo)'}
+      </button>
 
       {msg && <p className="pp__msg">{msg}</p>}
     </div>

@@ -569,8 +569,10 @@ export const morphiSetNote = (k, playerId, note) =>
 const pq = k => `k=${encodeURIComponent(k)}`
 export const promoActive = (k) => api(`/api/promo/active?${pq(k)}`)
 export const promoMatches = (k) => api(`/api/promo/matches?${pq(k)}`)
-export const promoCreateMatch = (k, label, matchDate) =>
-  api('/api/promo/match', { method: 'POST', body: JSON.stringify({ k, label, matchDate }) })
+export const promoCreateMatch = (k, label, matchDate, isTest = false) =>
+  api('/api/promo/match', { method: 'POST', body: JSON.stringify({ k, label, matchDate, isTest }) })
+export const promoDiscardMatch = (k, id) =>
+  api(`/api/promo/match/${id}/discard`, { method: 'POST', body: JSON.stringify({ k }) })
 export const promoSetStatus = (k, id, status) =>
   api(`/api/promo/match/${id}/status`, { method: 'POST', body: JSON.stringify({ k, status }) })
 export const promoGoal = (k, id) =>

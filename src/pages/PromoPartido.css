@@ -18,7 +18,43 @@
   border-bottom: 1px solid rgba(201, 168, 76, .25);
 }
 .pp__logo { height: 38px; width: auto; }
-.pp__head h1 { font-size: 1.05rem; margin: 0; font-weight: 700; }
+.pp__head h1 { font-size: 1.05rem; margin: 0; font-weight: 700; flex: 1; }
+.pp__home {
+  flex-shrink: 0; text-decoration: none; font-size: .82rem; font-weight: 700; color: #C8D2E0;
+  border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 6px 12px; white-space: nowrap;
+}
+
+/* Guía de pasos por fase */
+.pp__guide { border-radius: 14px; padding: 14px 16px; border: 1px solid; }
+.pp__guide--open { background: rgba(134,239,172,.06); border-color: rgba(134,239,172,.28); }
+.pp__guide--post { background: rgba(240,210,117,.07); border-color: rgba(240,210,117,.3); }
+.pp__guide--closed { background: rgba(148,163,184,.08); border-color: rgba(148,163,184,.3); }
+.pp__guide-title { font-weight: 800; font-size: .98rem; margin-bottom: 8px; }
+.pp__guide-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; }
+.pp__guide-steps li { font-size: .86rem; color: #D6DEEA; line-height: 1.3; }
+
+/* Zona de prueba (pantalla de elegir partido) */
+.pp__testzone { margin-top: 6px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,.14); text-align: center; }
+.pp__testzone-lbl { font-size: .82rem; color: #94a3b8; margin: 0 0 8px; }
+.pp__btn--test { width: 100%; background: rgba(108,176,235,.14); color: #bcd9f5; border: 1px dashed rgba(108,176,235,.5); }
+
+/* Banner modo prueba */
+.pp__testbanner {
+  background: repeating-linear-gradient(45deg, rgba(240,160,60,.16) 0 12px, rgba(240,160,60,.08) 12px 24px);
+  border: 1px solid rgba(240,160,60,.5); color: #ffd9a8; border-radius: 12px;
+  padding: 10px 14px; font-size: .82rem; font-weight: 700; text-align: center;
+}
+
+/* Descartar partido */
+.pp__discard {
+  width: 100%; margin-top: 4px; padding: 11px; border-radius: 12px; cursor: pointer;
+  background: transparent; border: 1px solid rgba(196,30,58,.3); color: #ff9a9a; font-weight: 700; font-size: .9rem;
+}
+.pp__discard:disabled { opacity: .5; }
+
+/* Subtítulo en pestañas */
+.pp__tab-t { display: block; }
+.pp__tab-s { display: block; font-size: .72rem; font-weight: 600; opacity: .8; margin-top: 2px; }
 .pp__err, .pp__loading { text-align: center; padding: 40px 12px; color: #C8D2E0; }
 
 .pp__tabs { display: flex; gap: 8px; margin-bottom: 16px; }
