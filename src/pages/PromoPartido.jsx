@@ -21,6 +21,7 @@ const fmtHora = (iso) => {
   try { return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' }) }
   catch { return '' }
 }
+const fmtDni = (d) => String(d || '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 
 // Pantalla operativa de la promo "Viví Argentina en Sala". Acceso con ?k=CODE.
 //  - Operativo (promotora): partido, check-in por DNI, botón GOL, cierre.
@@ -51,19 +52,23 @@ export default function PromoPartido() {
   )
 }
 
-// Guía que le dice a la promotora QUÉ hacer según la fase del partido.
+// Le dice a la promotora QUÉ hacer AHORA (una sola instrucción), con el detalle colapsable.
 function PhaseGuide({ status }) {
+  const [open, setOpen] = useState(false)
   const map = {
-    open: { title: '🔴 Partido EN VIVO', steps: ['Anotá a cada persona que entra, con su DNI.', 'Tocá ⚽ GOL cada vez que Argentina convierte.', 'Si alguien se va antes, tocá 💵 para que cobre lo que vio.', 'Cuando termina el partido, tocá “Terminó el partido”.'] },
-    post: { title: '🏁 Post-partido', steps: ['Anotá con el DNI a los que entran AHORA (esos cobran el bono por venir).', 'Cuando ya no entra más nadie, tocá “Cerrar promo”.'] },
-    closed: { title: '✅ Promo cerrada', steps: ['Los montos quedaron calculados y fijos.', 'Pasá a la pestaña 🎟️ Entregar para dar los tickets buscando por DNI.'] },
+    open: { now: 'Anotá a cada persona con su DNI. Cuando Argentina mete un gol, tocá el botón celeste.', steps: ['Anotá a cada persona que entra, con su DNI.', 'Tocá ⚽ GOL cada vez que Argentina convierte.', 'Si alguien se va antes, tocá 💵 para que cobre lo que vio.', 'Cuando termina el partido, tocá “Terminó el partido”.'] },
+    post: { now: 'Anotá con el DNI a los que entran AHORA (esos cobran el bono por venir).', steps: ['Anotá con el DNI a los que entran AHORA (esos cobran el bono por venir).', 'Cuando ya no entra más nadie, tocá “Cerrar promo”.'] },
+    closed: { now: 'Listo. Pasá a la pestaña 🎟️ Entregar para dar los tickets por DNI.', steps: ['Los montos quedaron calculados y fijos.', 'Pasá a la pestaña 🎟️ Entregar para dar los tickets buscando por DNI.'] },
   }
   const h = map[status]
   if (!h) return null
   return (
     <div className={`pp__guide pp__guide--${status}`}>
-      <div className="pp__guide-title">{h.title}</div>
-      <ol className="pp__guide-steps">{h.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
+      <div className="pp__guide-now"><b>Ahora:</b> {h.now}</div>
+      <button type="button" className="pp__guide-toggle" onClick={() => setOpen((v) => !v)}>
+        {open ? 'Ocultar pasos ▴' : '¿Cómo funciona? Ver pasos ▾'}
+      </button>
+      {open && <ol className="pp__guide-steps">{h.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>}
     </div>
   )
 }
@@ -79,6 +84,9 @@ function Operativo({ k }) {
   const [manual, setManual] = useState(false)
   const [err, setErr] = useState('')
   const [goalLock, setGoalLock] = useState(false) // cooldown anti-doble-tap del botón GOL
+  const [justAdded, setJustAdded] = useState('') // último DNI anotado, para confirmación grande
+  const [showList, setShowList] = useState(false) // lista de presentes colapsable durante el partido
+  const [showMore, setShowMore] = useState(false) // acciones peligrosas (descartar) escondidas
 
   // Cuando no hay partido activo, traigo del fixture los próximos de Argentina
   useEffect(() => {
@@ -177,11 +185,13 @@ function Operativo({ k }) {
     } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const checkin = async () => {
-    if (!/^\d{7,8}$/.test(dni.trim())) return flash('DNI: 7 u 8 dígitos')
+    const v = dni.trim()
+    if (!/^\d{7,8}$/.test(v)) return flash('DNI: 7 u 8 dígitos')
     setBusy(true)
     try {
-      await promoCheckin(k, match.id, dni.trim(), null, match.status === 'post')
-      setDni(''); loadAtt(match.id); flash('✓ Anotado')
+      await promoCheckin(k, match.id, v, null, match.status === 'post')
+      setDni(''); loadAtt(match.id)
+      setJustAdded(v); setTimeout(() => setJustAdded(''), 3500) // confirmación grande, sin tener que mirar la lista
     } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const setStatus = async (status) => {
@@ -258,41 +268,90 @@ function Operativo({ k }) {
   const isClosed = match.status === 'closed'
   const isPost = match.status === 'post'
 
+  const capN = isPost ? postPeople.length : present.length
+  const capCls = capN >= 30 ? 'pp__cap--full' : capN >= 25 ? 'pp__cap--near' : ''
+
   return (
     <div className="pp__panel">
       {match.is_test && <div className="pp__testbanner">🧪 MODO PRUEBA · esto NO es real, practicá lo que quieras y después descartalo</div>}
-      <div className="pp__matchbar">
-        <div>
-          <div className="pp__matchname">{match.label}</div>
-          <div className={`pp__status pp__status--${match.status}`}>{match.status === 'open' ? 'En vivo' : match.status === 'post' ? 'Post-partido' : 'Cerrado'}</div>
-        </div>
-        <div className="pp__goalsbox"><span>Goles</span><b>{totalGoals}</b></div>
+
+      {/* Estado del partido en una sola línea (no roba pantalla) */}
+      <div className={`pp__statusbar pp__statusbar--${match.status}`}>
+        <span className="pp__statusbar-name">{match.label}</span>
+        <span className="pp__statusbar-meta">
+          <span className="pp__statusbar-state">{isClosed ? '✅ Cerrada' : isPost ? '🏁 Post' : '🔴 En vivo'}</span>
+          {!isClosed && <span>⚽ {totalGoals}</span>}
+          <span className={capCls}>{capN}/30</span>
+        </span>
       </div>
 
       <PhaseGuide status={match.status} />
 
-      {match.status === 'open' && (
-        <>
-          <button className="pp__goalbtn" onClick={goal} disabled={busy || goalLock}>
-            {goalLock ? '✓ Gol registrado' : '⚽ GOL DE ARGENTINA'}
-          </button>
-          {totalGoals > 0 && <button className="pp__undo" onClick={undoGoal} disabled={busy}>↩ Deshacer último gol</button>}
-        </>
-      )}
-
+      {/* PROTAGONISTA: anotar por DNI — es el 90% del trabajo, va primero y grande */}
       {!isClosed && (
-        <div className="pp__checkin">
-          <div className="pp__checkin-lbl">{isPost ? 'Anotar ingreso post-partido (DNI)' : 'Anotar presente (DNI)'}</div>
+        <div className="pp__checkin pp__checkin--hero">
+          <div className="pp__checkin-lbl">{isPost ? '📋 Anotá a los que entran ahora' : '📋 Anotá a cada presente'}</div>
           <div className="pp__checkin-row">
-            <input className="pp__input" inputMode="numeric" maxLength={8} value={dni}
-              onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))} placeholder="35123456"
+            <input className="pp__input pp__input--big" inputMode="numeric" maxLength={8} value={dni} autoFocus
+              onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))} placeholder="DNI"
               onKeyDown={(e) => e.key === 'Enter' && checkin()} />
-            <button className="pp__btn pp__btn--gold" onClick={checkin} disabled={busy}>✓ Anotar</button>
+            <button className="pp__btn pp__btn--gold pp__btn--anotar" onClick={checkin} disabled={busy}>✓ Anotar</button>
           </div>
+          {justAdded
+            ? <div className="pp__added">✓ Anotado: {fmtDni(justAdded)} · van {capN}</div>
+            : <div className="pp__added pp__added--idle">Tipeá el DNI y tocá Anotar</div>}
         </div>
       )}
 
-      {/* Control de fase — cerrar SOLO desde post, para no cerrar en pleno partido */}
+      {/* GOL — secundario: se usa poco (2-3 por partido) pero tiene que ser inconfundible */}
+      {match.status === 'open' && (
+        <div className="pp__golzone">
+          <div className="pp__golzone-lbl">¿Argentina metió un gol?</div>
+          <button className={`pp__goalbtn ${goalLock ? 'is-locked' : ''}`} onClick={goal} disabled={busy || goalLock}>
+            {goalLock ? '✓ ¡Gol contado!' : '⚽ Gol de Argentina'}
+          </button>
+          {totalGoals > 0 && <button className="pp__undo" onClick={undoGoal} disabled={busy}>↩ Deshacer último gol</button>}
+        </div>
+      )}
+
+      {isClosed && (
+        <div className="pp__closednote">La promo está cerrada y los montos quedaron fijos. Para entregar los tickets, pasá a la pestaña <b>🎟️ Entregar</b> (arriba) y buscá por DNI.</div>
+      )}
+
+      {/* Lista de presentes — colapsada en el partido (es ruido), abierta al cerrar */}
+      <div className="pp__listwrap">
+        <button type="button" className="pp__listtoggle" onClick={() => setShowList((v) => !v)}>
+          <span>{showList ? 'Ocultar lista ▴' : `Ver anotados (${att.length}) ▾`}</span>
+          <span className="pp__listtoggle-total">Total: {money(totalTickets)}</span>
+        </button>
+        {(showList || isClosed) && (
+          <ul className="pp__list">
+            {att.map((a) => (
+              <li key={a.id} className={`pp__person ${a.is_post ? 'is-post' : ''} ${a.overCap && !a.delivered ? 'is-over' : ''} ${a.delivered ? 'is-paid' : ''}`}>
+                <div className="pp__person-info">
+                  <span className="pp__person-name">{a.name || `DNI ${fmtDni(a.dni)}`}</span>
+                  <span className="pp__person-sub">
+                    {a.delivered
+                      ? '✓ cobró y se fue'
+                      : a.is_post ? 'Post-partido' : `${a.goalsSeen} gol${a.goalsSeen !== 1 ? 'es' : ''}`}
+                    {!a.delivered && a.overCap && ' · fuera de cupo'}
+                  </span>
+                </div>
+                <span className="pp__person-tickets">{money(a.delivered ? a.tickets : isClosed ? a.tickets : a.ticketsCalc)}</span>
+                {!isClosed && !a.delivered && (
+                  <>
+                    <button className="pp__pay" onClick={() => payout(a)} disabled={busy} title="Liquidar (se va)">💵</button>
+                    <button className="pp__remove" onClick={() => removeCheckin(a)} disabled={busy} title="Quitar">✕</button>
+                  </>
+                )}
+              </li>
+            ))}
+            {att.length === 0 && <li className="pp__empty">Todavía no hay nadie anotado.</li>}
+          </ul>
+        )}
+      </div>
+
+      {/* Cambiar de etapa — cerrar SOLO desde post, para no cerrar en pleno partido */}
       {!isClosed && (
         <div className="pp__phase">
           {match.status === 'open' && <button className="pp__btn pp__btn--ghost" onClick={() => setStatus('post')} disabled={busy}>Terminó el partido → abrir post</button>}
@@ -301,39 +360,15 @@ function Operativo({ k }) {
         </div>
       )}
 
-      <div className="pp__summary">
-        <span className={present.length >= 30 ? 'pp__cap--full' : present.length >= 25 ? 'pp__cap--near' : ''}>{present.length}/30 presentes</span>
-        {(isPost || postPeople.length > 0) && <span className={postPeople.length >= 30 ? 'pp__cap--full' : ''}>{postPeople.length}/30 post</span>}
-        <span className="pp__summary-total">Total: {money(totalTickets)}</span>
+      {/* Acciones peligrosas escondidas detrás de "Más", para no tocarlas sin querer */}
+      <div className="pp__more">
+        <button type="button" className="pp__more-toggle" onClick={() => setShowMore((v) => !v)}>{showMore ? 'Cerrar ▴' : '⋯ Más opciones'}</button>
+        {showMore && (
+          <button className="pp__discard" onClick={discardMatch} disabled={busy}>
+            {match.is_test ? '🗑️ Descartar prueba y empezar de nuevo' : '🗑️ Descartar partido (empezar de nuevo)'}
+          </button>
+        )}
       </div>
-
-      <ul className="pp__list">
-        {att.map((a) => (
-          <li key={a.id} className={`pp__person ${a.is_post ? 'is-post' : ''} ${a.overCap && !a.delivered ? 'is-over' : ''} ${a.delivered ? 'is-paid' : ''}`}>
-            <div className="pp__person-info">
-              <span className="pp__person-name">{a.name || `DNI ${a.dni}`}</span>
-              <span className="pp__person-sub">
-                {a.delivered
-                  ? '✓ cobró y se fue'
-                  : a.is_post ? 'Post-partido' : `${a.goalsSeen} gol${a.goalsSeen !== 1 ? 'es' : ''}`}
-                {!a.delivered && a.overCap && ' · fuera de cupo'}
-              </span>
-            </div>
-            <span className="pp__person-tickets">{money(a.delivered ? a.tickets : isClosed ? a.tickets : a.ticketsCalc)}</span>
-            {!isClosed && !a.delivered && (
-              <>
-                <button className="pp__pay" onClick={() => payout(a)} disabled={busy} title="Liquidar (se va)">💵</button>
-                <button className="pp__remove" onClick={() => removeCheckin(a)} disabled={busy} title="Quitar">✕</button>
-              </>
-            )}
-          </li>
-        ))}
-        {att.length === 0 && <li className="pp__empty">Todavía no hay nadie anotado.</li>}
-      </ul>
-
-      <button className="pp__discard" onClick={discardMatch} disabled={busy}>
-        {match.is_test ? '🗑️ Descartar prueba y empezar de nuevo' : '🗑️ Descartar partido (empezar de nuevo)'}
-      </button>
 
       {msg && <p className="pp__msg">{msg}</p>}
     </div>

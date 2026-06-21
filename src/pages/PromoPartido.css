@@ -24,13 +24,15 @@
   border: 1px solid rgba(255,255,255,.18); border-radius: 999px; padding: 6px 12px; white-space: nowrap;
 }
 
-/* Guía de pasos por fase */
-.pp__guide { border-radius: 14px; padding: 14px 16px; border: 1px solid; }
+/* Guía: una sola instrucción visible + pasos colapsables */
+.pp__guide { border-radius: 14px; padding: 12px 14px; border: 1px solid; }
 .pp__guide--open { background: rgba(134,239,172,.06); border-color: rgba(134,239,172,.28); }
 .pp__guide--post { background: rgba(240,210,117,.07); border-color: rgba(240,210,117,.3); }
 .pp__guide--closed { background: rgba(148,163,184,.08); border-color: rgba(148,163,184,.3); }
-.pp__guide-title { font-weight: 800; font-size: .98rem; margin-bottom: 8px; }
-.pp__guide-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; }
+.pp__guide-now { font-size: .92rem; color: #EAF0F8; line-height: 1.35; }
+.pp__guide-now b { color: #fff; }
+.pp__guide-toggle { margin-top: 8px; background: none; border: none; color: #9fb0c4; font-size: .8rem; cursor: pointer; padding: 0; text-decoration: underline; }
+.pp__guide-steps { margin: 10px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; }
 .pp__guide-steps li { font-size: .86rem; color: #D6DEEA; line-height: 1.3; }
 
 /* Zona de prueba (pantalla de elegir partido) */
@@ -93,37 +95,59 @@
 .pp__btn--close { background: rgba(155,31,31,.25); color: #ff9a9a; border: 1px solid rgba(196,30,58,.4); }
 .pp__btn:disabled { opacity: .5; }
 
-/* Barra del partido */
-.pp__matchbar {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 14px; border-radius: 14px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
+/* Estado del partido — una línea compacta */
+.pp__statusbar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  padding: 10px 14px; border-radius: 12px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.1);
 }
-.pp__matchname { font-size: 1.15rem; font-weight: 800; }
-.pp__status { font-size: .8rem; font-weight: 700; margin-top: 2px; }
-.pp__status--open { color: #86efac; }
-.pp__status--post { color: #F0D275; }
-.pp__status--closed { color: #94a3b8; }
-.pp__goalsbox { text-align: center; }
-.pp__goalsbox span { display: block; font-size: .7rem; color: #C8D2E0; text-transform: uppercase; letter-spacing: .5px; }
-.pp__goalsbox b { font-size: 2rem; line-height: 1; color: #F0D275; }
+.pp__statusbar--open { border-color: rgba(134,239,172,.3); }
+.pp__statusbar--post { border-color: rgba(240,210,117,.3); }
+.pp__statusbar-name { font-size: 1rem; font-weight: 800; }
+.pp__statusbar-meta { display: flex; align-items: center; gap: 12px; font-size: .9rem; font-weight: 700; color: #C8D2E0; }
+.pp__statusbar-state { color: #fff; }
+.pp__statusbar--open .pp__statusbar-state { color: #86efac; }
+.pp__statusbar--post .pp__statusbar-state { color: #F0D275; }
 
-/* Botón GOL gigante */
-.pp__goalbtn {
-  width: 100%; padding: 26px 16px; border-radius: 16px; border: none; cursor: pointer;
-  background: linear-gradient(135deg, #4f9fd6, #6fb1d8);
-  color: #fff; font-size: 1.5rem; font-weight: 900; letter-spacing: .5px;
-  box-shadow: 0 8px 24px rgba(79,159,214,.35);
-}
-.pp__goalbtn:active { transform: scale(.98); }
-.pp__goalbtn:disabled { opacity: .6; }
-.pp__undo { align-self: center; background: none; border: none; color: #94a3b8; font-size: .85rem; cursor: pointer; text-decoration: underline; }
-
-/* Check-in */
+/* PROTAGONISTA: anotar por DNI */
 .pp__checkin { padding: 14px; border-radius: 14px; background: rgba(201,168,76,.07); border: 1px solid rgba(201,168,76,.2); }
-.pp__checkin-lbl { font-size: .82rem; color: #F0D275; font-weight: 700; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .5px; }
+.pp__checkin--hero { background: rgba(201,168,76,.1); border-color: rgba(201,168,76,.45); padding: 16px; }
+.pp__checkin-lbl { font-size: .92rem; color: #F0D275; font-weight: 800; margin-bottom: 10px; }
 .pp__checkin-row { display: flex; gap: 8px; }
 .pp__checkin-row .pp__input { flex: 1; font-size: 1.05rem; }
 .pp__checkin-row .pp__btn { white-space: nowrap; }
+.pp__input--big { font-size: 1.5rem !important; padding: 16px !important; font-weight: 700; letter-spacing: 1px; }
+.pp__btn--anotar { font-size: 1.1rem; padding: 16px 18px; }
+.pp__added { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; text-align: center; font-weight: 800; font-size: 1rem;
+  background: rgba(34,197,94,.16); border: 1px solid rgba(34,197,94,.4); color: #86efac; }
+.pp__added--idle { background: transparent; border: 1px dashed rgba(255,255,255,.12); color: #6b7686; font-weight: 600; font-size: .85rem; }
+
+/* GOL — secundario (se usa poco pero tiene que ser inconfundible) */
+.pp__golzone { padding: 12px 14px; border-radius: 14px; background: rgba(79,159,214,.08); border: 1px solid rgba(79,159,214,.28); display: flex; flex-direction: column; gap: 8px; }
+.pp__golzone-lbl { font-size: .82rem; color: #bcd9f5; font-weight: 700; }
+.pp__goalbtn {
+  width: 100%; padding: 18px 16px; border-radius: 14px; border: none; cursor: pointer;
+  background: linear-gradient(135deg, #4f9fd6, #6fb1d8);
+  color: #fff; font-size: 1.25rem; font-weight: 900; letter-spacing: .5px;
+  box-shadow: 0 6px 18px rgba(79,159,214,.3);
+}
+.pp__goalbtn:active { transform: scale(.98); }
+.pp__goalbtn:disabled { opacity: .6; }
+.pp__goalbtn.is-locked { background: linear-gradient(135deg, #16a34a, #22c55e); box-shadow: 0 6px 18px rgba(34,197,94,.35); }
+.pp__undo { align-self: center; background: none; border: none; color: #94a3b8; font-size: .85rem; cursor: pointer; text-decoration: underline; }
+
+/* Nota de promo cerrada */
+.pp__closednote { padding: 14px; border-radius: 12px; background: rgba(148,163,184,.08); border: 1px solid rgba(148,163,184,.25); font-size: .9rem; color: #C8D2E0; line-height: 1.4; }
+
+/* Lista colapsable */
+.pp__listwrap { display: flex; flex-direction: column; gap: 10px; }
+.pp__listtoggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%;
+  padding: 12px 14px; border-radius: 12px; cursor: pointer;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.12); color: #C8D2E0; font-weight: 700; font-size: .92rem; }
+.pp__listtoggle-total { color: #F0D275; font-weight: 800; }
+
+/* Más opciones (acciones peligrosas escondidas) */
+.pp__more { margin-top: 6px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.pp__more-toggle { background: none; border: none; color: #6b7686; font-size: .82rem; cursor: pointer; padding: 4px; }
 
 .pp__phase { display: flex; flex-direction: column; gap: 8px; }
 
@@ -149,13 +173,13 @@
 .pp__empty { text-align: center; color: #6b7686; padding: 20px; font-size: .9rem; }
 
 .pp__pay {
-  flex-shrink: 0; width: 32px; height: 32px; border-radius: 8px; border: 1px solid rgba(34,197,94,.4);
-  background: rgba(34,197,94,.14); font-size: 1rem; cursor: pointer; line-height: 1;
+  flex-shrink: 0; width: 46px; height: 46px; border-radius: 10px; border: 1px solid rgba(34,197,94,.4);
+  background: rgba(34,197,94,.14); font-size: 1.2rem; cursor: pointer; line-height: 1;
 }
 .pp__pay:disabled { opacity: .4; }
 .pp__remove {
-  flex-shrink: 0; width: 30px; height: 30px; border-radius: 8px; border: 1px solid rgba(196,30,58,.35);
-  background: rgba(196,30,58,.12); color: #ff9a9a; font-size: .9rem; cursor: pointer; line-height: 1;
+  flex-shrink: 0; width: 42px; height: 46px; border-radius: 10px; border: 1px solid rgba(196,30,58,.35);
+  background: rgba(196,30,58,.12); color: #ff9a9a; font-size: 1.05rem; cursor: pointer; line-height: 1; margin-left: 2px;
 }
 .pp__remove:disabled { opacity: .4; }
 .pp__person.is-paid { opacity: .65; border-style: dashed; }
