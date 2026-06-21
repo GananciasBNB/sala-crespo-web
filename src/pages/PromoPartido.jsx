@@ -35,7 +35,6 @@ export default function PromoPartido() {
       <header className="pp__head">
         <img src="/logo-mundial-2026.png" alt="" className="pp__logo" />
         <h1>Promo · Viví Argentina en Sala</h1>
-        <a href="/" className="pp__home" title="Volver al inicio del sitio">⌂ Inicio</a>
       </header>
       <div className="pp__tabs">
         <button className={tab === 'op' ? 'is-on' : ''} onClick={() => setTab('op')}>
@@ -147,12 +146,12 @@ function Operativo({ k }) {
   }
   // Descarta el partido actual y vuelve a la pantalla de elegir.
   const discardMatch = async () => {
-    const msg = match.is_test
-      ? '¿Borrar este partido de PRUEBA y empezar de nuevo?'
-      : '¿DESCARTAR este partido? Se borra todo lo cargado (no se puede si ya entregaste tickets).'
-    if (!window.confirm(msg)) return
+    const wasTest = match.is_test
+    // Prueba: salida directa, sin confirmar (no hay nada que proteger).
+    // Real: confirmar, porque borra un partido de verdad.
+    if (!wasTest && !window.confirm('¿DESCARTAR este partido? Se borra todo lo cargado (no se puede si ya entregaste tickets).')) return
     setBusy(true)
-    try { await promoDiscardMatch(k, match.id); setMatch(null); setAtt([]); flash('Partido descartado') }
+    try { await promoDiscardMatch(k, match.id); setMatch(null); setAtt([]); flash(wasTest ? 'Saliste de la prueba' : 'Partido descartado') }
     catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const goal = async () => {
@@ -291,6 +290,11 @@ function Operativo({ k }) {
           se ve igual en prueba y en real (los controles no se mueven). */}
       {match.is_test && <div className="pp__testribbon" aria-hidden="true">🧪 PRUEBA</div>}
 
+      {/* Salir de la prueba: SIEMPRE a la vista, es práctica y tiene que ser fácil volver. */}
+      {match.is_test && (
+        <button className="pp__exittest" onClick={discardMatch} disabled={busy}>← Salir de la prueba y volver al inicio</button>
+      )}
+
       {/* Estado del partido en una sola línea (no roba pantalla) */}
       <div className={`pp__statusbar pp__statusbar--${match.status}`}>
         <span className="pp__statusbar-name">{match.label}</span>
@@ -396,15 +400,16 @@ function Operativo({ k }) {
         </div>
       )}
 
-      {/* Acciones peligrosas escondidas detrás de "Más", para no tocarlas sin querer */}
-      <div className="pp__more">
-        <button type="button" className="pp__more-toggle" onClick={() => setShowMore((v) => !v)}>{showMore ? 'Cerrar ▴' : '⋯ Más opciones'}</button>
-        {showMore && (
-          <button className="pp__discard" onClick={discardMatch} disabled={busy}>
-            {match.is_test ? '🗑️ Descartar prueba y empezar de nuevo' : '🗑️ Descartar partido (empezar de nuevo)'}
-          </button>
-        )}
-      </div>
+      {/* Descartar un partido REAL: escondido detrás de "Más" para no borrarlo sin querer.
+          (En prueba no aplica: ya tiene el botón "Salir de la prueba" a la vista arriba.) */}
+      {!match.is_test && (
+        <div className="pp__more">
+          <button type="button" className="pp__more-toggle" onClick={() => setShowMore((v) => !v)}>{showMore ? 'Cerrar ▴' : '⋯ Más opciones'}</button>
+          {showMore && (
+            <button className="pp__discard" onClick={discardMatch} disabled={busy}>🗑️ Descartar partido (empezar de nuevo)</button>
+          )}
+        </div>
+      )}
 
       {msg && <p className="pp__msg">{msg}</p>}
     </div>
