@@ -306,7 +306,7 @@ function Operativo({ k }) {
       {/* GOL — secundario: se usa poco (2-3 por partido) pero tiene que ser inconfundible */}
       {match.status === 'open' && (
         <div className="pp__golzone">
-          <div className="pp__golzone-lbl">¿Argentina metió un gol?</div>
+          <div className="pp__golzone-lbl">Cuando Argentina meta un gol, tocá acá al momento 👇</div>
           <button className={`pp__goalbtn ${goalLock ? 'is-locked' : ''}`} onClick={goal} disabled={busy || goalLock}>
             {goalLock ? '✓ ¡Gol contado!' : '⚽ Gol de Argentina'}
           </button>
