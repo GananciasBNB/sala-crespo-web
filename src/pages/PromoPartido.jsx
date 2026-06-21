@@ -272,8 +272,10 @@ function Operativo({ k }) {
   const capCls = capN >= 30 ? 'pp__cap--full' : capN >= 25 ? 'pp__cap--near' : ''
 
   return (
-    <div className="pp__panel">
-      {match.is_test && <div className="pp__testbanner">🧪 MODO PRUEBA · esto NO es real, practicá lo que quieras y después descartalo</div>}
+    <div className={`pp__panel ${match.is_test ? 'pp__panel--test' : ''}`}>
+      {/* Indicador de prueba como overlay fijo: NO ocupa espacio, así la pantalla
+          se ve igual en prueba y en real (los controles no se mueven). */}
+      {match.is_test && <div className="pp__testribbon" aria-hidden="true">🧪 PRUEBA</div>}
 
       {/* Estado del partido en una sola línea (no roba pantalla) */}
       <div className={`pp__statusbar pp__statusbar--${match.status}`}>

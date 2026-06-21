@@ -40,11 +40,16 @@
 .pp__testzone-lbl { font-size: .82rem; color: #94a3b8; margin: 0 0 8px; }
 .pp__btn--test { width: 100%; background: rgba(108,176,235,.14); color: #bcd9f5; border: 1px dashed rgba(108,176,235,.5); }
 
-/* Banner modo prueba */
-.pp__testbanner {
-  background: repeating-linear-gradient(45deg, rgba(240,160,60,.16) 0 12px, rgba(240,160,60,.08) 12px 24px);
-  border: 1px solid rgba(240,160,60,.5); color: #ffd9a8; border-radius: 12px;
-  padding: 10px 14px; font-size: .82rem; font-weight: 700; text-align: center;
+/* Modo prueba: overlay que NO ocupa espacio (la interfaz queda idéntica a la real).
+   Marco naranja punteado alrededor del panel + cinta diagonal fija en la esquina. */
+.pp__panel--test { outline: 2px dashed rgba(240,160,60,.65); outline-offset: 8px; border-radius: 14px; }
+.pp__testribbon {
+  position: fixed; z-index: 60; pointer-events: none;
+  right: -58px; bottom: 30px; transform: rotate(-45deg);
+  background: repeating-linear-gradient(45deg, #f0a03c 0 11px, #d98a2b 11px 22px);
+  color: #1a0e0e; font-weight: 900; letter-spacing: 1.5px; font-size: .78rem;
+  padding: 7px 64px; text-align: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,.45);
 }
 
 /* Descartar partido */
