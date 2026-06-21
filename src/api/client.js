@@ -580,6 +580,10 @@ export const promoUndoGoal = (k, id) =>
 export const promoCheckin = (k, id, dni, name, isPost) =>
   api(`/api/promo/match/${id}/checkin`, { method: 'POST', body: JSON.stringify({ k, dni, name, isPost }) })
 export const promoAttendance = (k, id) => api(`/api/promo/match/${id}/attendance?${pq(k)}`)
+export const promoRemoveCheckin = (k, attendanceId) =>
+  api(`/api/promo/checkin/${attendanceId}/remove`, { method: 'POST', body: JSON.stringify({ k }) })
+export const promoPayout = (k, attendanceId) =>
+  api(`/api/promo/checkin/${attendanceId}/payout`, { method: 'POST', body: JSON.stringify({ k }) })
 export const promoClose = (k, id) =>
   api(`/api/promo/match/${id}/close`, { method: 'POST', body: JSON.stringify({ k }) })
 export const promoPending = (k, dni) => api(`/api/promo/pending?${pq(k)}&dni=${encodeURIComponent(dni)}`)

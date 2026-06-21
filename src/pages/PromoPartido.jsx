@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import {
   promoActive, promoCreateMatch, promoSetStatus, promoGoal, promoUndoGoal,
-  promoCheckin, promoAttendance, promoClose, promoPending, promoDeliver, getMatches,
+  promoCheckin, promoAttendance, promoClose, promoPending, promoDeliver, promoRemoveCheckin, promoPayout, getMatches,
 } from '../api/client'
+
+const TICKET_GOAL = 2500 // para mostrar el desglose en la entrega (debe coincidir con el backend)
 import './PromoPartido.css'
 
 const fmt = new Intl.NumberFormat('es-AR')
@@ -14,6 +16,10 @@ const fmtMatch = (iso) => {
       timeZone: 'America/Argentina/Buenos_Aires',
     })
   } catch { return '' }
+}
+const fmtHora = (iso) => {
+  try { return new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Argentina/Buenos_Aires' }) }
+  catch { return '' }
 }
 
 // Pantalla operativa de la promo "Viví Argentina en Sala". Acceso con ?k=CODE.
@@ -48,6 +54,7 @@ function Operativo({ k }) {
   const [argMatches, setArgMatches] = useState([])
   const [manual, setManual] = useState(false)
   const [err, setErr] = useState('')
+  const [goalLock, setGoalLock] = useState(false) // cooldown anti-doble-tap del botón GOL
 
   // Cuando no hay partido activo, traigo del fixture los próximos de Argentina
   useEffect(() => {
@@ -100,13 +107,34 @@ function Operativo({ k }) {
   }
   const goal = async () => {
     setBusy(true)
-    try { const d = await promoGoal(k, match.id); setMatch({ ...match }); loadAtt(match.id); flash(`⚽ GOL ${d.goals}`) }
-    catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
+    try {
+      const d = await promoGoal(k, match.id); setMatch({ ...match }); loadAtt(match.id)
+      flash(`⚽ GOL ${d.goals} registrado`)
+      setGoalLock(true); setTimeout(() => setGoalLock(false), 2500) // evita el doble-tap del grito
+    } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const undoGoal = async () => {
+    if (!window.confirm('¿Borrar el último gol registrado?')) return
     setBusy(true)
     try { await promoUndoGoal(k, match.id); loadAtt(match.id); flash('Gol deshecho') }
     catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
+  }
+  const removeCheckin = async (a) => {
+    if (!window.confirm(`¿Quitar a ${a.name || 'DNI ' + a.dni}? No va a recibir tickets.`)) return
+    setBusy(true)
+    try { await promoRemoveCheckin(k, a.id); loadAtt(match.id); flash('Presente quitado') }
+    catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
+  }
+  // Liquida a alguien que se va antes del cierre: cobra los goles vistos hasta ahora.
+  const payout = async (a) => {
+    const who = a.name || `DNI ${a.dni}`
+    if (!window.confirm(`¿Liquidar a ${who}? Cobra los goles que vio hasta ahora y queda cerrado (se va).`)) return
+    setBusy(true)
+    try {
+      const r = await promoPayout(k, a.id)
+      loadAtt(match.id)
+      window.alert(`Entregale ${money(r.tickets)} en tickets a ${who}.`)
+    } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const checkin = async () => {
     if (!/^\d{7,8}$/.test(dni.trim())) return flash('DNI: 7 u 8 dígitos')
@@ -117,7 +145,7 @@ function Operativo({ k }) {
     } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   const setStatus = async (status) => {
-    if (status === 'closed' && !window.confirm('¿Cerrar la promo y calcular los tickets de todos?')) return
+    if (status === 'closed' && !window.confirm('¿CERRAR la promo? Se calculan los tickets finales. Asegurate de que el partido y los ingresos post hayan terminado — una vez entregados tickets, no se puede reabrir.')) return
     setBusy(true)
     try {
       if (status === 'closed') { await promoClose(k, match.id) }
@@ -181,7 +209,7 @@ function Operativo({ k }) {
   const totalGoals = att.length ? Math.max(...att.filter(a => !a.is_post).map(a => a.goalsSeen), 0) : 0
   const present = att.filter(a => !a.is_post)
   const postPeople = att.filter(a => a.is_post)
-  const totalTickets = att.reduce((s, a) => s + (a.ticketsCalc || 0), 0)
+  const totalTickets = att.reduce((s, a) => s + (a.delivered ? a.tickets : a.ticketsCalc || 0), 0)
   const isClosed = match.status === 'closed'
   const isPost = match.status === 'post'
 
@@ -197,7 +225,9 @@ function Operativo({ k }) {
 
       {match.status === 'open' && (
         <>
-          <button className="pp__goalbtn" onClick={goal} disabled={busy}>⚽ GOL DE ARGENTINA</button>
+          <button className="pp__goalbtn" onClick={goal} disabled={busy || goalLock}>
+            {goalLock ? '✓ Gol registrado' : '⚽ GOL DE ARGENTINA'}
+          </button>
           {totalGoals > 0 && <button className="pp__undo" onClick={undoGoal} disabled={busy}>↩ Deshacer último gol</button>}
         </>
       )}
@@ -214,32 +244,40 @@ function Operativo({ k }) {
         </div>
       )}
 
-      {/* Control de fase */}
+      {/* Control de fase — cerrar SOLO desde post, para no cerrar en pleno partido */}
       {!isClosed && (
         <div className="pp__phase">
           {match.status === 'open' && <button className="pp__btn pp__btn--ghost" onClick={() => setStatus('post')} disabled={busy}>Terminó el partido → abrir post</button>}
           {isPost && <button className="pp__btn pp__btn--ghost" onClick={() => setStatus('open')} disabled={busy}>↩ Volver a en vivo</button>}
-          <button className="pp__btn pp__btn--close" onClick={() => setStatus('closed')} disabled={busy}>🔒 Cerrar promo (calcular)</button>
+          {isPost && <button className="pp__btn pp__btn--close" onClick={() => setStatus('closed')} disabled={busy}>🔒 Cerrar promo (calcular)</button>}
         </div>
       )}
 
       <div className="pp__summary">
-        <span>{present.length} presentes</span>
-        {postPeople.length > 0 && <span>{postPeople.length} post</span>}
+        <span className={present.length >= 30 ? 'pp__cap--full' : present.length >= 25 ? 'pp__cap--near' : ''}>{present.length}/30 presentes</span>
+        {(isPost || postPeople.length > 0) && <span className={postPeople.length >= 30 ? 'pp__cap--full' : ''}>{postPeople.length}/30 post</span>}
         <span className="pp__summary-total">Total: {money(totalTickets)}</span>
       </div>
 
       <ul className="pp__list">
         {att.map((a) => (
-          <li key={a.id} className={`pp__person ${a.is_post ? 'is-post' : ''} ${a.overCap ? 'is-over' : ''}`}>
+          <li key={a.id} className={`pp__person ${a.is_post ? 'is-post' : ''} ${a.overCap && !a.delivered ? 'is-over' : ''} ${a.delivered ? 'is-paid' : ''}`}>
             <div className="pp__person-info">
               <span className="pp__person-name">{a.name || `DNI ${a.dni}`}</span>
               <span className="pp__person-sub">
-                {a.is_post ? 'Post-partido' : `${a.goalsSeen} gol${a.goalsSeen !== 1 ? 'es' : ''}`}
-                {a.overCap && ' · fuera de cupo'}
+                {a.delivered
+                  ? '✓ cobró y se fue'
+                  : a.is_post ? 'Post-partido' : `${a.goalsSeen} gol${a.goalsSeen !== 1 ? 'es' : ''}`}
+                {!a.delivered && a.overCap && ' · fuera de cupo'}
               </span>
             </div>
-            <span className="pp__person-tickets">{money(isClosed ? a.tickets : a.ticketsCalc)}</span>
+            <span className="pp__person-tickets">{money(a.delivered ? a.tickets : isClosed ? a.tickets : a.ticketsCalc)}</span>
+            {!isClosed && !a.delivered && (
+              <>
+                <button className="pp__pay" onClick={() => payout(a)} disabled={busy} title="Liquidar (se va)">💵</button>
+                <button className="pp__remove" onClick={() => removeCheckin(a)} disabled={busy} title="Quitar">✕</button>
+              </>
+            )}
           </li>
         ))}
         {att.length === 0 && <li className="pp__empty">Todavía no hay nadie anotado.</li>}
@@ -286,7 +324,12 @@ function Entregar({ k }) {
             <li key={t.id} className="pp__person">
               <div className="pp__person-info">
                 <span className="pp__person-name">{t.name || `DNI ${dni}`}</span>
-                <span className="pp__person-sub">{t.label}{t.is_post ? ' · post-partido' : ''}</span>
+                <span className="pp__person-sub">
+                  {t.label} ·{' '}
+                  {t.is_post
+                    ? 'ingreso post-partido'
+                    : `se anotó ${fmtHora(t.checkin_at)} · vio ${Math.round(t.tickets / TICKET_GOAL)} gol(es)`}
+                </span>
               </div>
               <span className="pp__person-tickets">{money(t.tickets)}</span>
               <button className="pp__deliver" onClick={() => deliver(t.id)} disabled={busy}>✓ Entregar</button>
