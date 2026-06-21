@@ -56,7 +56,7 @@ export default function PromoPartido() {
 function PhaseGuide({ status }) {
   const [open, setOpen] = useState(false)
   const map = {
-    open: { now: 'Anotá a cada persona con su DNI. Cuando Argentina meta un gol, tocá el botón celeste.', steps: ['Anotá a cada persona que entra, con su DNI.', 'Tocá ⚽ el botón celeste cada vez que Argentina mete un gol.', 'Si alguien se va antes de que termine, tocá 💵 para que cobre lo que vio.', 'Cuando termina el partido, tocá “El partido terminó”.'] },
+    open: { now: 'Anotá a cada persona con su DNI. Cuando Argentina meta un gol, tocá el botón celeste.', steps: ['Anotá con su DNI a cada persona que ingrese o ya esté en la sala.', 'Durante el partido: tocá ⚽ el botón celeste cada vez que Argentina mete un gol.', 'Si alguien avisa que se va antes de que termine el partido, tocá 💵 para entregarle lo que ganó hasta ese momento.', 'Cuando el partido termina, tocá “El partido terminó” para pasar a anotar a los que llegan después (esos también ganan tickets).'] },
     post: { now: 'El partido terminó. Seguí anotando con el DNI a los que llegan ahora: también ganan tickets por venir.', steps: ['Anotá con el DNI a cada persona que llega ahora (después del partido).', 'Estos ganan tickets solo por venir, aunque el partido ya terminó.', 'Cuando no llega más nadie, tocá “Terminar y calcular tickets”.'] },
     closed: { now: 'Listo. Pasá a la pestaña 🎟️ Entregar para dar los tickets por DNI.', steps: ['Los montos quedaron calculados y fijos.', 'Pasá a la pestaña 🎟️ Entregar para dar los tickets buscando por DNI.'] },
   }
