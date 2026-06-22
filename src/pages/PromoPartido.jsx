@@ -70,7 +70,7 @@ function PromoInfo({ onClose }) {
 
         <div className="pp__modal-block pp__modal-block--gold">
           <div className="pp__modal-amt">⚽ $2.500 por cada gol</div>
-          <div className="pp__modal-txt">A cada persona anotada, por cada gol de Argentina. Hasta <b>4 goles</b> por partido. Cupo: <b>30 personas</b>.</div>
+          <div className="pp__modal-txt">A cada persona anotada, por cada gol de Argentina. Hasta <b>4 goles</b> por partido. <b>Sin límite de personas.</b></div>
         </div>
 
         <div className="pp__modal-block pp__modal-block--blue">
@@ -379,7 +379,10 @@ function Operativo({ k }) {
         <span className="pp__statusbar-meta">
           <span className="pp__statusbar-state">{isClosed ? '✅ Cerrada' : isPost ? '🏁 Post-partido' : '🔴 En vivo'}</span>
           {!isClosed && <span>⚽ {totalGoals}</span>}
-          <span className={capCls}>{capN}/30</span>
+          {/* Goles: sin cupo (solo contador). Bono post: cupo de 30. */}
+          {isPost
+            ? <span className={capCls}>{postPeople.length}/30 bono</span>
+            : <span>👥 {present.length}</span>}
         </span>
       </div>
 
