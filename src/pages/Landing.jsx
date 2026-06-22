@@ -9,6 +9,7 @@ import VeniALaSala from '../components/VeniALaSala'
 import Shows from '../components/Shows'
 import Torneos from '../components/Torneos'
 import PromoMundial from '../components/PromoMundial'
+import PromoArgentina from '../components/PromoArgentina'
 import VozDelBarrio from '../components/VozDelBarrio'
 import Top10Prode from '../components/Top10Prode'
 import LeadCapture from '../components/LeadCapture'
@@ -32,6 +33,8 @@ export default function Landing() {
         <LaSala />
         {/* Universo Prode: promo + voz del barrio + ranking, todo junto */}
         <PromoMundial />
+        {/* Promo presencial de los partidos de Argentina */}
+        <PromoArgentina />
         <VozDelBarrio />
         <Top10Prode />
         <AyB />
