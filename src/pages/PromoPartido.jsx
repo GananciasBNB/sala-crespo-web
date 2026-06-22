@@ -474,6 +474,14 @@ function Operativo({ k }) {
         )}
       </div>
 
+      {/* En vivo: acceso claro para pasar al bono cuando termina el partido
+          (así la promotora no tiene que buscar la pestaña de arriba). */}
+      {match.status === 'open' && (
+        <div className="pp__phase">
+          <button className="pp__btn pp__btn--gold pp__btn--topost" onClick={goPost} disabled={busy}>🏁 El partido terminó → pasar a anotar el bono</button>
+        </div>
+      )}
+
       {/* Cerrar la promo — solo desde "Después del partido", al final de todo */}
       {isPost && (
         <div className="pp__phase">

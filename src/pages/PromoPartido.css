@@ -218,6 +218,7 @@
 .pp__more-toggle { background: none; border: none; color: #6b7686; font-size: .82rem; cursor: pointer; padding: 4px; }
 
 .pp__phase { display: flex; flex-direction: column; gap: 8px; }
+.pp__btn--topost { padding: 15px; font-size: 1rem; }
 .pp__phase-hint { margin: 0; font-size: .8rem; color: #94a3b8; line-height: 1.45; }
 .pp__phase-hint b { color: #C8D2E0; }
 
