@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import PromoMetricsAdmin from '../components/PromoMetricsAdmin'
 import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
   adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminSearchPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
@@ -4839,6 +4840,7 @@ export default function AdminPanel() {
     ...(admin?.role === 'superadmin' ? [{ id: 'email',  label: '📧 Email' }] : []),
     ...(admin?.role === 'superadmin' ? [{ id: 'push',   label: '🔔 Push' }] : []),
     ...(admin?.role === 'superadmin' ? [{ id: 'promo',  label: '🎁 Promo Tickets' }] : []),
+    ...(admin?.role === 'superadmin' ? [{ id: 'promoarg', label: '🇦🇷 Promo Argentina' }] : []),
     { id: 'club',     label: '★ Sala Crespo Club' },
     ...(admin?.role === 'superadmin' ? [{ id: 'admins', label: '👤 Admins' }] : []),
   ]
@@ -4897,6 +4899,7 @@ export default function AdminPanel() {
         {tab === 'email'     && <EmailBlastAdmin token={token} toast={toast} />}
         {tab === 'push'      && <PushBroadcastAdmin token={token} toast={toast} />}
         {tab === 'promo'     && <PromoTicketsAdmin token={token} toast={toast} />}
+        {tab === 'promoarg'  && <PromoMetricsAdmin token={token} toast={toast} />}
         {tab === 'club'      && <ClubAdmin     token={token} toast={toast} />}
         {tab === 'admins'    && <AdminsAdmin   token={token} currentAdmin={admin} toast={toast} />}
       </main>

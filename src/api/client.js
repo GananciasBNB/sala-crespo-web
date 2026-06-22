@@ -420,6 +420,9 @@ export const adminEmailBlast = (token, body) =>
 export const adminSegmentCounts = (token) =>
   api('/api/admin/segments/counts', { headers: authHeaders(token) })
 
+export const adminPromoMetrics = (token) =>
+  api('/api/admin/promo/metrics', { headers: authHeaders(token) })
+
 export const adminEmailPreview = (token, body) =>
   api('/api/admin/email/preview', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
 
