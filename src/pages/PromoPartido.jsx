@@ -29,13 +29,16 @@ const fmtDni = (d) => String(d || '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
 export default function PromoPartido() {
   const k = new URLSearchParams(window.location.search).get('k') || ''
   const [tab, setTab] = useState('op')
+  const [showInfo, setShowInfo] = useState(false)
   if (!k) return <div className="pp"><p className="pp__err">Falta el código de acceso en el link.</p></div>
   return (
     <div className="pp">
       <header className="pp__head">
         <img src="/logo-mundial-2026.png" alt="" className="pp__logo" />
         <h1>Promo · Viví Argentina en Sala</h1>
+        <button type="button" className="pp__info-btn" onClick={() => setShowInfo(true)}>ℹ️ La promo</button>
       </header>
+      {showInfo && <PromoInfo onClose={() => setShowInfo(false)} />}
       <div className="pp__tabs">
         <button className={tab === 'op' ? 'is-on' : ''} onClick={() => setTab('op')}>
           <span className="pp__tab-t">⚽ Anotar</span>
@@ -47,6 +50,46 @@ export default function PromoPartido() {
         </button>
       </div>
       {tab === 'op' ? <Operativo k={k} /> : <Entregar k={k} />}
+    </div>
+  )
+}
+
+// Panel con las reglas de la promo, para que la promotora las tenga a mano.
+function PromoInfo({ onClose }) {
+  return (
+    <div className="pp__modal" onClick={onClose}>
+      <div className="pp__modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="pp__modal-head">
+          <h2>¿Cómo es la promo?</h2>
+          <button type="button" className="pp__modal-x" onClick={onClose} aria-label="Cerrar">✕</button>
+        </div>
+
+        <p className="pp__modal-lead">
+          Cuando juega <b>Argentina</b>, los clientes que están en la sala ganan <b>tickets para jugar en las máquinas</b>.
+        </p>
+
+        <div className="pp__modal-block pp__modal-block--gold">
+          <div className="pp__modal-amt">⚽ $2.500 por cada gol</div>
+          <div className="pp__modal-txt">A cada persona anotada, por cada gol de Argentina. Hasta <b>4 goles</b> por partido. Cupo: <b>30 personas</b>.</div>
+        </div>
+
+        <div className="pp__modal-block pp__modal-block--blue">
+          <div className="pp__modal-amt">🎉 $5.000 de bono por venir</div>
+          <div className="pp__modal-txt">A los <b>primeros 30</b> que llegan a la sala en la <b>hora siguiente</b> a que termina el partido.</div>
+        </div>
+
+        <div className="pp__modal-rules">
+          <div className="pp__modal-rules-t">Reglas</div>
+          <ul>
+            <li>Se anota a cada persona por su <b>DNI</b>.</li>
+            <li>Cada persona cobra <b>por una sola cosa</b>: o por los goles que vio, o el bono por venir. No las dos.</li>
+            <li>Para <b>mayores de 18</b>.</li>
+            <li>Los tickets se entregan en el momento y se juegan en las máquinas (no es dinero en efectivo).</li>
+          </ul>
+        </div>
+
+        <button type="button" className="pp__btn pp__btn--gold pp__modal-ok" onClick={onClose}>Entendido</button>
+      </div>
     </div>
   )
 }

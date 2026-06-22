@@ -19,6 +19,45 @@
 }
 .pp__logo { height: 38px; width: auto; }
 .pp__head h1 { font-size: 1.05rem; margin: 0; font-weight: 700; flex: 1; }
+/* Botón "La promo" en el header */
+.pp__info-btn {
+  flex-shrink: 0; font-size: .82rem; font-weight: 700; color: #F0D275; cursor: pointer;
+  border: 1px solid rgba(201,168,76,.45); background: rgba(201,168,76,.12);
+  border-radius: 999px; padding: 7px 13px; white-space: nowrap;
+}
+.pp__info-btn:active { transform: scale(.97); }
+
+/* Modal "¿Cómo es la promo?" */
+.pp__modal {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.7); padding: 16px;
+}
+.pp__modal-card {
+  width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto;
+  background: linear-gradient(180deg, #15101a, #0d0a12);
+  border: 1px solid rgba(201,168,76,.35); border-radius: 16px; padding: 20px;
+}
+.pp__modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.pp__modal-head h2 { margin: 0; font-size: 1.25rem; color: #F0D275; }
+.pp__modal-x {
+  background: none; border: none; color: #C8D2E0; font-size: 1.1rem; cursor: pointer;
+  width: 34px; height: 34px; border-radius: 8px;
+}
+.pp__modal-x:active { background: rgba(255,255,255,.08); }
+.pp__modal-lead { font-size: .95rem; color: #E8EDF5; line-height: 1.45; margin: 0 0 14px; }
+.pp__modal-block { border-radius: 12px; padding: 13px 15px; margin-bottom: 10px; border: 1px solid; }
+.pp__modal-block--gold { background: rgba(201,168,76,.1); border-color: rgba(201,168,76,.35); }
+.pp__modal-block--blue { background: rgba(108,176,235,.1); border-color: rgba(108,176,235,.35); }
+.pp__modal-amt { font-size: 1.05rem; font-weight: 800; margin-bottom: 4px; }
+.pp__modal-block--gold .pp__modal-amt { color: #F0D275; }
+.pp__modal-block--blue .pp__modal-amt { color: #8cc4f5; }
+.pp__modal-txt { font-size: .86rem; color: #C8D2E0; line-height: 1.4; }
+.pp__modal-rules { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.1); }
+.pp__modal-rules-t { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 8px; }
+.pp__modal-rules ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.pp__modal-rules li { font-size: .86rem; color: #D6DEEA; line-height: 1.4; }
+.pp__modal-ok { width: 100%; margin-top: 16px; }
+
 /* Salir de la prueba: botón visible, fácil de encontrar (color de modo prueba) */
 .pp__exittest {
   width: 100%; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: .95rem;
