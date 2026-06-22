@@ -11,9 +11,12 @@ export default function PromoArgentina() {
     <section id="vivi-argentina" className="vivi" ref={ref}>
       <div className="container">
         <div className="reveal vivi__card">
-          {/* TODO(video): cuando esté el video propio de Flow (hinchada / bandera /
-              festejo de gol), va de fondo acá como <video> cover + overlay.
-              Por ahora, fondo con acento celeste para diferenciarlo del Prode. */}
+          {/* Video propio de fondo (Flow) — overlay oscuro encima para legibilidad */}
+          <div className="vivi__bg" aria-hidden="true">
+            <video autoPlay loop muted playsInline preload="metadata">
+              <source src="/vivi-argentina.mp4" type="video/mp4" />
+            </video>
+          </div>
           <div className="vivi__inner">
             <span className="eyebrow">Mundial 2026 · Cuando juega Argentina</span>
             <h2 className="section-title vivi__title">Viví Argentina <em>en Sala</em></h2>
