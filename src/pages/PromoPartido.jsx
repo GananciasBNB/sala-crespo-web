@@ -98,7 +98,7 @@ function PromoInfo({ onClose }) {
 function PhaseGuide({ status }) {
   const [open, setOpen] = useState(false)
   const map = {
-    open: { now: 'Anotá a cada persona con su DNI. Cuando Argentina meta un gol, tocá el botón celeste.', steps: ['Anotá con su DNI a cada persona que ingrese o ya esté en la sala.', 'Durante el partido: tocá ⚽ el botón celeste cada vez que Argentina mete un gol.', 'Si alguien avisa que se va antes de que termine el partido, tocá 💵 para entregarle lo que ganó hasta ese momento.', 'Cuando el partido termina, tocá “El partido terminó” para pasar a anotar a los que llegan después (esos también ganan tickets).'] },
+    open: { now: 'Anotá a cada persona con su DNI. Cuando Argentina meta un gol, tocá el botón celeste.', steps: ['Anotá con su DNI a cada persona que ingrese o ya esté en la sala.', 'Durante el partido: tocá ⚽ el botón celeste cada vez que Argentina mete un gol.', 'Si alguien avisa que se va antes de que termine el partido, tocá 💵 para entregarle lo que ganó hasta ese momento.', 'Cuando el partido termina, pasá a la pestaña “🎉 Después del partido” para anotar a los que llegan (esos ganan el bono).'] },
     post: { now: 'El partido terminó. A cada persona que llega, anotala con su DNI y entregale el bono en el momento.', steps: ['Anotá con el DNI a cada persona que llega ahora (después del partido).', 'Al tocar “Anotar y dar bono”, te digo cuánto entregarle (o si el cupo de 30 ya se llenó).', 'El bono se entrega ACÁ, al momento. Los tickets por goles (de los que estuvieron en vivo) se entregan al cerrar, desde la pestaña Entregar.', 'Cuando no llega más nadie, tocá “Terminar y calcular tickets”.'] },
     closed: { now: 'Listo. Pasá a la pestaña 🎟️ Entregar para dar los tickets por DNI.', steps: ['Los montos quedaron calculados y fijos.', 'Pasá a la pestaña 🎟️ Entregar para dar los tickets buscando por DNI.'] },
   }
@@ -270,6 +270,13 @@ function Operativo({ k }) {
       await load(); flash(status === 'post' ? 'Ahora anotá a los que llegan' : status === 'closed' ? 'Promo cerrada' : 'Volviste a “en vivo”')
     } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
+  // Sub-espacios "Durante el partido" / "Después del partido" = cambiar la fase.
+  const goLive = () => { if (match.status !== 'open') setStatus('open') }
+  const goPost = () => {
+    if (match.status === 'post') return
+    if (!window.confirm('¿El partido terminó? Pasás a anotar los INGRESOS POSTERIORES (bono por venir). Si te equivocás, podés volver a “Durante el partido”.')) return
+    setStatus('post')
+  }
 
   if (err && match === undefined) return (
     <div className="pp__panel">
@@ -331,12 +338,14 @@ function Operativo({ k }) {
   const totalGoals = att.length ? Math.max(...att.filter(a => !a.is_post).map(a => a.goalsSeen), 0) : 0
   const present = att.filter(a => !a.is_post)
   const postPeople = att.filter(a => a.is_post)
-  const totalTickets = att.reduce((s, a) => s + (a.delivered ? a.tickets : a.ticketsCalc || 0), 0)
   const isClosed = match.status === 'closed'
   const isPost = match.status === 'post'
 
   const capN = isPost ? postPeople.length : present.length
   const capCls = capN >= 30 ? 'pp__cap--full' : capN >= 25 ? 'pp__cap--near' : ''
+  // Cada espacio muestra SU propia lista: en vivo los de goles, en post los del bono.
+  const listToShow = isClosed ? att : (isPost ? postPeople : present)
+  const listTotal = listToShow.reduce((s, a) => s + (a.delivered ? a.tickets : a.ticketsCalc || 0), 0)
 
   return (
     <div className={`pp__panel ${match.is_test ? 'pp__panel--test' : ''}`}>
@@ -347,6 +356,21 @@ function Operativo({ k }) {
       {/* Salir de la prueba: SIEMPRE a la vista, es práctica y tiene que ser fácil volver. */}
       {match.is_test && (
         <button className="pp__exittest" onClick={discardMatch} disabled={busy}>← Salir de la prueba y volver al inicio</button>
+      )}
+
+      {/* DOS ESPACIOS separados: durante el partido (goles) y después (bono).
+          Cambiar de espacio = cambiar la fase (el server decide goles vs bono). */}
+      {!isClosed && (
+        <div className="pp__subtabs">
+          <button type="button" className={`pp__subtab ${match.status === 'open' ? 'is-on' : ''}`} onClick={goLive} disabled={busy}>
+            <span className="pp__subtab-t">⚽ Durante el partido</span>
+            <span className="pp__subtab-s">Anotar gente y goles</span>
+          </button>
+          <button type="button" className={`pp__subtab pp__subtab--post ${isPost ? 'is-on' : ''}`} onClick={goPost} disabled={busy}>
+            <span className="pp__subtab-t">🎉 Después del partido</span>
+            <span className="pp__subtab-s">Anotar ingresos y dar bono</span>
+          </button>
+        </div>
       )}
 
       {/* Estado del partido en una sola línea (no roba pantalla) */}
@@ -417,12 +441,12 @@ function Operativo({ k }) {
       {/* Lista de presentes — colapsada en el partido (es ruido), abierta al cerrar */}
       <div className="pp__listwrap">
         <button type="button" className="pp__listtoggle" onClick={() => setShowList((v) => !v)}>
-          <span>{showList ? 'Ocultar lista ▴' : `Ver anotados (${att.length}) ▾`}</span>
-          <span className="pp__listtoggle-total">Total: {money(totalTickets)}</span>
+          <span>{showList ? 'Ocultar lista ▴' : `${isPost ? 'Ver ingresos post' : 'Ver anotados'} (${listToShow.length}) ▾`}</span>
+          <span className="pp__listtoggle-total">Total: {money(listTotal)}</span>
         </button>
         {(showList || isClosed) && (
           <ul className="pp__list">
-            {att.map((a) => (
+            {listToShow.map((a) => (
               <li key={a.id} className={`pp__person ${a.is_post ? 'is-post' : ''} ${a.overCap && !a.delivered ? 'is-over' : ''} ${a.delivered ? 'is-paid' : ''}`}>
                 <div className="pp__person-info">
                   <span className="pp__person-name">{a.name || `DNI ${fmtDni(a.dni)}`}</span>
@@ -442,17 +466,15 @@ function Operativo({ k }) {
                 )}
               </li>
             ))}
-            {att.length === 0 && <li className="pp__empty">Todavía no hay nadie anotado.</li>}
+            {listToShow.length === 0 && <li className="pp__empty">Todavía no hay nadie acá.</li>}
           </ul>
         )}
       </div>
 
-      {/* Cambiar de etapa — cerrar SOLO desde post, para no cerrar en pleno partido */}
-      {!isClosed && (
+      {/* Cerrar la promo — solo desde "Después del partido", al final de todo */}
+      {isPost && (
         <div className="pp__phase">
-          {match.status === 'open' && <button className="pp__btn pp__btn--ghost" onClick={() => setStatus('post')} disabled={busy}>🏁 El partido terminó → anotar a los que llegan</button>}
-          {isPost && <button className="pp__btn pp__btn--ghost" onClick={() => setStatus('open')} disabled={busy}>↩ Volver a “en vivo”</button>}
-          {isPost && <button className="pp__btn pp__btn--close" onClick={() => setStatus('closed')} disabled={busy}>🔒 Terminar y calcular tickets</button>}
+          <button className="pp__btn pp__btn--close" onClick={() => setStatus('closed')} disabled={busy}>🔒 Terminar la promo y calcular tickets</button>
         </div>
       )}
 

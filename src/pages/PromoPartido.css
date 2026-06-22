@@ -113,6 +113,19 @@
 }
 .pp__tabs button.is-on { background: linear-gradient(135deg, #C9A84C, #9B1F1F); color: #fff; border-color: transparent; }
 
+/* Sub-espacios: Durante el partido (azul) / Después del partido (dorado) */
+.pp__subtabs { display: flex; gap: 8px; }
+.pp__subtab {
+  flex: 1; padding: 11px 8px; border-radius: 12px; cursor: pointer; text-align: center;
+  border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: #C8D2E0;
+}
+.pp__subtab:active { transform: scale(.99); }
+.pp__subtab:disabled { opacity: .6; }
+.pp__subtab.is-on { border-color: transparent; background: linear-gradient(135deg, #4f9fd6, #6fb1d8); color: #fff; }
+.pp__subtab--post.is-on { background: linear-gradient(135deg, #F0D275, #C9A84C); color: #1a0e0e; }
+.pp__subtab-t { display: block; font-weight: 800; font-size: .9rem; }
+.pp__subtab-s { display: block; font-size: .68rem; font-weight: 600; opacity: .82; margin-top: 2px; }
+
 .pp__panel { display: flex; flex-direction: column; gap: 14px; }
 .pp__intro { color: #C8D2E0; font-size: .92rem; margin: 0; }
 .pp__create { display: flex; flex-direction: column; gap: 10px; }
