@@ -80,6 +80,25 @@
 
 .pm__foot { text-align: center; font-size: .72rem; color: #6b7686; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(201,168,76,0.15); }
 
+/* Detalle por cliente (control interno, fuera de la imagen) */
+.pm__deliveries { max-width: 640px; margin: 22px auto 0; }
+.pm__deliveries-h { font-size: 1rem; color: #F0D275; margin: 0 0 12px; }
+.pm__dwrap { overflow-x: auto; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; }
+.pm__dtable { width: 100%; border-collapse: collapse; font-size: .82rem; min-width: 480px; }
+.pm__dtable th {
+  text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .5px; white-space: nowrap;
+  color: #94a3b8; font-weight: 700; padding: 10px 12px; background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.pm__dtable td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #E8EDF5; vertical-align: middle; }
+.pm__dtable tr:last-child td { border-bottom: none; }
+.pm__d-cli { display: flex; flex-direction: column; }
+.pm__d-name { font-weight: 700; color: #fff; }
+.pm__d-dni { font-size: .7rem; color: #94a3b8; }
+.pm__d-match { color: #C8D2E0; white-space: nowrap; }
+.pm__d-ok { color: #86efac; font-weight: 700; white-space: nowrap; }
+.pm__d-pend { color: #F0D275; font-weight: 700; white-space: nowrap; }
+
 @media (max-width: 520px) {
   .pm__totals { grid-template-columns: 1fr 1fr; }
   .pm__table { font-size: .76rem; }

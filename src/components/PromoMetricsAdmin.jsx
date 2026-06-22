@@ -50,7 +50,7 @@ export default function PromoMetricsAdmin({ token, toast }) {
   if (loading) return <div className="pm__loading">Cargando métricas…</div>
   if (!data) return <div className="pm__loading">No se pudieron cargar las métricas.</div>
 
-  const { perMatch = [], totals = {} } = data
+  const { perMatch = [], totals = {}, deliveries = [] } = data
   const avg = totals.participants ? Math.round((totals.tickets_delivered || 0) / totals.participants) : 0
   const capRate = totals.participants ? Math.round(((totals.new_clients || 0) / totals.participants) * 100) : 0
   const playedMatches = perMatch.length
@@ -151,6 +151,37 @@ export default function PromoMetricsAdmin({ token, toast }) {
 
         <div className="pm__foot">saladejuegoscrespo.ar · San Martín 1053, Crespo, Entre Ríos</div>
       </div>
+
+      {/* Detalle por cliente — control interno, NO se exporta en la imagen */}
+      {deliveries.length > 0 && (
+        <div className="pm__deliveries">
+          <h3 className="pm__deliveries-h">📋 Detalle por cliente ({deliveries.length})</h3>
+          <div className="pm__dwrap">
+            <table className="pm__dtable">
+              <thead>
+                <tr><th>Cliente</th><th>Partido</th><th>Por qué</th><th>$</th><th>Estado</th></tr>
+              </thead>
+              <tbody>
+                {deliveries.map((d, i) => {
+                  const goles = Math.round((d.tickets || 0) / 2500)
+                  return (
+                    <tr key={i}>
+                      <td className="pm__d-cli">
+                        <span className="pm__d-name">{d.name || `DNI ${d.dni}`}</span>
+                        {d.name && <span className="pm__d-dni">DNI {d.dni}</span>}
+                      </td>
+                      <td className="pm__d-match">{d.match_label}</td>
+                      <td>{d.is_post ? '🎉 Bono por venir' : `⚽ ${goles} gol${goles !== 1 ? 'es' : ''}`}</td>
+                      <td className="pm__money">{money(d.tickets)}</td>
+                      <td>{d.delivered ? <span className="pm__d-ok">✅ Entregado</span> : <span className="pm__d-pend">⏳ Pendiente</span>}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
