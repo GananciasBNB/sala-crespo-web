@@ -29,7 +29,7 @@ export default function PromoArgentina() {
             </p>
 
             <p className="vivi__how">
-              📍 Participás estando en la sala <strong>durante el partido de Argentina</strong> — o <strong>llegando en la hora siguiente</strong>.
+              Participás estando en la sala <strong>durante el partido de Argentina</strong> — o <strong>llegando hasta una hora después de finalizado</strong>.
             </p>
 
             <div className="vivi__tickets">
