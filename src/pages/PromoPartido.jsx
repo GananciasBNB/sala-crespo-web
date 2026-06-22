@@ -99,7 +99,7 @@ function PhaseGuide({ status }) {
   const [open, setOpen] = useState(false)
   const map = {
     open: { now: 'Anotá a cada persona con su DNI. Cuando Argentina meta un gol, tocá el botón celeste.', steps: ['Anotá con su DNI a cada persona que ingrese o ya esté en la sala.', 'Durante el partido: tocá ⚽ el botón celeste cada vez que Argentina mete un gol.', 'Si alguien avisa que se va antes de que termine el partido, tocá 💵 para entregarle lo que ganó hasta ese momento.', 'Cuando el partido termina, tocá “El partido terminó” para pasar a anotar a los que llegan después (esos también ganan tickets).'] },
-    post: { now: 'El partido terminó. Seguí anotando con el DNI a los que llegan ahora: también ganan tickets por venir.', steps: ['Anotá con el DNI a cada persona que llega ahora (después del partido).', 'Estos ganan tickets solo por venir, aunque el partido ya terminó.', 'Cuando no llega más nadie, tocá “Terminar y calcular tickets”.'] },
+    post: { now: 'El partido terminó. A cada persona que llega, anotala con su DNI y entregale el bono en el momento.', steps: ['Anotá con el DNI a cada persona que llega ahora (después del partido).', 'Al tocar “Anotar y dar bono”, te digo cuánto entregarle (o si el cupo de 30 ya se llenó).', 'El bono se entrega ACÁ, al momento. Los tickets por goles (de los que estuvieron en vivo) se entregan al cerrar, desde la pestaña Entregar.', 'Cuando no llega más nadie, tocá “Terminar y calcular tickets”.'] },
     closed: { now: 'Listo. Pasá a la pestaña 🎟️ Entregar para dar los tickets por DNI.', steps: ['Los montos quedaron calculados y fijos.', 'Pasá a la pestaña 🎟️ Entregar para dar los tickets buscando por DNI.'] },
   }
   const h = map[status]
@@ -234,8 +234,19 @@ function Operativo({ k }) {
     setBusy(true)
     try {
       const r = await promoCheckin(k, match.id, v, null, match.status === 'post')
-      setDni(''); loadAtt(match.id)
-      setJustAdded(v); setTimeout(() => setJustAdded(''), 3500) // confirmación grande, sin tener que mirar la lista
+      setDni('')
+      // Post-partido: el bono se entrega EN EL MOMENTO. Anotar + liquidar el bono.
+      if (match.status === 'post' && r?.attendance?.id) {
+        const pay = await promoPayout(k, r.attendance.id)
+        if (pay.tickets > 0) {
+          window.alert(`✅ Entregale ${money(pay.tickets)} en tickets a DNI ${fmtDni(v)}.\n(Bono por venir después del partido.)`)
+        } else {
+          window.alert(`DNI ${fmtDni(v)} quedó anotado, pero el cupo de 30 del bono ya se llenó: no le corresponde el bono.`)
+        }
+      } else {
+        setJustAdded(v); setTimeout(() => setJustAdded(''), 3500) // confirmación grande en vivo
+      }
+      loadAtt(match.id)
       // DNI nuevo: ya quedó anotado, ahora pedimos sus datos para sumarlo a la base.
       if (r?.isNew) { setLeadForm({ name: '', tel: '', email: '' }); setLead({ dni: v }) }
     } catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
@@ -371,16 +382,18 @@ function Operativo({ k }) {
             </div>
           ) : (
             <>
-              <div className="pp__checkin-lbl">{isPost ? '📋 Anotá a los que llegan ahora' : '📋 Anotá a cada persona en la sala'}</div>
+              <div className="pp__checkin-lbl">{isPost ? '🎉 Anotá y entregá el bono por venir' : '📋 Anotá a cada persona en la sala'}</div>
               <div className="pp__checkin-row">
                 <input className="pp__input pp__input--big" inputMode="numeric" maxLength={8} value={dni} autoFocus
                   onChange={(e) => setDni(e.target.value.replace(/\D/g, ''))} placeholder="DNI"
                   onKeyDown={(e) => e.key === 'Enter' && checkin()} />
-                <button className="pp__btn pp__btn--gold pp__btn--anotar" onClick={checkin} disabled={busy}>✓ Anotar</button>
+                <button className="pp__btn pp__btn--gold pp__btn--anotar" onClick={checkin} disabled={busy}>{isPost ? '✓ Anotar y dar bono' : '✓ Anotar'}</button>
               </div>
-              {justAdded
-                ? <div className="pp__added">✓ Anotado: {fmtDni(justAdded)} · van {capN}</div>
-                : <div className="pp__added pp__added--idle">Tipeá el DNI y tocá Anotar</div>}
+              {isPost
+                ? <div className="pp__added pp__added--idle">Al anotar, te digo cuánto bono entregarle.</div>
+                : justAdded
+                  ? <div className="pp__added">✓ Anotado: {fmtDni(justAdded)} · van {capN}</div>
+                  : <div className="pp__added pp__added--idle">Tipeá el DNI y tocá Anotar</div>}
             </>
           )}
         </div>
