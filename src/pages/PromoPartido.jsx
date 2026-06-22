@@ -474,6 +474,10 @@ function Operativo({ k }) {
       {/* Cerrar la promo — solo desde "Después del partido", al final de todo */}
       {isPost && (
         <div className="pp__phase">
+          <p className="pp__phase-hint">
+            <b>Tocá esto recién al final</b>, cuando ya no entra ni queda nadie. Liquida de una a los que estuvieron
+            todo el partido y todavía no cobraron — después se entregan por DNI en la pestaña <b>🎟️ Entregar</b>.
+          </p>
           <button className="pp__btn pp__btn--close" onClick={() => setStatus('closed')} disabled={busy}>🔒 Terminar la promo y calcular tickets</button>
         </div>
       )}
