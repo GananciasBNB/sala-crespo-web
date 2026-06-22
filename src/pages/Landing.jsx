@@ -31,10 +31,10 @@ export default function Landing() {
         {/* Bloque mundialero: anuncio del primer piso + carta de A&B */}
         <VeniALaSala />
         <LaSala />
+        {/* Promo presencial de los partidos de Argentina (va arriba del Prode) */}
+        <PromoArgentina />
         {/* Universo Prode: promo + voz del barrio + ranking, todo junto */}
         <PromoMundial />
-        {/* Promo presencial de los partidos de Argentina */}
-        <PromoArgentina />
         <VozDelBarrio />
         <Top10Prode />
         <AyB />
