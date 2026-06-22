@@ -23,13 +23,13 @@ export default function PromoArgentina() {
             <div className="vivi__rule" />
 
             <p className="vivi__desc">
-              Cada partido de la Selección se vive en pantalla gigante, con la hinchada de Crespo.
-              Y mientras alentás, <strong>jugás</strong>: por cada gol de Argentina te llevás
-              <strong> tickets para las máquinas</strong>.
+              Cada partido de la Selección se vive en <strong>nuestro nuevo espacio del primer piso</strong>,
+              en pantalla grande y con la hinchada de Crespo. Y mientras alentás, <strong>jugás</strong>:
+              por cada gol de Argentina te llevás <strong>tickets para las máquinas</strong>.
             </p>
 
             <p className="vivi__how">
-              📍 Participás con solo <strong>estar en la sala durante los partidos de Argentina</strong>.
+              📍 Participás estando en la sala <strong>durante el partido de Argentina</strong> — o <strong>llegando en la hora siguiente</strong>.
             </p>
 
             <div className="vivi__tickets">
