@@ -51,6 +51,9 @@ export default function PromoMetricsAdmin({ token, toast }) {
   if (!data) return <div className="pm__loading">No se pudieron cargar las métricas.</div>
 
   const { perMatch = [], totals = {} } = data
+  const avg = totals.participants ? Math.round((totals.tickets_delivered || 0) / totals.participants) : 0
+  const capRate = totals.participants ? Math.round(((totals.new_clients || 0) / totals.participants) * 100) : 0
+  const playedMatches = perMatch.length
 
   return (
     <div className="pm">
@@ -66,9 +69,10 @@ export default function PromoMetricsAdmin({ token, toast }) {
         <div className="pm__card-head">
           <div className="pm__eyebrow">Sala de Juegos Crespo · Mundial 2026</div>
           <div className="pm__title">Viví Argentina <em>en Sala</em></div>
-          <div className="pm__sub">Resultados de la promoción</div>
+          <div className="pm__sub">Resultados de la promoción · {playedMatches} {playedMatches === 1 ? 'partido' : 'partidos'}</div>
         </div>
 
+        {/* Totales grandes */}
         <div className="pm__totals">
           <div className="pm__tot">
             <div className="pm__tot-n">{totals.participants || 0}</div>
@@ -76,7 +80,7 @@ export default function PromoMetricsAdmin({ token, toast }) {
           </div>
           <div className="pm__tot pm__tot--gold">
             <div className="pm__tot-n">{money(totals.tickets_delivered)}</div>
-            <div className="pm__tot-l">💰 En tickets entregados</div>
+            <div className="pm__tot-l">💰 Entregado en tickets de juego</div>
           </div>
           <div className="pm__tot pm__tot--green">
             <div className="pm__tot-n">{totals.new_clients || 0}</div>
@@ -88,15 +92,36 @@ export default function PromoMetricsAdmin({ token, toast }) {
           </div>
         </div>
 
+        {/* Detalle de valor */}
+        <div className="pm__detail">
+          <div className="pm__detail-row">
+            <span className="pm__detail-k">👀 Clientes presentes en el partido</span>
+            <span className="pm__detail-v">{totals.during_count || 0} · {money(totals.tickets_goals)} en tickets por goles</span>
+          </div>
+          <div className="pm__detail-row">
+            <span className="pm__detail-k">🎉 Llegaron después y cobraron el bono</span>
+            <span className="pm__detail-v">{totals.post_count || 0} · {money(totals.tickets_bonus)} en bonos</span>
+          </div>
+          <div className="pm__detail-row">
+            <span className="pm__detail-k">🎫 Ticket promedio por persona</span>
+            <span className="pm__detail-v">{money(avg)}</span>
+          </div>
+          <div className="pm__detail-row">
+            <span className="pm__detail-k">🆕 Captación de clientes nuevos</span>
+            <span className="pm__detail-v">{totals.new_clients || 0} ({capRate}% de los participantes)</span>
+          </div>
+        </div>
+
+        {/* Tabla por partido */}
         {perMatch.length > 0 ? (
           <table className="pm__table">
             <thead>
               <tr>
                 <th>Partido</th>
                 <th>⚽</th>
-                <th>👥 Durante</th>
+                <th>👀 Presentes</th>
                 <th>🎉 Bono</th>
-                <th>💰 Entregado</th>
+                <th>💰 Total</th>
               </tr>
             </thead>
             <tbody>
@@ -117,6 +142,12 @@ export default function PromoMetricsAdmin({ token, toast }) {
         ) : (
           <div className="pm__empty">Todavía no hay partidos de la promo registrados.</div>
         )}
+
+        {/* Leyenda — para que cada número se entienda */}
+        <div className="pm__legend">
+          <span><b>👀 Presentes:</b> estuvieron durante el partido, ganan $2.500 por cada gol de Argentina.</span>
+          <span><b>🎉 Bono:</b> llegaron en la hora siguiente al partido y cobraron $5.000 por venir.</span>
+        </div>
 
         <div className="pm__foot">saladejuegoscrespo.ar · San Martín 1053, Crespo, Entre Ríos</div>
       </div>

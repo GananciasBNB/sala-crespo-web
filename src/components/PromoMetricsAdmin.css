@@ -42,6 +42,19 @@
 .pm__tot--blue .pm__tot-n  { color: #8cc4f5; }
 .pm__tot-l { font-size: .76rem; color: #C8D2E0; margin-top: 6px; line-height: 1.3; }
 
+/* Detalle de valor (desglose en filas) */
+.pm__detail {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 12px; padding: 6px 16px; margin-bottom: 20px;
+}
+.pm__detail-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: .86rem;
+}
+.pm__detail-row:last-child { border-bottom: none; }
+.pm__detail-k { color: #C8D2E0; }
+.pm__detail-v { color: #fff; font-weight: 700; text-align: right; }
+
 /* Tabla por partido */
 .pm__table { width: 100%; border-collapse: collapse; font-size: .82rem; }
 .pm__table th {
@@ -56,6 +69,14 @@
 .pm__match-n { font-weight: 700; color: #fff; }
 .pm__match-d { font-size: .7rem; color: #94a3b8; text-transform: capitalize; }
 .pm__empty { text-align: center; color: #94a3b8; padding: 24px; font-size: .9rem; }
+
+/* Leyenda explicativa */
+.pm__legend {
+  margin-top: 14px; padding: 12px 14px; border-radius: 10px;
+  background: rgba(108,176,235,0.07); border: 1px solid rgba(108,176,235,0.2);
+  display: flex; flex-direction: column; gap: 5px; font-size: .76rem; color: #C8D2E0; line-height: 1.4;
+}
+.pm__legend b { color: #fff; }
 
 .pm__foot { text-align: center; font-size: .72rem; color: #6b7686; margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(201,168,76,0.15); }
 
