@@ -4159,9 +4159,24 @@ function PushBroadcastAdmin({ token, toast }) {
   )
 }
 
+// Describe a quién le llega cada tipo de plantilla, para mostrarlo claro.
+const AUDIENCE_INFO = {
+  base: { icon: '👥', label: 'Toda tu base de clientes con email', fixed: false },
+  'fixed-tournament': {
+    icon: '🎰', label: 'Inscriptos al torneo activo (con email)', fixed: true,
+    note: 'Esta plantilla va SIEMPRE a los inscriptos del torneo activo. El destinatario es fijo, no se elige.',
+  },
+  'fixed-prode-pending': {
+    icon: '⚽', label: 'Jugadores del Prode con pronósticos pendientes', fixed: true,
+    note: 'Esta plantilla va a jugadores del Prode según cuántos pronósticos cargaron (lo ajustás arriba, en “Segmentación de destinatarios”). No usa las opciones de acá.',
+  },
+}
+
 function EmailBlastAdmin({ token, toast }) {
   const [template, setTemplate] = useState('promo')
   const [scope, setScope]       = useState('all')
+  // Conteo en vivo de a cuántas personas le va a llegar (vía dry-run con debounce).
+  const [audCount, setAudCount] = useState({ loading: false, n: null })
   const [testEmail, setTestEmail] = useState('urieleprieto@gmail.com')
   const [defaults, setDefaults] = useState(null)
   const [customSubject, setCustomSubject] = useState('')
@@ -4218,16 +4233,25 @@ function EmailBlastAdmin({ token, toast }) {
   const customShowsToSend = customShows.filter(s => s.imageUrl)
 
   const TEMPLATES = [
-    { id: 'promo', title: '🎁 Promo doble (Prode + Torneo)', desc: 'Dos cards: invita al Prode y al torneo activo.', audience: 'Players con email · sin opt-out' },
-    { id: 'prode', title: '⚽ Solo Prode', desc: 'Enfocado al Prode. Premios por fase, sin mencionar torneo.', audience: 'Players con email · sin opt-out' },
-    { id: 'reminder', title: '⏰ Recordatorio T-1 día', desc: 'Mañana es tu torneo, llegá 30 min antes. Solo a inscriptos al torneo activo.', audience: 'Solo inscriptos al torneo activo (con email)' },
-    { id: 'shows',    title: '🎤 Shows del mes', desc: 'Cards visuales con los próximos shows. Trae automáticamente los que están en upcoming.', audience: 'Players con email · sin opt-out' },
-    { id: 'courtesy', title: '🎁 Cortesía (bebida 48h)', desc: 'Manda mail con voucher de bebida cortesía válido 48h. Cada destinatario recibe un código único. Excelente excusa para reactivar la base.', audience: 'Players con email · sin opt-out · que no tengan voucher reciente' },
-    { id: 'reminder-predictions', title: '⚽ Recordatorio "Cargá tus pronósticos"', desc: 'Mail visual con countdown al Mundial, cómo cargar pronósticos paso a paso, mockup de la app y bombo a mini-ligas. Subject dinámico con días al kickoff. Footer aclara que los premios son tickets promocionales.', audience: 'Inscriptos al Prode con pocos pronósticos cargados (configurable abajo)' },
-    { id: 'miniligas', title: '🏆 Mini-ligas privadas', desc: 'Invita a usar la feature de mini-ligas. Explica qué son, ideas de a quién invitar (familia, trabajo, fulbito, club) y los 3 pasos para crear una. Para fomentar el uso entre amigos / grupos.', audience: 'Players con email · sin opt-out' },
-    { id: 'matchday', title: '⚽ Vení a ver el partido (1er piso + carta)', desc: 'Invita a ver el Mundial al nuevo espacio del primer piso (pantalla grande, banderas) y mete venta de la carta para consumir. Temática mundialista con banderas y CTA a la carta.', audience: 'Players con email · sin opt-out · filtrable por segmento' },
+    { id: 'promo', title: '🎁 Promo doble (Prode + Torneo)', desc: 'Dos cards: invita al Prode y al torneo activo.', audienceType: 'base', audience: 'Toda tu base de clientes con email' },
+    { id: 'prode', title: '⚽ Solo Prode', desc: 'Enfocado al Prode. Premios por fase, sin mencionar torneo.', audienceType: 'base', audience: 'Toda tu base de clientes con email' },
+    { id: 'reminder', title: '⏰ Recordatorio T-1 día', desc: 'Mañana es tu torneo, llegá 30 min antes. Solo a inscriptos al torneo activo.', audienceType: 'fixed-tournament', audience: 'Solo inscriptos al torneo activo' },
+    { id: 'shows',    title: '🎤 Shows del mes', desc: 'Cards visuales con los próximos shows. Trae automáticamente los que están en upcoming.', audienceType: 'base', audience: 'Toda tu base de clientes con email' },
+    { id: 'courtesy', title: '🎁 Cortesía (bebida 48h)', desc: 'Manda mail con voucher de bebida cortesía válido 48h. Cada destinatario recibe un código único. Excelente excusa para reactivar la base.', audienceType: 'base', audience: 'Toda tu base · que no tenga voucher reciente' },
+    { id: 'reminder-predictions', title: '⚽ Recordatorio "Cargá tus pronósticos"', desc: 'Mail visual con countdown al Mundial, cómo cargar pronósticos paso a paso, mockup de la app y bombo a mini-ligas. Subject dinámico con días al kickoff. Footer aclara que los premios son tickets promocionales.', audienceType: 'fixed-prode-pending', audience: 'Jugadores del Prode con pronósticos pendientes' },
+    { id: 'miniligas', title: '🏆 Mini-ligas privadas', desc: 'Invita a usar la feature de mini-ligas. Explica qué son, ideas de a quién invitar (familia, trabajo, fulbito, club) y los 3 pasos para crear una. Para fomentar el uso entre amigos / grupos.', audienceType: 'base', audience: 'Toda tu base de clientes con email' },
+    { id: 'matchday', title: '⚽ Vení a ver el partido (1er piso + carta)', desc: 'Invita a ver el Mundial al nuevo espacio del primer piso (pantalla grande, banderas) y mete venta de la carta para consumir. Temática mundialista con banderas y CTA a la carta.', audienceType: 'base', audience: 'Toda tu base · filtrable por segmento' },
   ]
   const selected = TEMPLATES.find(t => t.id === template)
+  // Tipo de audiencia de la plantilla elegida → define qué opciones mostrar.
+  const audienceType = selected?.audienceType || 'base'
+  const audInfo = AUDIENCE_INFO[audienceType]
+  // Texto del botón de envío según a quién va realmente.
+  const sendButtonLabel = audienceType === 'base'
+    ? (scope === 'all' ? 'Enviar a toda la base de clientes' : 'Enviar a inscriptos del torneo')
+    : audienceType === 'fixed-tournament'
+      ? 'Enviar a inscriptos del torneo'
+      : 'Enviar a jugadores con pronósticos pendientes'
 
   // Cargar defaults + conteo por segmento al inicio
   useEffect(() => {
@@ -4266,6 +4290,27 @@ function EmailBlastAdmin({ token, toast }) {
     return () => clearTimeout(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [template, customSubject, customIntro, token, customShows.map(s => s.imageUrl + s.name + s.dateLabel).join('|')])
+
+  // Conteo en vivo de destinatarios: dry-run con debounce cada vez que cambia
+  // algo que afecta a quién le llega. Así sabés el alcance ANTES de enviar.
+  useEffect(() => {
+    let cancelled = false
+    setAudCount({ loading: true, n: null })
+    const timer = setTimeout(async () => {
+      try {
+        const body = { template, scope, dryRun: true }
+        if (segments.length) body.segments = segments
+        if (template === 'reminder-predictions') body.maxPredictions = unfilteredPredictions ? null : Number(maxPredictions)
+        if (excludeRecent) body.excludeRecentDays = excludeDays
+        const r = await adminEmailBlast(token, body)
+        if (!cancelled) setAudCount({ loading: false, n: r.count ?? 0 })
+      } catch {
+        if (!cancelled) setAudCount({ loading: false, n: null })
+      }
+    }, 500)
+    return () => { cancelled = true; clearTimeout(timer) }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [template, scope, segments, maxPredictions, unfilteredPredictions, excludeRecent, excludeDays, token])
 
   function resetToDefault() {
     if (!defaults) return
@@ -4537,22 +4582,31 @@ function EmailBlastAdmin({ token, toast }) {
 
       {/* PASO 4: BLAST */}
       <div className="ap-block">
-        <h3 className="ap-block__title">4. Enviar a todos</h3>
-        {template !== 'reminder' && (
-          <div style={{margin:'0 0 14px', display:'flex', gap:16, fontSize:14, flexWrap:'wrap'}}>
-            <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer'}}>
-              <input type="radio" checked={scope === 'all'} onChange={() => setScope('all')} disabled={busy} />
-              <span>Todos los players con email</span>
-            </label>
-            <label style={{display:'flex', alignItems:'center', gap:6, cursor:'pointer'}}>
-              <input type="radio" checked={scope === 'tournament'} onChange={() => setScope('tournament')} disabled={busy} />
-              <span>Solo inscriptos al torneo activo</span>
-            </label>
-          </div>
-        )}
+        <h3 className="ap-block__title">4. Enviar</h3>
+        {/* ¿A quién le llega? — claro y dependiente de la plantilla */}
+        <div style={{margin:'0 0 14px', padding:'14px 16px', background:'rgba(108,176,235,.07)', border:'1px solid rgba(108,176,235,.25)', borderRadius:10}}>
+          <div style={{fontSize:13, fontWeight:700, color:'#bcdcff', marginBottom:10}}>📬 ¿A quién le llega esta campaña?</div>
+          {audienceType === 'base' ? (
+            <div style={{display:'flex', flexDirection:'column', gap:8}}>
+              <label style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:14, color:'#E8EDF5'}}>
+                <input type="radio" checked={scope === 'all'} onChange={() => setScope('all')} disabled={busy} />
+                <span>👥 <strong>Toda mi base de clientes</strong> con email</span>
+              </label>
+              <label style={{display:'flex', alignItems:'center', gap:8, cursor:'pointer', fontSize:14, color:'#E8EDF5'}}>
+                <input type="radio" checked={scope === 'tournament'} onChange={() => setScope('tournament')} disabled={busy} />
+                <span>🎰 Solo <strong>inscriptos al torneo activo</strong></span>
+              </label>
+            </div>
+          ) : (
+            <div style={{fontSize:14, color:'#E8EDF5'}}>
+              <div style={{marginBottom:4}}>{audInfo.icon} <strong>{audInfo.label}</strong></div>
+              <div style={{fontSize:12.5, color:'#8B9BB4', lineHeight:1.5}}>{audInfo.note}</div>
+            </div>
+          )}
+        </div>
 
         {/* Filtro por segmento (clasificación de Miriam) */}
-        {usesBaseAudience && scope === 'all' && (
+        {audienceType === 'base' && scope === 'all' && (
           <div style={{margin:'0 0 14px', padding:'10px 14px', background:'rgba(0,0,0,.2)', borderRadius:8, fontSize:13}}>
             <div style={{marginBottom:8, color:'#94a3b8'}}>Filtrar por clasificación de cliente:</div>
             <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
@@ -4601,18 +4655,27 @@ function EmailBlastAdmin({ token, toast }) {
           </label>
         </div>
 
+        {/* Conteo en vivo del alcance — lo más importante: saber a cuántos antes de enviar */}
+        <div style={{margin:'0 0 14px', padding:'12px 16px', borderRadius:10, background:'rgba(0,0,0,.25)', border:'1px solid #2a3142', fontSize:14}}>
+          {audCount.loading
+            ? <span style={{color:'#8B9BB4'}}>⏳ Calculando a cuántas personas le llega…</span>
+            : audCount.n != null
+              ? <span style={{color:'#fff'}}>👥 Esta campaña le va a llegar a <strong style={{color:'#5BD68F', fontSize:16}}>{audCount.n}</strong> {audCount.n === 1 ? 'persona' : 'personas'}.</span>
+              : <span style={{color:'#FF7A8A'}}>No se pudo calcular el alcance (revisá la conexión y reintentá).</span>}
+        </div>
+
         <div style={{display:'flex', gap:8, flexWrap:'wrap'}}>
           <button className="ap-btn" onClick={dryRun} disabled={busy} style={{padding:'10px 20px'}}>
-            👁️ Ver lista (dry run)
+            👁️ Ver la lista de destinatarios
           </button>
           {!confirmBlast ? (
             <button className="ap-btn ap-btn--danger" onClick={() => setConfirmBlast(true)} disabled={busy} style={{padding:'10px 20px'}}>
-              📤 Enviar a todos
+              📤 {sendButtonLabel}
             </button>
           ) : (
             <>
               <button className="ap-btn ap-btn--danger" onClick={blast} disabled={busy} style={{padding:'10px 20px', fontWeight:700}}>
-                ⚠️ SÍ, ENVIAR AHORA
+                ⚠️ SÍ, ENVIAR{audCount.n != null ? ` A ${audCount.n}` : ''} AHORA
               </button>
               <button className="ap-btn" onClick={() => setConfirmBlast(false)} disabled={busy} style={{padding:'10px 20px'}}>
                 Cancelar
