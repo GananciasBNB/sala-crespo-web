@@ -1793,22 +1793,24 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
     setSaving(true)
     setSavedMsg('')
     try {
-      const responses = await savePredictionsBatch(player.token, toSave)
-      // Unión de medallas únicas que vinieron en cualquier respuesta del batch
-      const allNew = []
-      const seen = new Set()
-      for (const r of responses) {
-        for (const a of (r?.unlockedAchievements || [])) {
-          if (!seen.has(a.slug)) { seen.add(a.slug); allNew.push(a) }
-        }
+      const { saved, failed } = await savePredictionsBatch(player.token, toSave)
+      // Limpiar de localPreds SOLO los que se guardaron OK (los que fallaron quedan
+      // como cambios sin guardar para reintentar).
+      if (saved.length > 0) {
+        const savedSet = new Set(saved)
+        setLocalPreds(prev => {
+          const next = { ...prev }
+          saved.forEach(mid => delete next[mid])
+          return next
+        })
       }
-      if (allNew.length > 0) onUnlocked?.(allNew)
-      setLocalPreds(prev => {
-        const next = { ...prev }
-        toSave.forEach(p => delete next[p.matchId])
-        return next
-      })
-      setSavedMsg(`✓ ${toSave.length} pronóstico${toSave.length > 1 ? 's' : ''} guardado${toSave.length > 1 ? 's' : ''}`)
+      if (failed.length === 0) {
+        setSavedMsg(`✓ ${saved.length} pronóstico${saved.length > 1 ? 's' : ''} guardado${saved.length > 1 ? 's' : ''}`)
+      } else if (saved.length > 0) {
+        setSavedMsg(`Guardé ${saved.length}. ${failed.length} no se pudo${failed.length > 1 ? 'ieron' : ''} (¿el partido ya empezó?).`)
+      } else {
+        setSavedMsg(failed[0]?.error || 'Error al guardar. Intentá de nuevo.')
+      }
       onSaved?.()
     } catch (e) {
       setSavedMsg('Error al guardar. Intentá de nuevo.')

@@ -3,19 +3,30 @@
 const BASE = import.meta.env.VITE_API_URL || ''
 
 async function api(endpoint, options = {}) {
-  const { headers: extraHeaders, ...restOptions } = options
-  const res = await fetch(BASE + endpoint, {
-    headers: { 'Content-Type': 'application/json', ...extraHeaders },
-    ...restOptions,
-  })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    const err = new Error(data.error || `Error ${res.status}`)
-    err.status = res.status
-    err.body = data
-    throw err
+  const { headers: extraHeaders, timeout = 30000, ...restOptions } = options
+  // AbortController evita que un request colgado deje la UI en "Guardando…" para siempre.
+  const ctrl = new AbortController()
+  const timer = setTimeout(() => ctrl.abort(), timeout)
+  try {
+    const res = await fetch(BASE + endpoint, {
+      headers: { 'Content-Type': 'application/json', ...extraHeaders },
+      signal: ctrl.signal,
+      ...restOptions,
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      const err = new Error(data.error || `Error ${res.status}`)
+      err.status = res.status
+      err.body = data
+      throw err
+    }
+    return data
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('La conexión tardó demasiado. Probá de nuevo.')
+    throw e
+  } finally {
+    clearTimeout(timer)
   }
-  return data
 }
 
 function authHeaders(token) {
@@ -74,9 +85,11 @@ export const savePrediction = (token, matchId, home, away) =>
     body: JSON.stringify({ matchId, home, away }),
   })
 
-// Guarda múltiples pronósticos de una vez (un request por partido en paralelo)
-export const savePredictionsBatch = (token, preds) =>
-  Promise.all(
+// Guarda múltiples pronósticos (un request por partido en paralelo). Tolerante a
+// fallos parciales: un partido que ya empezó devuelve 403 y NO debe tumbar el
+// guardado de los demás. Devuelve { saved: [matchId], failed: [{matchId, error}] }.
+export const savePredictionsBatch = async (token, preds) => {
+  const settled = await Promise.allSettled(
     preds.map(({ matchId, home, away }) =>
       api('/api/predictions', {
         method: 'POST',
@@ -85,6 +98,13 @@ export const savePredictionsBatch = (token, preds) =>
       })
     )
   )
+  const saved = [], failed = []
+  settled.forEach((s, i) => {
+    if (s.status === 'fulfilled') saved.push(preds[i].matchId)
+    else failed.push({ matchId: preds[i].matchId, error: s.reason?.message || 'Error' })
+  })
+  return { saved, failed }
+}
 
 // ─── Leaderboard y datos públicos ─────────────────────────────────────────────
 export const getLeaderboard = (phase = 'all') => api(`/api/leaderboard?phase=${phase}`)
