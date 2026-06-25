@@ -1960,7 +1960,7 @@ function LeaguesAdmin({ token, toast }) {
 // ─── Shows Management ─────────────────────────────────────────────────────────
 function ShowsAdmin({ token, toast }) {
   const [shows, setShows]   = useState([])
-  const [form, setForm]     = useState({ name: '', dateLabel: '', type: 'upcoming', imageUrl: '', imagePosition: 'center center', sortOrder: 0 })
+  const [form, setForm]     = useState({ name: '', showDate: '', showTime: '', imageUrl: '', imagePosition: 'center center' })
   const [editing, setEditing] = useState(null)
   const fileRef             = useRef(null)
   const [uploading, setUploading] = useState(false)
@@ -1970,13 +1970,13 @@ function ShowsAdmin({ token, toast }) {
   }, [token])
 
   function resetForm() {
-    setForm({ name: '', dateLabel: '', type: 'upcoming', imageUrl: '', imagePosition: 'center center', sortOrder: 0 })
+    setForm({ name: '', showDate: '', showTime: '', imageUrl: '', imagePosition: 'center center' })
     setEditing(null)
   }
 
   function startEdit(show) {
     setEditing(show.id)
-    setForm({ name: show.name, dateLabel: show.dateLabel, type: show.type, imageUrl: show.imageUrl || '', imagePosition: show.imagePosition || 'center center', sortOrder: show.sortOrder ?? 0 })
+    setForm({ name: show.name, showDate: show.showDate || '', showTime: show.showTime || '', imageUrl: show.imageUrl || '', imagePosition: show.imagePosition || 'center center' })
   }
 
   async function handleImageUpload(e) {
@@ -2042,39 +2042,29 @@ function ShowsAdmin({ token, toast }) {
               />
             </div>
             <div>
-              <label className="ap-label">Fecha / descripción</label>
+              <label className="ap-label">Fecha del show 📅</label>
               <input
                 className="ap-input"
-                value={form.dateLabel}
-                onChange={e => setForm(p => ({ ...p, dateLabel: e.target.value }))}
-                placeholder="Ej: Vie 21 de Noviembre"
+                type="date"
+                value={form.showDate}
+                onChange={e => setForm(p => ({ ...p, showDate: e.target.value }))}
               />
             </div>
           </div>
 
           <div className="ap-form-row">
             <div>
-              <label className="ap-label">Tipo</label>
-              <select
-                className="ap-input"
-                value={form.type}
-                onChange={e => setForm(p => ({ ...p, type: e.target.value }))}
-              >
-                <option value="upcoming">Próximo</option>
-                <option value="past">Pasado</option>
-              </select>
-            </div>
-            <div>
-              <label className="ap-label">Orden <span style={{ color: 'var(--ap-muted)', fontWeight: 400, fontSize: 11 }}>(menor = más prominente)</span></label>
+              <label className="ap-label">Hora <span style={{ color: 'var(--ap-muted)', fontWeight: 400, fontSize: 11 }}>(opcional)</span></label>
               <input
                 className="ap-input"
-                type="number"
-                value={form.sortOrder}
-                onChange={e => setForm(p => ({ ...p, sortOrder: parseInt(e.target.value) || 0 }))}
-                placeholder="0"
+                type="time"
+                value={form.showTime}
+                onChange={e => setForm(p => ({ ...p, showTime: e.target.value }))}
               />
-              <div style={{ fontSize: 11, color: 'var(--ap-muted)', marginTop: 4 }}>
-                💡 El show con menor orden queda <strong>destacado grande</strong>. Para próximos: usá <strong>1</strong> en el más cercano, <strong>2</strong> en el siguiente, etc.
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ fontSize: 12, color: 'var(--ap-muted)', lineHeight: 1.5 }}>
+                💡 Elegí la fecha y la web ordena los shows sola: el más próximo queda <strong>destacado grande</strong>. Cuando pasa la fecha, el show se mueve solo a <strong>realizados</strong>.
               </div>
             </div>
           </div>
