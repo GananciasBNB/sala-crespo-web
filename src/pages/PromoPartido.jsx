@@ -398,10 +398,14 @@ function Operativo({ k }) {
               <div className="pp__lead-sub">Ya quedó anotado ✓. Sumalo a la base — tarda nada:</div>
               <input className="pp__input" placeholder="Nombre y apellido" value={leadForm.name} autoFocus
                 onChange={(e) => setLeadForm((f) => ({ ...f, name: e.target.value }))} />
+              <div style={{ fontSize: '0.92rem', color: '#F0D275', fontWeight: 700, margin: '6px 0 2px', textAlign: 'center', lineHeight: 1.3 }}>
+                🥤 Pedile el mail → le regalamos una bebida de cortesía
+              </div>
+              <input className="pp__input" inputMode="email" type="email" placeholder="Email del cliente" value={leadForm.email}
+                style={{ borderColor: 'rgba(240,210,117,0.65)', boxShadow: '0 0 0 1px rgba(240,210,117,0.3)' }}
+                onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))} />
               <input className="pp__input" inputMode="tel" placeholder="Teléfono (opcional)" value={leadForm.tel}
                 onChange={(e) => setLeadForm((f) => ({ ...f, tel: e.target.value.replace(/[^\d+\s-]/g, '') }))} />
-              <input className="pp__input" inputMode="email" placeholder="Email (opcional → bebida de cortesía)" value={leadForm.email}
-                onChange={(e) => setLeadForm((f) => ({ ...f, email: e.target.value }))} />
               <div className="pp__lead-actions">
                 <button className="pp__btn pp__btn--gold" onClick={saveLead} disabled={busy}>✓ Guardar en la base</button>
                 <button className="pp__btn pp__btn--ghost" onClick={() => setLead(null)} disabled={busy}>Omitir</button>
