@@ -6,9 +6,10 @@ import './VozDelBarrio.css'
 // "El pronóstico de Crespo" — feed de los próximos partidos con % de votos.
 // Carga datos reales del Prode (backend: GET /api/prode/upcoming-vote?limit=4).
 // Si no hay partidos próximos con suficientes votos, no se renderiza.
-// Se requiere ≥5 votos por partido para mostrarlo (evita estadísticas ruidosas).
+// Se requiere ≥2 votos por partido para mostrarlo (evita estadísticas ruidosas
+// pero deja ver los partidos recién habilitados, ej. al arrancar una fase nueva).
 
-const MIN_VOTES_PER_MATCH = 5
+const MIN_VOTES_PER_MATCH = 2
 
 function fmtDate(iso) {
   if (!iso) return ''
