@@ -209,28 +209,39 @@ function MatchRow({ match, myPred, player, onPredictionSaved, stats, liveData })
 
       {/* Pronóstico pre / starting */}
       {player && state === 'pre' && (
-        myPred
-          ? <PredScoreboard pred={myPred} />
-          : showForm
-            ? (
-              <div className="today__pred-form">
-                <div className="today__pred-eye today__pred-eye--cta">★ Tu pronóstico</div>
-                <InlinePredForm
-                  matchId={match.id}
-                  token={player.token}
-                  onSaved={(mid, h, a) => {
-                    onPredictionSaved?.(mid, h, a)
-                    setShowForm(false)
-                  }}
-                  onCancel={() => setShowForm(false)}
-                />
-              </div>
-            )
-            : (
-              <button className="today__pred-cta" onClick={() => setShowForm(true)}>
-                ⚠ No cargaste pronóstico · Cargar ahora →
-              </button>
-            )
+        showForm ? (
+          <div className="today__pred-form">
+            <div className="today__pred-eye today__pred-eye--cta">★ Tu pronóstico</div>
+            <InlinePredForm
+              matchId={match.id}
+              token={player.token}
+              initialHome={myPred?.home ?? ''}
+              initialAway={myPred?.away ?? ''}
+              onSaved={(mid, h, a) => {
+                onPredictionSaved?.(mid, h, a)
+                setShowForm(false)
+              }}
+              onCancel={() => setShowForm(false)}
+            />
+          </div>
+        ) : myPred ? (
+          <div>
+            <PredScoreboard pred={myPred} />
+            <button
+              className="today__pred-edit"
+              onClick={() => setShowForm(true)}
+              style={{ display: 'block', margin: '10px auto 0', background: 'none',
+                border: '1px solid rgba(240,210,117,0.4)', color: '#F0D275', borderRadius: 8,
+                padding: '7px 18px', fontSize: '0.84rem', cursor: 'pointer', fontFamily: 'inherit' }}
+            >
+              ✏️ Editar pronóstico
+            </button>
+          </div>
+        ) : (
+          <button className="today__pred-cta" onClick={() => setShowForm(true)}>
+            ⚠ No cargaste pronóstico · Cargar ahora →
+          </button>
+        )
       )}
 
       {/* Partido empezando / terminando — sin form, solo info */}

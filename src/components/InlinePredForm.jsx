@@ -9,9 +9,10 @@ import { savePrediction } from '../api/client'
 // local de myPreds. Si onSaved no se provee, el form solo deja el feedback
 // de "guardado ✓" pero no propaga el cambio.
 
-export default function InlinePredForm({ matchId, token, onSaved, onCancel, compact = false }) {
-  const [home, setHome] = useState('')
-  const [away, setAway] = useState('')
+export default function InlinePredForm({ matchId, token, onSaved, onCancel, compact = false, initialHome = '', initialAway = '' }) {
+  const init = v => (v === null || v === undefined || v === '' ? '' : String(v))
+  const [home, setHome] = useState(() => init(initialHome))
+  const [away, setAway] = useState(() => init(initialAway))
   const [busy, setBusy] = useState(false)
   const [err, setErr]   = useState('')
 

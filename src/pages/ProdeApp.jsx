@@ -1599,7 +1599,8 @@ function formatTeamName(name) {
 
 // ─── Match Card ───────────────────────────────────────────────────────────────
 // MatchCard en modo batch: inputs controlados desde el padre, sin botón propio
-function MatchCard({ match, myPred, localPred, onLocalChange }) {
+function MatchCard({ match, myPred, localPred, onLocalChange, onSaveOne }) {
+  const [savingOne, setSavingOne] = useState(false)
   const locked    = match.locked
   const hasResult = !!match.result
   const isArg     = match.isArgentina
@@ -1667,6 +1668,20 @@ function MatchCard({ match, myPred, localPred, onLocalChange }) {
           <FlagImg name={match.awayName} size={36} className="mc__flag-img" />
         </div>
       </div>
+
+      {!locked && !hasResult && isDirty && onSaveOne && (
+        <button
+          className="mc__save-one"
+          disabled={savingOne}
+          onClick={async () => { setSavingOne(true); try { await onSaveOne(match.id) } catch {} setSavingOne(false) }}
+          style={{ marginTop: 12, width: '100%', padding: '11px', borderRadius: 10, border: 'none',
+            cursor: savingOne ? 'default' : 'pointer', fontFamily: 'inherit',
+            background: savingOne ? 'rgba(240,210,117,.5)' : 'linear-gradient(135deg,#F0D275,#C9A84C)',
+            color: '#1a1205', fontWeight: 700, fontSize: '0.95rem' }}
+        >
+          {savingOne ? 'Guardando…' : '💾 Guardar este pronóstico'}
+        </button>
+      )}
     </div>
   )
 }
@@ -1724,9 +1739,30 @@ function PredictionsProgress({ matches, myPreds }) {
   )
 }
 
+// Fase "activa" del torneo: la primera (en orden) con partidos sin jugar y a
+// futuro. Cuando termina una fase, el default salta solo a la siguiente (hoy: 16avos).
+function activePhase(matches) {
+  const now = Date.now()
+  for (const ph of PHASE_ORDER) {
+    if ((matches || []).some(m => m.phase === ph && !m.result && (!m.date || new Date(m.date).getTime() > now))) return ph
+  }
+  for (let i = PHASE_ORDER.length - 1; i >= 0; i--) {
+    if ((matches || []).some(m => m.phase === PHASE_ORDER[i])) return PHASE_ORDER[i]
+  }
+  return 'group'
+}
+
 function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
-  const [phase, setPhase]       = useState('group')
+  const [phase, setPhase]       = useState(() => activePhase(matches))
   const [group, setGroup]       = useState('J')
+  const phaseInitRef            = useRef(false)
+  // Cuando llegan los partidos (async), fijar la fase activa una sola vez.
+  useEffect(() => {
+    if (!phaseInitRef.current && matches && matches.length) {
+      phaseInitRef.current = true
+      setPhase(activePhase(matches))
+    }
+  }, [matches])
   const lsKey = player ? `prode_local_preds_${player.id}` : null
   // Hidratar desde localStorage para no perder cambios sin guardar al cerrar el browser
   const [localPreds, setLocalPreds] = useState(() => {
@@ -1758,6 +1794,19 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
       ...prev,
       [matchId]: { ...(prev[matchId] ?? { home: myPreds?.[matchId]?.home ?? '', away: myPreds?.[matchId]?.away ?? '' }), [side]: val }
     }))
+  }
+
+  // Guarda UN solo partido (sin tener que apretar el botón global del final).
+  async function handleSaveOne(matchId) {
+    if (!player) return
+    const local = localPreds[matchId]
+    const saved = myPreds?.[matchId]
+    const home = local?.home !== undefined && local.home !== '' ? local.home : (saved?.home ?? '')
+    const away = local?.away !== undefined && local.away !== '' ? local.away : (saved?.away ?? '')
+    if (home === '' || away === '') return
+    await savePrediction(player.token, matchId, parseInt(home, 10), parseInt(away, 10))
+    setLocalPreds(prev => { const n = { ...prev }; delete n[matchId]; return n })
+    onSaved?.()
   }
 
   // Cantidad de cambios sin guardar en el grupo actual
@@ -1902,6 +1951,7 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
             myPred={myPreds?.[m.id]}
             localPred={localPreds[m.id]}
             onLocalChange={player ? handleLocalChange : undefined}
+            onSaveOne={player ? handleSaveOne : undefined}
           />
         ))}
       </div>
@@ -1919,8 +1969,8 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
               : dirtyCount > 0
                 ? `Guardar ${dirtyCount} cambio${dirtyCount > 1 ? 's' : ''} sin guardar`
                 : toSave.length === openMatches.length
-                  ? `Guardar los ${toSave.length} pronósticos del Grupo ${group}`
-                  : `Guardar ${toSave.length} de ${openMatches.length} pronósticos del Grupo ${group}`}
+                  ? `Guardar los ${toSave.length} pronósticos${phase === 'group' ? ` del Grupo ${group}` : ' de esta fase'}`
+                  : `Guardar ${toSave.length} de ${openMatches.length} pronósticos${phase === 'group' ? ` del Grupo ${group}` : ' de esta fase'}`}
           </button>
         </div>
       )}
