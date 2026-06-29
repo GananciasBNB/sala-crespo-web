@@ -1889,6 +1889,13 @@ function PronosticosView({ matches, myPreds, player, onSaved, onUnlocked }) {
         <span>Cargá tu pronóstico antes del kickoff. Una vez que arranca el partido, ya no podés cambiarlo.</span>
       </div>
 
+      {phase !== 'group' && (
+        <div className="pronosticos__hint" style={{ borderColor: 'rgba(108,176,235,0.45)', background: 'rgba(108,176,235,0.09)' }}>
+          <span style={{ fontSize: '1.15rem', lineHeight: 1 }}>⚽</span>
+          <span><strong>Eliminatorias:</strong> pronosticá el marcador al final de los 90' + alargue. Si el partido se define por <strong>penales</strong>, cuenta como <strong>empate</strong> — los penales no suman puntos por acertar al ganador.</span>
+        </div>
+      )}
+
       <div className="pronosticos__nav-panel">
         <div className="pronosticos__nav-section">
           <div className="pronosticos__nav-label">Fase del torneo</div>
