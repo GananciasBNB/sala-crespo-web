@@ -3870,6 +3870,28 @@ export default function ProdeApp() {
       .finally(() => setLoading(false))
   }, [showToast])
 
+  // Auto-refresh de resultados: mientras haya un partido en ventana activa
+  // (30 min antes del kickoff → 5 h después) sin resultado cargado, re-pedimos
+  // /api/matches cada 60 s. Así la card pasa sola de "Calculando puntos…" a
+  // FINAL con los puntos cuando el cron carga el resultado, sin depender de un
+  // F5 manual. La ventana espeja la del cron backend (isInActiveMatchWindow).
+  const RESULT_POLL_PRE_MS  = 30 * 60 * 1000
+  const RESULT_POLL_POST_MS = 5 * 60 * 60 * 1000
+  const hasResultPending = (matches || []).some(m => {
+    if (m.result) return false
+    const kickoff = new Date(m.date).getTime()
+    if (Number.isNaN(kickoff)) return false
+    const now = Date.now()
+    return now >= kickoff - RESULT_POLL_PRE_MS && now <= kickoff + RESULT_POLL_POST_MS
+  })
+  useEffect(() => {
+    if (!hasResultPending) return
+    const iv = setInterval(() => {
+      getMatches().then(setMatches).catch(() => {})
+    }, 60000)
+    return () => clearInterval(iv)
+  }, [hasResultPending])
+
   useEffect(() => {
     if (!player) return
     getMyPredictions(player.id, player.token)
