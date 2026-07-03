@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import {
   promoActive, promoCreateMatch, promoSetStatus, promoGoal, promoUndoGoal,
   promoCheckin, promoLead, promoAttendance, promoClose, promoPending, promoDeliver, promoRemoveCheckin, promoPayout, promoDiscardMatch, getMatches,
+  promoMatches, promoRaffleWinners, promoDraw, promoDrawUndo,
 } from '../api/client'
 
 const TICKET_GOAL = 2500 // para mostrar el desglose en la entrega (debe coincidir con el backend)
@@ -48,8 +49,12 @@ export default function PromoPartido() {
           <span className="pp__tab-t">🎟️ Entregar</span>
           <span className="pp__tab-s">Dar los tickets por DNI</span>
         </button>
+        <button className={tab === 'sorteo' ? 'is-on' : ''} onClick={() => setTab('sorteo')}>
+          <span className="pp__tab-t">🎁 Sorteo</span>
+          <span className="pp__tab-s">Camiseta y pelota en vivo</span>
+        </button>
       </div>
-      {tab === 'op' ? <Operativo k={k} /> : <Entregar k={k} />}
+      {tab === 'op' ? <Operativo k={k} /> : tab === 'deliver' ? <Entregar k={k} /> : <Sorteo k={k} />}
     </div>
   )
 }
@@ -563,6 +568,179 @@ function Entregar({ k }) {
         </ul>
       )}
       {msg && <p className="pp__msg">{msg}</p>}
+    </div>
+  )
+}
+
+// ─── Sorteo de premios en vivo ────────────────────────────────────────────────
+const PRIZES = [
+  { id: 'camiseta', label: 'Camiseta Argentina', emoji: '👕' },
+  { id: 'pelota',   label: 'Pelota',             emoji: '⚽' },
+]
+
+// Anima una "ruleta" de nombres: parpadea rápido y desacelera hasta frenar en el
+// ganador. El ganador YA viene decidido por el server; esto es solo el show.
+// Devuelve una promesa que resuelve cuando la animación terminó.
+function spinReel(pool, winner, setReel) {
+  return new Promise((resolve) => {
+    const labels = pool.map(p => p.name || `DNI ${fmtDni(p.dni)}`)
+    const winnerLabel = winner.name || `DNI ${fmtDni(winner.dni)}`
+    if (labels.length <= 1) { setReel(winnerLabel); setTimeout(resolve, 400); return }
+    const total = 2900 // ms de giro
+    let elapsed = 0
+    const step = () => {
+      if (elapsed >= total) { setReel(winnerLabel); resolve(); return }
+      setReel(labels[Math.floor(Math.random() * labels.length)])
+      const p = elapsed / total
+      const delay = 45 + p * p * 340 // rápido al inicio, lento al final (easeOut)
+      elapsed += delay
+      setTimeout(step, delay)
+    }
+    step()
+  })
+}
+
+function Sorteo({ k }) {
+  const [match, setMatch] = useState(undefined) // undefined=cargando, null=no hay, obj
+  const [winners, setWinners] = useState([])
+  const [available, setAvailable] = useState(0)
+  const [prize, setPrize] = useState(PRIZES[0].label)
+  const [reel, setReel] = useState('')
+  const [spinning, setSpinning] = useState(false)
+  const [result, setResult] = useState(null)
+  const [busy, setBusy] = useState(false)
+  const [err, setErr] = useState('')
+
+  const load = useCallback(async () => {
+    try {
+      // Partido activo (open/post) primero — permite sortear en el entretiempo y
+      // también probar con el partido de PRUEBA. Si no hay activo, el último real.
+      const a = await promoActive(k)
+      let m = a.match || null
+      if (!m) {
+        const d = await promoMatches(k)
+        m = (d.matches || []).find(x => !x.is_test) || null
+      }
+      setMatch(m)
+      if (!m) return
+      const [w, att] = await Promise.all([promoRaffleWinners(k, m.id), promoAttendance(k, m.id)])
+      const won = new Set((w.winners || []).map(x => x.dni))
+      setWinners(w.winners || [])
+      setAvailable((att.attendance || []).filter(a => !a.is_post && !won.has(a.dni)).length)
+    } catch { setMatch(null) }
+  }, [k])
+  useEffect(() => { load() }, [load])
+
+  async function draw() {
+    if (spinning || busy || !match) return
+    setErr(''); setResult(null); setBusy(true)
+    try {
+      const r = await promoDraw(k, match.id, prize)
+      setBusy(false); setSpinning(true)
+      await spinReel(r.pool || [], r.winner, setReel)
+      setResult(r.winner)
+      setSpinning(false)
+      load()
+    } catch (e) {
+      setBusy(false); setSpinning(false)
+      setErr(e.message || 'No se pudo sortear.')
+    }
+  }
+
+  async function undo() {
+    if (busy || spinning || !match) return
+    if (!window.confirm('¿Deshacer el último sorteo? El ganador vuelve al bolillero.')) return
+    setBusy(true); setErr('')
+    try { await promoDrawUndo(k, match.id); setResult(null); await load() }
+    catch (e) { setErr(e.message || 'No se pudo deshacer.') }
+    finally { setBusy(false) }
+  }
+
+  if (match === undefined) return <div className="sorteo"><p className="sorteo__note">Cargando…</p></div>
+  if (match === null) return (
+    <div className="sorteo">
+      <p className="sorteo__note">Todavía no hay ningún partido. Creá uno en la pestaña ⚽ Anotar para poder sortear.</p>
+    </div>
+  )
+
+  return (
+    <div className="sorteo">
+      <div className="sorteo__match">{match.label}{match.status === 'closed' ? ' · cerrado' : ''}</div>
+
+      {/* Escenario */}
+      <div className={`sorteo__stage ${spinning ? 'is-spin' : ''} ${result ? 'is-win' : ''}`}>
+        {result ? (
+          <>
+            <div className="sorteo__confetti" aria-hidden="true">
+              {Array.from({ length: 40 }).map((_, i) => <span key={i} style={{ '--i': i }} />)}
+            </div>
+            <div className="sorteo__win-emoji">🎉</div>
+            <div className="sorteo__win-name">{result.name || `DNI ${fmtDni(result.dni)}`}</div>
+            <div className="sorteo__win-dni">DNI {fmtDni(result.dni)}</div>
+            <div className="sorteo__win-prize">🏆 Ganó: {result.prize}</div>
+          </>
+        ) : spinning ? (
+          <div className="sorteo__reel">{reel || '…'}</div>
+        ) : (
+          <div className="sorteo__idle">
+            <div className="sorteo__idle-emoji">🎁</div>
+            <div className="sorteo__idle-txt">
+              {available > 0
+                ? <>Listos para sortear · <b>{available}</b> participante{available !== 1 ? 's' : ''}</>
+                : 'No hay participantes disponibles todavía.'}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Premio a sortear */}
+      <div className="sorteo__prizes">
+        {PRIZES.map(p => (
+          <button
+            key={p.id}
+            type="button"
+            className={`sorteo__prize ${prize === p.label ? 'is-on' : ''}`}
+            onClick={() => setPrize(p.label)}
+            disabled={spinning}
+          >
+            <span className="sorteo__prize-emoji">{p.emoji}</span>
+            <span className="sorteo__prize-label">{p.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <button
+        className="pp__btn pp__btn--gold sorteo__go"
+        onClick={draw}
+        disabled={spinning || busy || available === 0}
+      >
+        {spinning ? 'Sorteando…' : busy ? '…' : `🎲 Sortear ${prize}`}
+      </button>
+      {result && !spinning && (
+        <button className="pp__btn pp__btn--ghost sorteo__again" onClick={() => setResult(null)}>
+          Sortear otro premio
+        </button>
+      )}
+      {err && <p className="pp__err">{err}</p>}
+
+      {/* Historial de ganadores */}
+      {winners.length > 0 && (
+        <div className="sorteo__history">
+          <div className="sorteo__history-t">Ganadores de hoy</div>
+          <ul>
+            {winners.map(w => (
+              <li key={w.id}>
+                <span className="sorteo__hist-prize">{w.prize}</span>
+                <span className="sorteo__hist-name">{w.name || `DNI ${fmtDni(w.dni)}`}</span>
+                <span className="sorteo__hist-dni">DNI {fmtDni(w.dni)}</span>
+              </li>
+            ))}
+          </ul>
+          <button className="pp__linkbtn sorteo__undo" onClick={undo} disabled={busy || spinning}>
+            Deshacer último sorteo
+          </button>
+        </div>
+      )}
     </div>
   )
 }

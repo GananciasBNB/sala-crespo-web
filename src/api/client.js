@@ -616,6 +616,11 @@ export const promoClose = (k, id) =>
 export const promoPending = (k, dni) => api(`/api/promo/pending?${pq(k)}&dni=${encodeURIComponent(dni)}`)
 export const promoDeliver = (k, attendanceId) =>
   api('/api/promo/deliver', { method: 'POST', body: JSON.stringify({ k, attendanceId }) })
+export const promoRaffleWinners = (k, id) => api(`/api/promo/match/${id}/raffle?${pq(k)}`)
+export const promoDraw = (k, id, prize) =>
+  api(`/api/promo/match/${id}/raffle`, { method: 'POST', body: JSON.stringify({ k, prize }) })
+export const promoDrawUndo = (k, id) =>
+  api(`/api/promo/match/${id}/raffle/undo`, { method: 'POST', body: JSON.stringify({ k }) })
 export const morphiMarkAllSynced = (k) =>
   api('/api/morphi/synced-all', { method: 'POST', body: JSON.stringify({ k }) })
 
