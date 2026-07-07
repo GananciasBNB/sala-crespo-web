@@ -176,14 +176,14 @@ function Operativo({ k }) {
   const createMatch = async () => {
     if (!label.trim()) return
     setBusy(true)
-    try { const d = await promoCreateMatch(k, label.trim()); setMatch(d.match); setAtt([]) }
+    try { const d = await promoCreateMatch(k, label.trim()); setMatch(d.match); setAtt([]); loadAtt(d.match.id); if (d.reused) flash('Ya había un partido activo — te llevé a ese') }
     catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   // Arranca el operativo directo desde un partido del fixture (sin tipear)
   const startFromFixture = async (m) => {
     const rival = m.homeName === 'Argentina' ? m.awayName : m.homeName
     setBusy(true)
-    try { const d = await promoCreateMatch(k, `Argentina vs ${rival}`, m.date); setMatch(d.match); setAtt([]) }
+    try { const d = await promoCreateMatch(k, `Argentina vs ${rival}`, m.date); setMatch(d.match); setAtt([]); loadAtt(d.match.id); if (d.reused) flash('Ya había un partido activo — te llevé a ese') }
     catch (e) { flash(e.message || 'Error') } finally { setBusy(false) }
   }
   // Partido de PRUEBA: para practicar el flujo cuantas veces quieras, después se descarta.
