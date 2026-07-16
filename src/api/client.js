@@ -491,6 +491,16 @@ export const getLoyaltyMe = (token) =>
 export const redeemLoyaltyReward = (token, rewardId) =>
   api('/api/loyalty/redeem', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ rewardId }) })
 
+// ─── Kiosk / tótem del Club ───────────────────────────────────────────────────
+export const loyaltyCheckin = (token) =>
+  api('/api/loyalty/checkin', { method: 'POST', headers: authHeaders(token) })
+
+export const clubLookupDni = (dni) =>
+  api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })
+
+export const clubSignup = (payload) =>
+  api('/api/club/signup', { method: 'POST', body: JSON.stringify(payload) })
+
 // Admin
 export const adminLoyaltyRewards = (token) =>
   api('/api/admin/loyalty/rewards', { headers: authHeaders(token) })

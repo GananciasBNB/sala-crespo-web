@@ -13,6 +13,7 @@ const AdminPanel = lazy(() => import('./pages/AdminPanel'))
 const Contacto = lazy(() => import('./pages/Contacto'))
 const TournamentLanding = lazy(() => import('./pages/TournamentLanding'))
 const Club = lazy(() => import('./pages/Club'))
+const Kiosk = lazy(() => import('./pages/Kiosk'))
 const CartaPublica = lazy(() => import('./pages/CartaPublica'))
 const CartaAdmin = lazy(() => import('./pages/CartaAdmin'))
 const MorphiSync = lazy(() => import('./pages/MorphiSync'))
@@ -137,6 +138,16 @@ export default function App() {
           <ChunkErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <Club />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/kiosk" element={
+        <>
+          <PageHead title="Sala Crespo Club · Tótem" description="" path="/kiosk" noindex />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <Kiosk />
             </Suspense>
           </ChunkErrorBoundary>
         </>

@@ -12,6 +12,7 @@ Disallow: /h-7k9m4x
 Disallow: /h-7k9m4x/*
 Disallow: /r-t8mz4n3xk.html
 Disallow: /club
+Disallow: /kiosk
 Disallow: /*?staff=*
 Disallow: /*?promo=*
 Disallow: /*?liga=*
