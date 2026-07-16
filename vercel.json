@@ -10,6 +10,7 @@
     { "source": "/admin", "destination": "/index.html" },
     { "source": "/admin/:path*", "destination": "/index.html" },
     { "source": "/club", "destination": "/index.html" },
+    { "source": "/kiosk", "destination": "/index.html" },
     { "source": "/carta", "destination": "/carta.html" },
     { "source": "/morphi", "destination": "/index.html" },
     { "source": "/historias", "destination": "/index.html" },
