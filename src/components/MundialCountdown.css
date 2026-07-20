@@ -97,6 +97,18 @@
   box-shadow: 0 0 0 0 rgba(0, 177, 64, .7);
   animation: mundial-cd-pulse 1.6s infinite;
 }
+/* Ended state (Mundial terminó · campeón) */
+.mundial-cd--ended {
+  background: rgba(201, 168, 76, .15);
+  border: 1px solid rgba(201, 168, 76, .55);
+  border-radius: 8px;
+  padding: 10px 18px;
+  color: #E8CE7E;
+  font-size: 14px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.mundial-cd__trophy { display: inline-block; font-size: 16px; line-height: 1; }
 @keyframes mundial-cd-pulse {
   0%   { box-shadow: 0 0 0 0 rgba(0, 177, 64, .7); }
   70%  { box-shadow: 0 0 0 12px rgba(0, 177, 64, 0); }

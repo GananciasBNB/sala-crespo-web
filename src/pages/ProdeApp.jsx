@@ -2328,13 +2328,13 @@ function LoggedInBanner({ player, onParticipa }) {
       <div className="logged-banner__inner">
         <div className="logged-banner__greet">
           <div className="logged-banner__hi">Hola, <span>{firstName}</span></div>
-          <div className="logged-banner__sub">¡Bienvenido al Prode Mundial 2026! Cargá ya tu primer pronóstico.</div>
+          <div className="logged-banner__sub">Terminó el Prode Mundial 2026. Mirá cómo quedó la tabla final y tus resultados.</div>
         </div>
         <div className="logged-banner__countdown">
           <MundialCountdown variant="inline" />
         </div>
         <button className="logged-banner__cta" onClick={onParticipa}>
-          🎯 Cargar mis pronósticos →
+          🏆 Ver la tabla final →
         </button>
       </div>
     </div>
@@ -2392,8 +2392,8 @@ function PublicHome({ player, onParticipa, matches, myPreds, onPredictionSaved }
       <div className="pub-lb__cta">
         {player ? (
           <>
-            <p>Estás dentro del concurso 🎯</p>
-            <button className="pub-lb__btn" onClick={onParticipa}>Cargar mis pronósticos →</button>
+            <p>Participaste del Prode Mundial 2026 🏆</p>
+            <button className="pub-lb__btn" onClick={onParticipa}>Ver mis resultados →</button>
           </>
         ) : (
           <>
@@ -2696,7 +2696,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
             <div className="staff-portal__ctas staff-portal__ctas--early">
               {isLoggedIn ? (
                 <button className="staff-portal__cta staff-portal__cta--primary" onClick={onExit}>
-                  CARGAR MIS PRONÓSTICOS →
+                  VER LA TABLA FINAL →
                 </button>
               ) : (
                 <>
@@ -2841,7 +2841,7 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
               className="staff-portal__cta staff-portal__cta--inline"
               onClick={onExit}
             >
-              CARGAR MIS PRONÓSTICOS →
+              VER LA TABLA FINAL →
             </button>
           ) : (
             <button
@@ -2881,10 +2881,10 @@ function StaffPortal({ staffCode, player, onLogin, onExit }) {
             type="button"
             className="staff-portal__cta-float"
             onClick={onExit}
-            aria-label="Cargar mis pronósticos"
+            aria-label="Ver la tabla final"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            <span>Cargar pronósticos</span>
+            <span>Ver la tabla</span>
           </button>
         )}
 

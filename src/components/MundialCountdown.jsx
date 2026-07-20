@@ -2,28 +2,40 @@ import { useState, useEffect } from 'react'
 import './MundialCountdown.css'
 
 // 11 jun 2026 16:00 hs ART — México vs Sudáfrica, partido inaugural en Azteca.
-// Cuando esta fecha ya pasó, el componente muestra "EL MUNDIAL ESTÁ EN MARCHA".
 const KICKOFF = new Date('2026-06-11T16:00:00-03:00')
+// 19 jul 2026 — final España 1-0 Argentina. Pasada esta fecha, el Mundial terminó.
+const ENDED = new Date('2026-07-19T18:00:00-03:00')
+const CHAMPION = 'España'
 
-function calcDiff() {
+function calcState() {
   const now = new Date()
+  if (now >= ENDED) return { phase: 'ended' }
   const diff = KICKOFF - now
-  if (diff <= 0) return null
+  if (diff <= 0) return { phase: 'live' }
   const days  = Math.floor(diff / (1000 * 60 * 60 * 24))
   const hours = Math.floor((diff / (1000 * 60 * 60)) % 24)
   const mins  = Math.floor((diff / (1000 * 60)) % 60)
-  return { days, hours, mins }
+  return { phase: 'countdown', days, hours, mins }
 }
 
 export default function MundialCountdown({ variant = 'inline' }) {
-  const [diff, setDiff] = useState(calcDiff())
+  const [st, setSt] = useState(calcState())
 
   useEffect(() => {
-    const id = setInterval(() => setDiff(calcDiff()), 60_000) // cada 1 min alcanza
+    const id = setInterval(() => setSt(calcState()), 60_000) // cada 1 min alcanza
     return () => clearInterval(id)
   }, [])
 
-  if (!diff) {
+  if (st.phase === 'ended') {
+    return (
+      <div className={`mundial-cd mundial-cd--${variant} mundial-cd--ended`}>
+        <span className="mundial-cd__trophy">🏆</span>
+        <strong>{CHAMPION.toUpperCase()} CAMPEÓN · EL MUNDIAL TERMINÓ</strong>
+      </div>
+    )
+  }
+
+  if (st.phase === 'live') {
     return (
       <div className={`mundial-cd mundial-cd--${variant} mundial-cd--live`}>
         <span className="mundial-cd__pulse" />
@@ -31,6 +43,8 @@ export default function MundialCountdown({ variant = 'inline' }) {
       </div>
     )
   }
+
+  const diff = st
 
   return (
     <div className={`mundial-cd mundial-cd--${variant}`}>
