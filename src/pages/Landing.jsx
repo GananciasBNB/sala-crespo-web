@@ -10,8 +10,8 @@ import Shows from '../components/Shows'
 import Torneos from '../components/Torneos'
 // import PromoMundial from '../components/PromoMundial' // oculto: Mundial terminó, reactivar al definir el nuevo Prode
 import PromoArgentina from '../components/PromoArgentina'
-import VozDelBarrio from '../components/VozDelBarrio'
-import Top10Prode from '../components/Top10Prode'
+// import VozDelBarrio from '../components/VozDelBarrio' // oculto: testimonios del Prode terminado
+// import Top10Prode from '../components/Top10Prode' // oculto: "van ganando" en presente, Mundial terminó
 import LeadCapture from '../components/LeadCapture'
 import LeadFloatingCta from '../components/LeadFloatingCta'
 import Ubicacion from '../components/Ubicacion'
@@ -33,9 +33,7 @@ export default function Landing() {
         <LaSala />
         {/* Promo presencial de los partidos de Argentina (va arriba del Prode) */}
         <PromoArgentina />
-        {/* Promo del Prode oculta: el Mundial terminó. Reactivar <PromoMundial /> al definir el nuevo Prode. */}
-        <VozDelBarrio />
-        <Top10Prode />
+        {/* Universo Prode oculto: el Mundial terminó. Reactivar <PromoMundial /> <VozDelBarrio /> <Top10Prode /> al definir el nuevo Prode. */}
         <AyB />
         <Shows />
         <Torneos />

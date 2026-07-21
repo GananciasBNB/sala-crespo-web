@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { IconTrophy } from './Icons'
 import HorarioEspecial from './HorarioEspecial'
 import { getContent } from '../api/client'
 import './Hero.css'
@@ -59,8 +58,8 @@ export default function Hero() {
         </div>
 
         <div className="hero__ctas">
-          <a href="/prode" className="btn-primary hero__cta-main">
-            <IconTrophy size={18} color="#fff" style={{marginRight:8,verticalAlign:'middle'}} /> Jugá el Prode Mundial 2026
+          <a href="#futbol-en-sala" className="btn-primary hero__cta-main">
+            ⚽ Mirá el fútbol en Sala
           </a>
           <a href="#sala" className="btn-gold hero__cta-secondary">
             Conocé la sala →

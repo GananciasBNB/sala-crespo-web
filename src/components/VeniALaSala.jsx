@@ -28,7 +28,7 @@ export default function VeniALaSala() {
           <h2 className="section-title">Tu nuevo lugar para los <em>partidos</em></h2>
           <div className="gold-line center" />
           <p className="veni__intro">
-            Abrimos un espacio exclusivo en el primer piso de la sala para vivir el Mundial.
+            Abrimos un espacio exclusivo en el primer piso de la sala para ver los partidos de tu equipo.
             Ambiente, amigos y la carta completa a tu disposición.
           </p>
         </div>

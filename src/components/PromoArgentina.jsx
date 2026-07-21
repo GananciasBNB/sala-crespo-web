@@ -18,18 +18,25 @@ export default function PromoArgentina() {
             </video>
           </div>
           <div className="vivi__inner">
-            <span className="eyebrow">Nuestro espacio del primer piso</span>
-            <h2 className="section-title vivi__title">El fútbol se vive <em>en Sala</em></h2>
+            <span className="eyebrow">⚽ Fútbol en pantalla gigante</span>
+            <h2 className="section-title vivi__title">Tu equipo se vive <em>en Sala</em></h2>
             <div className="vivi__rule" />
 
             <p className="vivi__desc">
-              En nuestro <strong>espacio del primer piso</strong>, en <strong>pantalla grande</strong> y
-              con el mejor ambiente, podés ver los partidos de <strong>tu equipo favorito</strong>.
-              El mismo sector donde vivimos el Mundial, ahora todo el año.
+              Subí al <strong>primer piso</strong> y viví los partidos de <strong>tu equipo favorito</strong> en
+              <strong> pantalla gigante</strong> y con <strong>nuestra gastronomía</strong>. Liga Argentina, España,
+              Inglaterra y <strong>muchas más</strong> — el mismo sector donde vivimos el Mundial, ahora <strong>todo el año</strong>.
             </p>
 
+            <div className="vivi__chips">
+              <span className="vivi__chip">📺 Pantalla gigante</span>
+              <span className="vivi__chip">⚽ Liga Argentina, España, Inglaterra y más</span>
+              <span className="vivi__chip">🍽️ Nuestra gastronomía</span>
+              <span className="vivi__chip">🔥 El mejor ambiente</span>
+            </div>
+
             <p className="vivi__how">
-              Vení a disfrutar el fútbol como se debe — con la hinchada de Crespo.
+              Te esperamos arriba — el fútbol como tiene que ser.
             </p>
           </div>
         </div>

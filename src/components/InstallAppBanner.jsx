@@ -101,7 +101,7 @@ export default function InstallAppBanner() {
         <div className="sub-banner__icon">✅</div>
         <div className="sub-banner__text">
           <strong>¡Listo! Notificaciones activadas</strong>
-          <span>Vas a recibir promos exclusivas y novedades del Mundial.</span>
+          <span>Vas a recibir promos exclusivas y novedades de la sala.</span>
         </div>
       </div>
     )
@@ -115,7 +115,7 @@ export default function InstallAppBanner() {
           {installed ? (
             <>
               <strong>Activá las notificaciones</strong>
-              <span>Enterate de promos exclusivas, shows y resultados del Mundial al instante.</span>
+              <span>Enterate de promos exclusivas, shows y novedades de la sala al instante.</span>
             </>
           ) : iphone ? (
             <>
@@ -125,7 +125,7 @@ export default function InstallAppBanner() {
           ) : (
             <>
               <strong>Sumate y no te pierdas nada</strong>
-              <span>Instalá la app y activá notificaciones: promos exclusivas, shows y resultados del Mundial.</span>
+              <span>Instalá la app y activá notificaciones: promos exclusivas, shows y novedades de la sala.</span>
             </>
           )}
           {err && <span className="sub-banner__err">{err}</span>}
