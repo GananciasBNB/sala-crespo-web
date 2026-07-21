@@ -8,7 +8,7 @@ import AyB from '../components/AyB'
 import VeniALaSala from '../components/VeniALaSala'
 import Shows from '../components/Shows'
 import Torneos from '../components/Torneos'
-import PromoMundial from '../components/PromoMundial'
+// import PromoMundial from '../components/PromoMundial' // oculto: Mundial terminó, reactivar al definir el nuevo Prode
 import PromoArgentina from '../components/PromoArgentina'
 import VozDelBarrio from '../components/VozDelBarrio'
 import Top10Prode from '../components/Top10Prode'
@@ -33,8 +33,7 @@ export default function Landing() {
         <LaSala />
         {/* Promo presencial de los partidos de Argentina (va arriba del Prode) */}
         <PromoArgentina />
-        {/* Universo Prode: promo + voz del barrio + ranking, todo junto */}
-        <PromoMundial />
+        {/* Promo del Prode oculta: el Mundial terminó. Reactivar <PromoMundial /> al definir el nuevo Prode. */}
         <VozDelBarrio />
         <Top10Prode />
         <AyB />

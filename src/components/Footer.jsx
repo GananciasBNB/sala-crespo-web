@@ -22,7 +22,7 @@ export default function Footer() {
 
         <nav className="footer__nav">
           <h4>Promos</h4>
-          <a href="#prode" style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><IconTrophy size={14} /> Prode Mundial 2026</a>
+          <a href="/prode" style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><IconTrophy size={14} /> Prode Mundial 2026</a>
           <a href="#torneos">Gran Torneo Final</a>
         </nav>
 
