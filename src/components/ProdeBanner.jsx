@@ -100,13 +100,13 @@ export default function ProdeBanner() {
           </>
         ) : (
           <>
-            <div className="prode-bar__badge">NUEVO</div>
+            <div className="prode-bar__badge">🏆</div>
             <p className="prode-bar__text">
               <strong>Prode Mundial 2026 · Sala Crespo</strong>
               <span className="prode-bar__sep">—</span>
               <MundialCountdown variant="banner" />
             </p>
-            <a href="/prode" className="prode-bar__cta">Participar gratis →</a>
+            <a href="/prode" className="prode-bar__cta">Ver la tabla final →</a>
           </>
         )}
       </div>
