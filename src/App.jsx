@@ -87,8 +87,8 @@ export default function App() {
       <Route path="/prode" element={
         <>
           <PageHead
-            title="Prode Mundial 2026 — Concurso Gratis con Premios | Sala Crespo"
-            description="Pronosticá los partidos del Mundial 2026, jugá gratis y ganá Free Play en Sala de Juegos Crespo. Registro en 1 minuto."
+            title="Prode Mundial 2026 — Tabla final y ganadores | Sala Crespo"
+            description="Mirá la tabla final y los ganadores del Prode Mundial 2026 de Sala de Juegos Crespo. España campeón del Mundial."
             path="/prode"
           />
           <ProdeApp />
