@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { promoLookupDni, promoDeliverFreeplay } from '../api/client'
 import './FreePlayMode.css'
 
-// Pantalla para la barra / promotora: entregar el ticket FÍSICO de Free Play de $5.000.
-// Flujo: DNI → busca en la base (completa datos si faltan, o crea si es nueva) → registra
+// Pantalla para la barra: entregar el ticket FÍSICO jugable de Free Play de $5.000.
+// Flujo: DNI → busca en la base (completa datos si faltan, o crea si es nuevo) → registra
 // la entrega → la operadora le da el ticket físico en mano. Uno por persona (por DNI).
-// SIN mail: las clientas son mayores y no tienen email; solo teléfono.
+// SIN mail: los clientes mayores no tienen email; solo teléfono.
 const VALUE = '$5.000'
 
 export default function FreePlayMode({ onExit }) {
@@ -41,7 +41,7 @@ export default function FreePlayMode({ onExit }) {
   async function deliver() {
     setErr('')
     if (!player && name.trim().length < 3) { setErr('El nombre es obligatorio.'); return }
-    if (tel.replace(/\D/g, '').length < 6) { setErr('Cargá el teléfono de la clienta.'); return }
+    if (tel.replace(/\D/g, '').length < 6) { setErr('Cargá el teléfono del cliente.'); return }
     setBusy(true)
     try {
       const r = await promoDeliverFreeplay({ dni: dni.trim(), name: name.trim(), tel: tel.trim() })
@@ -61,12 +61,12 @@ export default function FreePlayMode({ onExit }) {
         <div className="fp__head">
           <div className="fp__kicker">Sala de Juegos Crespo</div>
           <h1 className="fp__title">Free Play <b>{VALUE}</b></h1>
-          <p className="fp__sub">Entregá el ticket a la clienta</p>
+          <p className="fp__sub">Entregá el ticket al cliente</p>
         </div>
 
         {step === 'dni' && (
           <div className="fp__step">
-            <label className="fp__label">DNI de la clienta</label>
+            <label className="fp__label">DNI del cliente</label>
             <input
               className="fp__input fp__input--dni" inputMode="numeric" value={dni}
               onChange={e => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))}
@@ -81,7 +81,7 @@ export default function FreePlayMode({ onExit }) {
         {step === 'form' && (
           <div className="fp__step">
             <div className={`fp__status ${player ? 'fp__status--found' : 'fp__status--new'}`}>
-              {player ? `✓ Clienta en la base: ${player.name}` : '🆕 Clienta nueva — completá los datos'}
+              {player ? `✓ Cliente en la base: ${player.name}` : '🆕 Cliente nuevo — completá los datos'}
             </div>
             {!player && (
               <>
@@ -104,10 +104,9 @@ export default function FreePlayMode({ onExit }) {
         {step === 'success' && (
           <div className="fp__done">
             <div className="fp__check">✓</div>
-            <h2 className="fp__done-title">¡Registrado!</h2>
-            <p className="fp__done-sub">Entregale el ticket físico de<br /><b>{VALUE} de Free Play</b><br />a {result?.name}</p>
-            <div className="fp__handover">🎫 Dale un ticket del pilón</div>
-            <button className="fp__btn" onClick={reset}>Siguiente clienta →</button>
+            <h2 className="fp__done-title">¡Listo!</h2>
+            <p className="fp__done-sub">Entregá el ticket físico de<br /><b>{VALUE} de Free Play</b></p>
+            <button className="fp__btn" onClick={reset}>Siguiente cliente →</button>
           </div>
         )}
 
@@ -115,7 +114,7 @@ export default function FreePlayMode({ onExit }) {
           <div className="fp__done">
             <div className="fp__check fp__check--warn">!</div>
             <h2 className="fp__done-title">Ya lo recibió</h2>
-            <p className="fp__done-sub">Esta clienta ya retiró su Free Play.<br />Es uno por persona.</p>
+            <p className="fp__done-sub">Este cliente ya retiró su Free Play.<br />Es uno por persona.</p>
             <button className="fp__btn" onClick={reset}>Entendido · otro DNI →</button>
           </div>
         )}
