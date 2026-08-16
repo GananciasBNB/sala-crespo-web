@@ -658,6 +658,9 @@ export const promoInscribeTournament = (data) =>
 export const promoUpdateContact = (data) =>
   api('/api/promo/update-contact', { method: 'POST', body: JSON.stringify(data) })
 
+export const promoEmitFreeplay = (data) =>
+  api('/api/promo/emit-freeplay', { method: 'POST', body: JSON.stringify(data) })
+
 // ─── Dashboard stats (admin) ──────────────────────────────────────────────────
 export const adminDashboardStats = (token) =>
   api('/api/admin/dashboard/stats', { headers: authHeaders(token) })

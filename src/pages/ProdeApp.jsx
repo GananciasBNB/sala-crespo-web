@@ -18,6 +18,7 @@ import PushSubscribeBanner from '../components/PushSubscribeBanner'
 import ResultsTicker from '../components/ResultsTicker'
 import NotificationBell from '../components/NotificationBell'
 import PromoMode from './PromoMode'
+import FreePlayMode from './FreePlayMode'
 import { trackProdeRegistration, trackViewContent } from '../lib/metaPixel'
 import './ProdeApp.css'
 
@@ -3811,6 +3812,20 @@ export default function ProdeApp() {
     }
   }
 
+  // Modo Free Play — detectado por ?freeplay=1 (tablet de la promotora, entregar tickets)
+  const [freeplayMode, setFreeplayMode] = useState(() => {
+    if (typeof window === 'undefined') return false
+    return new URLSearchParams(window.location.search).get('freeplay') === '1'
+  })
+  function exitFreeplayMode() {
+    setFreeplayMode(false)
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href)
+      url.searchParams.delete('freeplay')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }
+
   // Modo Staff Portal — detectado por ?staff=CODIGO en la URL
   const [staffPortalCode, setStaffPortalCode] = useState(() => {
     if (typeof window === 'undefined') return null
@@ -4005,6 +4020,11 @@ export default function ProdeApp() {
     { id: 'inicio', label: tabLabel(ICON_HOME, 'Inicio') },
     { id: 'tabla',  label: tabLabel(ICON_CHART, 'Posiciones') },
   ]
+
+  // Modo Free Play — pantalla dedicada para la tablet (entregar tickets de $5.000)
+  if (freeplayMode) {
+    return <FreePlayMode onExit={exitFreeplayMode} />
+  }
 
   // Modo promotora — render dedicado, no muestra el resto de la app
   if (promoMode) {
