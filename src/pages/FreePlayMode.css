@@ -85,3 +85,7 @@
   border-radius: 12px; padding: 12px 24px; margin-bottom: 16px;
 }
 .fp__done-hint { font-size: 13.5px; color: #8b96a5; margin: 0 0 22px; line-height: 1.55; max-width: 320px; }
+.fp__handover {
+  display: inline-block; background: rgba(196,30,58,.12); border: 1px solid rgba(196,30,58,.42);
+  color: #f0a6b3; font-weight: 700; font-size: 16px; padding: 13px 24px; border-radius: 12px; margin-bottom: 22px;
+}
