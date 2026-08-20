@@ -568,8 +568,204 @@
 .club__reveal{opacity:0;transform:translateY(28px);transition:opacity .9s cubic-bezier(.2,.9,.3,1),transform .9s cubic-bezier(.2,.9,.3,1)}
 .club__reveal--visible{opacity:1;transform:translateY(0)}
 
+/* ────────────────────────── NAV STICKY (scroll-spy) ────────────────────────── */
+#carnet,#sorteo,#canjes,#puntos,#historial{scroll-margin-top:150px}
+.club__nav{
+  position:sticky;top:78px;z-index:15;
+  display:flex;justify-content:center;
+  padding:0 14px;margin-top:-28px;
+}
+.club__nav-inner{
+  display:flex;gap:4px;overflow-x:auto;max-width:100%;
+  background:rgba(10,7,16,.82);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border-strong);border-radius:99px;padding:5px;
+  box-shadow:0 12px 34px -12px rgba(0,0,0,.8);
+  scrollbar-width:none;
+}
+.club__nav-inner::-webkit-scrollbar{display:none}
+.club__nav-btn{
+  white-space:nowrap;padding:9px 16px;border-radius:99px;border:none;
+  background:transparent;color:var(--muted);
+  font-family:'Cinzel',serif;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;font-weight:600;cursor:pointer;
+  transition:color .2s,background .25s,transform .12s;
+}
+.club__nav-btn:hover{color:var(--gold-light)}
+.club__nav-btn:active{transform:scale(.96)}
+.club__nav-btn--active{
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);
+  color:#0a0612;
+  box-shadow:0 4px 14px rgba(201,168,76,.35);
+}
+.club__nav-btn--active:hover{color:#0a0612}
+
+/* ────────────────────────── CHIPS DE CATEGORÍA ────────────────────────── */
+.club__chips{
+  display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+  max-width:760px;margin:-8px auto 0;
+}
+.club__chip{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:8px 15px;border-radius:99px;
+  border:1px solid var(--border-strong);background:rgba(0,0,0,.3);
+  color:var(--muted);font-family:'DM Sans',system-ui,sans-serif;
+  font-size:12.5px;font-weight:500;cursor:pointer;
+  transition:color .2s,border-color .2s,background .25s,transform .12s;
+}
+.club__chip:hover{color:var(--gold-light);border-color:rgba(240,210,117,.5)}
+.club__chip:active{transform:scale(.95)}
+.club__chip--active{
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);
+  border-color:transparent;color:#0a0612;font-weight:700;
+  box-shadow:0 4px 14px rgba(201,168,76,.3);
+}
+.club__chip--active:hover{color:#0a0612}
+.club__chip-icon{display:inline-grid;place-items:center;width:16px;height:16px}
+.club__chip-icon svg{width:16px;height:16px}
+
+.club__cat-empty{
+  max-width:460px;margin:0 auto;padding:28px 24px;text-align:center;
+  border:1px dashed var(--border-strong);border-radius:14px;
+  color:var(--muted);font-size:14px;line-height:1.6;
+}
+.club__cat-empty strong{color:var(--gold-light)}
+.club__cat-empty button{
+  display:block;margin:14px auto 0;padding:9px 18px;border-radius:99px;
+  border:1px solid var(--border-strong);background:transparent;color:var(--gold);
+  font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;
+  text-transform:uppercase;font-weight:600;cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+.club__cat-empty button:hover{color:var(--gold-light);border-color:rgba(240,210,117,.5)}
+
+/* ────────────────────────── VER MÁS (historial) ────────────────────────── */
+.club__tx-more-wrap{text-align:center;margin-top:18px}
+.club__tx-more{
+  padding:11px 24px;border-radius:99px;
+  border:1px solid var(--border-strong);background:transparent;color:var(--gold);
+  font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;
+  text-transform:uppercase;font-weight:600;cursor:pointer;
+  transition:color .2s,border-color .2s,transform .12s;
+}
+.club__tx-more:hover{color:var(--gold-light);border-color:rgba(240,210,117,.5)}
+.club__tx-more:active{transform:scale(.96)}
+
+/* ────────────────────────── MODAL DE CANJE ────────────────────────── */
+.club-modal{
+  position:fixed;inset:0;z-index:60;
+  display:grid;place-items:center;padding:20px;
+  background:rgba(4,3,8,.78);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  animation:club-modal-in .25s ease both;
+}
+@keyframes club-modal-in{from{opacity:0}to{opacity:1}}
+.club-modal__card{
+  width:100%;max-width:380px;text-align:center;
+  background:
+    radial-gradient(ellipse at 50% 0%,rgba(201,168,76,.14),transparent 60%),
+    linear-gradient(180deg,#160c20 0%,#0a060f 100%);
+  border:1px solid var(--border-strong);border-radius:18px;
+  padding:0 26px 26px;overflow:hidden;
+  box-shadow:0 40px 90px -20px rgba(0,0,0,.95),0 0 60px rgba(201,168,76,.12);
+  animation:club-modal-card-in .35s cubic-bezier(.2,.9,.3,1.15) both;
+}
+@keyframes club-modal-card-in{
+  from{opacity:0;transform:translateY(26px) scale(.94)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+.club-modal__visual{margin:0 -26px 18px;border-bottom:1px solid var(--border)}
+.club-modal__eye{
+  font-family:'Cinzel',serif;font-size:10px;letter-spacing:4px;color:var(--gold);
+  text-transform:uppercase;font-weight:600;margin-bottom:8px;
+}
+.club-modal__name{
+  font-family:'Playfair Display',serif;font-size:24px;color:#fff;font-weight:700;
+  line-height:1.2;letter-spacing:-.3px;margin-bottom:18px;
+}
+.club-modal__math{
+  display:flex;align-items:center;justify-content:center;gap:16px;
+  padding:16px 10px;margin-bottom:20px;
+  background:rgba(0,0,0,.35);border:1px solid var(--border);border-radius:12px;
+}
+.club-modal__math-col{display:flex;flex-direction:column;gap:3px;min-width:0}
+.club-modal__math-col span{
+  font-family:'Bebas Neue',sans-serif;font-size:30px;line-height:1;
+  color:var(--cream);letter-spacing:1px;
+}
+.club-modal__math-col small{
+  font-family:'Cinzel',serif;font-size:8.5px;letter-spacing:2px;color:var(--muted);
+  text-transform:uppercase;font-weight:600;
+}
+.club-modal__math-col:last-child span{color:var(--gold-light)}
+.club-modal__math-minus{
+  font-family:'Bebas Neue',sans-serif;font-size:20px;color:#fb6e8a;letter-spacing:1px;
+}
+.club-modal__cta{
+  width:100%;padding:14px 18px;border-radius:8px;border:none;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);
+  color:#0a0612;font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;
+  text-transform:uppercase;font-weight:700;cursor:pointer;
+  transition:transform .15s,box-shadow .25s;
+  box-shadow:0 6px 18px rgba(201,168,76,.3);
+}
+.club-modal__cta:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px rgba(201,168,76,.45)}
+.club-modal__cta:active:not(:disabled){transform:scale(.97)}
+.club-modal__cta:disabled{opacity:.55;cursor:not-allowed}
+.club-modal__cancel{
+  width:100%;margin-top:10px;padding:11px 18px;border-radius:8px;
+  border:1px solid var(--border);background:transparent;color:var(--muted);
+  font-family:'Cinzel',serif;font-size:10px;letter-spacing:2.5px;
+  text-transform:uppercase;font-weight:600;cursor:pointer;
+  transition:color .2s,border-color .2s;
+}
+.club-modal__cancel:hover:not(:disabled){color:var(--cream);border-color:var(--border-strong)}
+.club-modal__done-text{font-size:14px;color:var(--muted);line-height:1.65;margin-bottom:20px}
+.club-modal__done-text strong{color:var(--gold-light)}
+
+/* Celebración (burst dorado) */
+.club-modal__burst{
+  position:relative;height:150px;margin:10px -26px 8px;
+  display:grid;place-items:center;overflow:hidden;
+}
+.club-modal__check{
+  width:72px;height:72px;border-radius:50%;
+  display:grid;place-items:center;color:#0a0612;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);
+  box-shadow:0 0 0 6px rgba(201,168,76,.15),0 0 50px rgba(240,210,117,.5);
+  animation:club-check-pop .5s cubic-bezier(.2,.9,.3,1.4) both;
+}
+.club-modal__check svg{width:36px;height:36px}
+@keyframes club-check-pop{
+  from{transform:scale(.2);opacity:0}
+  to{transform:scale(1);opacity:1}
+}
+.club-modal__particle{
+  position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:2px;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold-light) 100%);
+  opacity:0;
+  animation:club-particle .9s cubic-bezier(.15,.8,.3,1) both;
+}
+.club-modal__particle--red{background:linear-gradient(135deg,var(--red-bright),#fb6e8a);border-radius:50%}
+@keyframes club-particle{
+  0%{transform:rotate(var(--a)) translateY(0) scale(.4);opacity:0}
+  15%{opacity:1}
+  100%{transform:rotate(var(--a)) translateY(calc(var(--d) * -1)) scale(1);opacity:0}
+}
+
+/* ────────────────────────── REDUCED MOTION ────────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  .club__reveal{opacity:1;transform:none;transition:none}
+  .card-member__shimmer,.club-modal__particle{animation:none}
+  .club-modal__card,.club-modal,.club-modal__check{animation-duration:.01s}
+}
+
 @media (max-width:720px){
   .club__hero{padding:54px 18px 70px}
+  #carnet,#sorteo,#canjes,#puntos,#historial{scroll-margin-top:130px}
+  .club__nav{top:64px;margin-top:-24px;padding:0 10px}
+  .club__nav-inner{border-radius:16px}
+  .club__nav-btn{padding:8px 12px;font-size:9px;letter-spacing:1.5px}
   .card-member{padding:20px 22px 18px}
   .card-member__head-id-num{font-size:11px;letter-spacing:3px}
   .card-member__head-id-since{font-size:8px;letter-spacing:2px}

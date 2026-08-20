@@ -123,6 +123,23 @@ function countCheckinsThisMonth(transactions) {
   }).length
 }
 
+// ─── Nav sections (scroll-spy) ────────────────────────────────────
+const NAV_SECTIONS = [
+  { id: 'carnet',    label: 'Mi carnet' },
+  { id: 'sorteo',    label: 'Sorteo' },
+  { id: 'canjes',    label: 'Canjes' },
+  { id: 'puntos',    label: 'Puntos' },
+  { id: 'historial', label: 'Historial' },
+]
+
+// Deterministic gold burst for the redeem celebration (golden-angle spread).
+const BURST = Array.from({ length: 18 }, (_, i) => ({
+  angle: Math.round((i * 137.5) % 360),
+  dist: 70 + (i % 5) * 22,
+  delay: (i % 6) * 0.05,
+  gold: i % 3 !== 0,
+}))
+
 // ─────────────────────────────────────────────────────────────────
 export default function ClubView({ player }) {
   const [balance, setBalance] = useState(0)
@@ -132,6 +149,10 @@ export default function ClubView({ player }) {
   const [loading, setLoading] = useState(true)
   const [busyReward, setBusyReward] = useState(null)
   const [msg, setMsg] = useState(null)
+  const [catFilter, setCatFilter] = useState('all')
+  const [confirmReward, setConfirmReward] = useState(null) // { reward, phase: 'ask' | 'done' }
+  const [activeNav, setActiveNav] = useState('carnet')
+  const [txLimit, setTxLimit] = useState(8)
 
   const cardRef = useRef(null)
   const cardWrapRef = useRef(null)
@@ -231,18 +252,54 @@ export default function ClubView({ player }) {
     }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' })
     els.forEach(e => io.observe(e))
     return () => io.disconnect()
-  }, [catalog, pending, transactions])
+  }, [catalog, pending, transactions, catFilter, txLimit])
 
-  // ─── Canje ───────────────────────────────────────────────────────
-  async function handleRedeem(reward) {
+  // ─── Scroll-spy de la nav ────────────────────────────────────────
+  useEffect(() => {
+    if (loading) return
+    let rafId = null
+    function onScroll() {
+      if (rafId) return
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        const probe = window.innerHeight * 0.35
+        let current = NAV_SECTIONS[0].id
+        for (const { id } of NAV_SECTIONS) {
+          const el = document.getElementById(id)
+          if (el && el.getBoundingClientRect().top <= probe) current = id
+        }
+        setActiveNav(current)
+      })
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      if (rafId) cancelAnimationFrame(rafId)
+    }
+  }, [loading])
+
+  function goTo(id) {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
+  // ─── Canje (modal propio en lugar de confirm()) ─────────────────
+  function handleRedeem(reward) {
     if (balance < reward.points) return
-    if (!confirm(`Canjear "${reward.name}" por ${reward.points.toLocaleString('es-AR')} pts?\n\nVas a quedar con ${(balance - reward.points).toLocaleString('es-AR')} pts.`)) return
-    setBusyReward(reward.id); setMsg(null)
+    setMsg(null)
+    setConfirmReward({ reward, phase: 'ask' })
+  }
+
+  async function doRedeem() {
+    const reward = confirmReward?.reward
+    if (!reward || busyReward) return
+    setBusyReward(reward.id)
     try {
-      const r = await redeemLoyaltyReward(player.token, reward.id)
-      setMsg({ kind: 'ok', text: `¡Canje listo! Acercate a la barra con tu DNI para retirar tu ${r.redemption.reward_name}.` })
+      await redeemLoyaltyReward(player.token, reward.id)
+      setConfirmReward({ reward, phase: 'done' })
       await reload()
     } catch (err) {
+      setConfirmReward(null)
       setMsg({ kind: 'err', text: err.message })
     } finally {
       setBusyReward(null)
@@ -250,14 +307,17 @@ export default function ClubView({ player }) {
   }
 
   // ─── Catálogo derivado ──────────────────────────────────────────
-  const { available, upcoming, featured, nextReward } = useMemo(() => {
-    if (!catalog.length) return { available: [], upcoming: [], featured: null, nextReward: null }
+  const { available, upcoming, featured, nextReward, categories } = useMemo(() => {
+    if (!catalog.length) return { available: [], upcoming: [], featured: null, nextReward: null, categories: [] }
     const avail = catalog.filter(r => balance >= r.points).sort((a, b) => b.points - a.points)
-    const upc = catalog.filter(r => balance < r.points).sort((a, b) => (a.points - balance) - (b.points - balance)).slice(0, 4)
-    const feat = avail[0] || null
-    const next = upc[0] || null
-    return { available: avail, upcoming: upc, featured: feat, nextReward: next }
+    const upc = catalog.filter(r => balance < r.points).sort((a, b) => (a.points - balance) - (b.points - balance))
+    const cats = []
+    for (const r of catalog) if (!cats.includes(r.category)) cats.push(r.category)
+    return { available: avail, upcoming: upc, featured: avail[0] || null, nextReward: upc[0] || null, categories: cats }
   }, [catalog, balance])
+
+  const shownAvailable = catFilter === 'all' ? available : available.filter(r => r.category === catFilter)
+  const shownUpcoming = (catFilter === 'all' ? upcoming : upcoming.filter(r => r.category === catFilter)).slice(0, catFilter === 'all' ? 4 : 6)
 
   const progressPct = nextReward ? Math.min(99, Math.round((balance / nextReward.points) * 100)) : 100
 
@@ -280,7 +340,7 @@ export default function ClubView({ player }) {
   return (
     <div className="club">
       {/* ───────── HERO ───────── */}
-      <section className="club__hero">
+      <section className="club__hero" id="carnet">
         <div className="club__hero-bg">
           <video autoPlay loop muted playsInline preload="auto">
             <source src="/club-reveal.mp4" type="video/mp4" />
@@ -356,6 +416,21 @@ export default function ClubView({ player }) {
         </div>
       </section>
 
+      {/* ───────── Nav sticky (scroll-spy) ───────── */}
+      <nav className="club__nav" aria-label="Secciones del Club">
+        <div className="club__nav-inner">
+          {NAV_SECTIONS.map(s => (
+            <button
+              key={s.id}
+              className={`club__nav-btn ${activeNav === s.id ? 'club__nav-btn--active' : ''}`}
+              onClick={() => goTo(s.id)}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </nav>
+
       {/* ───────── Toast ───────── */}
       {msg && (
         <div className={`club__msg club__msg--${msg.kind}`}>
@@ -386,7 +461,7 @@ export default function ClubView({ player }) {
       )}
 
       {/* ───────── Sorteo del mes ───────── */}
-      <section className="club__block">
+      <section className="club__block" id="sorteo">
         <div className="club__block-head">
           <div className="club__block-eye">El sorteo del mes</div>
           <h2 className="club__block-title">Premio <em>extraordinario</em></h2>
@@ -416,8 +491,38 @@ export default function ClubView({ player }) {
         </div>
       </section>
 
+      {/* ───────── Canjes: cabecera + filtros por categoría ───────── */}
+      {catalog.length > 0 && (
+      <section className="club__block" id="canjes">
+        <div className="club__block-head">
+          <div className="club__block-eye">Su catálogo</div>
+          <h2 className="club__block-title">Elija y canjee <em>hoy</em></h2>
+        </div>
+        {categories.length > 1 && (
+          <div className="club__chips" role="tablist" aria-label="Filtrar canjes por categoría">
+            <button
+              className={`club__chip ${catFilter === 'all' ? 'club__chip--active' : ''}`}
+              onClick={() => setCatFilter('all')}
+            >
+              Todos
+            </button>
+            {categories.map(c => (
+              <button
+                key={c}
+                className={`club__chip ${catFilter === c ? 'club__chip--active' : ''}`}
+                onClick={() => setCatFilter(catFilter === c ? 'all' : c)}
+              >
+                <span className="club__chip-icon"><CategoryIcon category={c} /></span>
+                {CAT_LABELS[c] || c}
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
+      )}
+
       {/* ───────── Featured (recomendado para usted) ───────── */}
-      {featured && (
+      {featured && catFilter === 'all' && (
         <section className="club__block">
           <div className="club__block-head">
             <div className="club__block-eye">Recomendado para usted</div>
@@ -448,14 +553,24 @@ export default function ClubView({ player }) {
       )}
 
       {/* ───────── Catálogo disponible ───────── */}
-      {available.length > 0 && (
+      {shownAvailable.length === 0 && shownUpcoming.length === 0 && catFilter !== 'all' && (
+        <section className="club__block">
+          <div className="club__cat-empty">
+            No hay canjes de <strong>{CAT_LABELS[catFilter] || catFilter}</strong> por ahora.
+            <button onClick={() => setCatFilter('all')}>Ver todos</button>
+          </div>
+        </section>
+      )}
+      {shownAvailable.length > 0 && (
         <section className="club__block">
           <div className="club__block-head">
-            <div className="club__block-eye">Su catálogo</div>
-            <h2 className="club__block-title">Disponible para canjear <em>hoy</em></h2>
+            <div className="club__block-eye">Disponible ahora</div>
+            <h2 className="club__block-title" style={{ fontSize: '24px' }}>
+              Le alcanza <em>hoy mismo</em>
+            </h2>
           </div>
           <div className="club__catalog">
-            {available.map(r => (
+            {shownAvailable.map(r => (
               <article key={r.id} className={`club__item club__item--available club__item--${r.category} club__reveal`}>
                 <div className="club__item-visual">
                   <CategoryIcon category={r.category} />
@@ -483,7 +598,7 @@ export default function ClubView({ player }) {
       )}
 
       {/* ───────── Próximas recompensas (locked) ───────── */}
-      {upcoming.length > 0 && (
+      {shownUpcoming.length > 0 && (
         <section className="club__block">
           <div className="club__block-head">
             <div className="club__block-eye">Próximas recompensas</div>
@@ -492,7 +607,7 @@ export default function ClubView({ player }) {
             </h2>
           </div>
           <div className="club__catalog">
-            {upcoming.map(r => (
+            {shownUpcoming.map(r => (
               <article key={r.id} className={`club__item club__item--locked club__item--${r.category} club__reveal`}>
                 <div className="club__item-visual">
                   <CategoryIcon category={r.category} />
@@ -516,7 +631,7 @@ export default function ClubView({ player }) {
       )}
 
       {/* ───────── Cómo se suman puntos ───────── */}
-      <section className="club__block">
+      <section className="club__block" id="puntos">
         <div className="club__block-head">
           <div className="club__block-eye">El programa</div>
           <h2 className="club__block-title">Cómo se <em>suman puntos</em></h2>
@@ -551,13 +666,13 @@ export default function ClubView({ player }) {
 
       {/* ───────── Movimientos recientes ───────── */}
       {transactions.length > 0 && (
-        <section className="club__block">
+        <section className="club__block" id="historial">
           <div className="club__block-head">
             <div className="club__block-eye">Su historial</div>
             <h2 className="club__block-title">Movimientos <em>recientes</em></h2>
           </div>
           <div className="club__tx-list">
-            {transactions.slice(0, 12).map(t => {
+            {transactions.slice(0, txLimit).map(t => {
               const meta = txMeta(t.kind)
               const isRedeem = t.points < 0
               return (
@@ -574,6 +689,13 @@ export default function ClubView({ player }) {
               )
             })}
           </div>
+          {transactions.length > txLimit && (
+            <div className="club__tx-more-wrap">
+              <button className="club__tx-more" onClick={() => setTxLimit(l => l + 12)}>
+                Ver más movimientos ↓
+              </button>
+            </div>
+          )}
         </section>
       )}
 
@@ -588,6 +710,70 @@ export default function ClubView({ player }) {
             </p>
           </div>
         </section>
+      )}
+
+      {/* ───────── Modal de canje ───────── */}
+      {confirmReward && (
+        <div
+          className="club-modal"
+          role="dialog"
+          aria-modal="true"
+          onClick={e => { if (e.target === e.currentTarget && !busyReward) setConfirmReward(null) }}
+        >
+          <div className={`club-modal__card club__item--${confirmReward.reward.category}`}>
+            {confirmReward.phase === 'ask' ? (
+              <>
+                <div className="club-modal__visual club__item-visual">
+                  <CategoryIcon category={confirmReward.reward.category} />
+                </div>
+                <div className="club-modal__eye">{CAT_LABELS[confirmReward.reward.category] || confirmReward.reward.category}</div>
+                <div className="club-modal__name">{confirmReward.reward.name}</div>
+                <div className="club-modal__math">
+                  <div className="club-modal__math-col">
+                    <span>{balance.toLocaleString('es-AR')}</span>
+                    <small>Tiene</small>
+                  </div>
+                  <div className="club-modal__math-minus">−{confirmReward.reward.points.toLocaleString('es-AR')}</div>
+                  <div className="club-modal__math-col">
+                    <span>{(balance - confirmReward.reward.points).toLocaleString('es-AR')}</span>
+                    <small>Le queda</small>
+                  </div>
+                </div>
+                <button className="club-modal__cta" onClick={doRedeem} disabled={!!busyReward}>
+                  {busyReward ? 'Canjeando…' : 'Confirmar canje ★'}
+                </button>
+                <button className="club-modal__cancel" onClick={() => setConfirmReward(null)} disabled={!!busyReward}>
+                  Cancelar
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="club-modal__burst" aria-hidden="true">
+                  {BURST.map((p, i) => (
+                    <span
+                      key={i}
+                      className={`club-modal__particle ${p.gold ? '' : 'club-modal__particle--red'}`}
+                      style={{ '--a': `${p.angle}deg`, '--d': `${p.dist}px`, animationDelay: `${p.delay}s` }}
+                    />
+                  ))}
+                  <div className="club-modal__check">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M4 12.5 L9.5 18 L20 6.5" />
+                    </svg>
+                  </div>
+                </div>
+                <div className="club-modal__name">¡Canje listo!</div>
+                <p className="club-modal__done-text">
+                  Acercate a la barra y decí tu DNI <strong>{player.dni}</strong> para retirar
+                  tu <strong>{confirmReward.reward.name}</strong>.
+                </p>
+                <button className="club-modal__cta" onClick={() => setConfirmReward(null)}>
+                  Entendido
+                </button>
+              </>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
