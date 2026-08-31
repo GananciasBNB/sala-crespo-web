@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { getActiveTournament, tournamentLookupDni, tournamentRegister } from '../api/client'
+import { getActiveTournament, getActiveTournamentSeries, tournamentLookupDni, tournamentRegister } from '../api/client'
 import { trackTournamentRegistration, trackLead } from '../lib/metaPixel'
 import './TournamentLanding.css'
 
@@ -91,10 +91,17 @@ export default function TournamentLanding() {
   const [result, setResult] = useState(null)
   const [copied, setCopied] = useState(false)
 
+  const [series, setSeries] = useState(null)
+
   useEffect(() => {
-    getActiveTournament()
-      .then(r => setTournament(r.active))
-      .catch(() => setTournament(null))
+    Promise.all([
+      getActiveTournament().catch(() => ({ active: null })),
+      getActiveTournamentSeries().catch(() => ({ series: null })),
+    ])
+      .then(([t, s]) => {
+        setTournament(t?.active || null)
+        setSeries(s?.series ? s : null)
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -169,6 +176,8 @@ export default function TournamentLanding() {
 
   if (loading) return <div className="trn-page"><div className="trn-loading">Cargando torneo…</div></div>
 
+  // Sin inscripción abierta: si hay una serie en curso mostramos igual el
+  // camino a la Gran Final (fechas, cupos y finalistas). Si no, el vacío clásico.
   if (!tournament) {
     return (
       <div className="trn-page">
@@ -176,15 +185,35 @@ export default function TournamentLanding() {
           <Link to="/" className="trn-header__back" aria-label="Volver"><IconArrow /></Link>
           <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="trn-header__logo" />
         </header>
-        <div className="trn-empty">
-          <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="trn-empty__logo" />
-          <h1>No hay torneo activo</h1>
-          <p>Pronto vamos a anunciar el próximo torneo de slots. Seguinos en redes para enterarte primero.</p>
-          <Link to="/" className="trn-btn trn-btn--ghost">Volver al inicio</Link>
-        </div>
+        {series ? (
+          <>
+            <section className="trn-hero">
+              <div className="trn-hero__eyebrow">Torneos de Slots</div>
+              <h1 className="trn-hero__title">Camino a la<br /><em>Gran Final</em></h1>
+              <p className="trn-hero__lead">
+                {series.series.description || 'Tres torneos satélite clasifican a la Gran Final de diciembre.'} La inscripción al próximo satélite abre pronto: seguinos en redes para enterarte primero.
+              </p>
+              <div className="trn-hero__divider" />
+            </section>
+            <SeriesSection data={series} />
+            <div className="trn-bases-cta">
+              <Link to="/" className="trn-btn trn-btn--ghost">Volver al inicio</Link>
+            </div>
+            <TrnFooter />
+          </>
+        ) : (
+          <div className="trn-empty">
+            <img src="/logo-sin-fondo.png" alt="Sala Crespo" className="trn-empty__logo" />
+            <h1>No hay torneo activo</h1>
+            <p>Pronto vamos a anunciar el próximo torneo de slots. Seguinos en redes para enterarte primero.</p>
+            <Link to="/" className="trn-btn trn-btn--ghost">Volver al inicio</Link>
+          </div>
+        )}
       </div>
     )
   }
+
+  const isSatellite = tournament.stage === 'satellite' && !!series
 
   return (
     <div className="trn-page">
@@ -194,9 +223,13 @@ export default function TournamentLanding() {
       </header>
 
       <section className="trn-hero">
-        <div className="trn-hero__eyebrow">Inscripción · Torneo de Slots</div>
+        <div className="trn-hero__eyebrow">{isSatellite ? 'Torneo Satélite · Camino a la Gran Final' : 'Inscripción · Torneo de Slots'}</div>
         <h1 className="trn-hero__title">Inscribite gratis<br /><em>{fmtShortDate(tournament.tournament_date)}</em></h1>
-        <p className="trn-hero__lead">{tournament.name}. Reservá tu lugar en menos de un minuto. Si ya jugaste antes, tu DNI alcanza.</p>
+        <p className="trn-hero__lead">
+          {isSatellite
+            ? <>{tournament.name}: los mejores <strong>{tournament.qualifiers}</strong> clasifican a la Gran Final por <strong>{series.series.finalPrize}</strong>. Reservá tu lugar en menos de un minuto.</>
+            : <>{tournament.name}. Reservá tu lugar en menos de un minuto. Si ya jugaste antes, tu DNI alcanza.</>}
+        </p>
         <div className="trn-hero__divider" />
       </section>
 
@@ -218,6 +251,7 @@ export default function TournamentLanding() {
         <span className="trn-pill"><IconCheck /> Inscripción gratuita</span>
         <span className="trn-pill"><IconShield /> +18 años</span>
         <span className="trn-pill"><IconAlert /> Cupos limitados</span>
+        {isSatellite && <span className="trn-pill trn-pill--gold"><IconTrophy /> {tournament.qualifiers} pases a la Gran Final</span>}
       </div>
 
       <main className="trn-main">
@@ -348,6 +382,10 @@ export default function TournamentLanding() {
         )}
       </main>
 
+      {series && (step === 'dni' || step === 'success' || step === 'alreadyRegistered') && (
+        <SeriesSection data={series} activeId={tournament.id} />
+      )}
+
       {(step === 'dni' || step === 'success') && (
         <section className="trn-bases">
           <div className="trn-bases__title">Cómo funciona</div>
@@ -373,19 +411,123 @@ export default function TournamentLanding() {
         </div>
       )}
 
-      <footer className="trn-footer">
-        <div className="trn-footer__responsible">
-          <span className="trn-footer__18">+18</span>
-          <div>
-            <strong>Solo mayores de 18 años.</strong> Si sentís que el juego dejó de ser un entretenimiento, pedí ayuda.<br />
-            <a href="https://www.iafas.gov.ar/juego-responsable" target="_blank" rel="noopener noreferrer">IAFAS — Juego Responsable</a> · <a href="tel:0800-44-42327">0800-44-42327</a>
+      <TrnFooter />
+    </div>
+  )
+}
+
+function TrnFooter() {
+  return (
+    <footer className="trn-footer">
+      <div className="trn-footer__responsible">
+        <span className="trn-footer__18">+18</span>
+        <div>
+          <strong>Solo mayores de 18 años.</strong> Si sentís que el juego dejó de ser un entretenimiento, pedí ayuda.<br />
+          <a href="https://www.iafas.gov.ar/juego-responsable" target="_blank" rel="noopener noreferrer">IAFAS — Juego Responsable</a> · <a href="tel:0800-44-42327">0800-44-42327</a>
+        </div>
+      </div>
+      <div className="trn-footer__legal">
+        © Sala de Juegos Crespo · San Martín 1053, Crespo, Entre Ríos<br />
+        Operado bajo <strong>Casinos de Entre Ríos</strong> · Habilitación IAFAS · <a href="/">Volver al sitio principal</a>
+      </div>
+    </footer>
+  )
+}
+
+// ─── Camino a la Gran Final: línea de tiempo de la serie + finalistas ───────
+const SERIES_STATE_LABEL = {
+  finished: 'Jugado',
+  open: 'Inscripción abierta',
+  closed: 'Inscripción cerrada',
+  upcoming: 'Próximamente',
+}
+
+function SeriesSection({ data, activeId = null }) {
+  if (!data?.series) return null
+  const { series, tournaments, totalSpots, qualifiedCount, finalists } = data
+  const satellites = tournaments.filter(t => t.stage === 'satellite')
+  const perSatellite = satellites[0]?.qualifiers || 0
+  const nextSatellite = satellites.find(t => t.status !== 'finished')
+  const pct = totalSpots ? Math.min(100, Math.round((qualifiedCount / totalSpots) * 100)) : 0
+
+  // Agrupar finalistas por satélite de origen (los comodines van aparte).
+  const groups = []
+  for (const f of finalists) {
+    const key = f.source === 'wildcard' ? 'wildcard' : (f.qualifiedFrom || 'other')
+    let g = groups.find(x => x.key === key)
+    if (!g) {
+      g = { key, title: f.source === 'wildcard' ? 'Comodines' : (f.qualifiedFromName || 'Clasificados'), items: [] }
+      groups.push(g)
+    }
+    g.items.push(f)
+  }
+
+  return (
+    <section className="trn-series" id="camino">
+      <div className="trn-series__head">
+        <div className="trn-series__eyebrow">{series.name}</div>
+        <h2 className="trn-series__title">Camino a la <em>Gran Final</em></h2>
+        {series.finalPrize && <div className="trn-series__prize">{series.finalPrize}</div>}
+        <p className="trn-series__lead">
+          {perSatellite > 0 && <>Los mejores <strong>{perSatellite}</strong> de cada satélite se aseguran su lugar. </>}
+          <strong>{qualifiedCount}</strong> de <strong>{totalSpots}</strong> lugares ya tienen dueño.
+        </p>
+        <div className="trn-series__bar"><div style={{ width: `${pct}%` }} /></div>
+      </div>
+
+      <ol className="trn-timeline">
+        {tournaments.map((t, i) => {
+          const isFinal = t.stage === 'final'
+          const state = t.status === 'finished' ? 'done' : t.status === 'open' ? 'open' : 'next'
+          const isCurrent = !!activeId && t.id === activeId
+          return (
+            <li key={t.id} className={`trn-tl trn-tl--${state} ${isFinal ? 'trn-tl--final' : ''} ${isCurrent ? 'trn-tl--current' : ''}`}>
+              <div className="trn-tl__dot">{state === 'done' ? '✓' : isFinal ? '★' : i + 1}</div>
+              <div className="trn-tl__body">
+                <div className="trn-tl__date">{fmtDateTime(t.tournament_date)}</div>
+                <div className="trn-tl__name">{t.name}</div>
+                <div className="trn-tl__meta">
+                  {isFinal
+                    ? <>{qualifiedCount} finalistas confirmados{t.prize_pool ? <> · {t.prize_pool}</> : null}</>
+                    : <>{t.qualifiers} pases a la Gran Final{t.prize_pool ? <> · {t.prize_pool}</> : null}</>}
+                </div>
+                <div className={`trn-tl__state trn-tl__state--${state}`}>
+                  {isCurrent ? '● Inscribite arriba' : (SERIES_STATE_LABEL[t.status] || t.status)}
+                  {state === 'done' && !isFinal && t.registered_count > 0 && <> · {t.registered_count} participantes</>}
+                </div>
+              </div>
+            </li>
+          )
+        })}
+      </ol>
+
+      {finalists.length > 0 ? (
+        <div className="trn-finalists">
+          <div className="trn-finalists__title">Finalistas confirmados <span>{qualifiedCount} / {totalSpots}</span></div>
+          <div className="trn-finalists__groups">
+            {groups.map(g => (
+              <div key={g.key} className="trn-finalists__group">
+                <div className="trn-finalists__group-title">{g.title}</div>
+                <ul>
+                  {g.items.map((f, idx) => (
+                    <li key={`${g.key}-${idx}`}>
+                      <span className="trn-finalists__pos">{f.position ? `${f.position}°` : '★'}</span>
+                      <span className="trn-finalists__name">{f.name}</span>
+                      {f.city && <span className="trn-finalists__city">{f.city}</span>}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
-        <div className="trn-footer__legal">
-          © Sala de Juegos Crespo · San Martín 1053, Crespo, Entre Ríos<br />
-          Operado bajo <strong>Casinos de Entre Ríos</strong> · Habilitación IAFAS · <a href="/">Volver al sitio principal</a>
+      ) : (
+        <div className="trn-finalists__empty">
+          {nextSatellite
+            ? <>Los primeros finalistas se conocen el <strong>{fmtShortDate(nextSatellite.tournament_date)}</strong>. ¿Vas a estar?</>
+            : <>Todavía no hay finalistas confirmados.</>}
         </div>
-      </footer>
-    </div>
+      )}
+    </section>
   )
 }

@@ -8,6 +8,7 @@ import {
   adminEspnTestDiscover, adminEspnTestAdd, adminEspnTestList, adminEspnTestSync, adminEspnTestDelete,
   adminGetTournaments, adminCreateTournament, adminUpdateTournament, adminDeleteTournament,
   adminGetTournamentRegistrations, adminSetRegistrationAttended, adminSetRegistrationPosition, adminDeleteTournamentRegistration,
+  adminGetTournamentSeries, adminCreateTournamentSeries, adminUpdateTournamentSeries, adminQualifyTournament, adminAddFinalist,
   adminCreateShow, adminUpdateShow, adminDeleteShow,
   adminUpdateContent, adminUploadImage,
   adminGetAdmins, adminCreateAdmin, adminDeleteAdmin,
@@ -1488,22 +1489,84 @@ function ClientsAdmin({ token, toast }) {
 }
 
 // ─── Torneos de Slots Management ──────────────────────────────────────────────
+// ─── Torneos de Slots (sueltos + series: satélites → Gran Final) ─────────────
+const TZ_AR = 'America/Argentina/Buenos_Aires'
+const STAGE_LABEL = { single: 'Suelto', satellite: 'Satélite', final: 'Gran Final' }
+const TOURNAMENT_STATUS_STYLE = {
+  upcoming: { bg: 'rgba(116,172,223,0.16)', fg: '#9ec5e8', label: 'PRÓXIMAMENTE' },
+  open:     { bg: 'rgba(0,177,64,0.2)',     fg: '#5cd87f', label: 'INSCRIPCIÓN ABIERTA' },
+  closed:   { bg: 'rgba(255,193,7,0.18)',   fg: '#ffd166', label: 'INSCRIPCIONES CERRADAS' },
+  finished: { bg: 'rgba(255,255,255,0.1)',  fg: '#aaa',    label: 'FINALIZADO' },
+}
+const fmtAdminDate = iso => new Date(iso).toLocaleString('es-AR', {
+  day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: TZ_AR,
+})
+const toIsoAr = (date, time) => new Date(`${date}T${time || '21:30'}:00-03:00`).toISOString()
+
+function TournamentStatusBadge({ status }) {
+  const s = TOURNAMENT_STATUS_STYLE[status] || TOURNAMENT_STATUS_STYLE.finished
+  return (
+    <span style={{ padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: s.bg, color: s.fg, letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
+      {s.label}
+    </span>
+  )
+}
+
+function TournamentStageBadge({ t }) {
+  if (!t.stage || t.stage === 'single') return <span style={{ opacity: 0.4, fontSize: 12 }}>—</span>
+  const isFinal = t.stage === 'final'
+  return (
+    <span style={{
+      padding: '3px 9px', borderRadius: 6, fontSize: 11, fontWeight: 800, letterSpacing: 0.4, whiteSpace: 'nowrap',
+      background: isFinal ? 'rgba(202,161,78,0.2)' : 'rgba(116,172,223,0.14)',
+      color: isFinal ? '#f0d275' : '#9ec5e8',
+      border: `1px solid ${isFinal ? 'rgba(202,161,78,0.5)' : 'rgba(116,172,223,0.35)'}`,
+    }}>
+      {isFinal ? '★ GRAN FINAL' : `SATÉLITE · pasan ${t.qualifiers}`}
+    </span>
+  )
+}
+
+// Input de puesto: commit al salir o con Enter (no dispara un PATCH por tecla).
+function PositionInput({ value, onCommit }) {
+  const [v, setV] = useState(value ?? '')
+  useEffect(() => { setV(value ?? '') }, [value])
+  function commit() {
+    const n = v === '' ? null : parseInt(v, 10)
+    const clean = Number.isInteger(n) && n > 0 ? n : null
+    if (clean !== (value ?? null)) onCommit(clean)
+  }
+  return (
+    <input
+      type="number" min={1} max={500} value={v} placeholder="—"
+      onChange={e => setV(e.target.value)}
+      onBlur={commit}
+      onKeyDown={e => { if (e.key === 'Enter') e.currentTarget.blur() }}
+      style={{ width: 64, background: 'rgba(0,0,0,0.4)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '6px 8px', borderRadius: 6, textAlign: 'center', fontWeight: 700 }}
+    />
+  )
+}
+
 function TournamentsAdmin({ token, toast }) {
   const [tournaments, setTournaments] = useState([])
+  const [seriesList, setSeriesList] = useState([])
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState(null)
   const [registrations, setRegistrations] = useState([])
   const [showCreate, setShowCreate] = useState(false)
+  const [showCreateSeries, setShowCreateSeries] = useState(false)
+  const [qualifyTarget, setQualifyTarget] = useState(null)
   const [search, setSearch] = useState('')
+  const [sortByPosition, setSortByPosition] = useState(false)
 
-  function loadTournaments() {
+  function loadAll() {
     setLoading(true)
-    adminGetTournaments(token)
-      .then(setTournaments)
+    Promise.all([adminGetTournaments(token), adminGetTournamentSeries(token)])
+      .then(([ts, ss]) => { setTournaments(ts); setSeriesList(ss) })
       .catch(err => toast.show(err.message, 'err'))
       .finally(() => setLoading(false))
   }
-  useEffect(() => { loadTournaments() }, [token])
+  useEffect(() => { loadAll() }, [token])
 
   function loadRegistrations(t) {
     setSelected(t)
@@ -1524,7 +1587,7 @@ function TournamentsAdmin({ token, toast }) {
     try {
       await adminSetRegistrationPosition(token, reg.id, position)
       setRegistrations(rs => rs.map(r => r.id === reg.id ? { ...r, final_position: position } : r))
-      toast.show(position ? `✓ Puesto ${position} asignado` : '✓ Puesto removido')
+      toast.show(position ? `✓ Puesto ${position} asignado a ${reg.name}` : '✓ Puesto removido')
     } catch (err) { toast.show(err.message, 'err') }
   }
 
@@ -1537,30 +1600,12 @@ function TournamentsAdmin({ token, toast }) {
     } catch (err) { toast.show(err.message, 'err') }
   }
 
-  async function handleCloseRegistrations(t) {
-    if (!confirm(`¿Cerrar inscripciones del torneo "${t.name}"? Deja de aceptar nuevos inscriptos pero el torneo sigue figurando hasta que se juegue.`)) return
+  async function setStatus(t, status, confirmMsg, okMsg) {
+    if (confirmMsg && !confirm(confirmMsg)) return
     try {
-      await adminUpdateTournament(token, t.id, { status: 'closed' })
-      toast.show('✓ Inscripciones cerradas')
-      loadTournaments()
-    } catch (err) { toast.show(err.message, 'err') }
-  }
-
-  async function handleFinishTournament(t) {
-    if (!confirm(`¿Marcar el torneo "${t.name}" como FINALIZADO? Queda como histórico, no aparece en /torneo público.`)) return
-    try {
-      await adminUpdateTournament(token, t.id, { status: 'finished' })
-      toast.show('✓ Torneo finalizado')
-      loadTournaments()
-    } catch (err) { toast.show(err.message, 'err') }
-  }
-
-  async function handleReopenTournament(t) {
-    if (!confirm(`¿Reabrir inscripciones del torneo "${t.name}"? Volverá a aceptar nuevos inscriptos. Si hay otro torneo "ACTIVO" en simultáneo el flow puede confundirse.`)) return
-    try {
-      await adminUpdateTournament(token, t.id, { status: 'open' })
-      toast.show('✓ Torneo reabierto')
-      loadTournaments()
+      await adminUpdateTournament(token, t.id, { status })
+      toast.show(okMsg)
+      loadAll()
     } catch (err) { toast.show(err.message, 'err') }
   }
 
@@ -1570,18 +1615,38 @@ function TournamentsAdmin({ token, toast }) {
       await adminDeleteTournament(token, t.id)
       toast.show('✓ Torneo eliminado')
       setSelected(null); setRegistrations([])
-      loadTournaments()
+      loadAll()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleAddFinalist(t) {
+    const dni = prompt(`Agregar finalista (comodín) a "${t.name}".\n\nDNI del cliente (tiene que existir en la base):`)
+    if (!dni) return
+    try {
+      const r = await adminAddFinalist(token, t.id, dni.trim())
+      toast.show(`✓ ${r.name} agregado como finalista (N° ${r.registrationNo})`)
+      loadAll()
+      if (selected?.id === t.id) loadRegistrations(t)
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  async function handleFinishSeries(s) {
+    if (!confirm(`¿Marcar la serie "${s.name}" como finalizada? Deja de mostrarse en /torneo.`)) return
+    try {
+      await adminUpdateTournamentSeries(token, s.id, { status: 'finished' })
+      toast.show('✓ Serie finalizada')
+      loadAll()
     } catch (err) { toast.show(err.message, 'err') }
   }
 
   function exportCSV() {
     if (!registrations.length || !selected) return
     const rows = [
-      ['Nº', 'Nombre', 'DNI', 'Tel', 'Email', 'Ciudad', 'Origen', 'Asistió', 'Puesto final', 'Inscripto el'],
+      ['Nº', 'Nombre', 'DNI', 'Tel', 'Email', 'Ciudad', 'Origen', 'Viene de', 'Asistió', 'Puesto final', 'Inscripto el'],
       ...registrations.map(r => [
         r.registration_no, r.name, r.dni, r.tel || '', r.email || '',
-        r.city || '', r.source, r.attended ? 'SI' : 'NO',
-        r.final_position || '', new Date(r.registered_at).toLocaleString('es-AR')
+        r.city || '', r.source, r.qualified_from_name ? `${r.qualified_from_name} (${r.qualified_position}°)` : '',
+        r.attended ? 'SI' : 'NO', r.final_position || '', new Date(r.registered_at).toLocaleString('es-AR'),
       ])
     ]
     const csv = rows.map(row => row.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n')
@@ -1594,13 +1659,19 @@ function TournamentsAdmin({ token, toast }) {
     URL.revokeObjectURL(url)
   }
 
-  const filtered = registrations.filter(r => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return r.name.toLowerCase().includes(q)
-      || String(r.dni).includes(search)
-      || (r.email || '').toLowerCase().includes(q)
-  })
+  const filtered = registrations
+    .filter(r => {
+      if (!search) return true
+      const q = search.toLowerCase()
+      return r.name.toLowerCase().includes(q) || String(r.dni).includes(search) || (r.email || '').toLowerCase().includes(q)
+    })
+    .sort((a, b) => {
+      if (!sortByPosition) return a.registration_no - b.registration_no
+      const pa = a.final_position || 9999, pb = b.final_position || 9999
+      return pa - pb || a.registration_no - b.registration_no
+    })
+
+  const canQualify = t => t.stage === 'satellite' && t.positioned_count > 0
 
   if (loading) return <div className="ap-block"><p>Cargando torneos…</p></div>
 
@@ -1608,97 +1679,165 @@ function TournamentsAdmin({ token, toast }) {
     <div className="ap-block">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 18 }}>
         <h3 className="ap-block__title" style={{ margin: 0 }}>Torneos de Slots ({tournaments.length})</h3>
-        <button className="ap-btn ap-btn--primary" onClick={() => setShowCreate(true)}>+ Nuevo torneo</button>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          <button className="ap-btn" onClick={() => setShowCreateSeries(true)}>★ Nueva serie (satélites → Final)</button>
+          <button className="ap-btn ap-btn--primary" onClick={() => setShowCreate(true)}>+ Nuevo torneo</button>
+        </div>
       </div>
 
+      {/* ── Series ── */}
+      {seriesList.length > 0 && (
+        <div style={{ display: 'grid', gap: 14, marginBottom: 24 }}>
+          {seriesList.map(s => {
+            const st = tournaments
+              .filter(t => t.series_id === s.id)
+              .sort((a, b) => new Date(a.tournament_date) - new Date(b.tournament_date))
+            const final = st.find(t => t.stage === 'final')
+            const spots = st.filter(t => t.stage === 'satellite').reduce((acc, t) => acc + (Number(t.qualifiers) || 0), 0)
+            const finalists = final?.registered_count || 0
+            const pct = spots ? Math.min(100, Math.round((finalists / spots) * 100)) : 0
+            const isActive = s.status === 'active'
+            return (
+              <div key={s.id} style={{
+                padding: '16px 18px', borderRadius: 12,
+                background: isActive ? 'linear-gradient(135deg, rgba(202,161,78,0.10), rgba(196,30,58,0.06))' : 'rgba(255,255,255,0.03)',
+                border: `1px solid ${isActive ? 'rgba(202,161,78,0.45)' : 'rgba(255,255,255,0.1)'}`,
+                opacity: isActive ? 1 : 0.7,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#f0d275', fontWeight: 800 }}>
+                      ★ Serie {isActive ? 'activa' : 'finalizada'}
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, marginTop: 4 }}>{s.name}</div>
+                    {s.final_prize && <div style={{ fontSize: 13, opacity: 0.8, marginTop: 2 }}>Gran Final: <strong>{s.final_prize}</strong></div>}
+                  </div>
+                  <div style={{ textAlign: 'right', minWidth: 180 }}>
+                    <div style={{ fontSize: 12, opacity: 0.7 }}>Finalistas confirmados</div>
+                    <div style={{ fontSize: 26, fontWeight: 900, color: '#f0d275', lineHeight: 1.1 }}>
+                      {finalists} <span style={{ fontSize: 14, opacity: 0.6, color: '#fff' }}>/ {spots || '—'}</span>
+                    </div>
+                    <div style={{ height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 99, marginTop: 6, overflow: 'hidden' }}>
+                      <div style={{ width: `${pct}%`, height: '100%', background: 'linear-gradient(90deg, #caa14e, #f0d275)' }} />
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+                  {st.length === 0 && <span style={{ fontSize: 13, opacity: 0.6 }}>Sin torneos todavía — creá satélites y una Gran Final con "+ Nuevo torneo" eligiendo esta serie.</span>}
+                  {st.map((t, i) => (
+                    <div key={t.id} style={{
+                      display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 8,
+                      background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.08)', fontSize: 12,
+                    }}>
+                      <span style={{ fontWeight: 900, opacity: 0.5 }}>{t.stage === 'final' ? '★' : `#${i + 1}`}</span>
+                      <span style={{ fontWeight: 700 }}>{t.name}</span>
+                      <span style={{ opacity: 0.7 }}>{fmtAdminDate(t.tournament_date)}</span>
+                      <TournamentStatusBadge status={t.status} />
+                      <span style={{ opacity: 0.7 }}>{t.registered_count} insc.</span>
+                    </div>
+                  ))}
+                </div>
+
+                {isActive && (
+                  <div style={{ marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+                    {final && (
+                      <button className="ap-btn ap-btn--small" onClick={() => handleAddFinalist(final)}
+                        style={{ background: 'rgba(202,161,78,0.14)', borderColor: 'rgba(202,161,78,0.45)', color: '#f0d275' }}>
+                        ➕ Agregar comodín a la Final
+                      </button>
+                    )}
+                    <button className="ap-btn ap-btn--small" onClick={() => handleFinishSeries(s)}
+                      style={{ background: 'rgba(140,140,140,0.16)', borderColor: 'rgba(255,255,255,0.22)', color: '#ddd' }}>
+                      🏁 Finalizar serie
+                    </button>
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* ── Tabla de torneos ── */}
       {tournaments.length === 0 ? (
-        <p style={{ opacity: 0.7 }}>Todavía no hay torneos creados. Apretá <strong>+ Nuevo torneo</strong> para arrancar.</p>
+        <p style={{ opacity: 0.7 }}>Todavía no hay torneos creados. Apretá <strong>+ Nuevo torneo</strong> o <strong>★ Nueva serie</strong> para arrancar.</p>
       ) : (
         <div className="ap-table-wrap">
           <table className="ap-table">
             <thead>
               <tr>
-                <th>Nombre</th><th>Fecha</th><th>Estado</th><th>Inscriptos</th><th>Asistencia</th><th></th>
+                <th>Nombre</th><th>Etapa</th><th>Fecha</th><th>Estado</th><th>Inscriptos</th><th>Puestos</th><th></th>
               </tr>
             </thead>
             <tbody>
               {tournaments.map(t => (
                 <tr key={t.id} style={selected?.id === t.id ? { background: 'rgba(201,168,76,0.1)' } : null}>
-                  <td><strong>{t.name}</strong></td>
-                  <td>{new Date(t.tournament_date).toLocaleString('es-AR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Argentina/Buenos_Aires' })}</td>
                   <td>
-                    {(() => {
-                      const styles = {
-                        open:     { bg: 'rgba(0,177,64,0.2)',   fg: '#5cd87f', label: 'ACTIVO' },
-                        closed:   { bg: 'rgba(255,193,7,0.18)', fg: '#ffd166', label: 'INSCRIPCIONES CERRADAS' },
-                        finished: { bg: 'rgba(255,255,255,0.1)', fg: '#aaa',    label: 'FINALIZADO' },
-                      }
-                      const s = styles[t.status] || styles.finished
-                      return (
-                        <span style={{
-                          padding: '4px 10px', borderRadius: 999, fontSize: 11, fontWeight: 700,
-                          background: s.bg, color: s.fg, letterSpacing: 0.5,
-                        }}>{s.label}</span>
-                      )
-                    })()}
+                    <strong>{t.name}</strong>
+                    {t.series_name && <div style={{ fontSize: 11, opacity: 0.6, marginTop: 2 }}>★ {t.series_name}</div>}
                   </td>
+                  <td><TournamentStageBadge t={t} /></td>
+                  <td>{fmtAdminDate(t.tournament_date)}</td>
+                  <td><TournamentStatusBadge status={t.status} /></td>
                   <td style={{ textAlign: 'center', fontWeight: 700, fontSize: 15 }}>{t.registered_count}</td>
                   <td style={{ textAlign: 'center' }}>
-                    {t.status === 'finished' || t.attended_count > 0
-                      ? <span style={{ fontWeight: 700, fontSize: 15 }}>{t.attended_count} / {t.registered_count}</span>
+                    {t.positioned_count > 0
+                      ? <span style={{ fontWeight: 700 }}>{t.positioned_count}{t.stage === 'satellite' ? <span style={{ opacity: 0.5 }}> / {t.qualifiers}</span> : null}</span>
                       : <span style={{ opacity: 0.4, fontSize: 13 }}>—</span>}
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <button
-                        className="ap-btn ap-btn--small"
-                        onClick={() => loadRegistrations(t)}
-                        style={{ background: 'rgba(116,172,223,0.14)', borderColor: 'rgba(116,172,223,0.4)', color: '#9ec5e8' }}
-                      >👥 Ver inscriptos</button>
-                      {t.status === 'open' && (
-                        <>
-                          <button
-                            className="ap-btn ap-btn--small"
-                            onClick={() => handleCloseRegistrations(t)}
-                            title="Deja de aceptar inscripciones, pero el torneo sigue en pie"
-                            style={{ background: 'rgba(255,193,7,0.14)', borderColor: 'rgba(255,193,7,0.42)', color: '#ffd166' }}
-                          >🔒 Cerrar inscripciones</button>
-                          <button
-                            className="ap-btn ap-btn--small"
-                            onClick={() => handleFinishTournament(t)}
-                            title="Marca el torneo como histórico"
-                            style={{ background: 'rgba(140,140,140,0.16)', borderColor: 'rgba(255,255,255,0.22)', color: '#ddd' }}
-                          >🏁 Finalizar</button>
-                        </>
+                      <button className="ap-btn ap-btn--small" onClick={() => loadRegistrations(t)}
+                        style={{ background: 'rgba(116,172,223,0.14)', borderColor: 'rgba(116,172,223,0.4)', color: '#9ec5e8' }}>
+                        👥 {t.stage === 'final' ? 'Ver finalistas' : 'Ver inscriptos'}
+                      </button>
+
+                      {canQualify(t) && (
+                        <button className="ap-btn ap-btn--small" onClick={() => setQualifyTarget(t)}
+                          title="Pasa los mejores puestos a la Gran Final de la serie"
+                          style={{ background: 'rgba(202,161,78,0.16)', borderColor: 'rgba(202,161,78,0.5)', color: '#f0d275', fontWeight: 800 }}>
+                          🏆 Clasificar top {t.qualifiers}
+                        </button>
                       )}
-                      {t.status === 'closed' && (
-                        <>
-                          <button
-                            className="ap-btn ap-btn--small"
-                            onClick={() => handleReopenTournament(t)}
-                            style={{ background: 'rgba(0,177,64,0.14)', borderColor: 'rgba(0,177,64,0.42)', color: '#5cd87f' }}
-                          >🔓 Reabrir inscripciones</button>
-                          <button
-                            className="ap-btn ap-btn--small"
-                            onClick={() => handleFinishTournament(t)}
-                            style={{ background: 'rgba(140,140,140,0.16)', borderColor: 'rgba(255,255,255,0.22)', color: '#ddd' }}
-                          >🏁 Finalizar</button>
-                        </>
+
+                      {t.status === 'upcoming' && t.stage !== 'final' && (
+                        <button className="ap-btn ap-btn--small"
+                          onClick={() => setStatus(t, 'open', `¿Abrir la inscripción de "${t.name}"? Pasa a verse en /torneo y en la home.`, '✓ Inscripción abierta')}
+                          style={{ background: 'rgba(0,177,64,0.14)', borderColor: 'rgba(0,177,64,0.42)', color: '#5cd87f' }}>
+                          🔓 Abrir inscripciones
+                        </button>
+                      )}
+                      {t.status === 'open' && (
+                        <button className="ap-btn ap-btn--small"
+                          onClick={() => setStatus(t, 'closed', `¿Cerrar inscripciones de "${t.name}"? Deja de aceptar nuevos inscriptos pero el torneo sigue en pie.`, '✓ Inscripciones cerradas')}
+                          style={{ background: 'rgba(255,193,7,0.14)', borderColor: 'rgba(255,193,7,0.42)', color: '#ffd166' }}>
+                          🔒 Cerrar inscripciones
+                        </button>
+                      )}
+                      {t.status === 'closed' && t.stage !== 'final' && (
+                        <button className="ap-btn ap-btn--small"
+                          onClick={() => setStatus(t, 'open', `¿Reabrir inscripciones de "${t.name}"?`, '✓ Torneo reabierto')}
+                          style={{ background: 'rgba(0,177,64,0.14)', borderColor: 'rgba(0,177,64,0.42)', color: '#5cd87f' }}>
+                          🔓 Reabrir inscripciones
+                        </button>
+                      )}
+                      {t.status !== 'finished' && (
+                        <button className="ap-btn ap-btn--small"
+                          onClick={() => setStatus(t, 'finished', `¿Marcar "${t.name}" como FINALIZADO? Queda como histórico.`, '✓ Torneo finalizado')}
+                          style={{ background: 'rgba(140,140,140,0.16)', borderColor: 'rgba(255,255,255,0.22)', color: '#ddd' }}>
+                          🏁 Finalizar
+                        </button>
                       )}
                       {t.status === 'finished' && (
-                        <button
-                          className="ap-btn ap-btn--small"
-                          onClick={() => handleReopenTournament(t)}
-                          style={{ background: 'rgba(0,177,64,0.14)', borderColor: 'rgba(0,177,64,0.42)', color: '#5cd87f' }}
-                        >🔓 Reabrir</button>
+                        <button className="ap-btn ap-btn--small"
+                          onClick={() => setStatus(t, t.stage === 'final' ? 'upcoming' : 'open', `¿Reabrir "${t.name}"?`, '✓ Torneo reabierto')}
+                          style={{ background: 'rgba(0,177,64,0.14)', borderColor: 'rgba(0,177,64,0.42)', color: '#5cd87f' }}>
+                          🔓 Reabrir
+                        </button>
                       )}
-                      {/* Borrar solo si está finalizado Y sin inscriptos — destructivo. */}
                       {t.status === 'finished' && t.registered_count === 0 && (
-                        <button
-                          className="ap-btn ap-btn--small ap-btn--danger"
-                          onClick={() => handleDeleteTournament(t)}
-                          title="Borrar permanentemente"
-                        >🗑️</button>
+                        <button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => handleDeleteTournament(t)} title="Borrar permanentemente">🗑️</button>
                       )}
                     </div>
                   </td>
@@ -1709,18 +1848,42 @@ function TournamentsAdmin({ token, toast }) {
         </div>
       )}
 
-      {showCreate && <TournamentCreateModal token={token} toast={toast} onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); loadTournaments() }} />}
+      {showCreate && (
+        <TournamentCreateModal token={token} toast={toast} seriesList={seriesList}
+          onClose={() => setShowCreate(false)} onCreated={() => { setShowCreate(false); loadAll() }} />
+      )}
+      {showCreateSeries && (
+        <SeriesCreateModal token={token} toast={toast}
+          onClose={() => setShowCreateSeries(false)} onCreated={() => { setShowCreateSeries(false); loadAll() }} />
+      )}
+      {qualifyTarget && (
+        <QualifyModal token={token} toast={toast} tournament={qualifyTarget}
+          onClose={() => setQualifyTarget(null)}
+          onDone={() => { setQualifyTarget(null); loadAll(); if (selected) loadRegistrations(selected) }} />
+      )}
 
+      {/* ── Inscriptos del torneo seleccionado ── */}
       {selected && (
         <div style={{ marginTop: 28, padding: 18, background: 'rgba(255,255,255,0.04)', borderRadius: 10 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, marginBottom: 14 }}>
-            <h4 style={{ margin: 0 }}>Inscriptos · {selected.name} <span style={{ opacity: 0.6, fontSize: 13 }}>({registrations.length})</span></h4>
+            <h4 style={{ margin: 0 }}>
+              {selected.stage === 'final' ? 'Finalistas' : 'Inscriptos'} · {selected.name} <span style={{ opacity: 0.6, fontSize: 13 }}>({registrations.length})</span>
+            </h4>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <input className="ap-input" placeholder="🔍 Buscar nombre, DNI o email" value={search} onChange={e => setSearch(e.target.value)} style={{ minWidth: 220 }} />
+              <button className={`ap-btn ap-btn--small ${sortByPosition ? 'ap-btn--success' : ''}`} onClick={() => setSortByPosition(v => !v)}>
+                {sortByPosition ? '🏅 Por puesto' : '🔢 Por N°'}
+              </button>
               <button className="ap-btn ap-btn--small" onClick={exportCSV}>📥 Exportar CSV</button>
               <button className="ap-btn ap-btn--small" onClick={() => { setSelected(null); setRegistrations([]) }}>Cerrar</button>
             </div>
           </div>
+
+          {selected.stage === 'satellite' && (
+            <p style={{ fontSize: 13, opacity: 0.75, margin: '0 0 12px' }}>
+              Cargá el <strong>puesto final</strong> de cada jugador (1, 2, 3… hasta {selected.qualifiers} como mínimo). Después apretá <strong>🏆 Clasificar top {selected.qualifiers}</strong> en la tabla de arriba para pasarlos a la Gran Final.
+            </p>
+          )}
 
           {registrations.length === 0 ? (
             <p style={{ opacity: 0.7, textAlign: 'center', padding: 24 }}>Sin inscriptos todavía.</p>
@@ -1738,28 +1901,19 @@ function TournamentsAdmin({ token, toast }) {
                       <td><code style={{ fontSize: 12 }}>{r.dni}</code></td>
                       <td>{r.tel || <span style={{ opacity: 0.4 }}>—</span>}</td>
                       <td style={{ fontSize: 12 }}>{r.email || <span style={{ opacity: 0.4 }}>—</span>}</td>
-                      <td><span style={{ fontSize: 11, opacity: 0.7 }}>{r.source}</span></td>
+                      <td style={{ fontSize: 11 }}>
+                        {r.source === 'qualified' && r.qualified_from_name
+                          ? <span style={{ color: '#f0d275' }}>🏆 {r.qualified_position}° · {r.qualified_from_name}</span>
+                          : r.source === 'wildcard'
+                            ? <span style={{ color: '#9ec5e8' }}>🃏 comodín</span>
+                            : <span style={{ opacity: 0.7 }}>{r.source}</span>}
+                      </td>
                       <td>
-                        <button
-                          className={`ap-btn ap-btn--small ${r.attended ? 'ap-btn--success' : ''}`}
-                          onClick={() => handleAttend(r, !r.attended)}
-                          style={{ minWidth: 64 }}
-                        >
+                        <button className={`ap-btn ap-btn--small ${r.attended ? 'ap-btn--success' : ''}`} onClick={() => handleAttend(r, !r.attended)} style={{ minWidth: 64 }}>
                           {r.attended ? '✓ SÍ' : '○ NO'}
                         </button>
                       </td>
-                      <td>
-                        <select
-                          value={r.final_position || ''}
-                          onChange={e => handlePosition(r, e.target.value ? parseInt(e.target.value) : null)}
-                          style={{ background: 'rgba(0,0,0,0.4)', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', padding: '6px 8px', borderRadius: 6 }}
-                        >
-                          <option value="">—</option>
-                          <option value="1">🥇 1°</option>
-                          <option value="2">🥈 2°</option>
-                          <option value="3">🥉 3°</option>
-                        </select>
-                      </td>
+                      <td><PositionInput value={r.final_position} onCommit={pos => handlePosition(r, pos)} /></td>
                       <td>
                         <button className="ap-btn ap-btn--small ap-btn--danger" onClick={() => handleDeleteReg(r)} title="Eliminar inscripción">✕</button>
                       </td>
@@ -1775,13 +1929,217 @@ function TournamentsAdmin({ token, toast }) {
   )
 }
 
-function TournamentCreateModal({ token, toast, onClose, onCreated }) {
+// Previsualiza y confirma el pase del top N de un satélite a la Gran Final.
+function QualifyModal({ token, toast, tournament, onClose, onDone }) {
+  const [preview, setPreview] = useState(null)
+  const [err, setErr] = useState('')
+  const [sendEmail, setSendEmail] = useState(true)
+  const [busy, setBusy] = useState(false)
+
+  useEffect(() => {
+    adminQualifyTournament(token, tournament.id, { dryRun: true })
+      .then(setPreview)
+      .catch(e => setErr(e.message))
+  }, [token, tournament.id])
+
+  async function confirmQualify() {
+    if (!preview || busy || preview.selected.length === 0) return
+    setBusy(true); setErr('')
+    try {
+      const r = await adminQualifyTournament(token, tournament.id, { dryRun: false, sendEmail })
+      toast.show(`✓ ${r.selected.length} clasificados a ${r.final.name}${sendEmail ? ` · ${r.emailed} mails enviados` : ''}`)
+      onDone()
+    } catch (e) { setErr(e.message) }
+    setBusy(false)
+  }
+
+  const withEmail = preview ? preview.selected.filter(s => s.email).length : 0
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 20 }} onClick={busy ? undefined : onClose}>
+      <div onClick={e => e.stopPropagation()} style={{ background: '#15191f', border: '1px solid rgba(202,161,78,0.4)', borderRadius: 16, padding: 28, maxWidth: 560, width: '100%', maxHeight: '90vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div>
+          <div style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#f0d275', fontWeight: 800 }}>🏆 Clasificación a la Gran Final</div>
+          <h3 style={{ margin: '4px 0 0' }}>{tournament.name}</h3>
+        </div>
+
+        {err && <div style={{ color: '#ff8b9c', fontSize: 13 }}>⚠️ {err}</div>}
+        {!preview && !err && <p style={{ opacity: 0.7 }}>Calculando…</p>}
+
+        {preview && (
+          <>
+            <div style={{ fontSize: 13, opacity: 0.85, lineHeight: 1.6 }}>
+              Pasan a <strong>{preview.final.name}</strong> ({fmtAdminDate(preview.final.tournament_date)}) los mejores <strong>{preview.quota}</strong> puestos.
+              Cargaste <strong>{preview.positioned}</strong> puestos en este satélite.
+            </div>
+
+            {preview.positioned < preview.quota && (
+              <div style={{ background: 'rgba(255,193,7,0.12)', border: '1px solid rgba(255,193,7,0.4)', borderRadius: 8, padding: '10px 12px', fontSize: 13, color: '#ffd166' }}>
+                ⚠️ Faltan puestos: cargaste {preview.positioned} de {preview.quota}. Podés confirmar igual y clasificar el resto después (volvé a apretar 🏆 cuando completes los puestos: los que ya pasaron no se duplican).
+              </div>
+            )}
+
+            <div>
+              <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: '#5cd87f', marginBottom: 6 }}>
+                ✓ Clasifican ahora ({preview.selected.length})
+              </div>
+              {preview.selected.length === 0
+                ? <p style={{ fontSize: 13, opacity: 0.7, margin: 0 }}>Nadie nuevo para clasificar.</p>
+                : (
+                  <div style={{ display: 'grid', gap: 4, maxHeight: 260, overflowY: 'auto', paddingRight: 4 }}>
+                    {preview.selected.map(s => (
+                      <div key={s.player_id} style={{ display: 'flex', justifyContent: 'space-between', gap: 10, fontSize: 13, padding: '6px 10px', background: 'rgba(0,177,64,0.06)', borderRadius: 6 }}>
+                        <span><strong style={{ color: '#f0d275', marginRight: 8 }}>{s.final_position}°</strong>{s.name}</span>
+                        <span style={{ opacity: 0.6, fontSize: 12 }}>{s.email || 'sin email'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+            </div>
+
+            {preview.skipped.length > 0 && (
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', color: '#9ec5e8', marginBottom: 6 }}>
+                  ↷ Ya estaban en la Final — no ocupan cupo ({preview.skipped.length})
+                </div>
+                <div style={{ fontSize: 13, opacity: 0.8 }}>
+                  {preview.skipped.map(s => `${s.final_position}° ${s.name}`).join(' · ')}
+                </div>
+              </div>
+            )}
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, cursor: 'pointer', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', borderRadius: 8 }}>
+              <input type="checkbox" checked={sendEmail} onChange={e => setSendEmail(e.target.checked)} disabled={busy} />
+              <span>Mandar el mail <strong>"¡Clasificaste a la Gran Final!"</strong> a los {withEmail} que tienen email</span>
+            </label>
+
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+              <button type="button" className="ap-btn" onClick={onClose} disabled={busy}>Cancelar</button>
+              <button type="button" className="ap-btn ap-btn--primary" onClick={confirmQualify} disabled={busy || preview.selected.length === 0}>
+                {busy ? 'Clasificando…' : `Confirmar: ${preview.selected.length} a la Final`}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+const SERIES_DEFAULT_ROWS = [
+  { name: 'Torneo Satélite 1 · Septiembre', date: '2026-09-29', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales + 20 pases a la Gran Final' },
+  { name: 'Torneo Satélite 2 · Octubre',    date: '2026-10-29', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales + 20 pases a la Gran Final' },
+  { name: 'Torneo Satélite 3 · Noviembre',  date: '2026-11-26', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales + 20 pases a la Gran Final' },
+  { name: 'Gran Final · Diciembre',         date: '2026-12-17', time: '21:30', stage: 'final',     qualifiers: 0,  prizePool: '$2.000.000 en tickets promocionales' },
+]
+
+// Crea una serie completa (satélites + Gran Final) en un solo paso.
+// Los torneos nacen en PRÓXIMAMENTE; la inscripción se abre desde la tabla.
+function SeriesCreateModal({ token, toast, onClose, onCreated }) {
+  const [name, setName] = useState('Camino a la Gran Final 2026')
+  const [finalPrize, setFinalPrize] = useState('$2.000.000 en tickets promocionales')
+  const [description, setDescription] = useState('Tres torneos satélite. Los 20 mejores de cada uno clasifican a la Gran Final de diciembre.')
+  const [location, setLocation] = useState('San Martín 1053, Crespo, Entre Ríos')
+  const [rows, setRows] = useState(SERIES_DEFAULT_ROWS)
+  const [saving, setSaving] = useState(false)
+  const [err, setErr] = useState('')
+
+  function updateRow(i, patch) { setRows(rs => rs.map((r, idx) => idx === i ? { ...r, ...patch } : r)) }
+  function removeRow(i) { setRows(rs => rs.filter((_, idx) => idx !== i)) }
+  function addRow() { setRows(rs => [...rs, { name: '', date: '', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '' }]) }
+
+  async function handleSave(e) {
+    e.preventDefault()
+    setErr('')
+    if (!name.trim()) return setErr('El nombre de la serie es obligatorio.')
+    for (const r of rows) {
+      if (!r.name.trim() || !r.date) return setErr('Cada torneo necesita nombre y fecha.')
+    }
+    if (rows.filter(r => r.stage === 'final').length > 1) return setErr('Una serie tiene una sola Gran Final.')
+    setSaving(true)
+    try {
+      await adminCreateTournamentSeries(token, {
+        name: name.trim(),
+        finalPrize: finalPrize.trim() || null,
+        description: description.trim() || null,
+        tournaments: rows.map(r => ({
+          name: r.name.trim(),
+          tournamentDate: toIsoAr(r.date, r.time),
+          stage: r.stage,
+          qualifiers: r.stage === 'satellite' ? Number(r.qualifiers) || 0 : 0,
+          prizePool: r.prizePool.trim() || null,
+          location: location.trim() || null,
+        })),
+      })
+      toast.show(`✓ Serie creada con ${rows.length} torneos (en PRÓXIMAMENTE)`)
+      onCreated()
+    } catch (e) { setErr(e.message) }
+    setSaving(false)
+  }
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 20 }} onClick={onClose}>
+      <form onClick={e => e.stopPropagation()} onSubmit={handleSave} style={{ background: '#15191f', border: '1px solid rgba(202,161,78,0.4)', borderRadius: 16, padding: 28, maxWidth: 760, width: '100%', maxHeight: '92vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', color: '#f0d275', fontWeight: 800 }}>★ Nueva serie</div>
+          <h3 style={{ margin: '4px 0 0' }}>Satélites → Gran Final</h3>
+        </div>
+        <label className="ap-label">Nombre de la serie</label>
+        <input className="ap-input" value={name} onChange={e => setName(e.target.value)} disabled={saving} />
+        <label className="ap-label">Premio de la Gran Final (texto destacado)</label>
+        <input className="ap-input" value={finalPrize} onChange={e => setFinalPrize(e.target.value)} disabled={saving} />
+        <label className="ap-label">Descripción corta <span style={{ opacity: 0.6, fontWeight: 400 }}>(se ve en /torneo)</span></label>
+        <input className="ap-input" value={description} onChange={e => setDescription(e.target.value)} disabled={saving} />
+        <label className="ap-label">Lugar (para todos los torneos)</label>
+        <input className="ap-input" value={location} onChange={e => setLocation(e.target.value)} disabled={saving} />
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 6 }}>
+          <label className="ap-label" style={{ margin: 0 }}>Torneos de la serie</label>
+          <button type="button" className="ap-btn ap-btn--small" onClick={addRow} disabled={saving}>+ Agregar fecha</button>
+        </div>
+        <div style={{ display: 'grid', gap: 8 }}>
+          {rows.map((r, i) => (
+            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.6fr 1fr 0.7fr 0.9fr 0.6fr auto', gap: 6, alignItems: 'center', padding: 10, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: `1px solid ${r.stage === 'final' ? 'rgba(202,161,78,0.4)' : 'rgba(255,255,255,0.08)'}` }}>
+              <input className="ap-input" placeholder="Nombre" value={r.name} onChange={e => updateRow(i, { name: e.target.value })} disabled={saving} style={{ minWidth: 0 }} />
+              <input className="ap-input" type="date" value={r.date} onChange={e => updateRow(i, { date: e.target.value })} disabled={saving} style={{ minWidth: 0 }} />
+              <input className="ap-input" type="time" value={r.time} onChange={e => updateRow(i, { time: e.target.value })} disabled={saving} style={{ minWidth: 0 }} />
+              <select className="ap-input" value={r.stage} onChange={e => updateRow(i, { stage: e.target.value })} disabled={saving} style={{ minWidth: 0 }}>
+                <option value="satellite">Satélite</option>
+                <option value="final">Gran Final</option>
+              </select>
+              <input className="ap-input" type="number" min={0} max={200} title="Cuántos clasifican a la Final" value={r.stage === 'satellite' ? r.qualifiers : ''} placeholder="—"
+                onChange={e => updateRow(i, { qualifiers: e.target.value })} disabled={saving || r.stage !== 'satellite'} style={{ minWidth: 0, textAlign: 'center' }} />
+              <button type="button" className="ap-btn ap-btn--small ap-btn--danger" onClick={() => removeRow(i)} disabled={saving} title="Quitar">✕</button>
+              <input className="ap-input" placeholder="Premios (texto)" value={r.prizePool} onChange={e => updateRow(i, { prizePool: e.target.value })} disabled={saving} style={{ gridColumn: '1 / -1', minWidth: 0, fontSize: 12 }} />
+            </div>
+          ))}
+        </div>
+        <p style={{ fontSize: 12, opacity: 0.65, margin: 0 }}>
+          Columnas: nombre · fecha · hora · etapa · cuántos clasifican. Los torneos se crean en <strong>PRÓXIMAMENTE</strong> (visibles en la línea de tiempo de /torneo pero sin inscripción). Abrís la inscripción de cada satélite desde la tabla cuando quieras.
+        </p>
+
+        {err && <div style={{ color: '#ff8b9c', fontSize: 13 }}>⚠️ {err}</div>}
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
+          <button type="button" className="ap-btn" onClick={onClose} disabled={saving}>Cancelar</button>
+          <button type="submit" className="ap-btn ap-btn--primary" disabled={saving}>{saving ? 'Creando…' : `Crear serie + ${rows.length} torneos`}</button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+function TournamentCreateModal({ token, toast, seriesList = [], onClose, onCreated }) {
+  const activeSeries = seriesList.filter(s => s.status === 'active')
   const [name, setName] = useState('')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('21:30')
   const [location, setLocation] = useState('San Martín 1053, Crespo, Entre Ríos')
   const [prizePool, setPrizePool] = useState('Premios totales: $200.000 en tickets promocionales')
   const [infoHtml, setInfoHtml] = useState('')
+  const [seriesId, setSeriesId] = useState('')
+  const [stage, setStage] = useState('single')
+  const [qualifiers, setQualifiers] = useState(20)
+  const [status, setStatus] = useState('open')
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
@@ -1789,15 +2147,19 @@ function TournamentCreateModal({ token, toast, onClose, onCreated }) {
     e.preventDefault()
     setErr('')
     if (!name.trim() || !date) return setErr('Nombre y fecha son obligatorios.')
-    const tournamentDate = new Date(`${date}T${time || '21:30'}:00-03:00`).toISOString()
+    if (stage !== 'single' && !seriesId) return setErr('Elegí la serie a la que pertenece.')
     setSaving(true)
     try {
       await adminCreateTournament(token, {
         name: name.trim(),
-        tournamentDate,
+        tournamentDate: toIsoAr(date, time),
         location: location.trim() || null,
         prizePool: prizePool.trim() || null,
         infoHtml: infoHtml.trim() || null,
+        seriesId: stage === 'single' ? null : Number(seriesId),
+        stage,
+        qualifiers: stage === 'satellite' ? Number(qualifiers) || 0 : 0,
+        status: stage === 'final' ? 'upcoming' : status,
       })
       toast.show('✓ Torneo creado')
       onCreated()
@@ -1807,7 +2169,7 @@ function TournamentCreateModal({ token, toast, onClose, onCreated }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: 20 }} onClick={onClose}>
-      <form onClick={e => e.stopPropagation()} onSubmit={handleSave} style={{ background: '#15191f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 16, padding: 28, maxWidth: 540, width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <form onClick={e => e.stopPropagation()} onSubmit={handleSave} style={{ background: '#15191f', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 16, padding: 28, maxWidth: 540, width: '100%', maxHeight: '92vh', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
         <h3 style={{ margin: 0 }}>Nuevo torneo</h3>
         <label className="ap-label">Nombre</label>
         <input className="ap-input" value={name} onChange={e => setName(e.target.value)} placeholder="Torneo de Slots Mayo 2026" disabled={saving} />
@@ -1821,12 +2183,49 @@ function TournamentCreateModal({ token, toast, onClose, onCreated }) {
             <input className="ap-input" type="time" value={time} onChange={e => setTime(e.target.value)} disabled={saving} />
           </div>
         </div>
+
+        <div style={{ display: 'flex', gap: 12 }}>
+          <div style={{ flex: 1 }}>
+            <label className="ap-label">Etapa</label>
+            <select className="ap-input" value={stage} onChange={e => setStage(e.target.value)} disabled={saving}>
+              <option value="single">Torneo suelto</option>
+              <option value="satellite">Satélite (clasifica a una Final)</option>
+              <option value="final">Gran Final</option>
+            </select>
+          </div>
+          {stage !== 'single' && (
+            <div style={{ flex: 1 }}>
+              <label className="ap-label">Serie</label>
+              <select className="ap-input" value={seriesId} onChange={e => setSeriesId(e.target.value)} disabled={saving}>
+                <option value="">— elegir —</option>
+                {activeSeries.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          )}
+        </div>
+        {stage === 'satellite' && (
+          <div>
+            <label className="ap-label">Cuántos clasifican a la Final</label>
+            <input className="ap-input" type="number" min={1} max={200} value={qualifiers} onChange={e => setQualifiers(e.target.value)} disabled={saving} style={{ width: 120 }} />
+          </div>
+        )}
+        {stage !== 'final' && (
+          <div>
+            <label className="ap-label">Estado inicial</label>
+            <select className="ap-input" value={status} onChange={e => setStatus(e.target.value)} disabled={saving}>
+              <option value="open">Inscripción abierta (se ve en /torneo y home)</option>
+              <option value="upcoming">Próximamente (anunciado, sin inscripción)</option>
+            </select>
+          </div>
+        )}
+        {stage === 'final' && <p style={{ fontSize: 12, opacity: 0.7, margin: 0 }}>La Gran Final no tiene inscripción pública: entran solo los clasificados de los satélites (y comodines que agregues a mano).</p>}
+
         <label className="ap-label">Lugar</label>
         <input className="ap-input" value={location} onChange={e => setLocation(e.target.value)} disabled={saving} />
         <label className="ap-label">Premios (texto destacado)</label>
         <input className="ap-input" value={prizePool} onChange={e => setPrizePool(e.target.value)} disabled={saving} />
         <label className="ap-label">Bases / info completa <span style={{ opacity: 0.6, fontWeight: 400 }}>(HTML, opcional)</span></label>
-        <textarea className="ap-input" rows={6} value={infoHtml} onChange={e => setInfoHtml(e.target.value)} placeholder="<p><strong>1° puesto:</strong> $100.000...</p>" disabled={saving} style={{ fontFamily: 'monospace', fontSize: 13 }} />
+        <textarea className="ap-input" rows={5} value={infoHtml} onChange={e => setInfoHtml(e.target.value)} placeholder="<p><strong>1° puesto:</strong> $100.000...</p>" disabled={saving} style={{ fontFamily: 'monospace', fontSize: 13 }} />
         {err && <div style={{ color: '#ff8b9c', fontSize: 13 }}>⚠️ {err}</div>}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
           <button type="button" className="ap-btn" onClick={onClose} disabled={saving}>Cancelar</button>
@@ -1836,6 +2235,7 @@ function TournamentCreateModal({ token, toast, onClose, onCreated }) {
     </div>
   )
 }
+
 
 // ─── Mini-ligas Management ────────────────────────────────────────────────────
 function LeaguesAdmin({ token, toast }) {

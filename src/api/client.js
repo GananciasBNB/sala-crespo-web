@@ -322,6 +322,30 @@ export const adminDeleteTournamentRegistration = (token, regId) =>
     method: 'DELETE', headers: authHeaders(token)
   })
 
+// Series de torneos (satélites → Gran Final)
+export const getActiveTournamentSeries = () =>
+  api('/api/tournament/series/active')
+
+export const adminGetTournamentSeries = (token) =>
+  api('/api/admin/tournament-series', { headers: authHeaders(token) })
+
+export const adminCreateTournamentSeries = (token, data) =>
+  api('/api/admin/tournament-series', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(data) })
+
+export const adminUpdateTournamentSeries = (token, id, data) =>
+  api(`/api/admin/tournament-series/${id}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(data) })
+
+// dryRun=true devuelve la previsualización sin escribir nada.
+export const adminQualifyTournament = (token, id, { dryRun = true, sendEmail = false } = {}) =>
+  api(`/api/admin/tournaments/${id}/qualify`, {
+    method: 'POST', headers: authHeaders(token), body: JSON.stringify({ dryRun, sendEmail })
+  })
+
+export const adminAddFinalist = (token, finalId, dni) =>
+  api(`/api/admin/tournaments/${finalId}/finalists`, {
+    method: 'POST', headers: authHeaders(token), body: JSON.stringify({ dni })
+  })
+
 export const adminGetLeagues = (token) =>
   api('/api/admin/leagues', { headers: authHeaders(token) })
 
