@@ -58,13 +58,13 @@ export default function Torneos() {
           )}
 
           <div className="reveal torneos__header">
-            <span className="eyebrow">Torneos de slots</span>
+            <span className="eyebrow">Torneos de slots 2026 · Camino a la Gran Final</span>
             <div className="torneos__prize">
-              <span className="torneos__prize-amount">$200.000</span>
-              <span className="torneos__prize-label">en premios por torneo</span>
+              <span className="torneos__prize-amount">$2.000.000</span>
+              <span className="torneos__prize-label">en premios en la Gran Final de diciembre</span>
             </div>
             <h2 className="section-title torneos__title">
-              ¿Ganar $200 mil?<br /><em>¿Te lo imaginás?</em>
+              Tres satélites.<br /><em>Una Gran Final.</em>
             </h2>
             <div className="gold-line center" />
           </div>
@@ -72,13 +72,13 @@ export default function Torneos() {
           <div className="torneos__cards">
             <div className="reveal reveal-d1 card torneos__card">
               <div className="torneos__card-icon"><IconTrophy size={36} /></div>
-              <h3>Torneo Mensual</h3>
-              <p>Cada mes organizamos torneos gratuitos de slots. Inscripción libre para todos los clientes de la sala.</p>
+              <h3>3 torneos satélite</h3>
+              <p>Septiembre, octubre y noviembre. Cada uno reparte $200.000 en premios y los <strong>20 mejores clasifican</strong> a la Gran Final.</p>
             </div>
             <div className="reveal reveal-d2 card torneos__card torneos__card--highlight">
               <div className="torneos__card-icon">👑</div>
-              <h3>$200.000 en premios</h3>
-              <p>Primero, segundo y tercer puesto con premios en efectivo. El mejor jugador del mes se lleva el gran premio.</p>
+              <h3>Gran Final · $2.000.000</h3>
+              <p>60 finalistas juegan en diciembre por $2 millones en tickets promocionales. <strong>Todos los finalistas cobran premio.</strong></p>
               <div className="torneos__card-tag">¡Gratis para todos!</div>
             </div>
             <div className="reveal reveal-d3 card torneos__card">
@@ -91,9 +91,9 @@ export default function Torneos() {
           <div className="reveal reveal-d4 torneos__cta">
             {active ? (
               <>
-                <p className="torneos__sub">Inscripción gratuita · Cupos limitados</p>
+                <p className="torneos__sub">Inscripción gratuita · Juegan los primeros 130 en acreditarse</p>
                 <Link to="/torneo" className="btn-primary torneos__btn-inscribite">
-                  🎰 Inscribirme al próximo torneo
+                  🎰 Inscribirme al próximo satélite
                 </Link>
                 <div className="torneos__cta-secondary">
                   <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer" className="torneos__bases-link">
@@ -107,7 +107,9 @@ export default function Torneos() {
               </>
             ) : (
               <>
-                <p className="torneos__sub">Seguinos en Instagram para enterarte de la próxima fecha</p>
+                <p className="torneos__sub">
+                  <Link to="/torneo" className="torneos__bases-link">📅 Ver fechas y finalistas</Link> · Seguinos en Instagram para enterarte cuando abra la inscripción
+                </p>
                 <a
                   href="https://www.instagram.com/salajuegoscrespo/"
                   target="_blank"

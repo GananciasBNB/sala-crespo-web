@@ -70,8 +70,9 @@ const PRIZES = [
 
 const BASES_CARDS = [
   { Icon: IconSlot,   title: 'Modalidad',         body: 'Rondas eliminatorias en máquinas configuradas para el evento. Avanzás según los créditos finales obtenidos.' },
+  { Icon: IconTrophy, title: '20 pases a la Gran Final', body: 'Los 20 mejores del ranking de cada satélite clasifican a la Gran Final de diciembre por $2.000.000. Si ya clasificaste, tu lugar pasa al siguiente.' },
   { Icon: IconTicket, title: 'Premio en vouchers', body: 'Cada premio se entrega en 4 vouchers, uno por semana. El primero al finalizar el torneo.' },
-  { Icon: IconClock,  title: 'Asistencia obligatoria', body: 'Llegá con 30 minutos de anticipación. Quien no se presente en horario queda fuera del torneo.' },
+  { Icon: IconClock,  title: 'Juegan los primeros 130', body: 'La inscripción no tiene tope, pero el día del evento participan hasta 130 jugadores por orden de acreditación. Llegá 30 minutos antes con tu DNI.' },
   { Icon: IconShield, title: 'Mayores de 18',     body: 'Inscripción gratuita y abierta al público mayor de 18 años. Necesitás presentar DNI el día del evento.' },
 ]
 
@@ -250,7 +251,7 @@ export default function TournamentLanding() {
       <div className="trn-pills">
         <span className="trn-pill"><IconCheck /> Inscripción gratuita</span>
         <span className="trn-pill"><IconShield /> +18 años</span>
-        <span className="trn-pill"><IconAlert /> Cupos limitados</span>
+        <span className="trn-pill"><IconAlert /> Juegan los primeros 130</span>
         {isSatellite && <span className="trn-pill trn-pill--gold"><IconTrophy /> {tournament.qualifiers} pases a la Gran Final</span>}
       </div>
 
