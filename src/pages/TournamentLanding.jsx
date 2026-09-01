@@ -188,8 +188,8 @@ export default function TournamentLanding() {
         {series ? (
           <>
             <section className="trn-hero">
-              <div className="trn-hero__eyebrow">Torneos de Slots</div>
-              <h1 className="trn-hero__title">Camino a la<br /><em>Gran Final</em></h1>
+              <div className="trn-hero__eyebrow">Sala de Juegos Crespo</div>
+              <h1 className="trn-hero__title">Torneos de Slots<br /><em>{new Date().getFullYear()}</em></h1>
               <p className="trn-hero__lead">
                 {series.series.description || 'Tres torneos satélite clasifican a la Gran Final de diciembre.'} La inscripción al próximo satélite abre pronto: seguinos en redes para enterarte primero.
               </p>

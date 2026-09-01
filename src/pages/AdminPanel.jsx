@@ -2027,9 +2027,9 @@ function QualifyModal({ token, toast, tournament, onClose, onDone }) {
 }
 
 const SERIES_DEFAULT_ROWS = [
-  { name: 'Torneo Satélite 1 · Septiembre', date: '2026-09-29', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales + 20 pases a la Gran Final' },
-  { name: 'Torneo Satélite 2 · Octubre',    date: '2026-10-29', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales + 20 pases a la Gran Final' },
-  { name: 'Torneo Satélite 3 · Noviembre',  date: '2026-11-26', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales + 20 pases a la Gran Final' },
+  { name: 'Torneo Satélite 1 · Septiembre', date: '2026-09-29', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales' },
+  { name: 'Torneo Satélite 2 · Octubre',    date: '2026-10-29', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales' },
+  { name: 'Torneo Satélite 3 · Noviembre',  date: '2026-11-26', time: '21:30', stage: 'satellite', qualifiers: 20, prizePool: '$200.000 en tickets promocionales' },
   { name: 'Gran Final · Diciembre',         date: '2026-12-17', time: '21:30', stage: 'final',     qualifiers: 0,  prizePool: '$2.000.000 en tickets promocionales' },
 ]
 
