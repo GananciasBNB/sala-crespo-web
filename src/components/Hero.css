@@ -13,22 +13,23 @@
   margin-bottom: -2px; /* elimina raya entre hero y sección siguiente */
 }
 
-/* ── Fondo Mundial: video de pelota al atardecer (reemplaza la foto de las máquinas) ── */
-.hero__mundial-video {
+/* ── Foto de fondo real (máquinas Gong Xi Fa Cai) ────────── */
+.hero__photo-bg {
   position: absolute;
   inset: 0;
   z-index: 0;
-  overflow: hidden;
-  pointer-events: none;
-  background: linear-gradient(135deg, #0a0612 0%, #1a1010 50%, #08050d 100%);
+  background-image: url('/sala/gonxifacai.png');
+  background-size: cover;
+  background-position: center 20%;
+  background-color: #0a0612;
+  transform: scale(1.04);
+  animation: heroZoom 20s ease-in-out infinite alternate;
+  will-change: transform;
 }
-.hero__mundial-video video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
+
+@keyframes heroZoom {
+  from { transform: scale(1.04); background-position: center 20%; }
+  to   { transform: scale(1.08); background-position: center 25%; }
 }
 
 /* Overlay cinematográfico en capas */
