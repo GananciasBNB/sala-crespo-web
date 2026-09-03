@@ -46,7 +46,7 @@ export default function BusinessSchema() {
     url: `${SITE}/`,
     logo: `${SITE}/logo-light.jpg`,
     image: `${SITE}/logo-light.jpg`,
-    description: 'Sala de juegos en Crespo, Entre Ríos. 160 slots, ruletas, shows en vivo, torneos y buffet. Prode Mundial 2026 con premios reales.',
+    description: 'Sala de juegos en Crespo, Entre Ríos. 160 slots, ruletas, shows en vivo, torneos de slots con premios reales y buffet.',
     telephone: '+5493434259136',
     email: 'info@saladejuegoscrespo.ar',
     priceRange: '$$',

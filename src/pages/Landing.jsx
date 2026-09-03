@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import ProdeBanner from '../components/ProdeBanner'
+// import ProdeBanner from '../components/ProdeBanner' // oculto: universo Prode fuera de la web pública (sep 2026)
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import PropuestaValor from '../components/PropuestaValor'
@@ -23,7 +23,6 @@ export default function Landing() {
 
   return (
     <>
-      <ProdeBanner />
       <Navbar onAdminUnlock={() => setAdminOpen(true)} />
       <main>
         <Hero />

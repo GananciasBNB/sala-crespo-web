@@ -7,8 +7,6 @@ const BASE_NAV_LINKS = [
   { label: 'Menú', href: '#ayb' },
   { label: 'Shows', href: '#shows' },
   { label: 'Torneos', href: '#torneos', key: 'torneos' },
-  { label: 'Prode Mundial', href: '/prode', highlight: true },
-  { label: 'Camino Mundial 2026', href: '/caminomundial2026.html', highlight: true },
   { label: 'Ubicación', href: '#ubicacion' },
   { label: 'Contactanos', href: '/contacto' },
 ]

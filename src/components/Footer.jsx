@@ -22,8 +22,8 @@ export default function Footer() {
 
         <nav className="footer__nav">
           <h4>Promos</h4>
-          <a href="/prode" style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><IconTrophy size={14} /> Prode Mundial 2026</a>
-          <a href="#torneos">Gran Torneo Final</a>
+          <a href="/torneo" style={{display:'inline-flex',alignItems:'center',gap:'6px'}}><IconTrophy size={14} /> Camino a la Gran Final</a>
+          <a href="/torneo">Torneos de Slots 2026</a>
         </nav>
 
         <nav className="footer__nav">
@@ -57,7 +57,6 @@ export default function Footer() {
           <a href="/legal/02-terminos-web.html" target="_blank" rel="noopener noreferrer">Términos y condiciones</a>
           <a href="/legal/03-politica-privacidad.html" target="_blank" rel="noopener noreferrer">Política de privacidad</a>
           <a href="/legal/04-politica-cookies.html" target="_blank" rel="noopener noreferrer">Política de cookies</a>
-          <a href="/legal/05-bases-prode-publico.html" target="_blank" rel="noopener noreferrer">Bases del Prode Mundial 2026</a>
           <a href="/legal/08-bases-promo-argentina.html" target="_blank" rel="noopener noreferrer">Bases Promo "Viví Argentina en Sala"</a>
           <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer">Bases del Torneo de Slots</a>
         </nav>
