@@ -502,6 +502,19 @@ function SeriesSection({ data, activeId = null }) {
         })}
       </ol>
 
+      {activeId && (
+        <div className="trn-series__cta">
+          <button
+            type="button"
+            className="trn-btn trn-btn--primary"
+            onClick={() => document.querySelector('.trn-main')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          >
+            🎰 Inscribirme gratis al próximo satélite
+          </button>
+          <span className="trn-series__cta-sub">Inscripción abierta · +18 · Juegan los primeros 130 en acreditarse</span>
+        </div>
+      )}
+
       {finalists.length > 0 ? (
         <div className="trn-finalists">
           <div className="trn-finalists__title">Finalistas confirmados <span>{qualifiedCount} / {totalSpots}</span></div>
