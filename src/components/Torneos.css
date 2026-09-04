@@ -202,12 +202,17 @@
   justify-content: center;
 }
 .torneos__bases-link {
-  color: var(--text3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #7cb8ff; /* celeste de link — pedido de Julieta: que se note clickeable */
   font-size: 13px;
-  text-decoration: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
   transition: color .15s ease;
 }
-.torneos__bases-link:hover { color: var(--gold); text-decoration: underline; }
+.torneos__bases-link svg { flex-shrink: 0; }
+.torneos__bases-link:hover { color: #a8d1ff; }
 .torneos__cta-sep { color: var(--text3); opacity: .5; }
 
 @media (max-width: 700px) { .torneos__cards { grid-template-columns: 1fr; max-width: 100%; } }
