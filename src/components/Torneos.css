@@ -205,10 +205,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #7cb8ff; /* celeste de link — pedido de Julieta: que se note clickeable */
+  color: #7cb8ff; /* celeste de link — pedido de Julieta: que se note clickeable, sin subrayado */
   font-size: 13px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  text-decoration: none;
   transition: color .15s ease;
 }
 .torneos__bases-link svg { flex-shrink: 0; }
