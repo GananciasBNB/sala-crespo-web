@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { getActiveTournament } from '../api/client'
+import { IconSlot } from './Icons'
 import './Navbar.css'
 
 const BASE_NAV_LINKS = [
@@ -33,7 +34,7 @@ export default function Navbar({ onAdminUnlock }) {
   // con estilo gold y apuntando directo a /torneo.
   const NAV_LINKS = BASE_NAV_LINKS.map(link => {
     if (link.key === 'torneos' && hasActiveTournament) {
-      return { ...link, label: '🎰 Inscribite al próximo torneo', href: '/torneo', highlight: true, pulse: true }
+      return { ...link, label: 'Inscribite al próximo torneo', href: '/torneo', highlight: true, pulse: true }
     }
     return link
   })
@@ -89,6 +90,11 @@ export default function Navbar({ onAdminUnlock }) {
                 href={link.href}
                 className={`navbar__link ${link.highlight ? 'navbar__link--gold' : ''} ${link.pulse ? 'navbar__link--pulse' : ''}`}
               >
+                {link.pulse && (
+                  <span style={{ display: 'inline-flex', verticalAlign: '-2px', marginRight: 6 }}>
+                    <IconSlot size={15} color="currentColor" />
+                  </span>
+                )}
                 {link.label}
               </a>
             </li>
@@ -115,6 +121,11 @@ export default function Navbar({ onAdminUnlock }) {
               className={`navbar__mobile-link ${link.highlight ? 'navbar__link--gold' : ''} ${link.pulse ? 'navbar__link--pulse' : ''}`}
               onClick={() => setMenuOpen(false)}
             >
+              {link.pulse && (
+                <span style={{ display: 'inline-flex', verticalAlign: '-2px', marginRight: 6 }}>
+                  <IconSlot size={15} color="currentColor" />
+                </span>
+              )}
               {link.label}
             </a>
           ))}

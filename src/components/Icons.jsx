@@ -73,3 +73,45 @@ export const IconMedal = ({ size = 20, color = '#C9A84C' }) => (
     <path d="M10 15L11.5 17L14 13" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 )
+
+export const IconSlot = ({ size = 20, color = '#C9A84C' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="6" width="17" height="14" rx="2.5" stroke={color} strokeWidth="1.8"/>
+    <line x1="8.7" y1="6" x2="8.7" y2="20" stroke={color} strokeWidth="1.4" opacity="0.7"/>
+    <line x1="14.3" y1="6" x2="14.3" y2="20" stroke={color} strokeWidth="1.4" opacity="0.7"/>
+    <circle cx="5.9" cy="13" r="1.3" fill={color}/>
+    <circle cx="11.5" cy="13" r="1.3" fill={color}/>
+    <circle cx="17.1" cy="13" r="1.3" fill={color}/>
+    <path d="M20 10V5.5" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    <circle cx="20" cy="4" r="1.6" fill={color}/>
+  </svg>
+)
+
+export const IconCrown = ({ size = 20, color = '#C9A84C' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 8L7.5 12L12 5L16.5 12L21 8L19.2 17H4.8L3 8Z" stroke={color} strokeWidth="1.8" strokeLinejoin="round" fill={color} fillOpacity="0.15"/>
+    <line x1="5.5" y1="20" x2="18.5" y2="20" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+  </svg>
+)
+
+export const IconGift = ({ size = 20, color = '#C9A84C' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="10" width="16" height="10" rx="1.5" stroke={color} strokeWidth="1.8"/>
+    <rect x="3" y="6.5" width="18" height="3.5" rx="1" stroke={color} strokeWidth="1.8"/>
+    <line x1="12" y1="6.5" x2="12" y2="20" stroke={color} strokeWidth="1.8"/>
+    <path d="M12 6.5C12 6.5 11 2.8 8.5 3C6.6 3.15 6.6 5.9 8.5 6.3C10 6.6 12 6.5 12 6.5Z" stroke={color} strokeWidth="1.5"/>
+    <path d="M12 6.5C12 6.5 13 2.8 15.5 3C17.4 3.15 17.4 5.9 15.5 6.3C14 6.6 12 6.5 12 6.5Z" stroke={color} strokeWidth="1.5"/>
+  </svg>
+)
+
+export const IconCalendar = ({ size = 20, color = '#C9A84C' }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3.5" y="5" width="17" height="16" rx="2" stroke={color} strokeWidth="1.8"/>
+    <line x1="3.5" y1="10" x2="20.5" y2="10" stroke={color} strokeWidth="1.8"/>
+    <line x1="8" y1="3" x2="8" y2="7" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    <line x1="16" y1="3" x2="16" y2="7" stroke={color} strokeWidth="1.8" strokeLinecap="round"/>
+    <circle cx="8.5" cy="14.5" r="1.2" fill={color}/>
+    <circle cx="12" cy="14.5" r="1.2" fill={color}/>
+    <circle cx="15.5" cy="14.5" r="1.2" fill={color}/>
+  </svg>
+)

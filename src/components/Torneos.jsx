@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useScrollRevealParent } from '../hooks/useScrollReveal'
 import { getActiveTournament } from '../api/client'
-import { IconTrophy } from './Icons'
+import { IconTrophy, IconSlot, IconCrown, IconGift, IconCalendar } from './Icons'
 import './Torneos.css'
 
 const TZ = 'America/Argentina/Buenos_Aires'
@@ -37,7 +37,9 @@ export default function Torneos() {
           {active && (
             <Link to="/torneo" className="reveal torneos__banner">
               <div className="torneos__banner-pulse" />
-              <span className="torneos__banner-label">🎰 PRÓXIMO TORNEO</span>
+              <span className="torneos__banner-label" style={{ display: 'inline-flex', alignItems: 'center', gap: 7 }}>
+                <IconSlot size={15} color="currentColor" /> PRÓXIMO TORNEO
+              </span>
               <span className="torneos__banner-fecha">
                 <svg className="torneos__calendar-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="3" width="16" height="15" rx="2"/>
@@ -76,13 +78,13 @@ export default function Torneos() {
               <p>Septiembre, octubre y noviembre. Cada uno reparte $200.000 en premios y los <strong>20 mejores clasifican</strong> a la Gran Final.</p>
             </div>
             <div className="reveal reveal-d2 card torneos__card torneos__card--highlight">
-              <div className="torneos__card-icon">👑</div>
+              <div className="torneos__card-icon"><IconCrown size={36} /></div>
               <h3>Gran Final · $2.000.000</h3>
               <p>60 finalistas juegan en diciembre por $2 millones en tickets promocionales. <strong>Todos los finalistas cobran premio.</strong></p>
               <div className="torneos__card-tag">¡Gratis para todos!</div>
             </div>
             <div className="reveal reveal-d3 card torneos__card">
-              <div className="torneos__card-icon">🎁</div>
+              <div className="torneos__card-icon"><IconGift size={36} /></div>
               <h3>Buffet de Cortesía</h3>
               <p>En todos los torneos: comida, bebidas y dulces sin costo para todos los participantes.</p>
             </div>
@@ -110,7 +112,7 @@ export default function Torneos() {
             ) : (
               <>
                 <p className="torneos__sub">
-                  <Link to="/torneo" className="torneos__bases-link">📅 Ver fechas y finalistas</Link> · Seguinos en Instagram para enterarte cuando abra la inscripción
+                  <Link to="/torneo" className="torneos__bases-link"><IconCalendar size={14} color="currentColor" /> Ver fechas y finalistas</Link> · Seguinos en Instagram para enterarte cuando abra la inscripción
                 </p>
                 <a
                   href="https://www.instagram.com/salajuegoscrespo/"
