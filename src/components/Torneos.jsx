@@ -93,7 +93,7 @@ export default function Torneos() {
               <>
                 <p className="torneos__sub">Inscripción gratuita · Juegan los primeros 130 en acreditarse</p>
                 <Link to="/torneo" className="btn-primary torneos__btn-inscribite">
-                  🎰 Inscribirme al próximo satélite
+                  Inscribirme al próximo satélite
                 </Link>
                 <div className="torneos__cta-secondary">
                   <a href="/legal/bases-torneo-slots.html" target="_blank" rel="noopener noreferrer" className="torneos__bases-link">
