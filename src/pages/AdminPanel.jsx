@@ -18,6 +18,7 @@ import {
   adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview, adminPromoCandidates,
   adminMarketingOptouts, adminReinstateMarketing,
   adminLoyaltyRewards, adminLoyaltyCreateReward, adminLoyaltyUpdateReward, adminLoyaltyDeleteReward,
+  adminSpinConfig, adminSpinCreatePrize, adminSpinUpdatePrize, adminSpinDeletePrize, adminSpinSettings, adminSpinLog,
   adminLoyaltyAccount, adminLoyaltyAdjust, adminLoyaltyCheckin, adminLoyaltyAyb,
   adminLoyaltyPending, adminLoyaltyDeliver, adminLoyaltyCancel,
   adminDashboardStats, adminAnalyticsSnapshot,
@@ -3680,6 +3681,7 @@ function ClubAdmin({ token, toast }) {
       <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
         {[
           ['catalogo', '🛍 Catálogo'],
+          ['fortuna',  '🎰 Fortuna Dorada'],
           ['cuenta',   '👤 Buscar cliente'],
           ['caja',     '💁 Entregar canje'],
           ['operar',   '⚡ Sumar puntos manual'],
@@ -3695,9 +3697,221 @@ function ClubAdmin({ token, toast }) {
         ))}
       </div>
       {subtab === 'catalogo' && <ClubCatalog token={token} toast={toast} />}
+      {subtab === 'fortuna'  && <FortunaAdmin token={token} toast={toast} />}
       {subtab === 'cuenta'   && <ClubAccountLookup token={token} toast={toast} />}
       {subtab === 'caja'     && <ClubDeliver token={token} toast={toast} />}
       {subtab === 'operar'   && <ClubManualOps token={token} toast={toast} />}
+    </div>
+  )
+}
+
+// ─── Fortuna Dorada: tabla de premios, reglas y log de giros ─────────────────
+const SPIN_SYMS = [
+  ['lingote', 'Lingote (top)'], ['fenix', 'Fénix'], ['gato', 'Gato'],
+  ['koi', 'Koi'], ['rana', 'Rana'], ['arbol', 'Árbol'],
+]
+function FortunaAdmin({ token, toast }) {
+  const [cfg, setCfg] = useState(null)
+  const [log, setLog] = useState([])
+  const [verLog, setVerLog] = useState(false)
+  const [settings, setSettings] = useState({ cooldownHours: 3, spinsPerWindow: 2, sorteoMonto: 100000 })
+  const [rows, setRows] = useState([])
+  const [girosDia, setGirosDia] = useState(144) // proyección: giros por día estimados
+  const [nuevo, setNuevo] = useState({ label: '', sym: 'arbol', kind: 'points', points: '', valuePesos: '', pct: '', dailyStock: '' })
+  const inputStyle = { padding: '7px 9px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 13, width: '100%' }
+  const numStyle = { ...inputStyle, width: 74, textAlign: 'right' }
+
+  async function load() {
+    try {
+      const c = await adminSpinConfig(token)
+      setCfg(c); setSettings(c.settings); setRows(c.prizes.map(p => ({ ...p })))
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  useEffect(() => { load() }, [])
+
+  async function guardarSettings() {
+    try { await adminSpinSettings(token, settings); toast.show('Reglas guardadas', 'ok'); await load() }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  async function guardarFila(r) {
+    try {
+      await adminSpinUpdatePrize(token, r.id, {
+        label: r.label, sym: r.sym, kind: r.kind, points: Number(r.points) || 0,
+        valuePesos: r.value_pesos ? Number(r.value_pesos) : null, pct: Number(r.pct) || 0,
+        dailyStock: Number(r.daily_stock) || 0, active: !!r.active, sortOrder: Number(r.sort_order) || 0,
+      })
+      toast.show(`"${r.label}" guardado`, 'ok'); await load()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  async function borrarFila(r) {
+    if (!confirm(`¿Eliminar el premio "${r.label}"? (el log histórico se conserva)`)) return
+    try { await adminSpinDeletePrize(token, r.id); toast.show('Eliminado', 'ok'); await load() }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  async function crear(e) {
+    e.preventDefault()
+    if (!nuevo.label.trim()) return toast.show('Poné un nombre al premio', 'err')
+    try {
+      await adminSpinCreatePrize(token, {
+        label: nuevo.label.trim(), sym: nuevo.sym, kind: nuevo.kind,
+        points: Number(nuevo.points) || 0, valuePesos: nuevo.valuePesos ? Number(nuevo.valuePesos) : null,
+        pct: Number(nuevo.pct) || 0, dailyStock: Number(nuevo.dailyStock) || 0, active: true,
+        sortOrder: (rows.length + 1) * 10,
+      })
+      toast.show('Premio creado', 'ok')
+      setNuevo({ label: '', sym: 'arbol', kind: 'points', points: '', valuePesos: '', pct: '', dailyStock: '' })
+      await load()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  async function cargarLog() {
+    try { const r = await adminSpinLog(token, 300); setLog(r.log || []); setVerLog(true) }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  const setRow = (id, k, v) => setRows(rs => rs.map(r => r.id === id ? { ...r, [k]: v } : r))
+
+  if (!cfg) return <p style={{ color: '#8B9BB4' }}>Cargando…</p>
+  const activos = rows.filter(r => r.active)
+  const sumPct = activos.reduce((a, r) => a + (Number(r.pct) || 0), 0)
+  const hoy = cfg.todayCounts || {}
+  // proyección diaria con los giros estimados: salidas = min(giros × %, stock)
+  const proy = activos.map(r => {
+    const esperadas = girosDia * (Number(r.pct) || 0) / 100
+    const stock = Number(r.daily_stock) || 0
+    const salidas = stock > 0 ? Math.min(esperadas, stock) : esperadas
+    return { r, salidas, pts: salidas * (Number(r.points) || 0), pesos: salidas * (Number(r.value_pesos) || 0) }
+  })
+  const totalPts = proy.reduce((a, p) => a + p.pts, 0)
+  const totalPesos = proy.reduce((a, p) => a + p.pesos, 0)
+  const totalSalidas = proy.reduce((a, p) => a + p.salidas, 0)
+  const fmt = n => '$' + Math.round(n).toLocaleString('es-AR')
+  const card = { background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 10, padding: 16, marginBottom: 18 }
+  const h4 = { margin: '0 0 12px', fontSize: 14, color: '#F0D275' }
+
+  return (
+    <div>
+      <div style={card}>
+        <h4 style={h4}>Reglas del juego</h4>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'end' }}>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Giros por ronda<br />
+            <input type="number" min="1" value={settings.spinsPerWindow} onChange={e => setSettings({ ...settings, spinsPerWindow: Number(e.target.value) })} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Horas entre rondas<br />
+            <input type="number" min="1" step="0.5" value={settings.cooldownHours} onChange={e => setSettings({ ...settings, cooldownHours: Number(e.target.value) })} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Monto del sorteo mensual ($)<br />
+            <input type="number" min="0" step="1000" value={settings.sorteoMonto} onChange={e => setSettings({ ...settings, sorteoMonto: Number(e.target.value) })} style={{ ...numStyle, width: 120 }} /></label>
+          <button onClick={guardarSettings} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Guardar reglas</button>
+        </div>
+        <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0', lineHeight: 1.5 }}>
+          Cada socio tiene <b style={{ color: '#fff' }}>{settings.spinsPerWindow} giros</b> por ventana rodante de <b style={{ color: '#fff' }}>{settings.cooldownHours} hs</b>. El resultado lo decide el servidor con azar criptográfico; el stock diario corta a las 00:00 (hora argentina).
+        </p>
+      </div>
+
+      <div style={card}>
+        <h4 style={h4}>Tabla de premios · suma de %: <b style={{ color: sumPct > 100 ? '#f87171' : '#7ee2a0' }}>{sumPct.toFixed(1)}%</b> → "seguí participando" {Math.max(0, 100 - sumPct).toFixed(1)}%</h4>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <thead>
+              <tr style={{ color: '#8B9BB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
+                {['Premio', 'Símbolo', 'Tipo', 'Puntos', 'Ticket $', '% giro', 'Stock/día', 'Hoy', 'Activo', ''].map(h => <th key={h} style={{ textAlign: 'left', padding: '6px 6px', borderBottom: '1px solid #2a3142' }}>{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.id} style={{ opacity: r.active ? 1 : .5 }}>
+                  <td style={{ padding: 4, minWidth: 180 }}><input value={r.label} onChange={e => setRow(r.id, 'label', e.target.value)} style={inputStyle} /></td>
+                  <td style={{ padding: 4 }}>
+                    <select value={r.sym} onChange={e => setRow(r.id, 'sym', e.target.value)} style={inputStyle}>
+                      {SPIN_SYMS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                    </select>
+                  </td>
+                  <td style={{ padding: 4 }}>
+                    <select value={r.kind} onChange={e => setRow(r.id, 'kind', e.target.value)} style={inputStyle}>
+                      <option value="points">Puntos</option>
+                      <option value="promo_ticket">Promo ticket</option>
+                    </select>
+                  </td>
+                  <td style={{ padding: 4 }}><input type="number" value={r.points} onChange={e => setRow(r.id, 'points', e.target.value)} style={numStyle} /></td>
+                  <td style={{ padding: 4 }}><input type="number" value={r.value_pesos ?? ''} onChange={e => setRow(r.id, 'value_pesos', e.target.value)} style={numStyle} /></td>
+                  <td style={{ padding: 4 }}><input type="number" step="0.5" value={r.pct} onChange={e => setRow(r.id, 'pct', e.target.value)} style={numStyle} /></td>
+                  <td style={{ padding: 4 }}><input type="number" value={r.daily_stock} onChange={e => setRow(r.id, 'daily_stock', e.target.value)} style={numStyle} /></td>
+                  <td style={{ padding: 4, textAlign: 'center', color: (hoy[r.id] || 0) >= (Number(r.daily_stock) || Infinity) ? '#f87171' : '#7ee2a0', fontWeight: 700 }}>{hoy[r.id] || 0}/{r.daily_stock || '∞'}</td>
+                  <td style={{ padding: 4, textAlign: 'center' }}><input type="checkbox" checked={!!r.active} onChange={e => setRow(r.id, 'active', e.target.checked)} /></td>
+                  <td style={{ padding: 4, whiteSpace: 'nowrap' }}>
+                    <button onClick={() => guardarFila(r)} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid #C9A84C', background: 'rgba(201,168,76,.12)', color: '#F0D275', cursor: 'pointer', fontSize: 12, marginRight: 6 }}>Guardar</button>
+                    <button onClick={() => borrarFila(r)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>✕</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <form onSubmit={crear} style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 1fr 1fr auto', gap: 8, marginTop: 14, alignItems: 'center' }}>
+          <input placeholder="Nuevo premio (ej: +75 puntos)" value={nuevo.label} onChange={e => setNuevo({ ...nuevo, label: e.target.value })} style={inputStyle} />
+          <select value={nuevo.sym} onChange={e => setNuevo({ ...nuevo, sym: e.target.value })} style={inputStyle}>{SPIN_SYMS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select>
+          <select value={nuevo.kind} onChange={e => setNuevo({ ...nuevo, kind: e.target.value })} style={inputStyle}><option value="points">Puntos</option><option value="promo_ticket">Promo ticket</option></select>
+          <input type="number" placeholder="Pts" value={nuevo.points} onChange={e => setNuevo({ ...nuevo, points: e.target.value })} style={inputStyle} />
+          <input type="number" placeholder="Ticket $" value={nuevo.valuePesos} onChange={e => setNuevo({ ...nuevo, valuePesos: e.target.value })} style={inputStyle} />
+          <input type="number" step="0.5" placeholder="%" value={nuevo.pct} onChange={e => setNuevo({ ...nuevo, pct: e.target.value })} style={inputStyle} />
+          <input type="number" placeholder="Stock" value={nuevo.dailyStock} onChange={e => setNuevo({ ...nuevo, dailyStock: e.target.value })} style={inputStyle} />
+          <button type="submit" style={{ padding: '8px 14px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>+ Agregar</button>
+        </form>
+      </div>
+
+      <div style={card}>
+        <h4 style={h4}>Proyección diaria</h4>
+        <label style={{ fontSize: 12, color: '#8B9BB4' }}>Giros estimados por día
+          <input type="number" value={girosDia} onChange={e => setGirosDia(Number(e.target.value) || 0)} style={{ ...numStyle, marginLeft: 10 }} />
+          <span style={{ marginLeft: 8 }}>(ej: 60 clientes × 80% × 3 giros = 144)</span>
+        </label>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginTop: 10 }}>
+          <thead><tr style={{ color: '#8B9BB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
+            <th style={{ textAlign: 'left', padding: 6 }}>Premio</th><th style={{ textAlign: 'right', padding: 6 }}>Sale 1 cada</th><th style={{ textAlign: 'right', padding: 6 }}>Salidas/día</th><th style={{ textAlign: 'right', padding: 6 }}>Puntos/día</th><th style={{ textAlign: 'right', padding: 6 }}>$ tickets/día</th>
+          </tr></thead>
+          <tbody>
+            {proy.map(({ r, salidas, pts, pesos }) => (
+              <tr key={r.id} style={{ borderTop: '1px solid #1c2230' }}>
+                <td style={{ padding: 6 }}>{r.label}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>{Number(r.pct) > 0 ? Math.round(100 / Number(r.pct)) + ' giros' : '—'}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>{salidas.toFixed(1)}{Number(r.daily_stock) > 0 && girosDia * Number(r.pct) / 100 > Number(r.daily_stock) ? ' (tope)' : ''}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>{Math.round(pts).toLocaleString('es-AR')}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>{fmt(pesos)}</td>
+              </tr>
+            ))}
+            <tr style={{ borderTop: '1px solid #C9A84C', fontWeight: 700 }}>
+              <td style={{ padding: 6 }}>Total</td>
+              <td style={{ padding: 6, textAlign: 'right' }}>{girosDia > 0 ? Math.round(totalSalidas / girosDia * 100) + '% gana' : '—'}</td>
+              <td style={{ padding: 6, textAlign: 'right' }}>{totalSalidas.toFixed(1)}</td>
+              <td style={{ padding: 6, textAlign: 'right', color: '#F0D275' }}>{Math.round(totalPts).toLocaleString('es-AR')}</td>
+              <td style={{ padding: 6, textAlign: 'right', color: '#F0D275' }}>{fmt(totalPesos)}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0' }}>Nominal por mes (30 días): <b style={{ color: '#fff' }}>{fmt((totalPts + totalPesos) * 30)}</b> — compará contra el 4% del NW.</p>
+      </div>
+
+      <div style={card}>
+        <h4 style={h4}>Log de giros {verLog && <span style={{ color: '#8B9BB4', fontWeight: 400 }}>· últimos {log.length}</span>}</h4>
+        {!verLog ? (
+          <button onClick={cargarLog} style={{ padding: '8px 16px', borderRadius: 6, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer', fontSize: 13 }}>Ver últimos giros</button>
+        ) : (
+          <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+              <thead><tr style={{ color: '#8B9BB4', textTransform: 'uppercase', letterSpacing: 1, fontSize: 11 }}>
+                <th style={{ textAlign: 'left', padding: 6 }}>Cuándo</th><th style={{ textAlign: 'left', padding: 6 }}>Socio</th><th style={{ textAlign: 'left', padding: 6 }}>DNI</th><th style={{ textAlign: 'left', padding: 6 }}>Resultado</th>
+              </tr></thead>
+              <tbody>
+                {log.map(l => (
+                  <tr key={l.id} style={{ borderTop: '1px solid #1c2230' }}>
+                    <td style={{ padding: 6, whiteSpace: 'nowrap' }}>{new Date(l.created_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</td>
+                    <td style={{ padding: 6 }}>{l.player_name || '—'}</td>
+                    <td style={{ padding: 6 }}>{l.dni || '—'}</td>
+                    <td style={{ padding: 6, color: l.prize_label ? '#7ee2a0' : '#8B9BB4' }}>{l.prize_label || 'seguí participando'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

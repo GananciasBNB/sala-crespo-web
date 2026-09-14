@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Fortuna Dorada · Sala Crespo Club</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0406; touch-action: manipulation; }
+  #stage { position: fixed; inset: 0; }
+  .hint { position: fixed; bottom: 6px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.22);
+          font: 11px 'Segoe UI', sans-serif; letter-spacing: 1px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.2/pixi.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-filters@5.3.0/dist/browser/pixi-filters.js" crossorigin="anonymous"></script>
+<script src="giro-diario-assets/assets-data.js"></script>
+<script src="giro-diario-assets/fondo-video-data.js"></script>
+<script>
+function mostrarErrorPantalla(msg) {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;color:#f87171;font:13px monospace;z-index:99;background:rgba(0,0,0,.85);padding:8px;border-radius:8px;';
+  d.textContent = 'PROBLEMA: ' + msg;
+  document.body.appendChild(d);
+}
+window.addEventListener('error', e => mostrarErrorPantalla(e.message + ' @ ' + (e.lineno || '?')));
+window.addEventListener('unhandledrejection', e => mostrarErrorPantalla(e.reason?.message || String(e.reason)));
+
+// ═══════════════════════════════════════════════════════════════════
+//  GIRO DIARIO v2 — arte final (assets ./giro-diario-assets/)
+//  Tabla DEMO: en producción el premio lo decide POST /api/loyalty/spin
+//  (1 giro/día por socio, % y stock diario configurados en el admin).
+// ═══════════════════════════════════════════════════════════════════
+
+const PREMIOS = [
+  { id: 'ticket',  label: 'TICKET $5.000', pct: 2,  sym: 'lingote', color: 0xF0D275 },
+  { id: 'pts500',  label: '+500 PUNTOS',   pct: 5,  sym: 'fenix',   color: 0xF0D275 },
+  { id: 'pts250',  label: '+250 PUNTOS',   pct: 8,  sym: 'gato',    color: 0xF0D275 },
+  { id: 'pts150',  label: '+150 PUNTOS',   pct: 12, sym: 'koi',     color: 0x7ee2a0 },
+  { id: 'pts100',  label: '+100 PUNTOS',   pct: 15, sym: 'rana',    color: 0x7ee2a0 },
+  { id: 'pts50',   label: '+50 PUNTOS',    pct: 18, sym: 'arbol',   color: 0xC9A84C },
+  { id: 'nada',    label: 'SEGUÍ PARTICIPANDO', pct: 40, sym: null, color: 0x998d75 },
+];
+
+const SYMS = ['lingote', 'fenix', 'gato', 'koi', 'rana', 'arbol', 'nudo'];
+// Ventana transparente del marco en FRACCIONES de la imagen (medida por canal
+// alfa: x164-1496, y203-736 sobre 1659×948) — así vale para cualquier escala.
+const VENT_FRAC = { x: 164 / 1659, y: 203 / 948, w: 1333 / 1659, h: 534 / 948 };
+const W = 1600, H = 900;
+
+const app = new PIXI.Application({ background: '#0a0406', width: W, height: H, antialias: true });
+document.getElementById('stage').appendChild(app.view);
+
+function fit() {
+  const s = Math.min(innerWidth / W, innerHeight / H);
+  Object.assign(app.view.style, {
+    width: W * s + 'px', height: H * s + 'px', position: 'absolute',
+    left: (innerWidth - W * s) / 2 + 'px', top: (innerHeight - H * s) / 2 + 'px',
+  });
+}
+addEventListener('resize', fit); fit();
+
+// Los PNGs viven embebidos como data URIs en assets-data.js (window.GIRO_ASSETS):
+// con file:// Chrome bloquea tanto fetch como imágenes locales en WebGL
+// (SecurityError texImage2D). Un data URI es same-origin y WebGL lo acepta.
+const GA = window.GIRO_ASSETS || {};
+const URLS = {
+  fondo: GA['fondo'], marco: GA['marco-rodillos'], panel: GA['panel-premios'], logo: GA['logo'],
+  lingote: GA['lingote'], fenix: GA['fenix'], gato: GA['gato'],
+  koi: GA['koi'], rana: GA['rana'], arbol: GA['arbol'], nudo: GA['nudo'],
+};
+if (!GA['fondo']) mostrarErrorPantalla('No se encontró giro-diario-assets/assets-data.js al lado del HTML.');
+
+// ─── Sonido sintetizado (los definitivos vienen después) ───────────
+let actx = null;
+function beep(freq, dur, vol, tipo) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = tipo || 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur);
+  } catch {}
+}
+const jingle = () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => beep(f, .28, .12, 'triangle'), i * 120));
+
+// ─── Voz del Club (MP3s pregrabados con ElevenLabs; si falta el audio,
+//     la pantalla sigue funcionando muda — nunca romper el flujo) ────
+const VOZ_DIR = 'giro-diario-assets/voz-eleven/';
+let vozActual = null;
+function voz(nombre) {
+  try {
+    if (vozActual && !vozActual.ended) vozActual.pause();
+    const a = new Audio(VOZ_DIR + nombre + '.mp3');
+    a.volume = 0.95;
+    vozActual = a;
+    a.play().catch(() => {});
+  } catch {}
+}
+const vozDice = (frag) => vozActual && !vozActual.paused && !vozActual.ended && vozActual.src.includes(frag);
+
+// ─── SFX + música (ElevenLabs; mismo criterio: fallo silencioso) ────
+const SFX_DIR = 'giro-diario-assets/sfx/';
+function sfx(nombre, vol = 0.8, loop = false) {
+  try {
+    const a = new Audio(SFX_DIR + nombre + '.mp3');
+    a.volume = vol; a.loop = loop;
+    a.play().catch(() => {});
+    return a;
+  } catch { return null; }
+}
+let spinSound = null;
+// Música ambiental en loop suave. Se intenta al cargar (funciona si Chrome
+// corre con --autoplay-policy=no-user-gesture-required, como en el gabinete);
+// si la política lo bloquea, arranca con el primer gesto.
+let musica = null;
+function arrancarMusica() {
+  if (musica) return;
+  try {
+    const m = new Audio(SFX_DIR + 'musica-ambiente.mp3');
+    m.volume = 0.3; m.loop = true;
+    m.play().then(() => { musica = m; }).catch(() => {});
+  } catch {}
+}
+arrancarMusica();
+window.addEventListener('pointerdown', arrancarMusica);
+const VOZ_PREMIO = { ticket: 'giro-ticket', pts500: 'giro-500', pts250: 'giro-250',
+  pts150: 'giro-150', pts100: 'giro-100', pts50: 'giro-50', nada: 'giro-nada' };
+// server mode: el premio llega con símbolo, no con id de demo
+const VOZ_SYM = { fenix: 'giro-500', gato: 'giro-250', koi: 'giro-150', rana: 'giro-100', arbol: 'giro-50' };
+
+// Carga vía <img> (no fetch): funciona abriendo el archivo con doble click
+// (Chrome bloquea fetch sobre file://, por eso Assets.load dejaba todo negro).
+function cargarTexturas(urls) {
+  return Promise.all(Object.entries(urls).map(([k, u]) => new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res([k, PIXI.Texture.from(img)]);
+    img.onerror = () => rej(new Error('No se pudo cargar ' + u + ' — ¿está la carpeta giro-diario-assets al lado del HTML?'));
+    img.src = u;
+  }))).then(Object.fromEntries);
+}
+
+cargarTexturas(URLS).then(T => {
+ try {
+
+  // ─── Fondo ───────────────────────────────────────────────────────
+  const fondo = new PIXI.Sprite(T.fondo);
+  const fs = Math.max(W / fondo.texture.width, H / fondo.texture.height);
+  fondo.scale.set(fs); fondo.anchor.set(0.5); fondo.position.set(W / 2, H / 2);
+  app.stage.addChild(fondo);
+
+  // Animated background: Flow/Seedance clip embedded as a data URI
+  // (file:// taints local video for WebGL, same as images — data: is same-origin).
+  // The static PNG stays as first frame / fallback until the video can play.
+  if (window.GIRO_FONDO_VIDEO) {
+    const vid = document.createElement('video');
+    vid.muted = true; vid.loop = true; vid.playsInline = true;
+    vid.addEventListener('canplaythrough', () => {
+      try {
+        fondo.texture = PIXI.Texture.from(vid);
+        const vs = Math.max(W / vid.videoWidth, H / vid.videoHeight);
+        fondo.scale.set(vs);
+        vid.play().catch(() => {});
+      } catch (e) { console.error('video fondo:', e); }
+    }, { once: true });
+    vid.src = window.GIRO_FONDO_VIDEO;
+    vid.load();
+  }
+
+  // ─── Textura radial reutilizable (halos, motas, chispas, flash) ──
+  function texturaRadial(hex, size = 256) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = size;
+    const ctx = cv.getContext('2d');
+    const r = (hex >> 16) & 255, g = (hex >> 8) & 255, b = hex & 255;
+    const gr = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    gr.addColorStop(0, `rgba(${r},${g},${b},1)`);
+    gr.addColorStop(0.35, `rgba(${r},${g},${b},0.45)`);
+    gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = gr; ctx.fillRect(0, 0, size, size);
+    return PIXI.Texture.from(cv);
+  }
+  const TEX_GLOW = texturaRadial(0xF0D275);
+
+  // ─── FONDO VIVO: brasas doradas flotando + respiración de luz ────
+  const motas = [];
+  const motasLayer = new PIXI.Container();
+  for (let i = 0; i < 44; i++) {
+    const m = new PIXI.Sprite(TEX_GLOW);
+    m.anchor.set(0.5);
+    const s = 3 + Math.random() * 9;
+    m.width = m.height = s;
+    m.x = Math.random() * W; m.y = Math.random() * H;
+    m.alpha = 0.1 + Math.random() * 0.28;
+    m.vy = 0.15 + Math.random() * 0.5;
+    m.sway = Math.random() * Math.PI * 2;
+    m.blendMode = PIXI.BLEND_MODES.ADD;
+    motasLayer.addChild(m); motas.push(m);
+  }
+  app.stage.addChild(motasLayer);
+
+  const respiro = new PIXI.Sprite(TEX_GLOW);
+  respiro.anchor.set(0.5); respiro.position.set(W / 2, H / 2 - 60);
+  respiro.width = 1500; respiro.height = 1000;
+  respiro.alpha = 0.05; respiro.blendMode = PIXI.BLEND_MODES.ADD;
+  app.stage.addChild(respiro);
+
+  // ─── Header: logo + título ───────────────────────────────────────
+  const logo = new PIXI.Sprite(T.logo);
+  logo.height = 104; logo.scale.x = logo.scale.y; logo.anchor.set(0.5);
+  const t1 = new PIXI.Text('SALA CRESPO CLUB', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 20, fontWeight: '700', fill: '#C9A84C', letterSpacing: 9,
+  }));
+  t1.anchor.set(0.5, 1); t1.position.set(W / 2, 40);
+  const t2 = new PIXI.Text('FORTUNA DORADA', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 46, fontWeight: '900',
+    fill: ['#ffffff', '#F0D275'], fillGradientStops: [0.25, 1], letterSpacing: 5,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 12, dropShadowDistance: 4,
+  }));
+  t2.anchor.set(0.5, 0); t2.position.set(W / 2, 40);
+  // logo a la izquierda del bloque de título, centrado el conjunto
+  logo.position.set(W / 2 - t2.width / 2 - 80, 58);
+  const t3 = new PIXI.Text('GRATUITO · PARTICIPÁ Y GANÁ PUNTOS Y PREMIOS', new PIXI.TextStyle({
+    fontFamily: 'Segoe UI', fontSize: 17, fontWeight: '700', fill: '#e8dfca', letterSpacing: 3.5,
+  }));
+  t3.anchor.set(0.5, 0); t3.position.set(W / 2, 98);
+  app.stage.addChild(logo, t1, t2, t3);
+
+  // ─── Marco + ventana de rodillos (el juego se adapta al marco) ───
+  // La escala se calcula sobre el tamaño REAL de la textura cargada.
+  const marco = new PIXI.Sprite(T.marco);
+  const marcoW = 900;
+  const marcoScale = marcoW / marco.texture.width;
+  marco.scale.set(marcoScale);
+  const marcoH = marco.texture.height * marcoScale;
+  const marcoX = (W - marcoW) / 2;
+  const marcoY = 126;
+  marco.position.set(marcoX, marcoY);
+
+  const vent = {
+    x: marcoX + VENT_FRAC.x * marcoW,
+    y: marcoY + VENT_FRAC.y * marcoH,
+    w: VENT_FRAC.w * marcoW,
+    h: VENT_FRAC.h * marcoH,
+  };
+
+  // Fondo oscuro detrás de los rodillos (dentro de la ventana)
+  const ventBg = new PIXI.Graphics().beginFill(0x160a10, 0.96).drawRect(vent.x, vent.y, vent.w, vent.h).endFill();
+  app.stage.addChild(ventBg);
+
+  // ─── Reels 3×1: símbolos gigantes, una línea de pago ─────────────
+  const REELS = 3;
+  const cellW = vent.w / REELS;
+  const SYM_SIZE = Math.min(cellW, vent.h) * 0.94;
+  const reels = [];
+  const reelLayer = new PIXI.Container();
+  app.stage.addChild(reelLayer);
+  const mask = new PIXI.Graphics().beginFill(0xffffff).drawRect(vent.x, vent.y, vent.w, vent.h).endFill();
+  reelLayer.mask = mask; app.stage.addChild(mask);
+
+  const randSym = () => SYMS[(Math.random() * SYMS.length) | 0];
+  for (let i = 0; i < REELS; i++) {
+    const cx = vent.x + cellW * i + cellW / 2;
+    const cont = new PIXI.Container();
+    const symbols = [];
+    for (let j = -1; j <= 1; j++) { // arriba, visible, abajo
+      const sp = new PIXI.Sprite(T[randSym()]);
+      sp.anchor.set(0.5);
+      sp.width = SYM_SIZE; sp.height = SYM_SIZE;
+      sp.x = cx; sp.baseRow = j;
+      sp.y = vent.y + vent.h / 2 + j * vent.h;
+      symbols.push(sp); cont.addChild(sp);
+    }
+    reelLayer.addChild(cont);
+    reels.push({ cont, symbols, cx, pos: 0, vel: 0, objetivo: null, estado: 'quieto', stopAt: 0 });
+  }
+  // Halo pulsante detrás del símbolo central de cada reel (respira en reposo,
+  // se enciende fuerte al ganar) + blur vertical proporcional a la velocidad.
+  const halos = reels.map(r => {
+    const h = new PIXI.Sprite(TEX_GLOW);
+    h.anchor.set(0.5);
+    h.width = h.height = SYM_SIZE * 1.9;
+    h.position.set(r.cx, vent.y + vent.h / 2);
+    h.alpha = 0; h.blendMode = PIXI.BLEND_MODES.ADD;
+    return h;
+  });
+  halos.forEach(h => reelLayer.addChildAt(h, 0));
+  reels.forEach(r => { r.blur = new PIXI.BlurFilter(0); r.blur.blurX = 0; r.blur.blurY = 0; r.cont.filters = [r.blur]; });
+  let celebrarHasta = 0;
+
+  app.stage.addChild(marco); // el marco tapa los bordes de la ventana
+
+  // ─── Botón GIRAR (centrado abajo) ────────────────────────────────
+  const boton = new PIXI.Container();
+  const bg = new PIXI.Graphics();
+  function pintarBoton(activo) {
+    bg.clear();
+    bg.lineStyle(4, activo ? 0xF0D275 : 0x555555)
+      .beginFill(activo ? 0x8f1524 : 0x3a3342)
+      .drawRoundedRect(-185, -55, 370, 110, 55).endFill();
+    // doble borde interior fino (mismo lenguaje que el modal de premios)
+    bg.lineStyle(1.5, 0xF0D275, activo ? 0.45 : 0.15)
+      .drawRoundedRect(-172, -42, 344, 84, 42);
+  }
+  pintarBoton(true);
+  const btxt = new PIXI.Text('GIRAR', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 44, fontWeight: '900', fill: '#F0D275', letterSpacing: 12,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
+  }));
+  btxt.anchor.set(0.5);
+  boton.addChild(bg, btxt);
+  boton.position.set(W / 2, marcoY + marcoH + 118);
+  boton.eventMode = 'static'; boton.cursor = 'pointer';
+  app.stage.addChild(boton);
+
+  // Indicador "GIRO 1/2" sobre el botón: siempre se sabe cuál giro va
+  const giroLabel = new PIXI.Text('', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 22, fontWeight: '700', fill: '#C9A84C', letterSpacing: 5,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
+  }));
+  giroLabel.anchor.set(0.5);
+  giroLabel.position.set(W / 2, marcoY + marcoH + 44);
+  app.stage.addChild(giroLabel);
+  window.__actualizarGiroLabel = (total, restantes) => {
+    giroLabel.text = restantes > 0
+      ? `GIRO ${total - restantes + 1} / ${total}`
+      : 'GIROS AGOTADOS · VOLVÉ MÁS TARDE';
+  };
+
+  // ─── TABLA DE PREMIOS SIEMPRE VISIBLE: columnas laterales ────────
+  // 3 premios top a la izquierda, 3 a la derecha del marco. El chip del
+  // premio ganado celebra con su halo; en reposo un brillo recorre los
+  // chips de a uno (modo atracción). Nombres largos: wordWrap 250px.
+  const combos = PREMIOS.filter(p => p.sym);
+  const tablaLayer = new PIXI.Container();
+  const chipRefs = [];
+  const ladoX = [175, W - 175];
+  combos.forEach((p, i) => {
+    const cx = ladoX[(i / 3) | 0];
+    const cy = 196 + (i % 3) * 172;
+    const halo = new PIXI.Sprite(TEX_GLOW);
+    halo.anchor.set(0.5); halo.width = halo.height = 215;
+    halo.position.set(cx, cy); halo.alpha = 0; halo.blendMode = PIXI.BLEND_MODES.ADD;
+    const chip = new PIXI.Graphics()
+      .beginFill(0x0d0509, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, 0, 56).endFill()
+      .beginFill(0xF0D275, 0.05).drawCircle(0, 0, 46).endFill();
+    chip.position.set(cx, cy);
+    const ic = new PIXI.Sprite(T[p.sym]);
+    ic.anchor.set(0.5); ic.width = 92; ic.height = 92; ic.position.set(cx, cy);
+    const x3 = new PIXI.Text('× 3', new PIXI.TextStyle({ fontFamily: 'Georgia', fontSize: 16, fontWeight: '900', fill: '#C9A84C', letterSpacing: 3, dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2 }));
+    x3.anchor.set(0.5, 0); x3.position.set(cx, cy + 60);
+    const lbl = new PIXI.Text(p.label, new PIXI.TextStyle({
+      fontFamily: 'Segoe UI', fontSize: 20, fontWeight: '700',
+      fill: '#F5E6B8', letterSpacing: 0.5,
+      wordWrap: true, wordWrapWidth: 250, align: 'center',
+      dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 8, dropShadowDistance: 2, dropShadowAlpha: 0.9,
+    }));
+    lbl.anchor.set(0.5, 0); lbl.position.set(cx, cy + 82);
+    tablaLayer.addChild(halo, chip, ic, x3, lbl);
+    chipRefs.push({ id: p.id, halo, ic });
+  });
+  app.stage.addChild(tablaLayer);
+  let chipGanador = null;
+  function tablaTick(ahora) {
+    const idx = ((ahora / 1100) | 0) % chipRefs.length;
+    const suave = Math.sin(((ahora % 1100) / 1100) * Math.PI) * 0.4;
+    chipRefs.forEach((c, i) => {
+      if (chipGanador === c.id && ahora < celebrarHasta) {
+        c.halo.alpha = 0.7 + Math.sin(ahora / 90) * 0.3;
+        c.ic.width = c.ic.height = 92 * (1 + Math.sin(ahora / 120) * 0.08);
+      } else {
+        c.halo.alpha += ((i === idx ? suave : 0) - c.halo.alpha) * 0.12;
+        c.ic.width = c.ic.height = 92;
+      }
+    });
+  }
+
+  // ─── Cartel resultado ────────────────────────────────────────────
+  const dim = new PIXI.Graphics().beginFill(0x000000, 0.55).drawRect(0, 0, W, H).endFill();
+  dim.visible = false; app.stage.addChild(dim);
+  const cartel = new PIXI.Text('', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 64, fontWeight: '900', fill: '#F0D275', align: 'center',
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 16, dropShadowDistance: 5, letterSpacing: 2,
+  }));
+  cartel.anchor.set(0.5); cartel.position.set(W / 2, H / 2 - 40); cartel.visible = false;
+  const cartelSub = new PIXI.Text('', new PIXI.TextStyle({
+    fontFamily: 'Segoe UI', fontSize: 24, fill: '#e8dfca', align: 'center',
+  }));
+  cartelSub.anchor.set(0.5); cartelSub.position.set(W / 2, H / 2 + 40); cartelSub.visible = false;
+  const cartelLogo = new PIXI.Sprite(T.logo);
+  cartelLogo.anchor.set(0.5); cartelLogo.height = 90; cartelLogo.scale.x = cartelLogo.scale.y;
+  cartelLogo.position.set(W / 2, H / 2 - 160); cartelLogo.visible = false;
+  app.stage.addChild(dim, cartel, cartelSub, cartelLogo);
+  function mostrarCartel(txt, sub, color) {
+    cartel.text = txt; cartel.style.fill = color; cartelSub.text = sub;
+    dim.visible = cartel.visible = cartelSub.visible = cartelLogo.visible = true;
+  }
+  function ocultarCartel() { dim.visible = cartel.visible = cartelSub.visible = cartelLogo.visible = false; }
+  dim.eventMode = 'static';
+  dim.on('pointertap', ocultarCartel);
+
+  // ─── Partículas ──────────────────────────────────────────────────
+  const parts = [];
+
+  // Moneda china (círculo de oro con agujero cuadrado) para la lluvia del premio
+  const monedaTex = (() => {
+    const g = new PIXI.Graphics();
+    g.beginFill(0xC9A84C).lineStyle(5, 0x8c6a1f).drawCircle(50, 50, 44).endFill();
+    g.beginFill(0xF0D275, 0.6).drawCircle(44, 42, 30).endFill();
+    g.beginFill(0x0d0509).lineStyle(4, 0x8c6a1f).drawRect(36, 36, 28, 28).endFill();
+    return app.renderer.generateTexture(g, { region: new PIXI.Rectangle(0, 0, 100, 100) });
+  })();
+
+  // Lluvia de monedas al ganar: caen desde arriba de la pantalla girando
+  function lluviaMonedas(n) {
+    for (let i = 0; i < n; i++) {
+      const p = new PIXI.Sprite(monedaTex);
+      p.anchor.set(0.5);
+      const s = 26 + Math.random() * 34;
+      p.width = p.height = s; p.tam = s;
+      p.position.set(Math.random() * W, -60 - Math.random() * 650);
+      p.vx = (Math.random() - 0.5) * 3; p.vy = 6 + Math.random() * 7;
+      p.rot = (Math.random() - 0.5) * 0.25;
+      p.flip = Math.random() * Math.PI * 2; p.flipVel = 0.12 + Math.random() * 0.2;
+      p.vida = 3; p.esMoneda = true;
+      app.stage.addChild(p); parts.push(p);
+    }
+  }
+  function burst(n) { lluviaMonedas(Math.round(n * 0.7)); }
+
+  // ─── Animaciones de impacto (aterrizaje de símbolos) ─────────────
+  const tweens = [];
+  function squash(sp) {
+    tweens.push({ tipo: 'squash', sp, t: 0, dur: 460, w: sp.width, h: sp.height });
+  }
+  function flash(x, y) {
+    const f = new PIXI.Sprite(TEX_GLOW);
+    f.anchor.set(0.5); f.position.set(x, y);
+    f.width = f.height = SYM_SIZE * 1.5; f.alpha = 0.85; f.blendMode = PIXI.BLEND_MODES.ADD;
+    reelLayer.addChild(f);
+    tweens.push({ tipo: 'flash', sp: f, t: 0, dur: 320 });
+  }
+  function chispas(x, y, n) {
+    for (let i = 0; i < n; i++) {
+      const p = new PIXI.Sprite(TEX_GLOW);
+      p.anchor.set(0.5); p.width = p.height = 6 + Math.random() * 10;
+      p.blendMode = PIXI.BLEND_MODES.ADD;
+      p.position.set(x + (Math.random() - 0.5) * SYM_SIZE * 0.7, y);
+      p.vx = (Math.random() - 0.5) * 10; p.vy = -3 - Math.random() * 7;
+      p.rot = 0; p.vida = 0.9;
+      app.stage.addChild(p); parts.push(p);
+    }
+  }
+  function pulso(sp) {
+    tweens.push({ tipo: 'pulso', sp, t: 0, dur: 1300, w: sp.width, h: sp.height });
+  }
+
+  // ─── Sorteo (DEMO — producción: servidor) ────────────────────────
+  function sortear() {
+    const r = Math.random() * 100; let acc = 0;
+    for (const p of PREMIOS) { acc += p.pct; if (r < acc) return p; }
+    return PREMIOS[PREMIOS.length - 1];
+  }
+  function comboPara(premio) {
+    if (premio.sym) return [premio.sym, premio.sym, premio.sym];
+    const a = randSym(); let b = randSym();
+    while (b === a) b = randSym();
+    return Math.random() < 0.5 ? [a, a, b] : [a, b, a]; // near-miss
+  }
+
+  // ─── Spin ────────────────────────────────────────────────────────
+  // SERVER MODE: the kiosk parent posts {tipo:'init', token, apiBase}; the
+  // outcome then ALWAYS comes from POST /api/loyalty/spin (rolling window and
+  // daily stock live server-side). Opened standalone (no init) = DEMO mode.
+  const GIROS_PERMITIDOS = Math.max(1, Number(new URLSearchParams(location.search).get('giros')) || 1);
+  let girosUsados = 0;
+  let girosTotal = GIROS_PERMITIDOS, girosRestantes = GIROS_PERMITIDOS;
+  let girando = false, yaGiroHoy = false;
+  const pintarGiroLabel = () => { if (window.__actualizarGiroLabel) window.__actualizarGiroLabel(girosTotal, girosRestantes); };
+  let SRV = null; // { token, apiBase }
+  window.addEventListener('message', (e) => {
+    if (e && e.data && e.data.tipo === 'init' && e.data.token) {
+      SRV = { token: e.data.token, apiBase: e.data.apiBase || '' };
+      voz('giro-bienvenida');
+      fetch(SRV.apiBase + '/api/loyalty/spin-status', { headers: { Authorization: 'Bearer ' + SRV.token } })
+        .then(r => r.json())
+        .then(s => {
+          if (typeof s.left === 'number') {
+            yaGiroHoy = s.left <= 0;
+            girosTotal = s.porVentana || 2;
+            girosRestantes = s.left;
+            pintarGiroLabel();
+          }
+        })
+        .catch(() => {});
+    }
+  });
+  try { window.parent.postMessage({ tipo: 'listo' }, '*'); } catch {}
+  pintarGiroLabel();
+
+  function arrancarRodillos() {
+    const ahora = performance.now();
+    reels.forEach((r, i) => {
+      r.estado = 'girando'; r.vel = 42 + i * 4;
+      r.objetivo = randSym();
+      r.landing = null;
+      r.stopAt = ahora + 600000; // gira "infinito" hasta conocer el resultado
+      // resync: pos=0 must match what's on screen or the first frame teleports
+      // sprites (visible "magic" swaps). Keep the current center symbol put.
+      r.pos = 0;
+      const texCentro = (r.centro || r.symbols[1]).texture;
+      r.symbols.forEach((sp, idx) => {
+        sp.texture = idx === 1 ? texCentro : T[randSym()];
+        sp.width = SYM_SIZE; sp.height = SYM_SIZE;
+        sp.y = vent.y + vent.h / 2 + (idx - 1) * vent.h;
+      });
+      r.centro = r.symbols[1];
+    });
+  }
+  function fijarResultado(premio) {
+    const combo = comboPara(premio);
+    const ahora = performance.now();
+    reels.forEach((r, i) => {
+      r.objetivo = combo[i];
+      r.stopAt = ahora + 1100 + i * 1200;
+    });
+    window.__premio = premio;
+  }
+
+  boton.on('pointertap', async () => {
+    if (girando) return;
+    ocultarCartel();
+    if (yaGiroHoy) {
+      voz('giro-ya-giro');
+      mostrarCartel('YA USASTE TUS GIROS', 'Revisá el contador para saber cuándo podés volver a participar', '#998d75');
+      return;
+    }
+    girando = true;
+    pintarBoton(false); btxt.text = '· · ·';
+    sfx('ui-tap', 0.7);
+    spinSound = sfx('spin-loop', 0.4, true);
+    if (!vozDice('bienvenida')) voz('giro-suerte');
+    arrancarRodillos();
+    if (SRV) {
+      try {
+        const resp = await fetch(SRV.apiBase + '/api/loyalty/spin', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + SRV.token },
+        });
+        const j = await resp.json();
+        if (!resp.ok) throw new Error(j.error || 'spin rechazado');
+        yaGiroHoy = j.left <= 0;
+        girosRestantes = j.left;
+        try { window.parent.postMessage({ tipo: 'giro-jugado', left: j.left, premio: j.premio ? j.premio.label : null }, '*'); } catch {}
+        fijarResultado(j.premio
+          ? { id: 'srv', label: j.premio.label.toUpperCase(), sym: j.premio.sym, kind: j.premio.kind }
+          : { id: 'nada', label: 'SEGUÍ PARTICIPANDO', sym: null });
+      } catch (err) {
+        console.error('spin server:', err);
+        fijarResultado({ id: 'error', label: '', sym: null });
+      }
+    } else {
+      fijarResultado(sortear()); // DEMO standalone
+    }
+  });
+
+  app.ticker.add(() => {
+    const ahora = performance.now();
+    const dt = Math.min(app.ticker.deltaMS / 16.667, 4);
+    tablaTick(ahora);
+    let algunoGirando = false;
+    for (const r of reels) {
+      if (r.estado === 'quieto') continue;
+      algunoGirando = true;
+      const centerY = vent.y + vent.h / 2;
+      if (r.estado === 'girando' && ahora >= r.stopAt) r.estado = 'frenando';
+      if (r.estado === 'frenando') r.vel *= Math.pow(0.92, dt);
+      r.pos += r.vel * dt;
+      if (r.estado === 'frenando' && r.vel < 4) {
+        r.estado = 'quieto'; r.vel = 0;
+        r.symbols.forEach((sp) => {
+          const centro = sp.baseRow === 0;
+          sp.texture = T[centro ? r.objetivo : randSym()];
+          sp.width = SYM_SIZE; sp.height = SYM_SIZE;
+          sp.y = centerY + sp.baseRow * vent.h;
+        });
+        r.centro = r.symbols.find(s => s.baseRow === 0);
+        r.cont.y = -30;
+        sfx('reel-stop', 1);
+        const rebote = () => { r.cont.y += (0 - r.cont.y) * 0.25; if (Math.abs(r.cont.y) > 0.5) requestAnimationFrame(rebote); else r.cont.y = 0; };
+        rebote();
+        // impacto del símbolo al clavarse en la línea: squash + flash + chispas
+        squash(r.centro);
+        flash(r.cx, centerY);
+        chispas(r.cx, vent.y + vent.h * 0.85, 14);
+      } else {
+        // scroll: los 3 sprites ciclan por la ventana; la textura solo cambia
+        // cuando un sprite reaparece por arriba (fuera de la vista)
+        const off = r.pos % vent.h;
+        r.symbols.forEach((sp, idx) => {
+          const base = (idx - 1) * vent.h + off;
+          let y = ((base + vent.h * 1.5) % (vent.h * 3)) - vent.h * 1.5;
+          const yAbs = centerY + y;
+          if (yAbs < sp.y - vent.h) { sp.texture = T[randSym()]; sp.width = SYM_SIZE; sp.height = SYM_SIZE; }
+          sp.y = yAbs;
+        });
+      }
+    }
+    if (girando && !algunoGirando) {
+      girando = false;
+      girosUsados++;
+      if (!SRV) { // server mode: lo fijó la respuesta del spin
+        yaGiroHoy = girosUsados >= GIROS_PERMITIDOS;
+        girosRestantes = Math.max(0, GIROS_PERMITIDOS - girosUsados);
+      }
+      if (window.__premio && window.__premio.id !== 'error') pintarGiroLabel();
+      if (spinSound) { spinSound.pause(); spinSound = null; }
+      const premio = window.__premio;
+      btxt.text = 'GIRAR'; pintarBoton(true);
+      if (premio.id === 'error') {
+        mostrarCartel('SE CORTÓ LA CONEXIÓN', 'Tu giro NO se descontó — tocá GIRAR de nuevo', '#c9c0d0');
+      } else if (premio.id !== 'nada') {
+        const esTicket = premio.sym === 'lingote' || premio.kind === 'promo_ticket' || premio.id === 'ticket';
+        mostrarCartel('¡GANASTE ' + premio.label + '!',
+          esTicket ? 'Retiralo en la barra con tu DNI' : 'Ya están acreditados en tu cuenta', '#F0D275');
+        burst(110);
+        if (premio.sym === 'lingote' || premio.kind === 'promo_ticket' || premio.id === 'ticket') {
+          sfx('big-win', 1); // el stinger ya trae el grito BIG WIN — sin voz encima
+        } else {
+          sfx('win-gong', 0.85); sfx('win-coins', 0.7);
+          setTimeout(() => voz(VOZ_SYM[premio.sym] || VOZ_PREMIO[premio.id]), 500);
+        }
+        celebrarHasta = performance.now() + 2200;
+        chipGanador = (PREMIOS.find(p => p.sym === premio.sym) || premio).id;
+        reels.forEach(r => { const sp = r.centro || r.symbols.find(s => s.baseRow === 0); if (sp) pulso(sp); });
+      } else if (girosRestantes > 0) {
+        // perdió pero le quedan giros: invitarlo a seguir YA
+        mostrarCartel('SEGUÍ PARTICIPANDO',
+          girosRestantes === 1 ? '¡Te queda 1 giro — probá de nuevo!' : `¡Te quedan ${girosRestantes} giros — probá de nuevo!`, '#c9c0d0');
+        sfx('lose-soft', 0.7);
+        setTimeout(() => voz('giro-nada-quedan'), 400);
+      } else {
+        // perdió el último de la ronda: suerte para la próxima
+        mostrarCartel('SEGUÍ PARTICIPANDO', 'Volvé en un rato por tus próximos giros — ¡mucha suerte!', '#c9c0d0');
+        sfx('lose-soft', 0.7);
+        setTimeout(() => voz('giro-nada'), 400);
+      }
+    }
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      if (p.esMoneda) {
+        // moneda: cae con gravedad suave y "flipea" sobre su eje
+        p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.12 * dt;
+        p.rotation += p.rot * dt;
+        p.flip += p.flipVel * dt;
+        p.width = Math.max(2, Math.abs(Math.cos(p.flip)) * p.tam);
+        if (p.y > H + 80) { app.stage.removeChild(p); parts.splice(i, 1); }
+        continue;
+      }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.55 * dt; p.rotation += p.rot * dt; p.vida -= 0.011 * dt; p.alpha = p.vida;
+      if (p.vida <= 0) { app.stage.removeChild(p); parts.splice(i, 1); }
+    }
+
+    // ─── FONDO VIVO: brasas + respiración ────────────────────────
+    for (const m of motas) {
+      m.y -= m.vy * dt;
+      m.sway += 0.008 * dt;
+      m.x += Math.sin(m.sway) * 0.25 * dt;
+      if (m.y < -20) { m.y = H + 20; m.x = Math.random() * W; }
+    }
+    respiro.alpha = 0.045 + 0.025 * Math.sin(ahora / 950);
+
+    // ─── Halos de los símbolos + blur de velocidad ───────────────
+    const enJuego = reels.some(r => r.estado !== 'quieto');
+    reels.forEach((r, i) => {
+      if (r.estado !== 'aterrizando') r.blur.blurY = r.estado === 'quieto' ? 0 : Math.min(26, r.vel * 0.38);
+      const h = halos[i];
+      if (r.estado !== 'quieto') { h.alpha = 0; return; }
+      if (ahora < celebrarHasta) {
+        h.alpha = 0.5 + 0.25 * Math.sin(ahora / 110 + i);
+        h.width = h.height = SYM_SIZE * (1.9 + 0.25 * Math.sin(ahora / 220 + i));
+      } else if (!enJuego) {
+        h.alpha = 0.2 + 0.1 * Math.sin(ahora / 620 + i * 1.4);
+      }
+    });
+
+    // ─── Tweens de impacto (squash / flash / pulso de festejo) ───
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      const tw = tweens[i]; tw.t += app.ticker.deltaMS;
+      const k = Math.min(1, tw.t / tw.dur);
+      if (tw.tipo === 'squash') {
+        // aplasta y vuelve con resorte amortiguado
+        let sy;
+        if (k < 0.3) sy = 1 - 0.17 * (k / 0.3);
+        else sy = 1 + 0.17 * Math.sin((k - 0.3) * 9) * (1 - k);
+        tw.sp.height = tw.h * sy;
+        tw.sp.width = tw.w * (1 + (1 - sy) * 0.55);
+        if (k >= 1) { tw.sp.width = tw.w; tw.sp.height = tw.h; tweens.splice(i, 1); }
+      } else if (tw.tipo === 'flash') {
+        tw.sp.alpha = 0.85 * (1 - k);
+        tw.sp.width = tw.sp.height = SYM_SIZE * (1.5 + k * 0.8);
+        if (k >= 1) { reelLayer.removeChild(tw.sp); tweens.splice(i, 1); }
+      } else if (tw.tipo === 'pulso') {
+        const s = 1 + 0.09 * Math.sin(k * Math.PI * 4) * (1 - k * 0.5);
+        tw.sp.width = tw.w * s; tw.sp.height = tw.h * s;
+        if (k >= 1) { tw.sp.width = tw.w; tw.sp.height = tw.h; tweens.splice(i, 1); }
+      }
+    }
+    if (!girando && !yaGiroHoy) boton.scale.set(1 + Math.sin(performance.now() / 420) * 0.02);
+    else boton.scale.set(1);
+  });
+ } catch (err) {
+   mostrarErrorPantalla((err && err.message ? err.message : String(err)) + (err && err.stack ? ' · ' + String(err.stack).split('\n')[1] : ''));
+ }
+}).catch(e => mostrarErrorPantalla(e && e.message ? e.message : String(e)));
+</script>
+</body>
+</html>

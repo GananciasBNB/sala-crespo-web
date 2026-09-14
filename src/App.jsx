@@ -68,8 +68,9 @@ function NotFound() {
 
 export default function App() {
   // La carta tiene su propia barra inferior fija → ahí el banner global se pisa.
+  // El kiosk es la Máquina del Club (pantalla compartida): nada de "instalá la app".
   const { pathname } = useLocation()
-  const hideInstallBanner = pathname.startsWith('/carta')
+  const hideInstallBanner = pathname.startsWith('/carta') || pathname.startsWith('/kiosk')
   return (
     <>
       <BusinessSchema />

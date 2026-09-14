@@ -1,6 +1,7 @@
 // Base URL: vacío en dev (el proxy de Vite redirige /api → :8080)
 // En producción Vercel usa VITE_API_URL
 const BASE = import.meta.env.VITE_API_URL || ''
+export const API_BASE = BASE
 
 async function api(endpoint, options = {}) {
   const { headers: extraHeaders, timeout = 30000, ...restOptions } = options
@@ -519,6 +520,13 @@ export const redeemLoyaltyReward = (token, rewardId) =>
 export const loyaltyCheckin = (token) =>
   api('/api/loyalty/checkin', { method: 'POST', headers: authHeaders(token) })
 
+// Fortuna Dorada: el resultado del giro lo decide el servidor
+export const getSpinStatus = (token) =>
+  api('/api/loyalty/spin-status', { headers: authHeaders(token) })
+
+export const postSpin = (token) =>
+  api('/api/loyalty/spin', { method: 'POST', headers: authHeaders(token) })
+
 export const clubLookupDni = (dni) =>
   api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })
 
@@ -534,6 +542,20 @@ export const adminLoyaltyUpdateReward = (token, id, body) =>
   api(`/api/admin/loyalty/rewards/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
 export const adminLoyaltyDeleteReward = (token, id) =>
   api(`/api/admin/loyalty/rewards/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+// Fortuna Dorada (admin)
+export const adminSpinConfig = (token) =>
+  api('/api/admin/spin/config', { headers: authHeaders(token) })
+export const adminSpinCreatePrize = (token, body) =>
+  api('/api/admin/spin/prizes', { method: 'POST', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminSpinUpdatePrize = (token, id, body) =>
+  api(`/api/admin/spin/prizes/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminSpinDeletePrize = (token, id) =>
+  api(`/api/admin/spin/prizes/${id}`, { method: 'DELETE', headers: authHeaders(token) })
+export const adminSpinSettings = (token, body) =>
+  api('/api/admin/spin/settings', { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminSpinLog = (token, limit = 300) =>
+  api(`/api/admin/spin/log?limit=${limit}`, { headers: authHeaders(token) })
+
 export const adminLoyaltyAccount = (token, dni) =>
   api(`/api/admin/loyalty/account/${encodeURIComponent(dni)}`, { headers: authHeaders(token) })
 export const adminLoyaltyAdjust = (token, body) =>
@@ -670,6 +692,9 @@ export const subscribeLead = (data) =>
   api('/api/leads/subscribe', { method: 'POST', body: JSON.stringify(data) })
 
 // ─── Promo (modo promotora — público con rate-limit) ──────────────────────────
+export const clubCreatePin = (dni, pin) =>
+  api('/api/club/create-pin', { method: 'POST', body: JSON.stringify({ dni, pin }) })
+
 export const promoLookupDni = (dni) =>
   api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })
 
