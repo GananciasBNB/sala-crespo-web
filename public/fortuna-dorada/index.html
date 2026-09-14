@@ -142,12 +142,14 @@ function desbloquearAudio() {
   // muted (no volume 0): con volumen algunos navegadores dejan escapar un
   // fragmento audible antes de silenciar, y se escuchaba todo junto
   Object.values(poolAudio).forEach(a => {
+    if (!a.paused) return;   // la musica ya esta sonando: no tocarla
     a.muted = true;
     const p = a.play();
     if (p) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; })
            .catch(() => { a.muted = false; });
     else a.muted = false;
   });
+  arrancarMusica();   // si la politica de autoplay la habia frenado, ahora si
 }
 window.addEventListener('pointerdown', desbloquearAudio);
 window.addEventListener('touchstart', desbloquearAudio);
@@ -184,7 +186,8 @@ let spinSound = null;
 // si la política lo bloquea, arranca con el primer gesto.
 let musica = null;
 function arrancarMusica() {
-  if (musica) return;
+  if (musica && !musica.paused) return;   // ya suena
+  if (musica) { musica.play().catch(() => {}); return; }   // quedo pausada: reanudar
   try {
     const m = audioDe(SFX_DIR + 'musica-ambiente.mp3');
     m.volume = 0.3; m.loop = true;
