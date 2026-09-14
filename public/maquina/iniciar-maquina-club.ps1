@@ -1,4 +1,4 @@
-# La Maquina del Club — arranque + vigilante.
+# La Maquina del Club - arranque + vigilante.
 # Lanza Chrome en modo kiosk y lo vuelve a levantar si alguien lo cierra.
 # Se ejecuta solo al iniciar Windows (lo instala instalar.ps1).
 
@@ -75,7 +75,9 @@ function Lanzar-Kiosk {
 
 # --- Arranque ----------------------------------------------------------------
 Log '--- inicio de sesion: arrancando La Maquina del Club ---'
-if (-not $Ahora) { Start-Sleep -Seconds 12 }   # esperar red/escritorio tras el login
+# Arranque rapido: 4s alcanzan para que el escritorio este listo. Si la red
+# todavia no levanto, el kiosk carga igual y el vigilante lo repone.
+if (-not $Ahora) { Start-Sleep -Seconds 4 }
 Lanzar-Kiosk
 
 # --- Vigilante ---------------------------------------------------------------

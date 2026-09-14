@@ -1,4 +1,4 @@
-# La Maquina del Club — inicio de sesion automatico.
+# La Maquina del Club - inicio de sesion automatico.
 # Deja Windows entrando solo al usuario del gabinete: tras un corte de luz la
 # maquina vuelve al kiosk sin que nadie escriba nada.
 #

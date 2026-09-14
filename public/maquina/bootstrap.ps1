@@ -1,4 +1,4 @@
-# Instalador de La Maquina del Club — baja todo y deja la PC lista.
+# Instalador de La Maquina del Club - baja todo y deja la PC lista.
 # Correr UNA vez en la PC del gabinete, en PowerShell:
 #
 #   irm https://www.saladejuegoscrespo.ar/maquina/bootstrap.ps1 | iex
