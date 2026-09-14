@@ -2,6 +2,8 @@
 # Lanza Chrome en modo kiosk y lo vuelve a levantar si alguien lo cierra.
 # Se ejecuta solo al iniciar Windows (lo instala instalar.ps1).
 
+param([switch]$Ahora)   # -Ahora: arranque inmediato (lo usa el instalador)
+
 $ErrorActionPreference = 'SilentlyContinue'
 
 # --- Configuracion (la escribe el instalador) --------------------------------
@@ -73,7 +75,7 @@ function Lanzar-Kiosk {
 
 # --- Arranque ----------------------------------------------------------------
 Log '--- inicio de sesion: arrancando La Maquina del Club ---'
-Start-Sleep -Seconds 12          # esperar red/escritorio tras el login
+if (-not $Ahora) { Start-Sleep -Seconds 12 }   # esperar red/escritorio tras el login
 Lanzar-Kiosk
 
 # --- Vigilante ---------------------------------------------------------------

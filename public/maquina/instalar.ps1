@@ -75,7 +75,21 @@ if (-not $chrome) { throw 'No se encontro Chrome. Instalalo y volve a correr est
 
 $urlVinc = "$url" + "?key=" + [uri]::EscapeDataString($llave)
 Start-Process -FilePath $chrome -ArgumentList @("--user-data-dir=`"$perfil`"", '--no-first-run', '--autoplay-policy=no-user-gesture-required', $urlVinc)
-Ok 'Se abrio el kiosk con la llave: la maquina quedo vinculada'
+Write-Host '  Vinculando (se abre Chrome unos segundos)...' -ForegroundColor DarkGray
+Start-Sleep -Seconds 9
+Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" |
+  Where-Object { $_.CommandLine -like "*$perfil*" } |
+  ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+Start-Sleep -Seconds 2
+Ok 'Maquina vinculada'
+
+# --- 6. Arrancar el kiosk de verdad (pantalla completa + vigilante) ----------
+Titulo 'Arranque'
+Start-Process -FilePath 'powershell' -ArgumentList @(
+  '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden',
+  '-File', (Join-Path $base 'iniciar-maquina-club.ps1'), '-Ahora'
+)
+Ok 'La maquina quedo corriendo en pantalla completa'
 Aviso 'Si abajo del boton dice "Maquina no vinculada", avisale a Claude.'
 
 Write-Host ""
