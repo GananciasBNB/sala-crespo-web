@@ -117,15 +117,50 @@ const jingle = () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(()
 // ─── Voz del Club (MP3s pregrabados con ElevenLabs; si falta el audio,
 //     la pantalla sigue funcionando muda — nunca romper el flujo) ────
 const VOZ_DIR = 'giro-diario-assets/voz-eleven/';
+const SFX_DIR2 = 'giro-diario-assets/sfx/';
+
+// Audio de kiosk: los MP3 se precargan al abrir y se "desbloquean" con el
+// primer toque (play+pause en silencio). Sin esto, en modo kiosk el play()
+// programatico falla callado y el juego queda mudo.
+const poolAudio = {};
+function audioDe(url) {
+  let a = poolAudio[url];
+  if (!a) { a = new Audio(url); a.preload = 'auto'; poolAudio[url] = a; }
+  return a;
+}
+const AUDIOS_PRECARGA = [
+  ...['giro-bienvenida', 'giro-suerte', 'giro-ticket', 'giro-500', 'giro-250', 'giro-150',
+      'giro-100', 'giro-50', 'giro-nada', 'giro-nada-quedan', 'giro-ya-giro'].map(n => VOZ_DIR + n + '.mp3'),
+  ...['spin-loop', 'reel-stop', 'win-gong', 'win-coins', 'big-win', 'lose-soft', 'ui-tap',
+      'musica-ambiente'].map(n => SFX_DIR2 + n + '.mp3'),
+];
+AUDIOS_PRECARGA.forEach(audioDe);
+let audioListo = false;
+function desbloquearAudio() {
+  if (audioListo) return;
+  audioListo = true;
+  Object.values(poolAudio).forEach(a => {
+    const vol = a.volume;
+    a.volume = 0;
+    const p = a.play();
+    if (p) p.then(() => { a.pause(); a.currentTime = 0; a.volume = vol; })
+           .catch(() => { a.volume = vol; });
+  });
+}
+window.addEventListener('pointerdown', desbloquearAudio);
+window.addEventListener('touchstart', desbloquearAudio);
+
 let vozActual = null;
 function voz(nombre) {
   try {
-    if (vozActual && !vozActual.ended) vozActual.pause();
-    const a = new Audio(VOZ_DIR + nombre + '.mp3');
+    if (vozActual && !vozActual.paused) { vozActual.pause(); vozActual.currentTime = 0; }
+    const a = audioDe(VOZ_DIR + nombre + '.mp3');
     a.volume = 0.95;
+    try { a.currentTime = 0; } catch {}
     vozActual = a;
-    a.play().catch(() => {});
-  } catch {}
+    const p = a.play();
+    if (p) p.catch(err => console.warn('voz ' + nombre + ' bloqueada:', err && err.name));
+  } catch (e) { console.warn('voz', e); }
 }
 const vozDice = (frag) => vozActual && !vozActual.paused && !vozActual.ended && vozActual.src.includes(frag);
 
@@ -133,9 +168,11 @@ const vozDice = (frag) => vozActual && !vozActual.paused && !vozActual.ended && 
 const SFX_DIR = 'giro-diario-assets/sfx/';
 function sfx(nombre, vol = 0.8, loop = false) {
   try {
-    const a = new Audio(SFX_DIR + nombre + '.mp3');
+    const a = audioDe(SFX_DIR + nombre + '.mp3');
     a.volume = vol; a.loop = loop;
-    a.play().catch(() => {});
+    try { a.currentTime = 0; } catch {}
+    const p = a.play();
+    if (p) p.catch(err => console.warn('sfx ' + nombre + ' bloqueado:', err && err.name));
     return a;
   } catch { return null; }
 }
@@ -147,7 +184,7 @@ let musica = null;
 function arrancarMusica() {
   if (musica) return;
   try {
-    const m = new Audio(SFX_DIR + 'musica-ambiente.mp3');
+    const m = audioDe(SFX_DIR + 'musica-ambiente.mp3');
     m.volume = 0.3; m.loop = true;
     m.play().then(() => { musica = m; }).catch(() => {});
   } catch {}
