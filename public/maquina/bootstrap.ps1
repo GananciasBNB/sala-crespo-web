@@ -24,4 +24,8 @@ foreach ($f in @('instalar.ps1', 'iniciar-maquina-club.ps1', 'salir-kiosk.bat', 
 Write-Host "  Archivos en $destino" -ForegroundColor Green
 Write-Host ""
 
-& (Join-Path $destino 'instalar.ps1')
+# El instalador corre en un proceso propio: ejecutado por pipeline (irm | iex)
+# el teclado no llega a Read-Host y los prompts quedan colgados.
+Start-Process -FilePath 'powershell' -Wait -ArgumentList @(
+  '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', (Join-Path $destino 'instalar.ps1')
+)
