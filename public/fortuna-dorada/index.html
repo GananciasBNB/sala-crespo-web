@@ -139,12 +139,14 @@ let audioListo = false;
 function desbloquearAudio() {
   if (audioListo) return;
   audioListo = true;
+  // muted (no volume 0): con volumen algunos navegadores dejan escapar un
+  // fragmento audible antes de silenciar, y se escuchaba todo junto
   Object.values(poolAudio).forEach(a => {
-    const vol = a.volume;
-    a.volume = 0;
+    a.muted = true;
     const p = a.play();
-    if (p) p.then(() => { a.pause(); a.currentTime = 0; a.volume = vol; })
-           .catch(() => { a.volume = vol; });
+    if (p) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; })
+           .catch(() => { a.muted = false; });
+    else a.muted = false;
   });
 }
 window.addEventListener('pointerdown', desbloquearAudio);
