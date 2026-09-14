@@ -116,14 +116,42 @@ function musicaClubPlay() {
 }
 function musicaClubPause() { try { if (musicaClub) musicaClub.pause() } catch { /* idem */ } }
 
+// Audio del kiosk: Chrome bloquea el play() cuando pasó demasiado tiempo desde
+// el último toque (por ejemplo tras esperar al servidor en el login). Por eso
+// los MP3 se precargan y se "desbloquean" con el primer toque de la pantalla:
+// un play+pause en silencio deja a cada archivo habilitado para después.
+const VOCES = ['atraccion-1', 'atraccion-2', 'atraccion-3', 'atraccion-4', 'checkin',
+  'cumple', 'nuevo-socio', 'cupon', 'despedida', 'ya-checkin', 'ui-tap']
+const poolVoz = {}
+function audioDe(name) {
+  let a = poolVoz[name]
+  if (!a) { a = new Audio(`/kiosk-audio/${name}.mp3`); a.preload = 'auto'; poolVoz[name] = a }
+  return a
+}
+VOCES.forEach(audioDe)
+let audioListo = false
+function desbloquearAudio() {
+  if (audioListo) return
+  audioListo = true
+  Object.values(poolVoz).forEach(a => {
+    const vol = a.volume
+    a.volume = 0
+    const p = a.play()
+    if (p) p.then(() => { a.pause(); a.currentTime = 0; a.volume = vol })
+           .catch(() => { a.volume = vol })
+  })
+}
+
 let vozActual = null
 function voz(name, vol = 0.95) {
   try {
-    if (vozActual && !vozActual.ended) vozActual.pause()
-    const a = new Audio(`/kiosk-audio/${name}.mp3`)
+    if (vozActual && !vozActual.paused) { vozActual.pause(); vozActual.currentTime = 0 }
+    const a = audioDe(name)
     a.volume = vol
+    try { a.currentTime = 0 } catch { /* aún sin metadata */ }
     vozActual = a
-    a.play().catch(() => {})
+    const p = a.play()
+    if (p) p.catch(err => console.warn('voz', name, 'bloqueada:', err && err.name))
   } catch { /* sin audio no es error fatal */ }
 }
 
@@ -453,7 +481,7 @@ export default function Kiosk() {
     <div
       className="kiosk"
       onClick={screen === 'idle' ? () => { voz('ui-tap', 0.7); setScreen('dni') } : undefined}
-      onPointerDownCapture={() => { lastActRef.current = Date.now(); if (!showGiro) musicaClubPlay() }}
+      onPointerDownCapture={() => { lastActRef.current = Date.now(); desbloquearAudio(); if (!showGiro) musicaClubPlay() }}
     >
       <div className="kiosk__bg" />
       <div className="kiosk__vignette" />
