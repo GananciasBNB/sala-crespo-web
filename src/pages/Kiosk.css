@@ -364,6 +364,24 @@
 /* ───────── Monitor del gabinete (20", 1600×900 / 1920×1080) ─────────
    Los clamp() con vw quedan gigantes en desktop; acá se fija una escala
    más densa y elegante para la Máquina del Club. */
+/* Monitor del gabinete: 1280×1024 (5:4). Menos ancho y más alto que un 16:9,
+   así que las 5 tarjetas se compactan y el contenido respira a lo alto. */
+@media (min-width: 1100px) and (max-width: 1400px) {
+  .kiosk__done { max-width: 1250px; }
+  .kiosk__hub { gap: 8px; }
+  .kiosk__hub-card { padding: 16px 7px 13px; }
+  .kiosk__hub-title { font-size: 16px; letter-spacing: 1px; min-height: 40px; }
+  .kiosk__hub-sub { font-size: 12px; }
+  .kiosk__hub-countdown { font-size: 27px; }
+  .kiosk__hub-ok { font-size: 12.5px; }
+  .kiosk__cta.kiosk__cta--hub { font-size: 13px; letter-spacing: .5px; padding: 11px 3px; }
+  .kiosk__perk { max-width: 235px; padding: 11px 13px; }
+  .kiosk__perk-lbl { font-size: 14px; }
+  .kiosk__puntos--ancho { max-width: 1210px; }
+  .kiosk__canje-nombre { font-size: 13px; }
+  .kiosk__carta-row { gap: 14px; }
+}
+
 @media (min-width: 1100px) {
   .kiosk__idle { max-width: 960px; }
   .kiosk__logo { width: 188px; margin-bottom: 10px; }

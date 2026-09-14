@@ -49,7 +49,12 @@ const SYMS = ['lingote', 'fenix', 'gato', 'koi', 'rana', 'arbol', 'nudo'];
 // Ventana transparente del marco en FRACCIONES de la imagen (medida por canal
 // alfa: x164-1496, y203-736 sobre 1659×948) — así vale para cualquier escala.
 const VENT_FRAC = { x: 164 / 1659, y: 203 / 948, w: 1333 / 1659, h: 534 / 948 };
-const W = 1600, H = 900;
+// El gabinete tiene un monitor 5:4 (1280x1024) y hay pantallas 16:9: el juego
+// se arma en la proporción real para no dejar franjas negras. En 5:4 la tabla
+// de premios va en una fila debajo del marco (hay altura de sobra, no ancho).
+const CUADRADA = (innerWidth / innerHeight) < 1.45;
+const W = CUADRADA ? 1280 : 1600;
+const H = CUADRADA ? 1024 : 900;
 
 const app = new PIXI.Application({ background: '#0a0406', width: W, height: H, antialias: true });
 document.getElementById('stage').appendChild(app.view);
@@ -233,12 +238,12 @@ cargarTexturas(URLS).then(T => {
   // ─── Marco + ventana de rodillos (el juego se adapta al marco) ───
   // La escala se calcula sobre el tamaño REAL de la textura cargada.
   const marco = new PIXI.Sprite(T.marco);
-  const marcoW = 900;
+  const marcoW = CUADRADA ? 1000 : 900;
   const marcoScale = marcoW / marco.texture.width;
   marco.scale.set(marcoScale);
   const marcoH = marco.texture.height * marcoScale;
   const marcoX = (W - marcoW) / 2;
-  const marcoY = 126;
+  const marcoY = CUADRADA ? 150 : 126;
   marco.position.set(marcoX, marcoY);
 
   const vent = {
@@ -313,7 +318,7 @@ cargarTexturas(URLS).then(T => {
   }));
   btxt.anchor.set(0.5);
   boton.addChild(bg, btxt);
-  boton.position.set(W / 2, marcoY + marcoH + 118);
+  boton.position.set(W / 2, CUADRADA ? H - 76 : marcoY + marcoH + 118);
   boton.eventMode = 'static'; boton.cursor = 'pointer';
   app.stage.addChild(boton);
 
@@ -323,7 +328,7 @@ cargarTexturas(URLS).then(T => {
     dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
   }));
   giroLabel.anchor.set(0.5);
-  giroLabel.position.set(W / 2, marcoY + marcoH + 44);
+  giroLabel.position.set(W / 2, CUADRADA ? H - 152 : marcoY + marcoH + 44);
   app.stage.addChild(giroLabel);
   window.__actualizarGiroLabel = (total, restantes) => {
     giroLabel.text = restantes > 0
@@ -339,29 +344,34 @@ cargarTexturas(URLS).then(T => {
   const tablaLayer = new PIXI.Container();
   const chipRefs = [];
   const ladoX = [175, W - 175];
+  // 16:9 -> dos columnas laterales de 3 · 5:4 -> una fila de 6 bajo el marco
+  const CHIP_R   = CUADRADA ? 48 : 56;
+  const CHIP_ICO = CUADRADA ? 80 : 92;
+  const chipPos = (i) => CUADRADA
+    ? { cx: (W / combos.length) * (i + 0.5), cy: marcoY + marcoH + 92 }
+    : { cx: ladoX[(i / 3) | 0], cy: 196 + (i % 3) * 172 };
   combos.forEach((p, i) => {
-    const cx = ladoX[(i / 3) | 0];
-    const cy = 196 + (i % 3) * 172;
+    const { cx, cy } = chipPos(i);
     const halo = new PIXI.Sprite(TEX_GLOW);
-    halo.anchor.set(0.5); halo.width = halo.height = 215;
+    halo.anchor.set(0.5); halo.width = halo.height = CHIP_R * 3.8;
     halo.position.set(cx, cy); halo.alpha = 0; halo.blendMode = PIXI.BLEND_MODES.ADD;
     const chip = new PIXI.Graphics()
-      .beginFill(0x0d0509, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, 0, 56).endFill()
-      .beginFill(0xF0D275, 0.05).drawCircle(0, 0, 46).endFill();
+      .beginFill(0x0d0509, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, 0, CHIP_R).endFill()
+      .beginFill(0xF0D275, 0.05).drawCircle(0, 0, CHIP_R - 10).endFill();
     chip.position.set(cx, cy);
     const ic = new PIXI.Sprite(T[p.sym]);
-    ic.anchor.set(0.5); ic.width = 92; ic.height = 92; ic.position.set(cx, cy);
+    ic.anchor.set(0.5); ic.width = ic.height = CHIP_ICO; ic.position.set(cx, cy);
     const x3 = new PIXI.Text('× 3', new PIXI.TextStyle({ fontFamily: 'Georgia', fontSize: 16, fontWeight: '900', fill: '#C9A84C', letterSpacing: 3, dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2 }));
-    x3.anchor.set(0.5, 0); x3.position.set(cx, cy + 60);
+    x3.anchor.set(0.5, 0); x3.position.set(cx, cy + CHIP_R + 6);
     const lbl = new PIXI.Text(p.label, new PIXI.TextStyle({
-      fontFamily: 'Segoe UI', fontSize: 20, fontWeight: '700',
+      fontFamily: 'Segoe UI', fontSize: CUADRADA ? 17 : 20, fontWeight: '700',
       fill: '#F5E6B8', letterSpacing: 0.5,
-      wordWrap: true, wordWrapWidth: 250, align: 'center',
+      wordWrap: true, wordWrapWidth: CUADRADA ? (W / combos.length - 14) : 250, align: 'center',
       dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 8, dropShadowDistance: 2, dropShadowAlpha: 0.9,
     }));
-    lbl.anchor.set(0.5, 0); lbl.position.set(cx, cy + 82);
+    lbl.anchor.set(0.5, 0); lbl.position.set(cx, cy + CHIP_R + 28);
     tablaLayer.addChild(halo, chip, ic, x3, lbl);
-    chipRefs.push({ id: p.id, halo, ic });
+    chipRefs.push({ id: p.id, halo, ic, base: CHIP_ICO });
   });
   app.stage.addChild(tablaLayer);
   let chipGanador = null;
@@ -371,10 +381,10 @@ cargarTexturas(URLS).then(T => {
     chipRefs.forEach((c, i) => {
       if (chipGanador === c.id && ahora < celebrarHasta) {
         c.halo.alpha = 0.7 + Math.sin(ahora / 90) * 0.3;
-        c.ic.width = c.ic.height = 92 * (1 + Math.sin(ahora / 120) * 0.08);
+        c.ic.width = c.ic.height = c.base * (1 + Math.sin(ahora / 120) * 0.08);
       } else {
         c.halo.alpha += ((i === idx ? suave : 0) - c.halo.alpha) * 0.12;
-        c.ic.width = c.ic.height = 92;
+        c.ic.width = c.ic.height = c.base;
       }
     });
   }
