@@ -56,7 +56,25 @@ const CUADRADA = (innerWidth / innerHeight) < 1.45;
 const W = CUADRADA ? 1280 : 1600;
 const H = CUADRADA ? 1024 : 900;
 
-const app = new PIXI.Application({ background: '#0a0406', width: W, height: H, antialias: true });
+// MODO LIVIANO — las PCs de gabinete no tienen placa de video: si WebGL corre
+// por software, el video de fondo + blur + partículas lo dejan a 5 fps (y el
+// audio ni arranca). Se detecta al inicio y además se mide el fps real.
+// Forzar a mano: ?liviano=1 · forzar completo: ?liviano=0
+const paramLiviano = new URLSearchParams(location.search).get('liviano');
+function glPorSoftware() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    if (!gl) return true;
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    const r = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : '';
+    return /swiftshader|software|llvmpipe|microsoft basic|generic/i.test(r);
+  } catch { return true; }
+}
+let LIVIANO = paramLiviano === '1' ? true : paramLiviano === '0' ? false : glPorSoftware();
+
+const app = new PIXI.Application({ background: '#0a0406', width: W, height: H,
+  antialias: !LIVIANO, resolution: 1, powerPreference: 'high-performance' });
+if (LIVIANO) console.log('Fortuna Dorada: modo liviano (sin placa de video)');
 document.getElementById('stage').appendChild(app.view);
 
 function fit() {
@@ -162,8 +180,10 @@ cargarTexturas(URLS).then(T => {
   // Animated background: Flow/Seedance clip embedded as a data URI
   // (file:// taints local video for WebGL, same as images — data: is same-origin).
   // The static PNG stays as first frame / fallback until the video can play.
-  if (window.GIRO_FONDO_VIDEO) {
+  let videoFondo = null;
+  if (window.GIRO_FONDO_VIDEO && !LIVIANO) {
     const vid = document.createElement('video');
+    videoFondo = vid;
     vid.muted = true; vid.loop = true; vid.playsInline = true;
     vid.addEventListener('canplaythrough', () => {
       try {
@@ -194,7 +214,7 @@ cargarTexturas(URLS).then(T => {
   // ─── FONDO VIVO: brasas doradas flotando + respiración de luz ────
   const motas = [];
   const motasLayer = new PIXI.Container();
-  for (let i = 0; i < 44; i++) {
+  for (let i = 0; i < (LIVIANO ? 12 : 44); i++) {
     const m = new PIXI.Sprite(TEX_GLOW);
     m.anchor.set(0.5);
     const s = 3 + Math.random() * 9;
@@ -294,7 +314,11 @@ cargarTexturas(URLS).then(T => {
     return h;
   });
   halos.forEach(h => reelLayer.addChildAt(h, 0));
-  reels.forEach(r => { r.blur = new PIXI.BlurFilter(0); r.blur.blurX = 0; r.blur.blurY = 0; r.cont.filters = [r.blur]; });
+  // el blur de movimiento es un filtro por reel: se saltea en modo liviano
+  reels.forEach(r => {
+    r.blur = new PIXI.BlurFilter(0); r.blur.blurX = 0; r.blur.blurY = 0;
+    if (!LIVIANO) r.cont.filters = [r.blur];
+  });
   let celebrarHasta = 0;
 
   app.stage.addChild(marco); // el marco tapa los bordes de la ventana
@@ -440,7 +464,7 @@ cargarTexturas(URLS).then(T => {
       app.stage.addChild(p); parts.push(p);
     }
   }
-  function burst(n) { lluviaMonedas(Math.round(n * 0.7)); }
+  function burst(n) { lluviaMonedas(Math.round(n * (LIVIANO ? 0.3 : 0.7))); }
 
   // ─── Animaciones de impacto (aterrizaje de símbolos) ─────────────
   const tweens = [];
@@ -577,8 +601,29 @@ cargarTexturas(URLS).then(T => {
     }
   });
 
+  // Vigila el fps real los primeros segundos: si la PC no llega (gabinetes
+  // con video integrado viejo), apaga video de fondo, blur y motas en caliente.
+  let fpsFrames = 0, fpsDesde = performance.now(), fpsMedido = false;
+  function vigilarFps(ahora) {
+    if (fpsMedido || LIVIANO) return;
+    fpsFrames++;
+    const transcurrido = ahora - fpsDesde;
+    if (transcurrido < 4000) return;
+    fpsMedido = true;
+    const fps = fpsFrames / (transcurrido / 1000);
+    if (fps >= 26) return;
+    LIVIANO = true;
+    console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> modo liviano');
+    try { if (videoFondo) videoFondo.pause(); } catch {}
+    fondo.texture = T.fondo;
+    fondo.scale.set(Math.max(W / T.fondo.width, H / T.fondo.height));
+    reels.forEach(r => { r.cont.filters = null; });
+    motas.forEach((m, i) => { if (i >= 12) m.visible = false; });
+  }
+
   app.ticker.add(() => {
     const ahora = performance.now();
+    vigilarFps(ahora);
     const dt = Math.min(app.ticker.deltaMS / 16.667, 4);
     tablaTick(ahora);
     let algunoGirando = false;
