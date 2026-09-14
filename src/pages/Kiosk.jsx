@@ -105,13 +105,17 @@ function FortunaEstado({ token, refreshKey, onJugar }) {
 // Música ambiente del Club (neutra, NO la oriental del slot): suena en toda la
 // app y se pausa mientras Fortuna Dorada está abierta (el juego tiene la suya).
 let musicaClub = null
+const MUSICA_VOL = 0.1   // colchon de fondo: audible sin tapar las voces
 function musicaClubPlay() {
   try {
     if (!musicaClub) {
       musicaClub = new Audio('/kiosk-audio/musica-club.mp3')
-      musicaClub.loop = true; musicaClub.volume = 0.04
+      musicaClub.loop = true; musicaClub.volume = MUSICA_VOL
+      musicaClub.preload = 'auto'
     }
-    musicaClub.play().catch(() => {})
+    if (!musicaClub.paused) return
+    const p = musicaClub.play()
+    if (p) p.catch(err => console.warn('musica del club bloqueada:', err && err.name))
   } catch { /* sin audio no es fatal */ }
 }
 function musicaClubPause() { try { if (musicaClub) musicaClub.pause() } catch { /* idem */ } }
@@ -135,7 +139,10 @@ function desbloquearAudio() {
   audioListo = true
   // muted (no volume 0): con volumen algunos navegadores dejan escapar un
   // fragmento audible antes de silenciar, y se escuchaba todo junto
-  Object.values(poolVoz).forEach(a => {
+  const aDesbloquear = [...Object.values(poolVoz)]
+  if (musicaClub && musicaClub.paused) aDesbloquear.push(musicaClub)
+  aDesbloquear.forEach(a => {
+    if (!a.paused) return   // ya esta sonando: no tocarla
     a.muted = true
     const p = a.play()
     if (p) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false })
