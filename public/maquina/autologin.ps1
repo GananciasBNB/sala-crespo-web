@@ -26,10 +26,26 @@ $userDefault = $env:USERNAME
 $user = Read-Host "Usuario de Windows [$userDefault]"
 if ([string]::IsNullOrWhiteSpace($user)) { $user = $userDefault }
 
-Write-Host "Contrasena de '$user' (si no tiene, Enter):" -ForegroundColor Yellow
-$secure = Read-Host -AsSecureString
-$pass = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
-          [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
+Write-Host ""
+Write-Host "  1) Se la contrasena y la escribo" -ForegroundColor White
+Write-Host "  2) NO la se: sacarle la contrasena a este usuario" -ForegroundColor White
+Write-Host "     (sos administrador de esta PC, no hace falta la vieja)" -ForegroundColor DarkGray
+$opcion = Read-Host "Opcion [1/2]"
+
+$pass = ''
+if ($opcion -eq '2') {
+  $esLocal = Get-LocalUser -Name $user -ErrorAction SilentlyContinue
+  if (-not $esLocal) {
+    throw "'$user' no es una cuenta local de esta PC (parece cuenta Microsoft). Cambiale la clave desde Configuracion > Cuentas, o crea un usuario local para el gabinete."
+  }
+  Set-LocalUser -Name $user -Password (New-Object System.Security.SecureString)
+  Write-Host "  OK  '$user' quedo sin contrasena" -ForegroundColor Green
+} else {
+  Write-Host "Contrasena de '$user' (no se ve mientras escribis):" -ForegroundColor Yellow
+  $secure = Read-Host -AsSecureString
+  $pass = [Runtime.InteropServices.Marshal]::PtrToStringAuto(
+            [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
+}
 
 $winlogon = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon'
 Set-ItemProperty -Path $winlogon -Name 'AutoAdminLogon'    -Value '1'
