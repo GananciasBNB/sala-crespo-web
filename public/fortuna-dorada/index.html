@@ -73,7 +73,9 @@ function glPorSoftware() {
 let LIVIANO = paramLiviano === '1' ? true : paramLiviano === '0' ? false : glPorSoftware();
 
 const app = new PIXI.Application({ background: '#0a0406', width: W, height: H,
-  antialias: !LIVIANO, resolution: 1, powerPreference: 'high-performance' });
+  // en modo liviano se dibujan ~half de los píxeles y el CSS los estira:
+  // pierde un poco de nitidez, gana el doble de fluidez
+  antialias: !LIVIANO, resolution: LIVIANO ? 0.7 : 1, powerPreference: 'high-performance' });
 if (LIVIANO) console.log('Fortuna Dorada: modo liviano (sin placa de video)');
 document.getElementById('stage').appendChild(app.view);
 
