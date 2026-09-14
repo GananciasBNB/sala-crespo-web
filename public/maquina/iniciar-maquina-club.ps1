@@ -53,7 +53,7 @@ function Lanzar-Kiosk {
   if (-not $chrome) { Log 'ERROR: no se encontro chrome.exe'; return }
   Limpiar-CrashFlags
   $flags = @(
-    "--user-data-dir=$perfil"
+    "--user-data-dir=`"$perfil`""
     '--kiosk'
     '--autoplay-policy=no-user-gesture-required'   # sonido sin tocar la pantalla
     '--no-first-run'

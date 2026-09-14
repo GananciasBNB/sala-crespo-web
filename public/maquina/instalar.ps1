@@ -25,7 +25,9 @@ if ([string]::IsNullOrWhiteSpace($url)) { $url = $urlDefault }
 $llave = Read-Host 'Llave de la maquina (KIOSK_DEVICE_KEY, la misma que cargaste en Render)'
 if ([string]::IsNullOrWhiteSpace($llave)) { throw 'Sin llave la maquina no puede fichar visitas ni dar giros.' }
 
-$perfil = Join-Path $env:LOCALAPPDATA 'MaquinaClub\chrome-profile'
+# Carpeta sin espacios: si el usuario de Windows tiene espacios en el nombre
+# (ej. "BARRA 1 PISO"), Chrome corta la ruta de --user-data-dir y no arranca.
+$perfil = Join-Path $base 'chrome-profile'
 New-Item -ItemType Directory -Force -Path $perfil | Out-Null
 @{ url = $url; perfil = $perfil } | ConvertTo-Json | Set-Content (Join-Path $base 'config.json') -Encoding utf8
 Ok "Perfil de Chrome: $perfil"
@@ -72,7 +74,7 @@ $chrome = @(
 if (-not $chrome) { throw 'No se encontro Chrome. Instalalo y volve a correr esto.' }
 
 $urlVinc = "$url" + "?key=" + [uri]::EscapeDataString($llave)
-Start-Process -FilePath $chrome -ArgumentList @("--user-data-dir=$perfil", '--no-first-run', '--autoplay-policy=no-user-gesture-required', $urlVinc)
+Start-Process -FilePath $chrome -ArgumentList @("--user-data-dir=`"$perfil`"", '--no-first-run', '--autoplay-policy=no-user-gesture-required', $urlVinc)
 Ok 'Se abrio el kiosk con la llave: la maquina quedo vinculada'
 Aviso 'Si abajo del boton dice "Maquina no vinculada", avisale a Claude.'
 
