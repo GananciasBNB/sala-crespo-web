@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>La Máquina del Club · Guía de montaje</title>
+<style>
+  :root { --bg:#0b0608; --panel:#160b10; --panel2:#1f1016; --border:rgba(201,168,76,.32); --gold:#C9A84C; --gold2:#F0D275; --cream:#f5ecd7; --muted:#a89b8a; --red:#c41e3a; --green:#7ee2a0; }
+  * { box-sizing:border-box; margin:0; padding:0; overflow-wrap:break-word; }
+  body { background:var(--bg); color:var(--cream); font-family:'Segoe UI',system-ui,sans-serif; padding:32px 28px 80px; max-width:1100px; margin:0 auto; line-height:1.55; }
+  h1 { font-family:Georgia,serif; font-size:32px; color:var(--gold2); letter-spacing:1px; }
+  .sub { color:var(--muted); margin:8px 0 6px; font-size:15px; }
+  .prog { margin:22px 0 28px; background:var(--panel2); border:1px solid var(--border); border-radius:999px; height:12px; overflow:hidden; }
+  .prog i { display:block; height:100%; width:0; background:linear-gradient(90deg,var(--gold),var(--gold2)); transition:width .35s; }
+  .progTxt { text-align:right; font-size:13px; color:var(--muted); margin-top:6px; }
+  section { background:var(--panel); border:1px solid var(--border); border-radius:14px; padding:20px 22px; margin-bottom:16px; }
+  h2 { font-family:Georgia,serif; font-size:19px; color:var(--gold); letter-spacing:1px; margin-bottom:4px; }
+  h2 small { display:block; font-family:'Segoe UI',sans-serif; font-size:12.5px; color:var(--muted); letter-spacing:0; margin-top:3px; font-weight:400; }
+  ol, ul { margin:12px 0 0 4px; }
+  li { list-style:none; padding:9px 0 9px 0; border-bottom:1px solid rgba(255,255,255,.05); display:flex; gap:11px; align-items:flex-start; font-size:14.5px; }
+  li:last-child { border-bottom:0; }
+  input[type=checkbox] { appearance:none; width:20px; height:20px; min-width:20px; margin-top:2px; border:1.5px solid var(--gold); border-radius:6px; background:var(--panel2); cursor:pointer; position:relative; }
+  input[type=checkbox]:checked { background:var(--gold); }
+  input[type=checkbox]:checked::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#1a0c12; font-weight:900; font-size:14px; }
+  input[type=checkbox]:checked + span { color:var(--muted); text-decoration:line-through; text-decoration-color:rgba(201,168,76,.5); }
+  code { background:#0d0509; border:1px solid var(--border); border-radius:6px; padding:2px 7px; font-size:13px; color:var(--gold2); font-family:Consolas,monospace; }
+  .warn { background:rgba(196,30,58,.13); border:1px solid rgba(196,30,58,.45); color:#f4b3bf; padding:11px 14px; border-radius:10px; font-size:13.5px; margin-top:12px; }
+  .tip { background:rgba(201,168,76,.1); border:1px solid var(--border); color:var(--cream); padding:11px 14px; border-radius:10px; font-size:13.5px; margin-top:12px; }
+  b { color:#fff; }
+  table { width:100%; border-collapse:collapse; margin-top:12px; font-size:14px; }
+  td { padding:9px 6px; border-bottom:1px solid rgba(255,255,255,.06); vertical-align:top; }
+  td:first-child { color:var(--gold2); white-space:nowrap; width:1%; padding-right:18px; font-weight:600; }
+  footer { text-align:center; color:var(--muted); font-size:12.5px; margin-top:30px; }
+</style>
+</head>
+<body>
+<h1>La Máquina del Club</h1>
+<p class="sub">Guía de montaje de la PC del gabinete · Sala de Juegos Crespo</p>
+<div class="prog"><i id="barra"></i></div>
+<div class="progTxt" id="progTxt">0 de 0 pasos</div>
+
+<section>
+  <h2>1 · Antes de empezar<small>Lo que tenés que tener a mano</small></h2>
+  <ul>
+    <li><input type="checkbox"><span>La PC dentro del gabinete, con <b>Windows</b> andando y el monitor táctil funcionando</span></li>
+    <li><input type="checkbox"><span><b>Internet</b> en esa PC (cable de red o WiFi estable)</span></li>
+    <li><input type="checkbox"><span><b>Google Chrome</b> instalado</span></li>
+    <li><input type="checkbox"><span>La <b>llave de la máquina</b> a mano (la misma que cargaste en Render como <code>KIOSK_DEVICE_KEY</code>)</span></li>
+    <li><input type="checkbox"><span>Esta carpeta <code>maquina-club</code> copiada a la PC del gabinete (pendrive o descarga)</span></li>
+  </ul>
+  <div class="tip">Anotá la <b>resolución del monitor</b> (botón derecho en el escritorio → Configuración de pantalla) y pasámela: ajusto la app a esa medida exacta.</div>
+</section>
+
+<section>
+  <h2>2 · Que la PC arranque sola<small>Para que después de un corte de luz vuelva sin que nadie toque nada</small></h2>
+  <ul>
+    <li><input type="checkbox"><span>Crear (o usar) un usuario de Windows <b>sin contraseña o con contraseña simple</b>, dedicado a la máquina</span></li>
+    <li><input type="checkbox"><span>Activar el <b>inicio de sesión automático</b>: tecla Windows → escribí <code>netplwiz</code> → Enter → destildá <i>"Los usuarios deben escribir su nombre y contraseña"</i> → Aceptar → poné la contraseña de ese usuario</span></li>
+    <li><input type="checkbox"><span>En la BIOS (si el gabinete lo permite): activar <b>"Restore on AC Power Loss / Power On"</b> para que la PC encienda sola al volver la luz</span></li>
+    <li><input type="checkbox"><span>Windows Update: poner <b>horas activas</b> de la sala para que no reinicie en pleno horario</span></li>
+  </ul>
+  <div class="warn">El auto-login guarda la contraseña de ese usuario en la PC. Usá un usuario <b>común</b> (no administrador) y que esa PC no tenga nada sensible.</div>
+</section>
+
+<section>
+  <h2>3 · Instalar la máquina<small>Un solo paso, tarda un minuto</small></h2>
+  <ul>
+    <li><input type="checkbox"><span>Botón derecho sobre <code>instalar.ps1</code> → <b>"Ejecutar con PowerShell"</b></span></li>
+    <li><input type="checkbox"><span>Cuando pregunte la <b>URL</b>: dejala como está (Enter)</span></li>
+    <li><input type="checkbox"><span>Cuando pida la <b>llave</b>: pegala y Enter</span></li>
+    <li><input type="checkbox"><span>Se abre el kiosk solo. Verificá que <b>abajo del botón diga "Es gratis · Solo necesitás tu DNI"</b> (si dice <i>"Máquina no vinculada"</i>, la llave no entró bien)</span></li>
+  </ul>
+  <div class="tip">Si Windows bloquea el script: abrí PowerShell en la carpeta y corré <code>powershell -ExecutionPolicy Bypass -File instalar.ps1</code></div>
+  <p style="margin-top:12px; font-size:13.5px; color:var(--muted)">El instalador deja: arranque automático con Windows, vigilante que repone el kiosk si se cierra, sin suspensión ni protector de pantalla, teclado táctil al tocar un campo, y la máquina vinculada.</p>
+</section>
+
+<section>
+  <h2>4 · Probar antes de abrir al público<small>El circuito completo, como lo haría un socio</small></h2>
+  <ul>
+    <li><input type="checkbox"><span>Tocar la pantalla → poner un DNI → <b>crear PIN</b> → entra al Club</span></li>
+    <li><input type="checkbox"><span>Que sume los <b>+50 puntos</b> de la visita</span></li>
+    <li><input type="checkbox"><span>Jugar <b>Fortuna Dorada</b>: los 2 giros, ver el contador de la próxima ronda</span></li>
+    <li><input type="checkbox"><span>Entrar a <b>Mis Movimientos</b> y ver la visita y el premio del giro</span></li>
+    <li><input type="checkbox"><span>Abrir <b>Quiero canjear</b> y <b>Ver carta</b> (que el QR se lea con un celular)</span></li>
+    <li><input type="checkbox"><span><b>Sonido</b>: que la voz y la música se escuchen bien en los parlantes del gabinete</span></li>
+    <li><input type="checkbox"><span>Dejarla sola 1 minuto: tiene que aparecer el cartel de cierre de sesión y volver a la pantalla de inicio</span></li>
+    <li><input type="checkbox"><span><b>Reiniciar la PC</b>: la máquina tiene que volver sola al kiosk sin que nadie toque nada</span></li>
+    <li><input type="checkbox"><span>Cerrar Chrome a propósito (Alt+F4): el vigilante lo repone en ~20 segundos</span></li>
+  </ul>
+</section>
+
+<section>
+  <h2>5 · Uso diario y mantenimiento<small>Lo que hay que saber para operarla</small></h2>
+  <table>
+    <tr><td>Panel de administración</td><td><b>5 toques rápidos en el logo</b> de la pantalla de inicio → te lleva al admin (pide tu usuario). Ahí manejás premios, porcentajes, stock y ves el log de giros.</td></tr>
+    <tr><td>Salir del kiosk</td><td><b>Alt + F4</b>, o correr <code>salir-kiosk.bat</code> (también apaga el vigilante para poder trabajar en la PC).</td></tr>
+    <tr><td>Volver al kiosk</td><td>Reiniciar la PC, o correr <code>iniciar-maquina-club.ps1</code>.</td></tr>
+    <tr><td>Ver qué pasó</td><td>Archivo <code>maquina-club.log</code> en esta carpeta: anota cada arranque y cada vez que el vigilante tuvo que reponer el kiosk.</td></tr>
+    <tr><td>Si se ve algo raro</td><td>Alt+F4 y reiniciar la PC resuelve el 90%. Si sigue, sacá una foto de la pantalla y mandámela.</td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>6 · Pendientes que dependen del fierro<small>Para cuando la máquina esté montada</small></h2>
+  <ul>
+    <li><input type="checkbox"><span>Pasarme la <b>resolución del monitor</b> para ajustar la app a esa medida</span></li>
+    <li><input type="checkbox"><span>Definir la <b>impresora</b> (la del gabinete o una térmica USB): destraba los cupones impresos de premios y canjes</span></li>
+    <li><input type="checkbox"><span>Si la sala tiene <b>IP fija</b>, pasármela para el segundo candado de seguridad</span></li>
+    <li><input type="checkbox"><span>Decidir qué muestra el <b>monitor chico de arriba</b> (premios del día, último ganador, sorteo)</span></li>
+  </ul>
+</section>
+
+<footer>Sala de Juegos Crespo · La Máquina del Club — tu avance queda guardado en esta PC</footer>
+
+<script>
+  const cbs = [...document.querySelectorAll('input[type=checkbox]')];
+  cbs.forEach((c, i) => {
+    c.id = 'p' + i;
+    try { c.checked = localStorage.getItem('guia_' + i) === '1' } catch {}
+    c.addEventListener('change', () => {
+      try { localStorage.setItem('guia_' + i, c.checked ? '1' : '0') } catch {}
+      pintar();
+    });
+  });
+  function pintar() {
+    const hechos = cbs.filter(c => c.checked).length;
+    document.getElementById('barra').style.width = (hechos / cbs.length * 100) + '%';
+    document.getElementById('progTxt').textContent = `${hechos} de ${cbs.length} pasos`;
+  }
+  pintar();
+</script>
+</body>
+</html>
