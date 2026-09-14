@@ -518,14 +518,19 @@ export const redeemLoyaltyReward = (token, rewardId) =>
 
 // ─── Kiosk / tótem del Club ───────────────────────────────────────────────────
 export const loyaltyCheckin = (token) =>
-  api('/api/loyalty/checkin', { method: 'POST', headers: authHeaders(token) })
+  api('/api/loyalty/checkin', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
+
+// Llave de la Máquina del Club: el servidor solo acepta check-in, giros y
+// creación de PIN si viene con esta llave (se provisiona una vez en el gabinete).
+export const kioskKey = () => { try { return localStorage.getItem('kiosk_key') || '' } catch { return '' } }
+const kioskHeaders = () => { const k = kioskKey(); return k ? { 'x-kiosk-key': k } : {} }
 
 // Fortuna Dorada: el resultado del giro lo decide el servidor
 export const getSpinStatus = (token) =>
   api('/api/loyalty/spin-status', { headers: authHeaders(token) })
 
 export const postSpin = (token) =>
-  api('/api/loyalty/spin', { method: 'POST', headers: authHeaders(token) })
+  api('/api/loyalty/spin', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
 
 export const clubLookupDni = (dni) =>
   api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })
@@ -693,7 +698,7 @@ export const subscribeLead = (data) =>
 
 // ─── Promo (modo promotora — público con rate-limit) ──────────────────────────
 export const clubCreatePin = (dni, pin) =>
-  api('/api/club/create-pin', { method: 'POST', body: JSON.stringify({ dni, pin }) })
+  api('/api/club/create-pin', { method: 'POST', headers: kioskHeaders(), body: JSON.stringify({ dni, pin }) })
 
 export const promoLookupDni = (dni) =>
   api('/api/promo/lookup-dni', { method: 'POST', body: JSON.stringify({ dni }) })

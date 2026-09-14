@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { clubLookupDni, loginPlayer, clubSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, promoInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE } from '../api/client'
+import { clubLookupDni, loginPlayer, clubSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, promoInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey } from '../api/client'
 import './Kiosk.css'
 
 // Tótem de autogestión del Sala Crespo Club.
@@ -203,6 +203,19 @@ export default function Kiosk() {
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
   }, [])
 
+  // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
+  // gabinete guarda la llave (queda en el perfil de Chrome) y se limpia la URL.
+  useEffect(() => {
+    try {
+      const k = new URLSearchParams(window.location.search).get('key')
+      if (k) {
+        localStorage.setItem('kiosk_key', k)
+        window.history.replaceState({}, '', window.location.pathname)
+      }
+    } catch { /* sin storage */ }
+  }, [])
+  const vinculada = !!kioskKey()
+
   // Auto-reset por inactividad en pantallas de trámite (dni/pin/registro).
   // El Home tiene su propio SesionTimer con contador visible; los overlays
   // (juego/carta/canjes) lo pausan y al cerrarse renuevan la actividad.
@@ -229,7 +242,7 @@ export default function Kiosk() {
     function onMsg(e) {
       if (!e?.data?.tipo) return
       if (e.data.tipo === 'listo' && player?.token) {
-        try { e.source.postMessage({ tipo: 'init', token: player.token, apiBase: API_BASE }, '*') } catch { /* iframe cerrado */ }
+        try { e.source.postMessage({ tipo: 'init', token: player.token, apiBase: API_BASE, kioskKey: kioskKey() }, '*') } catch { /* iframe cerrado */ }
       }
       if (e.data.tipo === 'giro-jugado' && player) {
         setSpinRefresh(k => k + 1)
@@ -459,7 +472,7 @@ export default function Kiosk() {
             <div className="kiosk__perk"><span className="kiosk__perk-num kiosk__perk-num--brand">TORNEOS DE SLOTS</span><span className="kiosk__perk-lbl">Inscribite acá y competí por premios</span></div>
           </div>
           <button className="kiosk__idle-btn">TOCÁ Y EMPEZÁ A GANAR</button>
-          <p className="kiosk__idle-note">Es gratis · Solo necesitás tu DNI</p>
+          <p className="kiosk__idle-note">{vinculada ? 'Es gratis · Solo necesitás tu DNI' : 'Máquina no vinculada · el check-in y los giros solo funcionan en la Máquina del Club'}</p>
         </div>
       )}
 

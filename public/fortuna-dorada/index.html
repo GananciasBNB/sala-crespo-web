@@ -484,7 +484,7 @@ cargarTexturas(URLS).then(T => {
   let SRV = null; // { token, apiBase }
   window.addEventListener('message', (e) => {
     if (e && e.data && e.data.tipo === 'init' && e.data.token) {
-      SRV = { token: e.data.token, apiBase: e.data.apiBase || '' };
+      SRV = { token: e.data.token, apiBase: e.data.apiBase || '', kioskKey: e.data.kioskKey || '' };
       voz('giro-bienvenida');
       fetch(SRV.apiBase + '/api/loyalty/spin-status', { headers: { Authorization: 'Bearer ' + SRV.token } })
         .then(r => r.json())
@@ -548,7 +548,7 @@ cargarTexturas(URLS).then(T => {
     if (SRV) {
       try {
         const resp = await fetch(SRV.apiBase + '/api/loyalty/spin', {
-          method: 'POST', headers: { Authorization: 'Bearer ' + SRV.token },
+          method: 'POST', headers: { Authorization: 'Bearer ' + SRV.token, 'x-kiosk-key': SRV.kioskKey },
         });
         const j = await resp.json();
         if (!resp.ok) throw new Error(j.error || 'spin rechazado');
