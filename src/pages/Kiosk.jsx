@@ -39,17 +39,17 @@ function fmtCountdown(totalSec) {
 // Cierre de sesión del Home: contador visible en los últimos 10s, urgente a los
 // 5s; cualquier toque lo renueva. Aislado para que su tick no repinte el Home.
 const SESION_MS = 40000
-function SesionTimer({ lastActRef, paused, onExpirar }) {
-  const [rem, setRem] = useState(SESION_MS)
+function SesionTimer({ lastActRef, paused, onExpirar, margen = SESION_MS }) {
+  const [rem, setRem] = useState(margen)
   useEffect(() => {
-    if (paused) { setRem(SESION_MS); return }
+    if (paused) { setRem(margen); return }
     const iv = setInterval(() => {
-      const r = SESION_MS - (Date.now() - lastActRef.current)
+      const r = margen - (Date.now() - lastActRef.current)
       setRem(r)
       if (r <= 0) onExpirar()
     }, 500)
     return () => clearInterval(iv)
-  }, [lastActRef, paused, onExpirar])
+  }, [lastActRef, paused, onExpirar, margen])
   const s = Math.max(0, Math.ceil(rem / 1000))
   if (paused || s > 10) return null
   return (
@@ -281,6 +281,7 @@ export default function Kiosk() {
       if (e.data.tipo === 'listo' && player?.token) {
         try { e.source.postMessage({ tipo: 'init', token: player.token, apiBase: API_BASE, kioskKey: kioskKey() }, '*') } catch { /* iframe cerrado */ }
       }
+      if (e.data.tipo === 'actividad') { lastActRef.current = Date.now(); return }
       if (e.data.tipo === 'giro-jugado' && player) {
         setSpinRefresh(k => k + 1)
         if (typeof e.data.left === 'number' && e.data.left <= 0) setGiroJugado(true)
@@ -687,7 +688,12 @@ export default function Kiosk() {
 
       {/* Contador de cierre de sesión del Home */}
       {screen === 'done' && (
-        <SesionTimer lastActRef={lastActRef} paused={showGiro || showCarta || showMovs || showCanjes || showTorneoOk || showDatos} onExpirar={reset} />
+        <SesionTimer
+          lastActRef={lastActRef}
+          paused={showCarta || showMovs || showCanjes || showTorneoOk || showDatos}
+          margen={showGiro ? 80000 : SESION_MS}
+          onExpirar={reset}
+        />
       )}
 
       {/* Completar datos de contacto */}

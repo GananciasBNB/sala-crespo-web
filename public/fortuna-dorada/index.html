@@ -52,7 +52,12 @@ const VENT_FRAC = { x: 164 / 1659, y: 203 / 948, w: 1333 / 1659, h: 534 / 948 };
 // El gabinete tiene un monitor 5:4 (1280x1024) y hay pantallas 16:9: el juego
 // se arma en la proporción real para no dejar franjas negras. En 5:4 la tabla
 // de premios va en una fila debajo del marco (hay altura de sobra, no ancho).
-const CUADRADA = (innerWidth / innerHeight) < 1.45;
+// ?forma=cuadrada fuerza el layout del gabinete (5:4) en cualquier pantalla,
+// para poder revisarlo sin ir hasta la maquina. ?forma=ancha fuerza el 16:9.
+const paramForma = new URLSearchParams(location.search).get('forma');
+const CUADRADA = paramForma === 'cuadrada' ? true
+               : paramForma === 'ancha' ? false
+               : (innerWidth / innerHeight) < 1.45;
 const W = CUADRADA ? 1280 : 1600;
 const H = CUADRADA ? 1024 : 900;
 
@@ -73,9 +78,9 @@ function glPorSoftware() {
 let LIVIANO = paramLiviano === '1' ? true : paramLiviano === '0' ? false : glPorSoftware();
 
 const app = new PIXI.Application({ background: '#0a0406', width: W, height: H,
-  // en modo liviano se dibujan ~half de los píxeles y el CSS los estira:
-  // pierde un poco de nitidez, gana el doble de fluidez
-  antialias: !LIVIANO, resolution: LIVIANO ? 0.7 : 1, powerPreference: 'high-performance' });
+  // La calidad de dibujo se mantiene: lo caro es el video de fondo y el blur,
+  // no la nitidez. Si aun asi no alcanza, se baja despues (ver vigilarFps).
+  antialias: true, resolution: 1, powerPreference: 'high-performance' });
 if (LIVIANO) console.log('Fortuna Dorada: modo liviano (sin placa de video)');
 document.getElementById('stage').appendChild(app.view);
 
@@ -302,12 +307,12 @@ cargarTexturas(URLS).then(T => {
   // ─── Marco + ventana de rodillos (el juego se adapta al marco) ───
   // La escala se calcula sobre el tamaño REAL de la textura cargada.
   const marco = new PIXI.Sprite(T.marco);
-  const marcoW = CUADRADA ? 1000 : 900;
+  const marcoW = CUADRADA ? 920 : 900;
   const marcoScale = marcoW / marco.texture.width;
   marco.scale.set(marcoScale);
   const marcoH = marco.texture.height * marcoScale;
   const marcoX = (W - marcoW) / 2;
-  const marcoY = CUADRADA ? 150 : 126;
+  const marcoY = CUADRADA ? 155 : 126;
   marco.position.set(marcoX, marcoY);
 
   const vent = {
@@ -386,7 +391,7 @@ cargarTexturas(URLS).then(T => {
   }));
   btxt.anchor.set(0.5);
   boton.addChild(bg, btxt);
-  boton.position.set(W / 2, CUADRADA ? H - 76 : marcoY + marcoH + 118);
+  boton.position.set(W / 2, CUADRADA ? H - 62 : marcoY + marcoH + 118);
   boton.eventMode = 'static'; boton.cursor = 'pointer';
   app.stage.addChild(boton);
 
@@ -396,7 +401,7 @@ cargarTexturas(URLS).then(T => {
     dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
   }));
   giroLabel.anchor.set(0.5);
-  giroLabel.position.set(W / 2, CUADRADA ? H - 152 : marcoY + marcoH + 44);
+  giroLabel.position.set(W / 2, CUADRADA ? 132 : marcoY + marcoH + 44);
   app.stage.addChild(giroLabel);
   window.__actualizarGiroLabel = (total, restantes) => {
     giroLabel.text = restantes > 0
@@ -413,10 +418,10 @@ cargarTexturas(URLS).then(T => {
   const chipRefs = [];
   const ladoX = [175, W - 175];
   // 16:9 -> dos columnas laterales de 3 · 5:4 -> una fila de 6 bajo el marco
-  const CHIP_R   = CUADRADA ? 48 : 56;
-  const CHIP_ICO = CUADRADA ? 80 : 92;
+  const CHIP_R   = CUADRADA ? 54 : 56;
+  const CHIP_ICO = CUADRADA ? 94 : 92;
   const chipPos = (i) => CUADRADA
-    ? { cx: (W / combos.length) * (i + 0.5), cy: marcoY + marcoH + 92 }
+    ? { cx: (W / combos.length) * (i + 0.5), cy: marcoY + marcoH + 84 }
     : { cx: ladoX[(i / 3) | 0], cy: 196 + (i % 3) * 172 };
   combos.forEach((p, i) => {
     const { cx, cy } = chipPos(i);
@@ -432,9 +437,9 @@ cargarTexturas(URLS).then(T => {
     const x3 = new PIXI.Text('× 3', new PIXI.TextStyle({ fontFamily: 'Georgia', fontSize: 16, fontWeight: '900', fill: '#C9A84C', letterSpacing: 3, dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2 }));
     x3.anchor.set(0.5, 0); x3.position.set(cx, cy + CHIP_R + 6);
     const lbl = new PIXI.Text(p.label, new PIXI.TextStyle({
-      fontFamily: 'Segoe UI', fontSize: CUADRADA ? 17 : 20, fontWeight: '700',
+      fontFamily: 'Segoe UI', fontSize: CUADRADA ? 16 : 20, fontWeight: '700',
       fill: '#F5E6B8', letterSpacing: 0.5,
-      wordWrap: true, wordWrapWidth: CUADRADA ? (W / combos.length - 14) : 250, align: 'center',
+      wordWrap: true, wordWrapWidth: CUADRADA ? (W / combos.length - 10) : 250, align: 'center',
       dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 8, dropShadowDistance: 2, dropShadowAlpha: 0.9,
     }));
     lbl.anchor.set(0.5, 0); lbl.position.set(cx, cy + CHIP_R + 28);
@@ -578,6 +583,11 @@ cargarTexturas(URLS).then(T => {
     }
   });
   try { window.parent.postMessage({ tipo: 'listo' }, '*'); } catch {}
+  // cada toque dentro del juego renueva la sesion del kiosk (el padre no ve
+  // los eventos del iframe: sin esto la sesion quedaria abierta para siempre)
+  window.addEventListener('pointerdown', () => {
+    try { window.parent.postMessage({ tipo: 'actividad' }, '*'); } catch {}
+  });
   pintarGiroLabel();
 
   function arrancarRodillos() {
@@ -647,7 +657,7 @@ cargarTexturas(URLS).then(T => {
 
   // Vigila el fps real los primeros segundos: si la PC no llega (gabinetes
   // con video integrado viejo), apaga video de fondo, blur y motas en caliente.
-  let fpsFrames = 0, fpsDesde = performance.now(), fpsMedido = false;
+  let fpsFrames = 0, fpsDesde = performance.now(), fpsMedido = false, segundaMedicion = false;
   function vigilarFps(ahora) {
     if (fpsMedido || LIVIANO) return;
     fpsFrames++;
@@ -656,6 +666,12 @@ cargarTexturas(URLS).then(T => {
     fpsMedido = true;
     const fps = fpsFrames / (transcurrido / 1000);
     if (fps >= 26) return;
+    if (segundaMedicion) {
+      // ya se apago todo lo caro y sigue lento: ultimo recurso, menos pixeles
+      console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> bajando resolucion');
+      try { app.renderer.resolution = 0.75; app.renderer.resize(W, H); fit(); } catch (e) { console.warn(e); }
+      return;
+    }
     LIVIANO = true;
     console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> modo liviano');
     try { if (videoFondo) videoFondo.pause(); } catch {}
@@ -663,6 +679,8 @@ cargarTexturas(URLS).then(T => {
     fondo.scale.set(Math.max(W / T.fondo.width, H / T.fondo.height));
     reels.forEach(r => { r.cont.filters = null; });
     motas.forEach((m, i) => { if (i >= 12) m.visible = false; });
+    // se vuelve a medir: si ni asi alcanza, ahi si se resigna nitidez
+    fpsFrames = 0; fpsDesde = performance.now(); fpsMedido = false; segundaMedicion = true;
   }
 
   app.ticker.add(() => {

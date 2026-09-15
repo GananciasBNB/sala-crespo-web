@@ -209,7 +209,7 @@
 
 /* Contador de cierre de sesión */
 .kiosk__sesion {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 40;
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 70;
   font-family: 'Oswald', var(--font-body); font-size: 16px; letter-spacing: 1px;
   color: var(--cream); background: rgba(20,8,12,.94); border: 1px solid var(--gold);
   border-radius: 999px; padding: 10px 26px; pointer-events: none; white-space: nowrap;
