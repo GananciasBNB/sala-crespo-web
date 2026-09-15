@@ -75,12 +75,23 @@ function glPorSoftware() {
     return /swiftshader|software|llvmpipe|microsoft basic|generic/i.test(r);
   } catch { return true; }
 }
-let LIVIANO = paramLiviano === '1' ? true : paramLiviano === '0' ? false : glPorSoftware();
+function maquinaLenta() {   // lo aprendido en ESTA maquina (perfil de Chrome)
+  try { return localStorage.getItem('fd_maquina_lenta') === '1'; } catch { return false; }
+}
+function recordarMaquinaLenta(nivel) {
+  try { localStorage.setItem('fd_maquina_lenta', '1'); localStorage.setItem('fd_nivel', String(nivel)); } catch {}
+}
+let LIVIANO = paramLiviano === '1' ? true
+            : paramLiviano === '0' ? false
+            : (glPorSoftware() || maquinaLenta());
+// si ya se sabe que ni en liviano alcanza, arranca directo con menos pixeles
+let nivelGuardado = 0;
+try { nivelGuardado = Number(localStorage.getItem('fd_nivel')) || 0; } catch {}
 
 const app = new PIXI.Application({ background: '#0a0406', width: W, height: H,
   // La calidad de dibujo se mantiene: lo caro es el video de fondo y el blur,
   // no la nitidez. Si aun asi no alcanza, se baja despues (ver vigilarFps).
-  antialias: true, resolution: 1, powerPreference: 'high-performance' });
+  antialias: nivelGuardado < 2, resolution: nivelGuardado >= 2 ? 0.75 : 1, powerPreference: 'high-performance' });
 if (LIVIANO) console.log('Fortuna Dorada: modo liviano (sin placa de video)');
 document.getElementById('stage').appendChild(app.view);
 
@@ -669,10 +680,12 @@ cargarTexturas(URLS).then(T => {
     if (segundaMedicion) {
       // ya se apago todo lo caro y sigue lento: ultimo recurso, menos pixeles
       console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> bajando resolucion');
+      recordarMaquinaLenta(2);
       try { app.renderer.resolution = 0.75; app.renderer.resize(W, H); fit(); } catch (e) { console.warn(e); }
       return;
     }
     LIVIANO = true;
+    recordarMaquinaLenta(1);
     console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> modo liviano');
     try { if (videoFondo) videoFondo.pause(); } catch {}
     fondo.texture = T.fondo;
