@@ -15,7 +15,15 @@ Write-Host "  Sala de Juegos Crespo - instalacion" -ForegroundColor DarkGray
 Write-Host ""
 
 New-Item -ItemType Directory -Force -Path $destino | Out-Null
-foreach ($f in @('instalar.ps1', 'iniciar-maquina-club.ps1', 'salir-kiosk.bat', 'guia-maquina-club.html')) {
+$archivos = @(
+  'instalar.ps1',              # deja la PC lista (se corre solo, mas abajo)
+  'iniciar-maquina-club.ps1',  # lanzador + vigilante
+  'salir-kiosk.bat',           # salida de emergencia
+  'guia-maquina-club.html',    # manual para la sala
+  'autologin.ps1',             # entrar sola a Windows despues de un corte de luz
+  'reparar-arranque.ps1'       # diagnostico si algun dia no levanta
+)
+foreach ($f in $archivos) {
   $out = Join-Path $destino $f
   Invoke-WebRequest -Uri "$base/$f" -OutFile $out -UseBasicParsing
   Unblock-File -Path $out -ErrorAction SilentlyContinue   # quitar marca "bajado de internet"
