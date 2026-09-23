@@ -29,9 +29,12 @@ function FortunaAdmin({ token, toast }) {
   const [cfg, setCfg] = useState(null)
   const [log, setLog] = useState([])
   const [verLog, setVerLog] = useState(false)
-  const [settings, setSettings] = useState({ cooldownHours: 3, spinsPerWindow: 2, sorteoMonto: 100000 })
+  const [settings, setSettings] = useState({ cooldownHours: 3, spinsPerWindow: 2, sorteoMonto: 100000, checkinPoints: 50 })
   const [rows, setRows] = useState([])
-  const [girosDia, setGirosDia] = useState(144) // proyección: giros por día estimados
+  // la proyección arranca de cuánta gente viene, no de un número de giros suelto
+  const [clientesDia, setClientesDia] = useState(60)
+  const [pctJuega, setPctJuega] = useState(80)
+  const [rondas, setRondas] = useState(1.5)
   const [nuevo, setNuevo] = useState({ label: '', sym: 'arbol', kind: 'points', points: '', valuePesos: '', pct: '', dailyStock: '' })
   const inputStyle = { padding: '7px 9px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 13, width: '100%' }
   const numStyle = { ...inputStyle, width: 74, textAlign: 'right' }
@@ -88,16 +91,29 @@ function FortunaAdmin({ token, toast }) {
   const activos = rows.filter(r => r.active)
   const sumPct = activos.reduce((a, r) => a + (Number(r.pct) || 0), 0)
   const hoy = cfg.todayCounts || {}
-  // proyección diaria con los giros estimados: salidas = min(giros × %, stock)
+  // Proyección: de cuánta gente viene salen los giros, y de ahí los premios.
+  // El stock corta las salidas, así que un premio con stock chico entrega menos
+  // de lo que dice su porcentaje.
+  const socios = Math.round(clientesDia * pctJuega / 100)
+  const girosDia = Math.round(socios * settings.spinsPerWindow * rondas)
   const proy = activos.map(r => {
     const esperadas = girosDia * (Number(r.pct) || 0) / 100
     const stock = Number(r.daily_stock) || 0
     const salidas = stock > 0 ? Math.min(esperadas, stock) : esperadas
-    return { r, salidas, pts: salidas * (Number(r.points) || 0), pesos: salidas * (Number(r.value_pesos) || 0) }
+    return {
+      r, salidas, topeado: stock > 0 && esperadas > stock,
+      pts: salidas * (Number(r.points) || 0), pesos: salidas * (Number(r.value_pesos) || 0),
+    }
   })
   const totalPts = proy.reduce((a, p) => a + p.pts, 0)
   const totalPesos = proy.reduce((a, p) => a + p.pesos, 0)
   const totalSalidas = proy.reduce((a, p) => a + p.salidas, 0)
+  // el programa no es solo la ruleta: cada visita suma puntos aunque no gire
+  const ptsVisita = clientesDia * (Number(settings.checkinPoints) || 0)
+  // 1 punto = 1 peso en la tabla de canjes, así que los puntos se cuentan a peso
+  const mesPuntos = (totalPts + ptsVisita) * 30
+  const mesTickets = totalPesos * 30
+  const mesTotal = mesPuntos + mesTickets
   const fmt = n => '$' + Math.round(n).toLocaleString('es-AR')
   const card = { background: 'rgba(255,255,255,.03)', border: '1px solid #2a3142', borderRadius: 10, padding: 16, marginBottom: 18 }
   const h4 = { margin: '0 0 12px', fontSize: 14, color: '#F0D275' }
@@ -111,13 +127,18 @@ function FortunaAdmin({ token, toast }) {
             <input type="number" min="1" value={settings.spinsPerWindow} onChange={e => setSettings({ ...settings, spinsPerWindow: Number(e.target.value) })} style={numStyle} /></label>
           <label style={{ fontSize: 12, color: '#8B9BB4' }}>Horas entre rondas<br />
             <input type="number" min="1" step="0.5" value={settings.cooldownHours} onChange={e => setSettings({ ...settings, cooldownHours: Number(e.target.value) })} style={numStyle} /></label>
-          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Monto del sorteo mensual ($)<br />
-            <input type="number" min="0" step="1000" value={settings.sorteoMonto} onChange={e => setSettings({ ...settings, sorteoMonto: Number(e.target.value) })} style={{ ...numStyle, width: 120 }} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Puntos por visita<br />
+            <input type="number" min="0" step="10" value={settings.checkinPoints} onChange={e => setSettings({ ...settings, checkinPoints: Number(e.target.value) })} style={numStyle} /></label>
           <button onClick={guardarSettings} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Guardar reglas</button>
         </div>
         <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0', lineHeight: 1.5 }}>
-          Cada socio tiene <b style={{ color: '#fff' }}>{settings.spinsPerWindow} giros</b> por ventana rodante de <b style={{ color: '#fff' }}>{settings.cooldownHours} hs</b>. El resultado lo decide el servidor con azar criptográfico; el stock diario corta a las 00:00 (hora argentina).
+          Cada socio tiene <b style={{ color: '#fff' }}>{settings.spinsPerWindow} giros</b> por ventana rodante de <b style={{ color: '#fff' }}>{settings.cooldownHours} hs</b>, y suma <b style={{ color: '#fff' }}>{settings.checkinPoints} puntos</b> por venir, gire o no. El resultado lo decide el servidor con azar criptográfico; el stock diario corta a las 00:00 (hora argentina).
         </p>
+        {settings.spinsPerWindow > 5 && (
+          <p style={{ fontSize: 12.5, color: '#fcd34d', margin: '10px 0 0', background: 'rgba(252,211,77,.1)', border: '1px solid rgba(252,211,77,.35)', borderRadius: 8, padding: '9px 12px', lineHeight: 1.5 }}>
+            ⚠ {settings.spinsPerWindow} giros por ronda es un valor de prueba. Con la sala abierta esto multiplica lo que entregás: acordate de volverlo a 2 antes de abrir.
+          </p>
+        )}
       </div>
 
       <div style={card}>
@@ -172,11 +193,22 @@ function FortunaAdmin({ token, toast }) {
       </div>
 
       <div style={card}>
-        <h4 style={h4}>Proyección diaria</h4>
-        <label style={{ fontSize: 12, color: '#8B9BB4' }}>Giros estimados por día
-          <input type="number" value={girosDia} onChange={e => setGirosDia(Number(e.target.value) || 0)} style={{ ...numStyle, marginLeft: 10 }} />
-          <span style={{ marginLeft: 8 }}>(ej: 60 clientes × 80% × 3 giros = 144)</span>
-        </label>
+        <h4 style={h4}>Cuánto entrega la ruleta</h4>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'end', marginBottom: 6 }}>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Clientes por día<br />
+            <input type="number" min="0" value={clientesDia} onChange={e => setClientesDia(Number(e.target.value) || 0)} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>% que usa la máquina<br />
+            <input type="number" min="0" max="100" value={pctJuega} onChange={e => setPctJuega(Number(e.target.value) || 0)} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Rondas por noche<br />
+            <input type="number" min="0" step="0.5" value={rondas} onChange={e => setRondas(Number(e.target.value) || 0)} style={numStyle} /></label>
+          <p style={{ fontSize: 12.5, color: '#8B9BB4', margin: 0, lineHeight: 1.5 }}>
+            {socios} socios × {settings.spinsPerWindow} giros × {rondas} rondas =<br />
+            <b style={{ color: '#F0D275', fontSize: 15 }}>{girosDia.toLocaleString('es-AR')} giros por día</b>
+          </p>
+        </div>
+        <p style={{ fontSize: 11.5, color: '#64748b', margin: '0 0 10px', lineHeight: 1.5 }}>
+          Una ronda es cada {settings.cooldownHours} hs. Alguien que se queda {(settings.cooldownHours * 2)} hs hace 2 rondas.
+        </p>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginTop: 10 }}>
           <thead><tr style={{ color: '#8B9BB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
             <th style={{ textAlign: 'left', padding: 6 }}>Premio</th><th style={{ textAlign: 'right', padding: 6 }}>Sale 1 cada</th><th style={{ textAlign: 'right', padding: 6 }}>Salidas/día</th><th style={{ textAlign: 'right', padding: 6 }}>Puntos/día</th><th style={{ textAlign: 'right', padding: 6 }}>$ tickets/día</th>
@@ -186,7 +218,10 @@ function FortunaAdmin({ token, toast }) {
               <tr key={r.id} style={{ borderTop: '1px solid #1c2230' }}>
                 <td style={{ padding: 6 }}>{r.label}</td>
                 <td style={{ padding: 6, textAlign: 'right' }}>{Number(r.pct) > 0 ? Math.round(100 / Number(r.pct)) + ' giros' : '—'}</td>
-                <td style={{ padding: 6, textAlign: 'right' }}>{salidas.toFixed(1)}{Number(r.daily_stock) > 0 && girosDia * Number(r.pct) / 100 > Number(r.daily_stock) ? ' (tope)' : ''}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>
+                  {salidas.toFixed(1)}
+                  {topeado && <span title="El stock corta antes de lo que dice el %" style={{ color: '#fcd34d' }}> (tope)</span>}
+                </td>
                 <td style={{ padding: 6, textAlign: 'right' }}>{Math.round(pts).toLocaleString('es-AR')}</td>
                 <td style={{ padding: 6, textAlign: 'right' }}>{fmt(pesos)}</td>
               </tr>
@@ -200,7 +235,38 @@ function FortunaAdmin({ token, toast }) {
             </tr>
           </tbody>
         </table>
-        <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0' }}>Nominal por mes (30 días): <b style={{ color: '#fff' }}>{fmt((totalPts + totalPesos) * 30)}</b> — compará contra el 4% del NW.</p>
+        {proy.some(p => p.topeado) && (
+          <p style={{ fontSize: 12, color: '#fcd34d', margin: '10px 0 0', lineHeight: 1.5 }}>
+            Los premios marcados <b>(tope)</b> se agotan antes de terminar el día: con estos giros su
+            probabilidad real es menor a la configurada, y el que juega de noche no los ve.
+          </p>
+        )}
+
+        <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid #2a3142' }}>
+          <h4 style={{ ...h4, marginBottom: 10 }}>Lo que cuesta el programa por mes</h4>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+            <tbody>
+              <tr><td style={{ padding: 5, color: '#C8D2E0' }}>Puntos de la ruleta</td>
+                <td style={{ padding: 5, textAlign: 'right', color: '#8B9BB4' }}>{Math.round(totalPts).toLocaleString('es-AR')} pts/día</td>
+                <td style={{ padding: 5, textAlign: 'right' }}>{fmt(totalPts * 30)}</td></tr>
+              <tr><td style={{ padding: 5, color: '#C8D2E0' }}>Puntos por visita ({settings.checkinPoints} × {clientesDia})</td>
+                <td style={{ padding: 5, textAlign: 'right', color: '#8B9BB4' }}>{ptsVisita.toLocaleString('es-AR')} pts/día</td>
+                <td style={{ padding: 5, textAlign: 'right' }}>{fmt(ptsVisita * 30)}</td></tr>
+              <tr><td style={{ padding: 5, color: '#C8D2E0' }}>Tickets promocionales</td>
+                <td style={{ padding: 5, textAlign: 'right', color: '#8B9BB4' }}>{fmt(totalPesos)}/día</td>
+                <td style={{ padding: 5, textAlign: 'right' }}>{fmt(mesTickets)}</td></tr>
+              <tr style={{ borderTop: '1px solid #C9A84C', fontWeight: 700 }}>
+                <td style={{ padding: '8px 5px' }}>Total del mes</td><td />
+                <td style={{ padding: '8px 5px', textAlign: 'right', color: '#F0D275', fontSize: 16 }}>{fmt(mesTotal)}</td></tr>
+            </tbody>
+          </table>
+          <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0', lineHeight: 1.6 }}>
+            Los puntos se cuentan a peso porque la tabla de canjes está en 1 punto = 1 peso.
+            Es el valor nominal: una parte nunca se canjea.
+            {' '}Para ver cuánto pesa sobre la producción, cargá el net win en <b style={{ color: '#C8D2E0' }}>Hoy</b> —
+            y acordate de que el techo del 4% es <b style={{ color: '#C8D2E0' }}>con los promotickets incluidos</b>, que corren aparte de esto.
+          </p>
+        </div>
       </div>
 
       <div style={card}>

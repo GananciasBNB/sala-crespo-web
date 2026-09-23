@@ -2,7 +2,7 @@
 // opera distinto: desde el celular, mirando cómo viene el día y tocando una
 // cosa puntual. Usa el mismo login de admin.
 import { useState, useEffect } from 'react'
-import { adminLogin, adminClubOverview, adminClubSetNw } from '../api/client'
+import { adminLogin, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
 import {
   FortunaAdmin, ClubCatalog, ClubAccountLookup, ClubDeliver, ClubManualOps,
 } from '../components/club/panels'
@@ -14,6 +14,7 @@ const SECCIONES = [
   { id: 'hoy',      icon: '📊', label: 'Hoy',      sub: 'Cómo viene el día' },
   { id: 'fortuna',  icon: '🎰', label: 'Fortuna',  sub: 'Premios y reglas' },
   { id: 'canjes',   icon: '🛍',  label: 'Canjes',   sub: 'Catálogo y promos' },
+  { id: 'sorteo',   icon: '🎟',  label: 'Sorteo',   sub: 'El sorteo del mes' },
   { id: 'socios',   icon: '👤', label: 'Socios',   sub: 'Buscar y ajustar' },
   { id: 'barra',    icon: '💁', label: 'Barra',    sub: 'Entregar canjes' },
   { id: 'puntos',   icon: '⚡', label: 'Puntos',   sub: 'Sumar a mano' },
@@ -68,6 +69,7 @@ export default function ClubAdmin() {
         {seccion === 'hoy'     && <Hoy token={token} toast={toast} onIr={setSeccion} />}
         {seccion === 'fortuna' && <FortunaAdmin token={token} toast={toast} />}
         {seccion === 'canjes'  && <ClubCatalog token={token} toast={toast} />}
+        {seccion === 'sorteo'  && <Sorteo token={token} toast={toast} />}
         {seccion === 'socios'  && <ClubAccountLookup token={token} toast={toast} />}
         {seccion === 'barra'   && <ClubDeliver token={token} toast={toast} />}
         {seccion === 'puntos'  && <ClubManualOps token={token} toast={toast} />}
@@ -198,6 +200,67 @@ function Hoy({ token, toast, onIr }) {
           </div>
         </Bloque>
       )}
+    </>
+  )
+}
+
+// ─── Sorteo del mes: vive aparte de la ruleta porque es otra mecánica ───────
+function Sorteo({ token, toast }) {
+  const [d, setD] = useState(null)
+  const [monto, setMonto] = useState('')
+  const [editando, setEditando] = useState(false)
+
+  async function cargar() {
+    try { const r = await adminClubOverview(token); setD(r); setMonto(String(r.sorteo?.monto || '')) }
+    catch (err) { toast.show(err.message, 'err') }
+  }
+  useEffect(() => { cargar() }, [])
+
+  async function guardar() {
+    try {
+      await adminSpinSettings(token, { sorteoMonto: Number(monto) || 0 })
+      setEditando(false); await cargar()
+      toast.show('Monto del sorteo actualizado')
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+
+  if (!d) return <p className="ca__cargando">Cargando…</p>
+  const s = d.sorteo || {}
+  const pesos = n => '$' + Math.round(n || 0).toLocaleString('es-AR')
+
+  return (
+    <>
+      <Bloque titulo="Premio del mes">
+        <div className="ca__nw">
+          <div className="ca__nw-pct" style={{ color: 'var(--oro-luz)' }}>{pesos(s.monto)}</div>
+          <div className="ca__nw-txt">
+            Es el monto que se muestra en la máquina. El socio imprime un cupón por día y lo deja en la urna.
+          </div>
+          <div className="ca__nw-edit">
+            {editando ? (
+              <>
+                <input type="number" step="1000" value={monto} onChange={e => setMonto(e.target.value)} autoFocus />
+                <button className="ca__btn ca__btn--ok" onClick={guardar}>Guardar</button>
+                <button className="ca__btn" onClick={() => setEditando(false)}>Cancelar</button>
+              </>
+            ) : (
+              <button className="ca__btn" onClick={() => setEditando(true)}>Cambiar el monto</button>
+            )}
+          </div>
+        </div>
+      </Bloque>
+
+      <Bloque titulo="Cupones en la urna">
+        <div className="ca__kpis">
+          <Kpi valor={s.cuponesMes || 0} label="este mes" detalle="van a la urna" />
+          <Kpi valor={s.cuponesHoy || 0} label="hoy" />
+          <Kpi valor={s.personas || 0} label="participantes" detalle="personas distintas" />
+        </div>
+        <p style={{ fontSize: 12.5, color: 'var(--txt2)', marginTop: 12, lineHeight: 1.6 }}>
+          Los cupones son físicos: el sistema cuenta cuántos se imprimieron, pero el sorteo se hace
+          sacando uno de la urna. El conteo sirve para verificar que no falte ninguno.
+        </p>
+      </Bloque>
     </>
   )
 }
