@@ -30,6 +30,10 @@ export default function InstallAppBanner() {
   useEffect(() => {
     let cancelled = false
     async function check() {
+      // paneles internos y la máquina de la sala: es una invitación para
+      // clientes, no tiene sentido delante de quien está operando
+      const ruta = window.location.pathname
+      if (/^\/(admin|club-admin|morphi|kiosk)/.test(ruta)) { setState('hidden'); return }
       if (!isPushSupported() && !isIOS()) { setState('hidden'); return }
 
       // ¿Ya está suscrito? → no mostramos nada

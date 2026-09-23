@@ -16,6 +16,7 @@ const Club = lazy(() => import('./pages/Club'))
 const Kiosk = lazy(() => import('./pages/Kiosk'))
 const CartaPublica = lazy(() => import('./pages/CartaPublica'))
 const CartaAdmin = lazy(() => import('./pages/CartaAdmin'))
+const ClubAdmin = lazy(() => import('./pages/ClubAdmin'))
 const MorphiSync = lazy(() => import('./pages/MorphiSync'))
 const MatchStories = lazy(() => import('./pages/MatchStories'))
 const PromoPartido = lazy(() => import('./pages/PromoPartido'))
@@ -173,6 +174,16 @@ export default function App() {
           <ChunkErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <CartaAdmin />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/club-admin" element={
+        <>
+          <PageHead title="Panel del Club" description="" path="/club-admin" noindex />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <ClubAdmin />
             </Suspense>
           </ChunkErrorBoundary>
         </>

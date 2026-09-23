@@ -1,0 +1,212 @@
+/* Panel del Sala Crespo Club. Mismos dorados que la máquina, pensado para
+   leerse de reojo en el celular y para trabajar cómodo en la compu. */
+.ca {
+  --oro: #C9A84C;
+  --oro-luz: #F0D275;
+  --crema: #F5EBD8;
+  --fondo: #0d0609;
+  --panel: rgba(255, 255, 255, .035);
+  --borde: rgba(201, 168, 76, .18);
+  --txt: #E8DFD0;
+  --txt2: #9a8f82;
+  --ok: #5ec98a;
+  --ojo: #e8b84b;
+  --mal: #f2706f;
+
+  min-height: 100dvh;
+  background:
+    radial-gradient(1100px 620px at 50% -12%, rgba(120, 40, 30, .32), transparent 62%),
+    var(--fondo);
+  color: var(--txt);
+  font-family: 'Oswald', system-ui, -apple-system, sans-serif;
+  padding-bottom: 40px;
+  overflow-wrap: break-word;
+}
+.ca *, .ca *::before, .ca *::after { box-sizing: border-box; }
+
+/* ── Encabezado ─────────────────────────────────────────────────────────── */
+.ca__top {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  padding: 16px;
+  border-bottom: 1px solid var(--borde);
+  position: sticky; top: 0; z-index: 5;
+  background: rgba(13, 6, 9, .93);
+  backdrop-filter: blur(8px);
+}
+.ca__brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
+.ca__star { color: var(--oro); font-size: 22px; line-height: 1; }
+.ca__star--big { font-size: 40px; }
+.ca__brand-name {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 19px; color: var(--crema); line-height: 1.15;
+}
+.ca__brand-sub { font-size: 12px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--txt2); }
+.ca__salir {
+  flex-shrink: 0; padding: 8px 15px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--borde); background: transparent; color: var(--txt2);
+  font-family: inherit; font-size: 13px; letter-spacing: .5px;
+}
+.ca__salir:hover { color: var(--crema); border-color: var(--oro); }
+
+/* ── Navegación: tira scrollable en celular, fila normal en compu ───────── */
+.ca__nav {
+  display: flex; gap: 7px; padding: 12px 16px;
+  overflow-x: auto; scrollbar-width: none;
+  border-bottom: 1px solid rgba(255, 255, 255, .05);
+}
+.ca__nav::-webkit-scrollbar { display: none; }
+.ca__nav-btn {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 7px;
+  padding: 10px 15px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--borde); background: rgba(255, 255, 255, .02);
+  color: var(--txt2); font-family: inherit; font-size: 14px; letter-spacing: .4px;
+  transition: all .15s ease;
+}
+.ca__nav-btn:hover { color: var(--crema); }
+.ca__nav-btn--on {
+  background: linear-gradient(135deg, rgba(201, 168, 76, .2), rgba(240, 210, 117, .09));
+  border-color: var(--oro); color: var(--oro-luz); font-weight: 600;
+}
+.ca__nav-ico { font-size: 15px; }
+
+/* ── Cuerpo ─────────────────────────────────────────────────────────────── */
+.ca__main { max-width: 1080px; margin: 0 auto; padding: 18px 16px 0; }
+.ca__cargando { color: var(--txt2); padding: 28px 0; text-align: center; }
+
+.ca__bloque { margin-bottom: 26px; }
+.ca__bloque-tit {
+  font-size: 12px; letter-spacing: 2.6px; text-transform: uppercase;
+  color: var(--oro); margin: 0 0 12px; font-weight: 600;
+}
+
+/* ── Tarjetas de número ─────────────────────────────────────────────────── */
+.ca__kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.ca__kpi {
+  background: var(--panel); border: 1px solid var(--borde);
+  border-radius: 14px; padding: 15px 14px; min-width: 0;
+}
+.ca__kpi--top {
+  background: linear-gradient(160deg, rgba(201, 168, 76, .14), rgba(255, 255, 255, .02));
+  border-color: rgba(201, 168, 76, .42);
+}
+.ca__kpi-valor {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 27px; color: var(--oro-luz); line-height: 1.1; margin-bottom: 3px;
+}
+.ca__kpi-label { font-size: 13px; letter-spacing: .6px; color: var(--txt); }
+.ca__kpi-det { font-size: 11.5px; color: var(--txt2); margin-top: 3px; }
+
+/* ── Aviso de canjes pendientes ─────────────────────────────────────────── */
+.ca__alerta {
+  display: flex; flex-direction: column; gap: 3px; width: 100%; text-align: left;
+  margin-bottom: 26px; padding: 15px 17px; border-radius: 14px; cursor: pointer;
+  border: 1px solid rgba(240, 210, 117, .5);
+  background: linear-gradient(135deg, rgba(201, 168, 76, .17), rgba(240, 210, 117, .05));
+  color: var(--crema); font-family: inherit;
+}
+.ca__alerta strong { font-size: 16px; color: var(--oro-luz); }
+.ca__alerta span { font-size: 13px; color: var(--txt2); }
+
+/* ── Peso sobre el net win ──────────────────────────────────────────────── */
+.ca__nw {
+  background: var(--panel); border: 1px solid var(--borde);
+  border-radius: 14px; padding: 20px 18px;
+}
+.ca__nw--ok  { border-color: rgba(94, 201, 138, .4); }
+.ca__nw--ojo { border-color: rgba(232, 184, 75, .45); }
+.ca__nw--mal { border-color: rgba(242, 112, 111, .5); }
+.ca__nw-pct {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 46px; line-height: 1; margin-bottom: 6px;
+}
+.ca__nw--ok  .ca__nw-pct { color: var(--ok); }
+.ca__nw--ojo .ca__nw-pct { color: var(--ojo); }
+.ca__nw--mal .ca__nw-pct { color: var(--mal); }
+.ca__nw-txt { font-size: 14.5px; line-height: 1.5; color: var(--txt); }
+.ca__nw-nota { font-size: 12px; color: var(--txt2); margin-top: 7px; line-height: 1.45; }
+.ca__nw-vacio { font-size: 14px; color: var(--txt2); margin: 0; line-height: 1.55; }
+.ca__nw-edit { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+.ca__nw-edit input {
+  flex: 1 1 160px; min-width: 0; padding: 10px 13px; border-radius: 9px;
+  border: 1px solid var(--borde); background: rgba(0, 0, 0, .35);
+  color: var(--crema); font-family: inherit; font-size: 15px;
+}
+
+/* ── Lista simple ───────────────────────────────────────────────────────── */
+.ca__lista { display: flex; flex-direction: column; gap: 6px; }
+.ca__fila {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+  padding: 11px 14px; border-radius: 10px;
+  background: var(--panel); border: 1px solid rgba(255, 255, 255, .05);
+  font-size: 14px;
+}
+.ca__fila-nom { color: var(--crema); min-width: 0; }
+.ca__fila-n { color: var(--oro-luz); font-weight: 600; }
+.ca__fila-pts { color: var(--txt2); font-size: 12.5px; }
+
+/* ── Botones ────────────────────────────────────────────────────────────── */
+.ca__btn {
+  padding: 10px 17px; border-radius: 9px; cursor: pointer;
+  border: 1px solid var(--borde); background: rgba(255, 255, 255, .03);
+  color: var(--txt); font-family: inherit; font-size: 14px; letter-spacing: .3px;
+}
+.ca__btn:hover { border-color: var(--oro); color: var(--crema); }
+.ca__btn--ok {
+  border: none; font-weight: 600;
+  background: linear-gradient(135deg, var(--oro), var(--oro-luz)); color: #1a0d05;
+}
+.ca__btn--ok:disabled { opacity: .55; cursor: default; }
+.ca__btn--full { width: 100%; padding: 13px; font-size: 15px; }
+
+/* ── Login ──────────────────────────────────────────────────────────────── */
+.ca--login { display: flex; align-items: center; justify-content: center; padding: 20px; }
+.ca__login {
+  width: 100%; max-width: 350px; text-align: center;
+  background: var(--panel); border: 1px solid var(--borde);
+  border-radius: 18px; padding: 34px 26px;
+}
+.ca__login-tit {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 25px; color: var(--crema); margin: 10px 0 2px;
+}
+.ca__login-sub {
+  font-size: 12px; letter-spacing: 2.4px; text-transform: uppercase;
+  color: var(--txt2); margin: 0 0 22px;
+}
+.ca__login input {
+  width: 100%; margin-bottom: 11px; padding: 12px 14px; border-radius: 9px;
+  border: 1px solid var(--borde); background: rgba(0, 0, 0, .35);
+  color: var(--crema); font-family: inherit; font-size: 15px;
+}
+.ca__login input:focus { outline: none; border-color: var(--oro); }
+.ca__login-err {
+  font-size: 13px; color: var(--mal); margin-bottom: 11px;
+  background: rgba(242, 112, 111, .1); border-radius: 8px; padding: 9px;
+}
+
+/* ── Aviso flotante ─────────────────────────────────────────────────────── */
+.ca__toast {
+  position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%);
+  z-index: 50; max-width: calc(100vw - 32px);
+  padding: 13px 22px; border-radius: 999px; font-size: 14px;
+  background: #1c1014; border: 1px solid var(--oro); color: var(--crema);
+  box-shadow: 0 8px 26px rgba(0, 0, 0, .55);
+}
+.ca__toast--err { border-color: var(--mal); color: #ffd9d8; }
+
+/* ── Compu ──────────────────────────────────────────────────────────────── */
+@media (min-width: 760px) {
+  .ca__top { padding: 20px 26px; }
+  .ca__nav { padding: 14px 26px; }
+  .ca__main { padding: 26px 26px 0; }
+  .ca__kpis { grid-template-columns: repeat(4, 1fr); }
+  .ca__kpi { padding: 18px 17px; }
+  .ca__kpi-valor { font-size: 31px; }
+  .ca__brand-name { font-size: 22px; }
+  .ca__nw-pct { font-size: 56px; }
+}
+
+/* Las pantallas heredadas del admin general traen estilos inline oscuros que
+   ya combinan; solo emparejamos el ancho de sus tablas. */
+.ca__main .ap-section { padding: 0; }
+.ca__main .ap-section__title { display: none; }

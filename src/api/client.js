@@ -561,6 +561,12 @@ export const adminSpinSettings = (token, body) =>
 export const adminSpinLog = (token, limit = 300) =>
   api(`/api/admin/spin/log?limit=${limit}`, { headers: authHeaders(token) })
 
+// Panel del Club: foto del día/mes y el net win que sirve de denominador
+export const adminClubOverview = (token) =>
+  api('/api/admin/club/overview', { headers: authHeaders(token) })
+export const adminClubSetNw = (token, nwMensual) =>
+  api('/api/admin/club/nw', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ nwMensual }) })
+
 export const adminLoyaltyAccount = (token, dni) =>
   api(`/api/admin/loyalty/account/${encodeURIComponent(dni)}`, { headers: authHeaders(token) })
 export const adminLoyaltyAdjust = (token, body) =>
