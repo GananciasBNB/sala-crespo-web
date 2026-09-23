@@ -23,6 +23,14 @@ function Log($msg) {
   }
 }
 
+# API de Windows para manejar el foco de las ventanas
+Add-Type -Namespace MaquinaClub -Name Win -MemberDefinition @'
+  [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr hWnd);
+  [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint pid);
+'@ -ErrorAction SilentlyContinue
+
 function Get-ChromePath {
   $rutas = @(
     "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
@@ -44,10 +52,40 @@ function Limpiar-CrashFlags {
   }
 }
 
+function Kiosk-Pids {
+  Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe'" |
+    Where-Object { $_.CommandLine -like "*$perfil*" } |
+    ForEach-Object { $_.ProcessId }
+}
+
 function Kiosk-Vivo {
-  $p = Get-CimInstance Win32_Process -Filter "Name = 'chrome.exe'" |
-       Where-Object { $_.CommandLine -like "*$perfil*" }
-  return ($p | Measure-Object).Count -gt 0
+  return ((Kiosk-Pids | Measure-Object).Count -gt 0)
+}
+
+# Trae el kiosk al frente si otra ventana lo tapo. En el gabinete no hay mouse:
+# cualquier ventana que aparezca encima (TeamViewer, un aviso de Windows) dejaria
+# la maquina inutilizable hasta que alguien vaya con un teclado.
+function Traer-Al-Frente {
+  $pids = @(Kiosk-Pids)
+  if ($pids.Count -eq 0) { return }
+
+  # si la ventana activa ya es del kiosk, no hacer nada
+  $activa = [MaquinaClub.Win]::GetForegroundWindow()
+  $pidActivo = 0
+  [void][MaquinaClub.Win]::GetWindowThreadProcessId($activa, [ref]$pidActivo)
+  if ($pids -contains $pidActivo) { return }
+
+  $ventana = Get-Process -Id $pids -ErrorAction SilentlyContinue |
+             Where-Object { $_.MainWindowHandle -ne 0 } |
+             Select-Object -First 1
+  if (-not $ventana) { return }
+
+  [void][MaquinaClub.Win]::ShowWindow($ventana.MainWindowHandle, 9)   # 9 = SW_RESTORE
+  [void][MaquinaClub.Win]::SetForegroundWindow($ventana.MainWindowHandle)
+  # AppActivate como respaldo: Windows a veces ignora SetForegroundWindow
+  # cuando el proceso que llama no es el que tiene el foco.
+  try { (New-Object -ComObject WScript.Shell).AppActivate($ventana.Id) | Out-Null } catch {}
+  Log "kiosk tapado por otra ventana -> traido al frente"
 }
 
 function Lanzar-Kiosk {
@@ -81,12 +119,24 @@ if (-not $Ahora) { Start-Sleep -Seconds 4 }
 Lanzar-Kiosk
 
 # --- Vigilante ---------------------------------------------------------------
-# Si alguien cierra Chrome (o se cae), vuelve solo a los pocos segundos.
+# Repone el kiosk si se cae y lo devuelve al frente si algo lo tapa.
+# Para trabajar en la PC sin pelear con el vigilante (ej: entrar por TeamViewer),
+# crear el archivo mantenimiento.flag; borrarlo al terminar.
+$flag = Join-Path $PSScriptRoot 'mantenimiento.flag'
+$vuelta = 0
 while ($true) {
-  Start-Sleep -Seconds 20
-  if (-not (Kiosk-Vivo)) {
-    Log 'kiosk caido -> relanzando'
-    Start-Sleep -Seconds 3
-    Lanzar-Kiosk
+  Start-Sleep -Seconds 5
+  if (Test-Path $flag) { continue }   # modo mantenimiento: no tocar nada
+
+  $vuelta++
+  if ($vuelta -ge 4) {                # cada 20s: revisar que siga vivo
+    $vuelta = 0
+    if (-not (Kiosk-Vivo)) {
+      Log 'kiosk caido -> relanzando'
+      Start-Sleep -Seconds 3
+      Lanzar-Kiosk
+      continue
+    }
   }
+  Traer-Al-Frente
 }
