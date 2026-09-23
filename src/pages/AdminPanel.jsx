@@ -18,6 +18,7 @@ import {
   adminPromoCampaigns, adminCreatePromoCampaign, adminPromoCampaignBlast, adminPromoPreview, adminPromoCandidates,
   adminMarketingOptouts, adminReinstateMarketing,
   adminLoyaltyRewards, adminLoyaltyCreateReward, adminLoyaltyUpdateReward, adminLoyaltyDeleteReward,
+  getMenu,
   adminSpinConfig, adminSpinCreatePrize, adminSpinUpdatePrize, adminSpinDeletePrize, adminSpinSettings, adminSpinLog,
   adminLoyaltyAccount, adminLoyaltyAdjust, adminLoyaltyCheckin, adminLoyaltyAyb,
   adminLoyaltyPending, adminLoyaltyDeliver, adminLoyaltyCancel,
@@ -3926,13 +3927,19 @@ const CLUB_CATEGORIES = [
 
 function ClubCatalog({ token, toast }) {
   const [rewards, setRewards] = useState([])
+  const [menu, setMenu] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null)
   const [newForm, setNewForm] = useState({ name: '', category: 'sin_alcohol', kind: 'product', points: '', valuePesos: '', sortOrder: 0 })
 
   async function load() {
     setLoading(true)
-    try { const r = await adminLoyaltyRewards(token); setRewards(r.rewards || []) }
+    try {
+      const [r, m] = await Promise.all([adminLoyaltyRewards(token), getMenu()])
+      setRewards(r.rewards || [])
+      // lista plana de productos de la carta para el selector de vinculación
+      setMenu((m.menu || []).flatMap(c => (c.items || []).map(i => ({ ...i, cat: c.name }))))
+    }
     catch (err) { toast.show(err.message, 'err') }
     finally { setLoading(false) }
   }
@@ -3954,12 +3961,17 @@ function ClubCatalog({ token, toast }) {
         name: reward.name, category: reward.category, kind: reward.kind,
         points: Number(reward.points), valuePesos: reward.value_pesos ? Number(reward.value_pesos) : null,
         sortOrder: Number(reward.sort_order || 0), active: reward.active,
+        menuItemId: reward.menu_item_id || null,
+        discountPct: Number(reward.discount_pct) || 0,
       })
       toast.show('Actualizado', 'ok'); setEditing(null); await load()
     } catch (err) { toast.show(err.message, 'err') }
   }
   async function handleToggle(reward) {
-    try { await adminLoyaltyUpdateReward(token, reward.id, { active: !reward.active }); await load() }
+    // active puede venir apagado porque el producto salió de la carta; el
+    // interruptor del operador es active_manual
+    const manual = reward.active_manual ?? reward.active
+    try { await adminLoyaltyUpdateReward(token, reward.id, { active: !manual }); await load() }
     catch (err) { toast.show(err.message, 'err') }
   }
   async function handleDelete(reward) {
@@ -3999,14 +4011,34 @@ function ClubCatalog({ token, toast }) {
               <div key={cat.id} style={{ marginBottom: 18 }}>
                 <h4 style={{ fontSize: 12, letterSpacing: 2, textTransform: 'uppercase', color: '#C9A84C', margin: '0 0 8px' }}>{cat.label}</h4>
                 {items.map(r => editing === r.id ? (
-                  <EditableRewardRow key={r.id} initial={r} onCancel={() => setEditing(null)} onSave={handleUpdate} categories={CLUB_CATEGORIES} />
+                  <EditableRewardRow key={r.id} initial={r} menu={menu} onCancel={() => setEditing(null)} onSave={handleUpdate} categories={CLUB_CATEGORIES} />
                 ) : (
-                  <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', gap: 10, alignItems: 'center', padding: '10px 14px', background: r.active ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.3)', border: '1px solid #2a3142', borderRadius: 8, marginBottom: 6, fontSize: 13 }}>
+                  <div key={r.id} style={{ display: 'grid', gridTemplateColumns: '1fr auto auto auto auto', gap: 10, alignItems: 'center', padding: '10px 14px', background: r.active ? 'rgba(255,255,255,.02)' : 'rgba(0,0,0,.3)', border: `1px solid ${r.discount_pct > 0 ? 'rgba(240,210,117,.45)' : '#2a3142'}`, borderRadius: 8, marginBottom: 6, fontSize: 13 }}>
                     <div>
                       <strong style={{ color: r.active ? '#fff' : '#5d6b80' }}>{r.name}</strong>
-                      <span style={{ marginLeft: 8, fontSize: 11, color: '#64748b' }}>· {r.kind}</span>
+                      {r.menu_name ? (
+                        <span style={{ marginLeft: 8, fontSize: 11, color: '#64748b' }}>
+                          · sigue a <span style={{ color: '#8ca0bd' }}>{r.menu_name}</span> (${Number(r.menu_price || 0).toLocaleString('es-AR')})
+                        </span>
+                      ) : (
+                        <span style={{ marginLeft: 8, fontSize: 11, color: '#64748b' }}>· puntos a mano</span>
+                      )}
+                      {r.menu_item_id && r.menu_active === false &&
+                        <span style={{ marginLeft: 8, fontSize: 11, color: '#fb6e8a' }}>⚠ fuera de carta</span>}
                     </div>
-                    <span style={{ color: '#F0D275', fontFamily: 'monospace', fontWeight: 700 }}>{r.points.toLocaleString('es-AR')} pts</span>
+                    <span style={{ fontFamily: 'monospace', fontWeight: 700, textAlign: 'right' }}>
+                      {r.discount_pct > 0 && (
+                        <span style={{ color: '#64748b', textDecoration: 'line-through', fontWeight: 400, marginRight: 6 }}>
+                          {Number(r.points_full || 0).toLocaleString('es-AR')}
+                        </span>
+                      )}
+                      <span style={{ color: '#F0D275' }}>{r.points.toLocaleString('es-AR')} pts</span>
+                      {r.discount_pct > 0 && (
+                        <span style={{ marginLeft: 6, fontSize: 11, color: '#06240f', background: '#F0D275', borderRadius: 4, padding: '2px 6px', fontWeight: 700 }}>
+                          −{r.discount_pct}%
+                        </span>
+                      )}
+                    </span>
                     <button onClick={() => handleToggle(r)} style={{ padding: '5px 10px', borderRadius: 5, border: '1px solid #2a3142', background: 'transparent', color: r.active ? '#86efac' : '#8B9BB4', cursor: 'pointer', fontSize: 11 }}>{r.active ? 'Activo' : 'Oculto'}</button>
                     <button onClick={() => setEditing(r.id)} style={{ padding: '5px 10px', borderRadius: 5, border: '1px solid #2a3142', background: 'transparent', color: '#C8D2E0', cursor: 'pointer', fontSize: 11 }}>Editar</button>
                     <button onClick={() => handleDelete(r)} style={{ padding: '5px 10px', borderRadius: 5, border: '1px solid #C41E3A', background: 'transparent', color: '#fb6e8a', cursor: 'pointer', fontSize: 11 }}>×</button>
@@ -4020,19 +4052,71 @@ function ClubCatalog({ token, toast }) {
     </div>
   )
 }
-function EditableRewardRow({ initial, onCancel, onSave, categories }) {
+function EditableRewardRow({ initial, menu = [], onCancel, onSave, categories }) {
   const [r, setR] = useState({ ...initial })
   const s = { padding: '6px 8px', borderRadius: 6, border: '1px solid #2a3142', background: 'rgba(0,0,0,.3)', color: '#fff', fontSize: 13 }
+  const atado = !!r.menu_item_id
+  const prod = menu.find(m => String(m.id) === String(r.menu_item_id))
+  const desc = Math.min(100, Math.max(0, Number(r.discount_pct) || 0))
+  // mientras editás, los puntos se recalculan en vivo con el precio de la carta
+  const aPuntos = pesos => Math.max(100, Math.round(pesos / 100) * 100)
+  const puntosCalc = prod ? aPuntos(Number(prod.price) * (100 - desc) / 100) : null
+  const puntosLista = prod ? aPuntos(Number(prod.price)) : null
+
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 0.8fr 0.8fr auto auto', gap: 8, alignItems: 'center', padding: '8px 12px', background: 'rgba(201,168,76,.08)', border: '1px solid rgba(201,168,76,.4)', borderRadius: 8, marginBottom: 6 }}>
-      <input value={r.name} onChange={e => setR({ ...r, name: e.target.value })} style={s} />
-      <select value={r.category} onChange={e => setR({ ...r, category: e.target.value })} style={s}>
-        {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
-      </select>
-      <input type="number" value={r.points} onChange={e => setR({ ...r, points: e.target.value })} style={s} />
-      <input type="number" placeholder="$" value={r.value_pesos || ''} onChange={e => setR({ ...r, value_pesos: e.target.value })} style={s} />
-      <button onClick={() => onSave(r)} style={{ padding: '6px 12px', borderRadius: 5, border: 'none', background: '#22c55e', color: '#06240f', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>✓</button>
-      <button onClick={onCancel} style={{ padding: '6px 12px', borderRadius: 5, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>×</button>
+    <div style={{ padding: '10px 12px', background: 'rgba(201,168,76,.08)', border: '1px solid rgba(201,168,76,.4)', borderRadius: 8, marginBottom: 6 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr auto auto', gap: 8, alignItems: 'center', marginBottom: 8 }}>
+        <input value={r.name} onChange={e => setR({ ...r, name: e.target.value })} style={s} />
+        <select value={r.category} onChange={e => setR({ ...r, category: e.target.value })} style={s}>
+          {categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+        </select>
+        <button onClick={() => onSave(r)} style={{ padding: '6px 12px', borderRadius: 5, border: 'none', background: '#22c55e', color: '#06240f', fontWeight: 700, cursor: 'pointer', fontSize: 12 }}>✓ Guardar</button>
+        <button onClick={onCancel} style={{ padding: '6px 12px', borderRadius: 5, border: '1px solid #2a3142', background: 'transparent', color: '#8B9BB4', cursor: 'pointer', fontSize: 12 }}>×</button>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1.3fr', gap: 8, alignItems: 'center' }}>
+        <label style={{ display: 'block' }}>
+          <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#8B9BB4', display: 'block', marginBottom: 3 }}>Producto de la carta</span>
+          <select value={r.menu_item_id || ''} onChange={e => setR({ ...r, menu_item_id: e.target.value || null })} style={{ ...s, width: '100%' }}>
+            <option value="">— puntos a mano —</option>
+            {menu.map(m => (
+              <option key={m.id} value={m.id}>{m.cat} · {m.name} (${Number(m.price).toLocaleString('es-AR')})</option>
+            ))}
+          </select>
+        </label>
+
+        <label style={{ display: 'block' }}>
+          <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#8B9BB4', display: 'block', marginBottom: 3 }}>Descuento socio</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <input type="number" min={0} max={100} disabled={!atado} value={r.discount_pct ?? 0}
+              onChange={e => setR({ ...r, discount_pct: e.target.value })}
+              style={{ ...s, width: '100%', opacity: atado ? 1 : .4 }} />
+            <span style={{ color: '#8B9BB4', fontSize: 13 }}>%</span>
+          </div>
+        </label>
+
+        <label style={{ display: 'block' }}>
+          <span style={{ fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', color: '#8B9BB4', display: 'block', marginBottom: 3 }}>
+            {atado ? 'Puntos (los pone el precio)' : 'Puntos'}
+          </span>
+          {atado ? (
+            <div style={{ ...s, fontFamily: 'monospace', fontWeight: 700 }}>
+              {desc > 0 && <span style={{ color: '#64748b', textDecoration: 'line-through', fontWeight: 400, marginRight: 6 }}>{puntosLista?.toLocaleString('es-AR')}</span>}
+              <span style={{ color: '#F0D275' }}>{puntosCalc?.toLocaleString('es-AR')}</span>
+            </div>
+          ) : (
+            <input type="number" value={r.points} onChange={e => setR({ ...r, points: e.target.value })} style={{ ...s, width: '100%' }} />
+          )}
+        </label>
+      </div>
+
+      {atado && (
+        <p style={{ margin: '8px 0 0', fontSize: 11, color: '#8B9BB4' }}>
+          {desc > 0
+            ? `Promo activa: el socio paga ${puntosCalc?.toLocaleString('es-AR')} puntos por algo que vale $${Number(prod?.price || 0).toLocaleString('es-AR')}. Resignás $${(Number(prod?.price || 0) - puntosCalc).toLocaleString('es-AR')} por canje.`
+            : '1 punto = 1 peso. Si cambiás el precio en la carta, este canje se ajusta solo.'}
+        </p>
+      )}
     </div>
   )
 }

@@ -803,10 +803,15 @@ export default function Kiosk() {
                   .sort((a, b) => ((balance >= a.points ? 0 : 1) - (balance >= b.points ? 0 : 1)) || a.points - b.points)
                   .map(r => {
                     const puede = balance >= r.points
+                    const enPromo = r.discount_pct > 0 && r.points_full > r.points
                     return (
-                      <div key={r.id} className={`kiosk__canje ${puede ? 'kiosk__canje--ya' : 'kiosk__canje--no'}`}>
+                      <div key={r.id} className={`kiosk__canje ${puede ? 'kiosk__canje--ya' : 'kiosk__canje--no'} ${enPromo ? 'kiosk__canje--promo' : ''}`}>
+                        {enPromo && <div className="kiosk__canje-promo">−{r.discount_pct}%</div>}
                         <div className="kiosk__canje-nombre">{r.name}</div>
-                        <div className="kiosk__canje-pts">{r.points.toLocaleString('es-AR')} pts</div>
+                        <div className="kiosk__canje-pts">
+                          {enPromo && <span className="kiosk__canje-antes">{r.points_full.toLocaleString('es-AR')}</span>}
+                          {r.points.toLocaleString('es-AR')} pts
+                        </div>
                         {canjeados[r.id] ? (
                           <div className="kiosk__mov-ok">✓ Cupón impreso — a la barra</div>
                         ) : puede ? (

@@ -313,6 +313,18 @@
 .kiosk__canje-nombre { font-size: 14px; font-weight: 700; color: var(--cream); line-height: 1.2; }
 .kiosk__canje-pts { font-family: var(--font-impact); font-size: 17px; color: var(--gold-light); }
 .kiosk__canje-falta { font-family: 'Oswald', var(--font-body); font-size: 12px; letter-spacing: .5px; color: var(--text3); }
+/* canje en promo: la ficha se destaca y muestra los puntos de lista tachados */
+.kiosk__canje--promo { position: relative; border-color: var(--gold-light); }
+.kiosk__canje-promo {
+  position: absolute; top: -9px; right: -6px;
+  font-family: 'Oswald', var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: .5px;
+  color: #1a0d05; background: var(--gold-light); border-radius: 999px; padding: 2px 9px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.5);
+}
+.kiosk__canje-antes {
+  font-size: 13px; color: var(--text3); text-decoration: line-through;
+  margin-right: 6px; font-weight: 400;
+}
 .kiosk__hub-ok--proceso { color: var(--text2); animation: kpulse 1.2s ease-in-out infinite; }
 .kiosk__puntos-h { font-family: 'Oswald', var(--font-body); font-size: 14px; letter-spacing: 3px; color: var(--gold); position: sticky; top: 0; background: rgba(18,7,11,.95); padding: 4px 0; }
 .kiosk__mov {
