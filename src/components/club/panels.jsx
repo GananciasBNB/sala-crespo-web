@@ -57,6 +57,7 @@ function FortunaAdmin({ token, toast }) {
         label: r.label, sym: r.sym, kind: r.kind, points: Number(r.points) || 0,
         valuePesos: r.value_pesos ? Number(r.value_pesos) : null, pct: Number(r.pct) || 0,
         dailyStock: Number(r.daily_stock) || 0, active: !!r.active, sortOrder: Number(r.sort_order) || 0,
+        dropsPerDay: Number(r.drops_per_day) || 0,
       })
       toast.show(`"${r.label}" guardado`, 'ok'); await load()
     } catch (err) { toast.show(err.message, 'err') }
@@ -97,11 +98,17 @@ function FortunaAdmin({ token, toast }) {
   const socios = Math.round(clientesDia * pctJuega / 100)
   const girosDia = Math.round(socios * settings.spinsPerWindow * rondas)
   const proy = activos.map(r => {
+    const drops = Number(r.drops_per_day) || 0
+    // por momento sorteado salen exactamente N por jornada, sin depender del %
+    if (drops > 0) {
+      return { r, salidas: drops, porMomento: true, topeado: false,
+        pts: drops * (Number(r.points) || 0), pesos: drops * (Number(r.value_pesos) || 0) }
+    }
     const esperadas = girosDia * (Number(r.pct) || 0) / 100
     const stock = Number(r.daily_stock) || 0
     const salidas = stock > 0 ? Math.min(esperadas, stock) : esperadas
     return {
-      r, salidas, topeado: stock > 0 && esperadas > stock,
+      r, salidas, porMomento: false, topeado: stock > 0 && esperadas > stock,
       pts: salidas * (Number(r.points) || 0), pesos: salidas * (Number(r.value_pesos) || 0),
     }
   })
@@ -147,7 +154,7 @@ function FortunaAdmin({ token, toast }) {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ color: '#8B9BB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
-                {['Premio', 'Símbolo', 'Tipo', 'Puntos', 'Ticket $', '% giro', 'Stock/día', 'Hoy', 'Activo', ''].map(h => <th key={h} style={{ textAlign: 'left', padding: '6px 6px', borderBottom: '1px solid #2a3142' }}>{h}</th>)}
+                {['Premio', 'Símbolo', 'Tipo', 'Puntos', 'Ticket $', '% giro', 'Stock/día', 'Momentos/día', 'Hoy', 'Activo', ''].map(h => <th key={h} style={{ textAlign: 'left', padding: '6px 6px', borderBottom: '1px solid #2a3142' }}>{h}</th>)}
               </tr>
             </thead>
             <tbody>
@@ -167,8 +174,23 @@ function FortunaAdmin({ token, toast }) {
                   </td>
                   <td style={{ padding: 4 }}><input type="number" value={r.points} onChange={e => setRow(r.id, 'points', e.target.value)} style={numStyle} /></td>
                   <td style={{ padding: 4 }}><input type="number" value={r.value_pesos ?? ''} onChange={e => setRow(r.id, 'value_pesos', e.target.value)} style={numStyle} /></td>
-                  <td style={{ padding: 4 }}><input type="number" step="0.5" value={r.pct} onChange={e => setRow(r.id, 'pct', e.target.value)} style={numStyle} /></td>
-                  <td style={{ padding: 4 }}><input type="number" value={r.daily_stock} onChange={e => setRow(r.id, 'daily_stock', e.target.value)} style={numStyle} /></td>
+                  <td style={{ padding: 4 }}>
+                    <input type="number" step="0.5" value={r.pct} disabled={Number(r.drops_per_day) > 0}
+                      onChange={e => setRow(r.id, 'pct', e.target.value)}
+                      title={Number(r.drops_per_day) > 0 ? 'Este premio sale por momento sorteado: el % no se usa' : ''}
+                      style={{ ...numStyle, opacity: Number(r.drops_per_day) > 0 ? .35 : 1 }} />
+                  </td>
+                  <td style={{ padding: 4 }}>
+                    <input type="number" value={r.daily_stock} disabled={Number(r.drops_per_day) > 0}
+                      onChange={e => setRow(r.id, 'daily_stock', e.target.value)}
+                      style={{ ...numStyle, opacity: Number(r.drops_per_day) > 0 ? .35 : 1 }} />
+                  </td>
+                  <td style={{ padding: 4 }}>
+                    <input type="number" min="0" value={r.drops_per_day ?? 0}
+                      onChange={e => setRow(r.id, 'drops_per_day', e.target.value)}
+                      title="0 = sale por porcentaje. Más de 0 = se sortean N momentos en la jornada."
+                      style={{ ...numStyle, borderColor: Number(r.drops_per_day) > 0 ? '#C9A84C' : '#2a3142' }} />
+                  </td>
                   <td style={{ padding: 4, textAlign: 'center', color: (hoy[r.id] || 0) >= (Number(r.daily_stock) || Infinity) ? '#f87171' : '#7ee2a0', fontWeight: 700 }}>{hoy[r.id] || 0}/{r.daily_stock || '∞'}</td>
                   <td style={{ padding: 4, textAlign: 'center' }}><input type="checkbox" checked={!!r.active} onChange={e => setRow(r.id, 'active', e.target.checked)} /></td>
                   <td style={{ padding: 4, whiteSpace: 'nowrap' }}>
@@ -191,6 +213,41 @@ function FortunaAdmin({ token, toast }) {
           <button type="submit" style={{ padding: '8px 14px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>+ Agregar</button>
         </form>
       </div>
+
+      {(cfg.drops || []).length > 0 && (
+        <div style={card}>
+          <h4 style={h4}>Momentos de hoy</h4>
+          <p style={{ fontSize: 12.5, color: '#8B9BB4', margin: '0 0 12px', lineHeight: 1.6 }}>
+            Estos premios no salen por porcentaje: se sortean momentos al azar dentro de la jornada
+            y se los lleva el primer giro posterior a cada uno. Así quedan repartidos toda la noche
+            en vez de agotarse temprano. Si un momento pasa sin que nadie gire, no se pierde: lo gana
+            el próximo que gire.
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            {cfg.drops.map(d => {
+              const hora = new Date(d.drop_at).toLocaleTimeString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit' })
+              const salio = !!d.claimed_at
+              const vencido = !salio && new Date(d.drop_at) <= new Date()
+              return (
+                <div key={d.id} style={{
+                  flex: '1 1 160px', padding: '12px 14px', borderRadius: 10,
+                  border: `1px solid ${salio ? '#2a3142' : vencido ? '#7ee2a0' : 'rgba(201,168,76,.45)'}`,
+                  background: salio ? 'rgba(0,0,0,.25)' : 'rgba(201,168,76,.07)',
+                  opacity: salio ? .6 : 1,
+                }}>
+                  <div style={{ fontSize: 20, fontWeight: 700, color: salio ? '#8B9BB4' : '#F0D275' }}>{hora}</div>
+                  <div style={{ fontSize: 11.5, color: '#8B9BB4', marginTop: 3 }}>
+                    {salio ? `entregado${d.ganador ? ' · ' + d.ganador : ''}` : vencido ? 'lo gana el próximo giro' : 'todavía no'}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <p style={{ fontSize: 11.5, color: '#64748b', margin: '10px 0 0' }}>
+            Jornada {cfg.jornada}. Los momentos se sortean solos al abrir y no se pueden adivinar.
+          </p>
+        </div>
+      )}
 
       <div style={card}>
         <h4 style={h4}>Cuánto entrega la ruleta</h4>
@@ -217,7 +274,11 @@ function FortunaAdmin({ token, toast }) {
             {proy.map(({ r, salidas, pts, pesos }) => (
               <tr key={r.id} style={{ borderTop: '1px solid #1c2230' }}>
                 <td style={{ padding: 6 }}>{r.label}</td>
-                <td style={{ padding: 6, textAlign: 'right' }}>{Number(r.pct) > 0 ? Math.round(100 / Number(r.pct)) + ' giros' : '—'}</td>
+                <td style={{ padding: 6, textAlign: 'right' }}>
+                  {porMomento
+                    ? <span style={{ color: '#F0D275' }}>por momento</span>
+                    : Number(r.pct) > 0 ? Math.round(100 / Number(r.pct)) + ' giros' : '—'}
+                </td>
                 <td style={{ padding: 6, textAlign: 'right' }}>
                   {salidas.toFixed(1)}
                   {topeado && <span title="El stock corta antes de lo que dice el %" style={{ color: '#fcd34d' }}> (tope)</span>}
