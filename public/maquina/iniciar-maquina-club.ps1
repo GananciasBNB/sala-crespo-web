@@ -119,6 +119,18 @@ Log '--- inicio de sesion: arrancando La Maquina del Club ---'
 if (-not $Ahora) { Start-Sleep -Seconds 4 }
 Lanzar-Kiosk
 
+# Agente de impresion: consume la cola de cupones y los manda a la termica.
+# Corre aparte del kiosco para que un problema de impresora no lo tumbe.
+$agente = Join-Path $PSScriptRoot 'agente-impresora.ps1'
+if (Test-Path $agente) {
+  $yaCorre = Get-CimInstance Win32_Process -Filter "Name = 'powershell.exe'" |
+             Where-Object { $_.CommandLine -like '*agente-impresora*' }
+  if (-not $yaCorre) {
+    Start-Process powershell -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File',$agente)
+    Log 'agente de impresion lanzado'
+  }
+}
+
 # --- Vigilante ---------------------------------------------------------------
 # Repone el kiosk si se cae y lo devuelve al frente si algo lo tapa.
 # Para trabajar en la PC sin pelear con el vigilante (ej: entrar por TeamViewer),

@@ -29,7 +29,16 @@ if ([string]::IsNullOrWhiteSpace($llave)) { throw 'Sin llave la maquina no puede
 # (ej. "BARRA 1 PISO"), Chrome corta la ruta de --user-data-dir y no arranca.
 $perfil = Join-Path $base 'chrome-profile'
 New-Item -ItemType Directory -Force -Path $perfil | Out-Null
-@{ url = $url; perfil = $perfil } | ConvertTo-Json | Set-Content (Join-Path $base 'config.json') -Encoding utf8
+# La llave queda en config.json porque el agente de impresion la necesita para
+# leer la cola. Ya vive en el perfil de Chrome de esta misma PC, asi que no
+# agrega exposicion: la maquina esta fisicamente en la sala.
+@{
+  url       = $url
+  perfil    = $perfil
+  kioskKey  = $llave
+  api       = 'https://sala-crespo-backend.onrender.com'
+  impresora = 'TermicaClub'
+} | ConvertTo-Json | Set-Content (Join-Path $base 'config.json') -Encoding utf8
 Ok "Perfil de Chrome: $perfil"
 
 # --- 2. Energia: la sala no duerme -------------------------------------------
