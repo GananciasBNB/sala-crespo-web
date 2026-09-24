@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Prueba de impresora - Sala Crespo Club</title>
+<style>
+  /* El papel es de 80mm; el area imprimible real ronda los 72mm. */
+  @page { size: 80mm auto; margin: 0; }
+
+  body {
+    margin: 0; background: #2a2a2e; color: #111;
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: 24px;
+  }
+  .pantalla { max-width: 420px; margin: 0 auto; }
+  h1 { color: #fff; font-size: 19px; margin: 0 0 6px; }
+  .ayuda { color: #bbb; font-size: 13px; line-height: 1.6; margin: 0 0 20px; }
+  .ayuda b { color: #fff; }
+  button {
+    width: 100%; padding: 13px; margin-bottom: 10px; border: none; border-radius: 8px;
+    background: #C9A84C; color: #1a0d05; font-size: 15px; font-weight: 700; cursor: pointer;
+  }
+  button.sec { background: #444; color: #eee; }
+
+  /* Un cupon: 72mm de ancho, alto libre. Todo en negro puro y sin grises:
+     la termica no tiene tinta, solo quema el papel, y los grises salen sucios. */
+  .cupon {
+    width: 72mm; background: #fff; padding: 4mm 2mm; margin: 0 auto 16px;
+    font-family: "Courier New", monospace; color: #000; font-size: 12px; line-height: 1.35;
+  }
+  .cupon .marca { text-align: center; font-weight: 700; font-size: 15px; letter-spacing: 1px; }
+  .cupon .sub { text-align: center; font-size: 11px; margin-bottom: 3mm; }
+  .cupon hr { border: none; border-top: 1px dashed #000; margin: 2.5mm 0; }
+  .cupon .tipo { text-align: center; font-weight: 700; font-size: 14px; margin: 2mm 0; text-transform: uppercase; }
+  .cupon .codigo {
+    text-align: center; font-size: 26px; font-weight: 700; letter-spacing: 3px;
+    margin: 2.5mm 0; border: 2px solid #000; padding: 2mm 0;
+  }
+  .cupon .fila { display: flex; justify-content: space-between; gap: 6px; }
+  .cupon .fila span:last-child { text-align: right; font-weight: 700; }
+  .cupon .pie { text-align: center; font-size: 10px; margin-top: 3mm; line-height: 1.4; }
+  .cupon .premio { text-align: center; font-size: 17px; font-weight: 700; margin: 2mm 0; }
+
+  /* Al imprimir: fuera la pantalla, y solo el cupon elegido en el papel. */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .pantalla { display: none; }
+    .cupon { margin: 0; page-break-after: always; }
+    .cupon:not(.imprimir) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="pantalla">
+  <h1>Prueba de impresora</h1>
+  <p class="ayuda">
+    Xprinter XP-E200M, papel de 80mm.<br><br>
+    <b>Antes de probar:</b> dejala como impresora predeterminada en Windows
+    (Configuracion &gt; Bluetooth y dispositivos &gt; Impresoras).
+    Si el kiosco corre con <b>--kiosk-printing</b>, el cupon sale sin preguntar nada.
+  </p>
+  <button onclick="imprimir('sorteo')">Imprimir cupon del SORTEO</button>
+  <button onclick="imprimir('canje')">Imprimir cupon de CANJE</button>
+  <button onclick="imprimir('premio')">Imprimir ticket de FORTUNA DORADA</button>
+  <button class="sec" onclick="imprimir('regla')">Imprimir regla de ancho (para medir)</button>
+</div>
+
+<!-- 1. Cupon del sorteo mensual: es fisico, va a la urna -->
+<div class="cupon" id="c-sorteo">
+  <div class="marca">SALA DE JUEGOS CRESPO</div>
+  <div class="sub">★ Sala Crespo Club ★</div>
+  <hr>
+  <div class="tipo">Sorteo del mes</div>
+  <div class="codigo">4821</div>
+  <div class="fila"><span>Socio</span><span>URIEL PRIETO</span></div>
+  <div class="fila"><span>DNI</span><span>28.456.789</span></div>
+  <div class="fila"><span>Fecha</span><span>24/09/2026 19:05</span></div>
+  <hr>
+  <div class="pie">
+    DEPOSITA ESTE CUPON EN LA URNA<br>
+    Un cupon por dia. El sorteo se realiza<br>
+    el ultimo dia del mes.
+  </div>
+</div>
+
+<!-- 2. Canje: lo presenta en la barra para retirar -->
+<div class="cupon" id="c-canje">
+  <div class="marca">SALA DE JUEGOS CRESPO</div>
+  <div class="sub">★ Sala Crespo Club ★</div>
+  <hr>
+  <div class="tipo">Canje de puntos</div>
+  <div class="premio">GIN TONIC</div>
+  <div class="codigo">7-3391</div>
+  <div class="fila"><span>Socio</span><span>URIEL PRIETO</span></div>
+  <div class="fila"><span>DNI</span><span>28.456.789</span></div>
+  <div class="fila"><span>Puntos usados</span><span>8.000</span></div>
+  <div class="fila"><span>Fecha</span><span>24/09/2026 19:05</span></div>
+  <hr>
+  <div class="pie">
+    PRESENTA ESTE CUPON EN LA BARRA<br>
+    Valido solo el dia de emision.
+  </div>
+</div>
+
+<!-- 3. Premio de la ruleta -->
+<div class="cupon" id="c-premio">
+  <div class="marca">SALA DE JUEGOS CRESPO</div>
+  <div class="sub">★ Fortuna Dorada ★</div>
+  <hr>
+  <div class="tipo">¡Ganaste!</div>
+  <div class="premio">TICKET $5.000</div>
+  <div class="codigo">9-5527</div>
+  <div class="fila"><span>Socio</span><span>URIEL PRIETO</span></div>
+  <div class="fila"><span>DNI</span><span>28.456.789</span></div>
+  <div class="fila"><span>Fecha</span><span>24/09/2026 19:05</span></div>
+  <hr>
+  <div class="pie">
+    RETIRALO EN LA BARRA CON TU DNI<br>
+    Valido solo el dia de emision.
+  </div>
+</div>
+
+<!-- 4. Regla: sirve para ver cuanto entra de verdad en el papel -->
+<div class="cupon" id="c-regla">
+  <div class="marca">REGLA DE ANCHO</div>
+  <hr>
+  <div style="font-size:11px">
+    0123456789012345678901234567890123456789<br>
+    |....|....1....|....2....|....3....|....4<br>
+    ########################################<br>
+    MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+  </div>
+  <hr>
+  <div class="pie">
+    Si alguna linea se corta, hay que angostar<br>
+    el cupon. Si sobra mucho a la derecha,<br>
+    se puede agrandar la letra.
+  </div>
+</div>
+
+<script>
+  function imprimir(cual) {
+    document.querySelectorAll('.cupon').forEach(c => c.classList.remove('imprimir'));
+    document.getElementById('c-' + cual).classList.add('imprimir');
+    window.print();
+  }
+</script>
+</body>
+</html>

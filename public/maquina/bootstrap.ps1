@@ -22,7 +22,8 @@ $archivos = @(
   'guia-maquina-club.html',    # manual para la sala
   'autologin.ps1',             # entrar sola a Windows despues de un corte de luz
   'reparar-arranque.ps1',      # diagnostico si algun dia no levanta
-  'mantenimiento.bat'          # pausar el vigilante para trabajar en la PC
+  'mantenimiento.bat',         # pausar el vigilante para trabajar en la PC
+  'prueba-impresora.html'      # probar los cupones en la termica
 )
 foreach ($f in $archivos) {
   $out = Join-Path $destino $f

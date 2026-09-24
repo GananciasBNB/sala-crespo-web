@@ -100,6 +100,7 @@ function Lanzar-Kiosk {
     '--no-default-browser-check'
     '--noerrdialogs'
     '--disable-infobars'
+    '--kiosk-printing'                             # imprime el cupon sin preguntar nada
     '--disable-session-crashed-bubble'
     '--disable-features=TranslateUI,Translate'
     '--overscroll-history-navigation=0'            # que el swipe no navegue atras
