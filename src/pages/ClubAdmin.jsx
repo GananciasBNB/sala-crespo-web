@@ -6,6 +6,7 @@ import { adminLogin, adminClubOverview, adminClubSetNw, adminSpinSettings } from
 import {
   FortunaAdmin, ClubCatalog, ClubAccountLookup, ClubDeliver, ClubManualOps,
 } from '../components/club/panels'
+import WhatsAppAdmin from '../components/club/whatsapp'
 import './ClubAdmin.css'
 
 const TOKEN_KEY = 'sc_admin_token'
@@ -15,6 +16,7 @@ const SECCIONES = [
   { id: 'fortuna',  icon: '🎰', label: 'Fortuna',  sub: 'Premios y reglas' },
   { id: 'canjes',   icon: '🛍',  label: 'Canjes',   sub: 'Catálogo y promos' },
   { id: 'sorteo',   icon: '🎟',  label: 'Sorteo',   sub: 'El sorteo del mes' },
+  { id: 'whatsapp', icon: '💬', label: 'WhatsApp', sub: 'El bot de atención' },
   { id: 'socios',   icon: '👤', label: 'Socios',   sub: 'Buscar y ajustar' },
   { id: 'barra',    icon: '💁', label: 'Barra',    sub: 'Entregar canjes' },
   { id: 'puntos',   icon: '⚡', label: 'Puntos',   sub: 'Sumar a mano' },
@@ -70,6 +72,7 @@ export default function ClubAdmin() {
         {seccion === 'fortuna' && <FortunaAdmin token={token} toast={toast} />}
         {seccion === 'canjes'  && <ClubCatalog token={token} toast={toast} />}
         {seccion === 'sorteo'  && <Sorteo token={token} toast={toast} />}
+        {seccion === 'whatsapp' && <WhatsAppAdmin token={token} toast={toast} />}
         {seccion === 'socios'  && <ClubAccountLookup token={token} toast={toast} />}
         {seccion === 'barra'   && <ClubDeliver token={token} toast={toast} />}
         {seccion === 'puntos'  && <ClubManualOps token={token} toast={toast} />}

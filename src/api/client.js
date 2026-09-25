@@ -733,3 +733,17 @@ export const adminAnalyticsSnapshot = (token, opts = {}) => {
   const qs = params.toString()
   return api(`/api/admin/analytics/snapshot${qs ? '?' + qs : ''}`, { headers: authHeaders(token) })
 }
+
+// Bot de WhatsApp
+export const adminWaOverview = (token) =>
+  api('/api/admin/whatsapp/overview', { headers: authHeaders(token) })
+export const adminWaToggle = (token, activo) =>
+  api('/api/admin/whatsapp/toggle', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ activo }) })
+export const adminWaUpdateBot = (token, id, body) =>
+  api(`/api/admin/whatsapp/bots/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminWaConversation = (token, id) =>
+  api(`/api/admin/whatsapp/conversations/${id}`, { headers: authHeaders(token) })
+export const adminWaSetConversation = (token, id, body) =>
+  api(`/api/admin/whatsapp/conversations/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminWaReply = (token, id, texto) =>
+  api(`/api/admin/whatsapp/conversations/${id}/reply`, { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ texto }) })
