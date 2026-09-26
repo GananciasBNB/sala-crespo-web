@@ -29,7 +29,7 @@ function FortunaAdmin({ token, toast }) {
   const [cfg, setCfg] = useState(null)
   const [log, setLog] = useState([])
   const [verLog, setVerLog] = useState(false)
-  const [settings, setSettings] = useState({ cooldownHours: 3, spinsPerWindow: 2, sorteoMonto: 100000, checkinPoints: 50 })
+  const [settings, setSettings] = useState({ cooldownHours: 3, spinsPerWindow: 2, sorteoMonto: 100000, checkinPoints: 50, rafflePerDay: 1 })
   const [rows, setRows] = useState([])
   // la proyección arranca de cuánta gente viene, no de un número de giros suelto
   const [clientesDia, setClientesDia] = useState(60)
@@ -136,6 +136,9 @@ function FortunaAdmin({ token, toast }) {
             <input type="number" min="1" step="0.5" value={settings.cooldownHours} onChange={e => setSettings({ ...settings, cooldownHours: Number(e.target.value) })} style={numStyle} /></label>
           <label style={{ fontSize: 12, color: '#8B9BB4' }}>Puntos por visita<br />
             <input type="number" min="0" step="10" value={settings.checkinPoints} onChange={e => setSettings({ ...settings, checkinPoints: Number(e.target.value) })} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }} title="Cuantos cupones del sorteo puede imprimir un socio por dia. Normal: 1. Subilo solo para pruebas.">Cupones sorteo/día<br />
+            <input type="number" min="0" value={settings.rafflePerDay ?? 1} onChange={e => setSettings({ ...settings, rafflePerDay: Number(e.target.value) })}
+              style={{ ...numStyle, borderColor: (settings.rafflePerDay ?? 1) > 1 ? '#fcd34d' : '#2a3142' }} /></label>
           <button onClick={guardarSettings} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Guardar reglas</button>
         </div>
         <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0', lineHeight: 1.5 }}>

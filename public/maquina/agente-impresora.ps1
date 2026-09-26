@@ -37,7 +37,7 @@ $NEGRITA   = "$ESC" + 'E' + [char]1
 $NORMAL    = "$ESC" + 'E' + [char]0
 $DOBLE     = "$GS"  + '!' + [char]17   # alto y ancho doble
 $CHICO     = "$GS"  + '!' + [char]0
-$CORTE     = "$GS"  + 'V' + [char]66 + [char]3   # corte parcial, deja 3mm
+$CORTE     = "$GS"  + 'V' + [char]1    # corte parcial (GS V 1): probado en la XP-E200M
 
 function Linea($n = 1) { "`n" * $n }
 
@@ -82,7 +82,7 @@ function Armar($job) {
       $t += "Valido solo hoy." + (Linea)
     }
   }
-  $t += (Linea 4) + $CORTE
+  $t += (Linea 6) + $CORTE   # 6 lineas: el cabezal queda unos mm abajo del cutter
   return $t
 }
 

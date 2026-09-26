@@ -85,7 +85,7 @@ if ($probar -ne 'n') {
   $t += "0123456789012345678901234567890123456789`n"
   $t += "|....|....1....|....2....|....3....|...4`n`n"
   $t += "$ESC" + 'a' + [char]1 + "$(Get-Date -Format 'dd/MM/yyyy HH:mm')`n"
-  $t += "`n`n`n`n" + "$GS" + 'V' + [char]66 + [char]3
+  $t += "`n`n`n`n`n`n" + "$GS" + 'V' + [char]1
   $tmp = Join-Path $env:TEMP 'prueba-cupon.bin'
   [IO.File]::WriteAllBytes($tmp, [Text.Encoding]::GetEncoding(437).GetBytes($t))
   cmd /c copy /b "`"$tmp`"" "`"\\localhost\$SHARE`"" > $null 2>&1

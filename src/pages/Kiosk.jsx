@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { clubLookupDni, loginPlayer, clubSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, promoInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey } from '../api/client'
+import { clubLookupDni, loginPlayer, clubSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, promoInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket } from '../api/client'
 import './Kiosk.css'
 
 // Tótem de autogestión del Sala Crespo Club.
@@ -392,20 +392,24 @@ export default function Kiosk() {
   // Cupón del sorteo: FÍSICO — se imprime y va a la urna, uno por visita/día.
   // La impresión real (impresora del gabinete / térmica ESC-POS) se conecta después.
   const [cuponEstado, setCuponEstado] = useState('') // '' | 'imprimiendo' | 'listo'
+  // el cupo diario lo decide el servidor (raffle_per_day): asi se puede subir
+  // para pruebas y bajar a 1 sin tocar la maquina
   useEffect(() => {
-    if (screen !== 'done' || !player) return
-    try {
-      if (localStorage.getItem(`kiosk_cupon_${player.dni || dni}`) === new Date().toDateString()) setCuponEstado('listo')
-    } catch { /* sin storage */ }
-  }, [screen, player, dni])
-  function imprimirCupon() {
+    if (screen !== 'done' || !player?.token) return
+    loyaltyRaffleStatus(player.token).then(r => { if (!r.puede) setCuponEstado('listo') }).catch(() => {})
+  }, [screen, player])
+  async function imprimirCupon() {
     if (cuponEstado) return
     setCuponEstado('imprimiendo')
-    voz('cupon')
-    setTimeout(() => {
-      try { localStorage.setItem(`kiosk_cupon_${player.dni || dni}`, new Date().toDateString()) } catch {}
-      setCuponEstado('listo')
-    }, 3500)
+    try {
+      const r = await loyaltyRaffleTicket(player.token)   // registra el cupon y lo manda a la termica
+      voz('cupon')
+      lastActRef.current = Date.now()
+      setTimeout(() => setCuponEstado(r.puede ? '' : 'listo'), 3500)
+    } catch (err) {
+      // 429 = ya uso el cupo de hoy; cualquier otra cosa, que pueda reintentar
+      setCuponEstado(/hoy|cupo/i.test(err.message || '') ? 'listo' : '')
+    }
   }
 
   // Modo atracción: en idle, una frase de voz rotativa cada ATTRACT_MS

@@ -747,3 +747,9 @@ export const adminWaSetConversation = (token, id, body) =>
   api(`/api/admin/whatsapp/conversations/${id}`, { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
 export const adminWaReply = (token, id, texto) =>
   api(`/api/admin/whatsapp/conversations/${id}/reply`, { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ texto }) })
+
+// Cupón del sorteo mensual (se imprime en la térmica del gabinete)
+export const loyaltyRaffleStatus = (token) =>
+  api('/api/loyalty/raffle-status', { headers: authHeaders(token) })
+export const loyaltyRaffleTicket = (token) =>
+  api('/api/loyalty/raffle-ticket', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
