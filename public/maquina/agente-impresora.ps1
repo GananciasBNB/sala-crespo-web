@@ -119,7 +119,17 @@ while ($true) {
       }
     }
   } catch {
-    # sin internet o backend dormido: no es grave, se reintenta en la proxima vuelta
+    # Sin internet o backend dormido se reintenta solo. Pero si es la llave
+    # (403) o el backend (500) hay que verlo en el log, no tragarselo: antes
+    # un agente con la llave equivocada parecia vivo y no imprimia nada.
+    $m = $_.Exception.Message
+    $codigo = try { [int]$_.Exception.Response.StatusCode } catch { 0 }
+    if ($codigo -eq 403) { Log "COLA RECHAZADA (403): la llave de config.json no coincide con KIOSK_DEVICE_KEY en Render" }
+    elseif ($codigo -ge 400) { Log "cola: error $codigo - $m" }
+    elseif (-not $avisoRed) { Log "cola: sin conexion ($m) - reintentando en silencio"; $avisoRed = $true }
+    Start-Sleep -Seconds 8
+    continue
   }
+  $avisoRed = $false
   Start-Sleep -Seconds 2
 }
