@@ -357,7 +357,7 @@ export default function Kiosk() {
       voz('ui-tap', 0.7)
       refrescarCuenta()
     } catch {
-      setErr('No pudimos completar el canje. Consultá en la barra.')
+      setErr('No pudimos completar el canje. Consultá en caja.')
     } finally { setBusyReward(null) }
   }
 
@@ -817,7 +817,7 @@ export default function Kiosk() {
                           {r.points.toLocaleString('es-AR')} pts
                         </div>
                         {canjeados[r.id] ? (
-                          <div className="kiosk__mov-ok">✓ Cupón impreso — a la barra</div>
+                          <div className="kiosk__mov-ok">✓ Listo. Retirá tu cupón y presentalo en caja</div>
                         ) : puede ? (
                           <button className="kiosk__mov-btn" disabled={busyReward === r.id} onClick={() => canjear(r)}>
                             {busyReward === r.id ? 'Canjeando…' : 'CANJEAR'}
