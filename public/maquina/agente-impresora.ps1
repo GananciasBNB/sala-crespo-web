@@ -42,6 +42,20 @@ $CORTE     = "$GS"  + 'V' + [char]1    # corte parcial (GS V 1): probado en la X
 # Codigo de barras (Code 39): lo lee cualquier lector y acepta el guion del
 # codigo. Alto 70 puntos, ancho 2, sin texto debajo (el codigo va aparte en
 # letra grande para tipearlo si el lector falla).
+# QR con el mismo codigo: la camara de un celular lee un QR al instante, un
+# codigo de barras de una dimension lo lee mal. Los lectores USB leen ambos.
+# Secuencia ESC/POS "GS ( k": modelo 2, tamano de modulo, correccion M,
+# cargar datos, imprimir.
+function QR($codigo) {
+  $len = $codigo.Length + 3
+  $pL = [char]($len -band 255); $pH = [char]($len -shr 8)
+  return "$GS" + '(k' + [char]4 + [char]0 + [char]49 + [char]65 + [char]50 + [char]0 +   # modelo 2
+         "$GS" + '(k' + [char]3 + [char]0 + [char]49 + [char]67 + [char]6 +              # modulo 6 (~2.4cm)
+         "$GS" + '(k' + [char]3 + [char]0 + [char]49 + [char]69 + [char]49 +             # correccion M
+         "$GS" + '(k' + $pL + $pH + [char]49 + [char]80 + [char]48 + $codigo +           # datos
+         "$GS" + '(k' + [char]3 + [char]0 + [char]49 + [char]81 + [char]48               # imprimir
+}
+
 function Barras($codigo) {
   return "$GS" + 'h' + [char]70 + "$GS" + 'w' + [char]2 + "$GS" + 'H' + [char]0 +
          "$GS" + 'k' + [char]4 + $codigo + [char]0
@@ -70,7 +84,7 @@ function Armar($job) {
       $t += "* Sala Crespo Club *" + (Linea 2)
       $t += $NEGRITA + "CANJE DE PUNTOS" + $NORMAL + (Linea)
       $t += $DOBLE + $NEGRITA + $p.premio + $NORMAL + $CHICO + (Linea 2)
-      $t += (Barras $p.codigo) + (Linea)
+      $t += (QR $p.codigo) + (Linea) + (Barras $p.codigo) + (Linea)
       $t += $DOBLE + $p.codigo + $CHICO + (Linea 2)
       $t += $IZQ + "Socio:  $($p.nombre)" + (Linea)
       $t += "DNI:    $($p.dni)" + (Linea)
@@ -82,7 +96,7 @@ function Armar($job) {
       $t += "* Fortuna Dorada *" + (Linea 2)
       $t += $NEGRITA + "GANASTE" + $NORMAL + (Linea)
       $t += $DOBLE + $NEGRITA + $p.premio + $NORMAL + $CHICO + (Linea 2)
-      $t += (Barras $p.codigo) + (Linea)
+      $t += (QR $p.codigo) + (Linea) + (Barras $p.codigo) + (Linea)
       $t += $DOBLE + $p.codigo + $CHICO + (Linea 2)
       $t += $IZQ + "Socio: $($p.nombre)" + (Linea)
       $t += "DNI:   $($p.dni)" + (Linea)
