@@ -830,7 +830,7 @@ export default function Kiosk() {
                   })}
               </div>
             </div>
-            <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprimirá un cupón para retirarlo en la barra.</p>
+            <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprime un cupón: presentalo en caja para retirarlo.</p>
             <button className="kiosk__cta kiosk__cta--hub" onClick={() => setShowCanjes(false)}>VOLVER ✓</button>
           </div>
         </div>

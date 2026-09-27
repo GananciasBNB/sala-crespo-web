@@ -39,6 +39,14 @@ $DOBLE     = "$GS"  + '!' + [char]17   # alto y ancho doble
 $CHICO     = "$GS"  + '!' + [char]0
 $CORTE     = "$GS"  + 'V' + [char]1    # corte parcial (GS V 1): probado en la XP-E200M
 
+# Codigo de barras (Code 39): lo lee cualquier lector y acepta el guion del
+# codigo. Alto 70 puntos, ancho 2, sin texto debajo (el codigo va aparte en
+# letra grande para tipearlo si el lector falla).
+function Barras($codigo) {
+  return "$GS" + 'h' + [char]70 + "$GS" + 'w' + [char]2 + "$GS" + 'H' + [char]0 +
+         "$GS" + 'k' + [char]4 + $codigo + [char]0
+}
+
 function Linea($n = 1) { "`n" * $n }
 
 # Arma el texto del cupon segun su tipo.
@@ -62,24 +70,24 @@ function Armar($job) {
       $t += "* Sala Crespo Club *" + (Linea 2)
       $t += $NEGRITA + "CANJE DE PUNTOS" + $NORMAL + (Linea)
       $t += $DOBLE + $NEGRITA + $p.premio + $NORMAL + $CHICO + (Linea 2)
+      $t += (Barras $p.codigo) + (Linea)
       $t += $DOBLE + $p.codigo + $CHICO + (Linea 2)
       $t += $IZQ + "Socio:  $($p.nombre)" + (Linea)
       $t += "DNI:    $($p.dni)" + (Linea)
       $t += "Puntos: $($p.puntos)" + (Linea)
       $t += "Fecha:  $($p.fecha)" + (Linea 2)
-      $t += $CENTRO + "PRESENTALO EN LA BARRA" + (Linea)
-      $t += "Valido solo hoy." + (Linea)
+      $t += $CENTRO + "PRESENTALO EN CAJA" + (Linea)
     }
     'premio' {
       $t += "* Fortuna Dorada *" + (Linea 2)
       $t += $NEGRITA + "GANASTE" + $NORMAL + (Linea)
       $t += $DOBLE + $NEGRITA + $p.premio + $NORMAL + $CHICO + (Linea 2)
+      $t += (Barras $p.codigo) + (Linea)
       $t += $DOBLE + $p.codigo + $CHICO + (Linea 2)
       $t += $IZQ + "Socio: $($p.nombre)" + (Linea)
       $t += "DNI:   $($p.dni)" + (Linea)
       $t += "Fecha: $($p.fecha)" + (Linea 2)
-      $t += $CENTRO + "RETIRALO EN LA BARRA CON TU DNI" + (Linea)
-      $t += "Valido solo hoy." + (Linea)
+      $t += $CENTRO + "RETIRALO EN CAJA CON TU DNI" + (Linea)
     }
   }
   $t += (Linea 6) + $CORTE   # 6 lineas: el cabezal queda unos mm abajo del cutter
