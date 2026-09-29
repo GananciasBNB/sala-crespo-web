@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { clubLookupDni, loginPlayer, clubSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, promoInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket } from '../api/client'
+import { clubLookupDni, loginPlayer, clubSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, promoInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } from '../api/client'
 import './Kiosk.css'
 
 // Tótem de autogestión del Sala Crespo Club.
@@ -394,10 +394,31 @@ export default function Kiosk() {
   const [cuponEstado, setCuponEstado] = useState('') // '' | 'imprimiendo' | 'listo'
   // el cupo diario lo decide el servidor (raffle_per_day): asi se puede subir
   // para pruebas y bajar a 1 sin tocar la maquina
+  // Pack de cupones por puntos: el servidor manda precio, tamaño y si hoy ya lo usó
+  const [pack, setPack] = useState(null)
+  const [packEstado, setPackEstado] = useState('') // '' | 'canjeando' | 'listo'
   useEffect(() => {
     if (screen !== 'done' || !player?.token) return
-    loyaltyRaffleStatus(player.token).then(r => { if (!r.puede) setCuponEstado('listo') }).catch(() => {})
+    loyaltyRaffleStatus(player.token).then(r => {
+      if (!r.puede) setCuponEstado('listo')
+      setPack(r.pack || null)
+      if (r.pack && !r.pack.puede) setPackEstado('listo')
+    }).catch(() => {})
   }, [screen, player])
+  async function canjearPack() {
+    if (packEstado || !pack) return
+    setPackEstado('canjeando')
+    try {
+      const r = await loyaltyRafflePack(player.token)   // descuenta los puntos e imprime los cupones
+      if (typeof r.balance === 'number') setBalance(r.balance)
+      voz('cupon')
+      lastActRef.current = Date.now()
+      setPackEstado('listo')
+    } catch (err) {
+      setPackEstado(/hoy/i.test(err.message || '') ? 'listo' : '')
+      if (!/hoy/i.test(err.message || '')) setErr('No pudimos canjear el pack. Probá de nuevo o consultá en la barra.')
+    }
+  }
   async function imprimirCupon() {
     if (cuponEstado) return
     setCuponEstado('imprimiendo')
@@ -670,6 +691,19 @@ export default function Kiosk() {
                 <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tu cupón…</div>
               ) : (
                 <button className="kiosk__cta kiosk__cta--hub" onClick={imprimirCupon}>IMPRIMIR CUPÓN</button>
+              )}
+              {pack?.disponible && (
+                packEstado === 'listo' ? (
+                  <div className="kiosk__hub-ok">✓ Pack de {pack.size} cupones canjeado — a la urna</div>
+                ) : packEstado === 'canjeando' ? (
+                  <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tus {pack.size} cupones…</div>
+                ) : balance >= pack.points ? (
+                  <button className="kiosk__cta kiosk__cta--hub kiosk__cta--pack" onClick={canjearPack}>
+                    +{pack.size} CUPONES POR {pack.points} PTS
+                  </button>
+                ) : (
+                  <div className="kiosk__hub-sub kiosk__hub-sub--pack">Con {pack.points} puntos canjeás {pack.size} cupones más · te faltan {(pack.points - balance).toLocaleString('es-AR')}</div>
+                )
               )}
             </div>
 

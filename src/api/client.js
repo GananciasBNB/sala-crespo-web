@@ -753,3 +753,6 @@ export const loyaltyRaffleStatus = (token) =>
   api('/api/loyalty/raffle-status', { headers: authHeaders(token) })
 export const loyaltyRaffleTicket = (token) =>
   api('/api/loyalty/raffle-ticket', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
+// Pack de cupones canjeado con puntos (10 por 150 pts, 1 por día; se ajusta en el panel)
+export const loyaltyRafflePack = (token) =>
+  api('/api/loyalty/raffle-pack', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })

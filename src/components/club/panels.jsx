@@ -141,6 +141,16 @@ function FortunaAdmin({ token, toast }) {
               style={{ ...numStyle, borderColor: (settings.rafflePerDay ?? 1) > 1 ? '#fcd34d' : '#2a3142' }} /></label>
           <button onClick={guardarSettings} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Guardar reglas</button>
         </div>
+        <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'end', marginTop: 14, paddingTop: 12, borderTop: '1px dashed #2a3142' }}>
+          <span style={{ fontSize: 12, color: '#F0D275', alignSelf: 'center' }} title="El sorteo reparte un premio fijo: vender cupones por puntos solo cuesta papel y baja el pasivo de puntos.">Pack de cupones por puntos</span>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Cupones por pack<br />
+            <input type="number" min="0" max="50" value={settings.rafflePack?.size ?? 10} onChange={e => setSettings({ ...settings, rafflePack: { ...settings.rafflePack, size: Number(e.target.value) } })} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }}>Puntos por pack<br />
+            <input type="number" min="0" step="10" value={settings.rafflePack?.points ?? 150} onChange={e => setSettings({ ...settings, rafflePack: { ...settings.rafflePack, points: Number(e.target.value) } })} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }} title="0 = el pack no se ofrece en el kiosco">Packs por día<br />
+            <input type="number" min="0" value={settings.rafflePack?.perDay ?? 1} onChange={e => setSettings({ ...settings, rafflePack: { ...settings.rafflePack, perDay: Number(e.target.value) } })} style={numStyle} /></label>
+          <span style={{ fontSize: 12, color: '#8B9BB4', alignSelf: 'center' }}>Se guarda con el mismo botón.</span>
+        </div>
         <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0', lineHeight: 1.5 }}>
           Cada socio tiene <b style={{ color: '#fff' }}>{settings.spinsPerWindow} giros</b> por ventana rodante de <b style={{ color: '#fff' }}>{settings.cooldownHours} hs</b>, y suma <b style={{ color: '#fff' }}>{settings.checkinPoints} puntos</b> por venir, gire o no. El resultado lo decide el servidor con azar criptográfico; el stock diario corta a las 00:00 (hora argentina).
         </p>

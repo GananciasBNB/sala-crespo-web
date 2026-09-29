@@ -428,3 +428,7 @@
   .kiosk__done-help { font-size: 13px; margin: 0 0 10px; }
   .kiosk__cta--done { font-size: 17px; padding: 14px 30px; max-width: 320px; margin-top: 6px; }
 }
+
+/* Pack de cupones por puntos: segundo botón de la tarjeta del sorteo */
+.kiosk__cta.kiosk__cta--pack { margin-top: 8px; background: transparent; border: 2px solid var(--gold-light); color: var(--gold-light); }
+.kiosk__hub-sub--pack { flex: 0 0 auto; font-size: 12px; margin-top: 8px; }

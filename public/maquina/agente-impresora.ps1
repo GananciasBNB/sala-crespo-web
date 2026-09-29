@@ -78,7 +78,7 @@ function Armar($job) {
       $t += "DNI:   $($p.dni)" + (Linea)
       $t += "Fecha: $($p.fecha)" + (Linea 2)
       $t += $CENTRO + "DEPOSITA ESTE CUPON EN LA URNA" + (Linea)
-      $t += "Un cupon por dia." + (Linea)
+      if ($p.pack) { $t += "Pack canjeado con puntos." + (Linea) } else { $t += "Un cupon por dia." + (Linea) }
     }
     'canje' {
       $t += "* Sala Crespo Club *" + (Linea 2)
