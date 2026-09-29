@@ -432,3 +432,10 @@
 /* Pack de cupones por puntos: segundo botón de la tarjeta del sorteo */
 .kiosk__cta.kiosk__cta--pack { margin-top: 8px; background: transparent; border: 2px solid var(--gold-light); color: var(--gold-light); }
 .kiosk__hub-sub--pack { flex: 0 0 auto; font-size: 12px; margin-top: 8px; }
+
+/* Confirmación antes de descontar puntos: va por encima del panel de canjes */
+.kiosk__confirm { z-index: 80; background: rgba(4,2,3,.85); }
+.kiosk__confirm-panel { max-width: 560px; text-align: center; }
+.kiosk__confirm-txt { font-size: 17px; line-height: 1.45; }
+.kiosk__confirm-btns { display: flex; gap: 14px; width: 100%; }
+.kiosk__confirm-btns .kiosk__cta { flex: 1; margin-top: 0; }

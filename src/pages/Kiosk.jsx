@@ -348,7 +348,19 @@ export default function Kiosk() {
     refrescarCuenta()
     getLoyaltyCatalog().then(c => setRewards((c.rewards || []).sort((a, b) => a.points - b.points))).catch(() => {})
   }
-  async function canjear(reward) {
+  // Todo lo que descuenta puntos pide un segundo toque: en una pantalla táctil
+  // un roce alcanza para "canjear" sin querer.
+  const [confirmar, setConfirmar] = useState(null) // { titulo, texto, okLabel, onOk }
+  function canjear(reward) {
+    if (busyReward || balance < reward.points || !player?.token) return
+    setConfirmar({
+      titulo: '¿CONFIRMÁS EL CANJE?',
+      texto: `Te descontamos ${reward.points.toLocaleString('es-AR')} puntos por ${reward.name}. Te quedan ${(balance - reward.points).toLocaleString('es-AR')}.`,
+      okLabel: 'SÍ, CANJEAR',
+      onOk: () => ejecutarCanje(reward),
+    })
+  }
+  async function ejecutarCanje(reward) {
     if (busyReward || balance < reward.points || !player?.token) return
     setBusyReward(reward.id)
     try {
@@ -405,7 +417,16 @@ export default function Kiosk() {
       if (r.pack && !r.pack.puede) setPackEstado('listo')
     }).catch(() => {})
   }, [screen, player])
-  async function canjearPack() {
+  function canjearPack() {
+    if (packEstado || !pack || balance < pack.points) return
+    setConfirmar({
+      titulo: '¿CONFIRMÁS EL PACK?',
+      texto: `Te descontamos ${pack.points.toLocaleString('es-AR')} puntos por ${pack.size} cupones del sorteo. Te quedan ${(balance - pack.points).toLocaleString('es-AR')}.`,
+      okLabel: `SÍ, QUIERO LOS ${pack.size} CUPONES`,
+      onOk: () => ejecutarPack(),
+    })
+  }
+  async function ejecutarPack() {
     if (packEstado || !pack) return
     setPackEstado('canjeando')
     try {
@@ -735,6 +756,19 @@ export default function Kiosk() {
       )}
 
       {/* Completar datos de contacto */}
+      {confirmar && (
+        <div className="kiosk__carta kiosk__confirm" onClick={() => setConfirmar(null)}>
+          <div className="kiosk__carta-panel kiosk__confirm-panel" onClick={e => e.stopPropagation()}>
+            <div className="kiosk__hub-title">{confirmar.titulo}</div>
+            <p className="kiosk__carta-txt kiosk__confirm-txt">{confirmar.texto}</p>
+            <div className="kiosk__confirm-btns">
+              <button className="kiosk__cta kiosk__cta--hub kiosk__cta--pack" onClick={() => setConfirmar(null)}>NO, VOLVER</button>
+              <button className="kiosk__cta kiosk__cta--hub" onClick={() => { const ok = confirmar.onOk; setConfirmar(null); ok() }}>{confirmar.okLabel}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showDatos && (
         <div className="kiosk__carta" onClick={() => setShowDatos(false)}>
           <div className="kiosk__carta-panel" onClick={e => e.stopPropagation()}>
