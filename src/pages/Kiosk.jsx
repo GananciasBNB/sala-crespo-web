@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { clubLookupDni, loginPlayer, clubSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, promoInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } from '../api/client'
+import { kioskLookupDni, kioskLogin, kioskSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } from '../api/client'
 import './Kiosk.css'
 
 // Tótem de autogestión del Sala Crespo Club.
@@ -302,8 +302,10 @@ export default function Kiosk() {
     }
   }, [screen]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  const SOLO_EN_SALA = 'Esto solo se puede hacer en la Máquina del Club, en la sala.'
   async function inscribirTorneo() {
     if (!player || tourneyBusy) return
+    if (!vinculada) { setErr(SOLO_EN_SALA); return }
     // Modo prueba (/kiosk?test=1): simula la inscripción sin tocar la base real
     if (new URLSearchParams(window.location.search).has('test')) {
       setTourneyReg({ ok: true, registrationNo: 99 })
@@ -313,7 +315,7 @@ export default function Kiosk() {
     }
     setTourneyBusy(true); setErr('')
     try {
-      const r = await promoInscribeTournament({ dni: player.dni || dni, name: player.name, tel: player.tel || lookup?.player?.tel || '', email: player.email || lookup?.player?.email || '' })
+      const r = await kioskInscribeTournament({ dni: player.dni || dni, name: player.name, tel: player.tel || lookup?.player?.tel || '', email: player.email || lookup?.player?.email || '' })
       setTourneyReg(r)
       setShowTorneoOk(true)
       voz('ui-tap', 0.7)
@@ -353,6 +355,7 @@ export default function Kiosk() {
   const [confirmar, setConfirmar] = useState(null) // { titulo, texto, okLabel, onOk }
   function canjear(reward) {
     if (busyReward || balance < reward.points || !player?.token) return
+    if (!vinculada) { setErr(SOLO_EN_SALA); return }
     setConfirmar({
       titulo: '¿CONFIRMÁS EL CANJE?',
       texto: `Te descontamos ${reward.points.toLocaleString('es-AR')} puntos por ${reward.name}. Te quedan ${(balance - reward.points).toLocaleString('es-AR')}.`,
@@ -419,6 +422,7 @@ export default function Kiosk() {
   }, [screen, player])
   function canjearPack() {
     if (packEstado || !pack || balance < pack.points) return
+    if (!vinculada) { setErr(SOLO_EN_SALA); return }
     setConfirmar({
       titulo: '¿CONFIRMÁS EL PACK?',
       texto: `Te descontamos ${pack.points.toLocaleString('es-AR')} puntos por ${pack.size} cupones del sorteo. Te quedan ${(balance - pack.points).toLocaleString('es-AR')}.`,
@@ -482,10 +486,11 @@ export default function Kiosk() {
   }, [screen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function submitDni() {
+    if (!vinculada) { setErr(SOLO_EN_SALA); return }
     if (!/^\d{7,8}$/.test(dni)) { setErr('El DNI son 7 u 8 números'); return }
     setBusy(true); setErr('')
     try {
-      const r = await clubLookupDni(dni)
+      const r = await kioskLookupDni(dni)
       setLookup(r)
       // Importado del torneo con PIN temporal aleatorio -> crea su PIN primero
       setScreen(!r.exists ? 'register' : r.player?.needsPin ? 'crearpin' : 'pin')
@@ -498,7 +503,7 @@ export default function Kiosk() {
     setBusy(true); setErr('')
     try {
       await clubCreatePin(dni, pin)
-      const p = await loginPlayer(dni, pin)
+      const p = await kioskLogin(dni, pin)
       const c = await loyaltyCheckin(p.token).catch(() => null)
       setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
     } catch (e) {
@@ -510,7 +515,7 @@ export default function Kiosk() {
     if (!/^\d{4}$/.test(pin)) { setErr('El PIN son 4 números'); return }
     setBusy(true); setErr('')
     try {
-      const p = await loginPlayer(dni, pin)
+      const p = await kioskLogin(dni, pin)
       const c = await loyaltyCheckin(p.token).catch(() => null)
       setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
     } catch (e) {
@@ -524,7 +529,7 @@ export default function Kiosk() {
     if (!/^\d{4}$/.test(pin)) { setErr('El PIN son 4 números.'); return }
     setBusy(true); setErr('')
     try {
-      const r = await clubSignup({ dni, name: reg.name.trim(), tel: reg.tel.trim(), email: reg.email.trim(), pin })
+      const r = await kioskSignup({ dni, name: reg.name.trim(), tel: reg.tel.trim(), email: reg.email.trim(), pin })
       const c = await loyaltyCheckin(r.player.token).catch(() => null)
       setPlayer(r.player); setCheckin(c); setBalance(c?.balance ?? r.balance ?? 0); setScreen('done')
     } catch (e) { setErr(e.message) } finally { setBusy(false) }

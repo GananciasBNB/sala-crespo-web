@@ -753,6 +753,17 @@ export const loyaltyRaffleStatus = (token) =>
   api('/api/loyalty/raffle-status', { headers: authHeaders(token) })
 export const loyaltyRaffleTicket = (token) =>
   api('/api/loyalty/raffle-ticket', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
+// Versiones de la Máquina del Club: van con la llave y marcadas kiosk:true, así el
+// servidor las rechaza si la misma página se abre fuera de la sala.
+const kioskBody = (data) => JSON.stringify({ ...data, kiosk: true })
+export const kioskLookupDni = (dni) =>
+  api('/api/promo/lookup-dni', { method: 'POST', headers: kioskHeaders(), body: kioskBody({ dni }) })
+export const kioskLogin = (dni, pin) =>
+  api('/api/login', { method: 'POST', headers: kioskHeaders(), body: kioskBody({ dni, pin }) })
+export const kioskSignup = (payload) =>
+  api('/api/club/signup', { method: 'POST', headers: kioskHeaders(), body: kioskBody(payload) })
+export const kioskInscribeTournament = (data) =>
+  api('/api/promo/inscribe-tournament', { method: 'POST', headers: kioskHeaders(), body: kioskBody(data) })
 // Pack de cupones canjeado con puntos (10 por 150 pts, 1 por día; se ajusta en el panel)
 export const loyaltyRafflePack = (token) =>
   api('/api/loyalty/raffle-pack', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
