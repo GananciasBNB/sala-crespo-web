@@ -715,7 +715,7 @@ export default function Kiosk() {
               )}
               {pack?.disponible && (
                 packEstado === 'listo' ? (
-                  <div className="kiosk__hub-ok">✓ Pack de {pack.size} cupones canjeado — a la urna</div>
+                  <div className="kiosk__hub-ok">✓ Hoy ya canjeaste tu pack de {pack.size} cupones · mañana podés otro</div>
                 ) : packEstado === 'canjeando' ? (
                   <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tus {pack.size} cupones…</div>
                 ) : balance >= pack.points ? (
