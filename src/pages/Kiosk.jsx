@@ -440,6 +440,8 @@ export default function Kiosk() {
     try {
       await redeemLoyaltyReward(player.token, reward.id)
       setCanjeados(c => ({ ...c, [reward.id]: true }))
+      // the "Listo" note shows for a few seconds, then the card goes back to normal
+      setTimeout(() => setCanjeados(c => { const n = { ...c }; delete n[reward.id]; return n }), 4500)
       voz(vozCanje(reward.category))
       refrescarCuenta()
     } catch {
