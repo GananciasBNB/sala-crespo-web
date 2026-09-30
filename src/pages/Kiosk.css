@@ -606,3 +606,12 @@
   .kiosk--demo .kiosk__canje { min-height: 0; padding: 7px 6px; gap: 3px; }
   .kiosk--demo .kiosk__puntos--ancho { max-height: 96vh; padding-top: 16px; padding-bottom: 16px; gap: 8px; }
 }
+
+/* Idle screen: an illustration on top of each perk (attraction) */
+.kiosk__perks .kiosk__perk { justify-content: flex-start; align-items: center; text-align: center; }
+.kiosk__perk-art { display: flex; align-items: center; justify-content: center; height: 88px; margin-bottom: 6px; }
+.kiosk__perk-art .kiosk-art { height: 84px; }
+@media (min-width: 701px) and (max-height: 960px) {
+  .kiosk--demo .kiosk__perk-art { height: 66px; margin-bottom: 2px; }
+  .kiosk--demo .kiosk__perk-art .kiosk-art { height: 62px; }
+}

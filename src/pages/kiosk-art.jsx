@@ -130,3 +130,46 @@ export function IconCopa() {
     </svg>
   )
 }
+
+// Daily visit: gold coin with "+50" and a few sparkles
+export function ArtVisita() {
+  const g = 'kv'
+  return (
+    <svg className="kiosk-art" viewBox="0 0 160 110" aria-hidden="true">
+      <GoldDefs id={g} />
+      <ellipse cx="80" cy="100" rx="34" ry="5" fill="#000" opacity=".35" />
+      <circle cx="80" cy="54" r="42" fill={`url(#${g}-gold)`} stroke="#7A5716" strokeWidth="1.5" />
+      <circle cx="80" cy="54" r="34" fill="none" stroke="#7A5716" strokeWidth="1.4" strokeDasharray="2 3" opacity=".8" />
+      <circle cx="80" cy="54" r="30" fill="#8E1B2B" />
+      <text x="80" y="64" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="700" fontSize="28" fill="#FBE7A1">+50</text>
+      <path d="M58 26 Q70 18 86 17" fill="none" stroke="#FFF7D6" strokeWidth="3" strokeLinecap="round" opacity=".6" />
+      {[[132, 22, 7], [26, 34, 5], [138, 80, 5]].map(([x, y, r]) => (
+        <path key={x} d={`M${x} ${y - r} L${x + r * 0.3} ${y - r * 0.3} L${x + r} ${y} L${x + r * 0.3} ${y + r * 0.3} L${x} ${y + r} L${x - r * 0.3} ${y + r * 0.3} L${x - r} ${y} L${x - r * 0.3} ${y - r * 0.3} Z`} fill="#FBE7A1" />
+      ))}
+    </svg>
+  )
+}
+
+// Monthly raffle: ballot box with a coupon going in
+export function ArtSorteo() {
+  const g = 'ks'
+  return (
+    <svg className="kiosk-art" viewBox="0 0 160 110" aria-hidden="true">
+      <GoldDefs id={g} />
+      <ellipse cx="80" cy="102" rx="46" ry="5" fill="#000" opacity=".35" />
+      {/* coupon going into the slot */}
+      <g transform="rotate(-8 80 24)">
+        <rect x="58" y="6" width="44" height="30" rx="3" fill="#FFF7D6" stroke="#A87C2A" strokeWidth="1.5" />
+        <line x1="64" y1="15" x2="96" y2="15" stroke="#A87C2A" strokeWidth="1.5" />
+        <line x1="64" y1="21" x2="90" y2="21" stroke="#A87C2A" strokeWidth="1.2" opacity=".7" />
+        <path d="M80 24 l2 4 4.4.6 -3.2 3.1 .8 4.4 -4-2.1 -4 2.1 .8-4.4 -3.2-3.1 4.4-.6z" fill="#8E1B2B" />
+      </g>
+      {/* box */}
+      <path d="M36 44 H124 L118 98 H42 Z" fill="#5B0F1C" stroke={`url(#${g}-goldH)`} strokeWidth="2.5" strokeLinejoin="round" />
+      <rect x="32" y="38" width="96" height="10" rx="2" fill={`url(#${g}-gold)`} stroke="#7A5716" strokeWidth="1" />
+      <rect x="62" y="41" width="36" height="4" rx="2" fill="#1a0b05" />
+      <path d="M54 62 H106" stroke={`url(#${g}-goldH)`} strokeWidth="2" opacity=".8" />
+      <text x="80" y="84" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="700" fontSize="14" letterSpacing="2" fill="#F0D275">SORTEO</text>
+    </svg>
+  )
+}

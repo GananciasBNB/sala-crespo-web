@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import * as realApi from '../api/client'
 import * as demoApi from '../api/kiosk-demo'
 import './Kiosk.css'
-import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, IconTicket, IconCopa } from './kiosk-art'
+import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa } from './kiosk-art'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
@@ -635,10 +635,10 @@ export default function Kiosk() {
           <h1 className="kiosk__idle-title">Tu visita tiene premio</h1>
           <p className="kiosk__idle-sub">Registrá tu visita en 30 segundos y empezá a ganar HOY.</p>
           <div className="kiosk__perks">
-            <div className="kiosk__perk kiosk__perk--star"><span className="kiosk__perk-num kiosk__perk-num--brand">FORTUNA DORADA</span><span className="kiosk__perk-lbl">Dos giros gratis cada 3 horas (ganá puntos y tickets promocionales)</span></div>
-            <div className="kiosk__perk"><span className="kiosk__perk-num kiosk__perk-num--brand">SUMÁ 50 PUNTOS POR TU VISITA</span><span className="kiosk__perk-lbl">Todos los días</span></div>
-            <div className="kiosk__perk"><span className="kiosk__perk-num kiosk__perk-num--brand">PARTICIPÁ DE SORTEOS</span><span className="kiosk__perk-lbl">Obtené cupones a diario</span></div>
-            <div className="kiosk__perk"><span className="kiosk__perk-num kiosk__perk-num--brand">TORNEOS DE SLOTS</span><span className="kiosk__perk-lbl">Inscribite acá y competí por premios</span></div>
+            <div className="kiosk__perk kiosk__perk--star"><div className="kiosk__perk-art"><ArtFortuna /></div><span className="kiosk__perk-num kiosk__perk-num--brand">FORTUNA DORADA</span><span className="kiosk__perk-lbl">Tres giros gratis cada 3 horas (ganá puntos y tickets promocionales)</span></div>
+            <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtVisita /></div><span className="kiosk__perk-num kiosk__perk-num--brand">SUMÁ 50 PUNTOS POR TU VISITA</span><span className="kiosk__perk-lbl">Todos los días</span></div>
+            <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtSorteo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">PARTICIPÁ DE SORTEOS</span><span className="kiosk__perk-lbl">Obtené cupones a diario</span></div>
+            <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtTorneo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">TORNEOS DE SLOTS</span><span className="kiosk__perk-lbl">Inscribite acá y competí por premios</span></div>
           </div>
           <button className="kiosk__idle-btn">TOCÁ Y EMPEZÁ A GANAR</button>
           <p className="kiosk__idle-note">{vinculada ? 'Es gratis · Solo necesitás tu DNI' : 'Máquina no vinculada · el check-in y los giros solo funcionan en la Máquina del Club'}</p>
