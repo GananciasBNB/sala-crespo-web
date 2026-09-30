@@ -37,6 +37,18 @@ function fmtTxFecha(iso) {
   return d.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
 }
 
+// 'jueves 29 de octubre a las 21:30' (tournament_date comes in UTC)
+function fmtTorneoFecha(iso) {
+  if (!iso) return ''
+  try {
+    const d = new Date(iso)
+    const tz = 'America/Argentina/Buenos_Aires'
+    const dia = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', timeZone: tz })
+    const hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz })
+    return `${dia.replace(',', '')} a las ${hora}`
+  } catch (e) { console.warn('fecha torneo:', e); return '' }
+}
+
 function fmtCountdown(totalSec) {
   const h = Math.floor(totalSec / 3600)
   const m = Math.floor((totalSec % 3600) / 60)
@@ -773,7 +785,7 @@ export default function Kiosk() {
               <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Serie 2026'} · participá por $2.000.000</div>
               <div className="kiosk__hub-art"><ArtTorneo /></div>
               {tourneyReg ? (
-                <div className="kiosk__hub-ok">✓ Ya estás participando{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''} por los $2.000.000</div>
+                <div className="kiosk__hub-ok">✓ Ya estás inscripto{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''} para participar por los $2.000.000 en la Gran Final{tourney?.tournament_date ? `. Te esperamos el ${fmtTorneoFecha(tourney.tournament_date)}` : ''}</div>
               ) : (
                 <button className="kiosk__cta kiosk__cta--hub" disabled={tourneyBusy || !tourney} onClick={inscribirTorneo}>
                   {!tourney ? 'PRÓXIMAMENTE' : tourneyBusy ? 'Inscribiendo…' : 'INSCRIBIRME'}
@@ -887,7 +899,8 @@ export default function Kiosk() {
             <div className="kiosk__hub-title">{tourneyReg?.alreadyRegistered ? 'YA ESTABAS INSCRIPTO' : '¡ESTÁS EN EL TORNEO!'}</div>
             <p className="kiosk__carta-txt">
               {tourney?.name || 'Torneo de slots'}{tourneyReg?.registrationNo ? <><br /><strong>Tu número de inscripción: {tourneyReg.registrationNo}</strong></> : null}
-              <br />¡Te esperamos para competir!
+              <br />Participás por los $2.000.000 en la Gran Final.
+              <br />{tourney?.tournament_date ? `¡Te esperamos el ${fmtTorneoFecha(tourney.tournament_date)}!` : '¡Te esperamos para competir!'}
             </p>
             <button className="kiosk__cta kiosk__cta--hub" onClick={() => setShowTorneoOk(false)}>GENIAL ✓</button>
           </div>
@@ -949,15 +962,18 @@ export default function Kiosk() {
                 <button className={`kiosk__tab ${canjeTab === 'tickets' ? 'kiosk__tab--on' : ''}`} onClick={() => setCanjeTab('tickets')}><IconTicket />TICKETS PROMOCIONALES</button>
                 <button className={`kiosk__tab ${canjeTab === 'consumo' ? 'kiosk__tab--on' : ''}`} onClick={() => setCanjeTab('consumo')}><IconCopa />BEBIDAS Y COMIDAS</button>
               </div>
-              <div className="kiosk__canje-grid">
+              {/* both sections share one cell: the panel keeps the height of the larger one */}
+              <div className="kiosk__canje-stack">
+              {['tickets', 'consumo'].map(tab => (
+              <div key={tab} className={'kiosk__canje-grid kiosk__canje-grid--' + tab + (canjeTab === tab ? '' : ' kiosk__canje-grid--oculto')} aria-hidden={canjeTab !== tab}>
                 {(() => {
                   // only the closest locked reward says how many points are missing;
                   // the rest show a progress bar (less noise on screen)
-                  const tabRewards = rewards.filter(r => canjeTab === 'tickets' ? r.category === 'ticket' : r.category !== 'ticket')
+                  const tabRewards = rewards.filter(r => tab === 'tickets' ? r.category === 'ticket' : r.category !== 'ticket')
                   const locked = tabRewards.filter(r => balance < r.points).map(r => r.points)
                   const proximoPts = locked.length ? Math.min(...locked) : null
                   return rewards
-                  .filter(r => canjeTab === 'tickets' ? r.category === 'ticket' : r.category !== 'ticket')
+                  .filter(r => tab === 'tickets' ? r.category === 'ticket' : r.category !== 'ticket')
                   .sort((a, b) => ((balance >= a.points ? 0 : 1) - (balance >= b.points ? 0 : 1)) || a.points - b.points)
                   .map(r => {
                     const puede = balance >= r.points
@@ -985,6 +1001,8 @@ export default function Kiosk() {
                     )
                   })
                 })()}
+              </div>
+              ))}
               </div>
             </div>
             <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprime un cupón: presentalo en caja para retirarlo.</p>
