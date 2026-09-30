@@ -470,14 +470,19 @@
 .kiosk--demo > .kiosk__bg,
 .kiosk--demo > .kiosk__vignette { position: fixed; }
 
-/* Computers: greeting and "visita registrada" chips go back into the page
-   flow so they never sit on top of the content. */
-.kiosk--demo .kiosk__done-saludo,
-.kiosk--demo .kiosk__visita-corner { position: static; margin: 0 auto 12px; text-align: center; }
+/* Laptops (short windows): smaller logo and tighter spacing so the member
+   home fits on screen like it does on the cabinet. */
+@media (min-width: 701px) and (max-height: 960px) {
+  .kiosk--demo .kiosk__done-logo { width: 140px; margin-bottom: 8px; }
+  .kiosk--demo .kiosk__done-row { margin-bottom: 12px; }
+  .kiosk--demo .kiosk__hub { margin-bottom: 14px; }
+}
 
 /* Phones: stack the five hub cards */
 @media (max-width: 700px) {
   .kiosk--demo { padding: 44px 14px 20px; }
+  .kiosk--demo .kiosk__done-saludo,
+  .kiosk--demo .kiosk__visita-corner { position: static; margin: 0 auto 12px; text-align: center; }
   .kiosk--demo .kiosk__done-saludo .kiosk__done-name { font-size: 30px !important; }
   .kiosk--demo .kiosk__done-logo { width: 64px; }
   .kiosk--demo .kiosk__hub { flex-direction: column; gap: 10px; }
