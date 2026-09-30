@@ -136,7 +136,7 @@ function musicaClubPause() { try { if (musicaClub) musicaClub.pause() } catch { 
 // los MP3 se precargan y se "desbloquean" con el primer toque de la pantalla:
 // un play+pause en silencio deja a cada archivo habilitado para después.
 const VOCES = ['atraccion-1', 'atraccion-2', 'atraccion-3', 'atraccion-4', 'checkin',
-  'cumple', 'nuevo-socio', 'cupon', 'despedida', 'ya-checkin', 'ui-tap']
+  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'despedida', 'ya-checkin', 'ui-tap']
 const poolVoz = {}
 function audioDe(name) {
   let a = poolVoz[name]
@@ -475,7 +475,7 @@ export default function Kiosk() {
     try {
       const r = await loyaltyRafflePack(player.token)   // descuenta los puntos e imprime los cupones
       if (typeof r.balance === 'number') setBalance(r.balance)
-      voz('cupon')
+      voz('cupones-pack')
       lastActRef.current = Date.now()
       setPackEstado('listo')
     } catch (err) {
