@@ -439,3 +439,10 @@
 .kiosk__confirm-txt { font-size: 17px; line-height: 1.45; }
 .kiosk__confirm-btns { display: flex; gap: 14px; width: 100%; }
 .kiosk__confirm-btns .kiosk__cta { flex: 1; margin-top: 0; }
+
+/* Aceptación de las bases de Jackpoints */
+.kiosk__acepto { display:flex; align-items:flex-start; gap:12px; margin:14px 0 6px; font-size:15px; color:var(--text2); text-align:left; }
+.kiosk__acepto input { width:26px; height:26px; flex:none; accent-color: var(--gold-light); margin-top:1px; }
+.kiosk__link { background:none; border:0; padding:0; color:var(--gold-light); text-decoration:underline; font:inherit; cursor:pointer; }
+.kiosk__bases-panel { width:min(900px,94vw); height:min(88vh,1100px); padding:22px 24px; }
+.kiosk__bases-frame { flex:1; width:100%; min-height:0; border:0; border-radius:12px; background:#fff; }

@@ -762,6 +762,8 @@ export const kioskLogin = (dni, pin) =>
   api('/api/login', { method: 'POST', headers: kioskHeaders(), body: kioskBody({ dni, pin }) })
 export const kioskSignup = (payload) =>
   api('/api/club/signup', { method: 'POST', headers: kioskHeaders(), body: kioskBody(payload) })
+export const kioskAcceptTerms = (token) =>
+  api('/api/club/accept-terms', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const kioskInscribeTournament = (data) =>
   api('/api/promo/inscribe-tournament', { method: 'POST', headers: kioskHeaders(), body: kioskBody(data) })
 // Pack de cupones canjeado con puntos (10 por 150 pts, 1 por día; se ajusta en el panel)

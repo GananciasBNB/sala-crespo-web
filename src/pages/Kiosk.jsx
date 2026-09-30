@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { kioskLookupDni, kioskLogin, kioskSignup, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } from '../api/client'
+import { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } from '../api/client'
 import './Kiosk.css'
 
 // Tótem de autogestión del Sala Crespo Club.
@@ -353,6 +353,25 @@ export default function Kiosk() {
   // Todo lo que descuenta puntos pide un segundo toque: en una pantalla táctil
   // un roce alcanza para "canjear" sin querer.
   const [confirmar, setConfirmar] = useState(null) // { titulo, texto, okLabel, onOk }
+  // Bases de Jackpoints: el alta exige aceptarlas; los socios anteriores las
+  // aceptan una vez al entrar. Se pueden leer completas en una ventana.
+  const [aceptoBases, setAceptoBases] = useState(false)
+  const [verBases, setVerBases] = useState(false)
+  const [aceptandoBases, setAceptandoBases] = useState(false)
+  async function entrarConSocio(p) {
+    if (!p.termsAccepted) { setPlayer(p); setScreen('terminos'); return }
+    const c = await loyaltyCheckin(p.token).catch(() => null)
+    setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
+  }
+  async function aceptarBasesYEntrar() {
+    if (aceptandoBases || !player?.token) return
+    setAceptandoBases(true); setErr('')
+    try {
+      await kioskAcceptTerms(player.token)
+      await entrarConSocio({ ...player, termsAccepted: true })
+    } catch { setErr('No pudimos registrar tu aceptacion. Proba de nuevo.') }
+    finally { setAceptandoBases(false) }
+  }
   function canjear(reward) {
     if (busyReward || balance < reward.points || !player?.token) return
     if (!vinculada) { setErr(SOLO_EN_SALA); return }
@@ -504,8 +523,7 @@ export default function Kiosk() {
     try {
       await clubCreatePin(dni, pin)
       const p = await kioskLogin(dni, pin)
-      const c = await loyaltyCheckin(p.token).catch(() => null)
-      setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
+      await entrarConSocio(p)
     } catch (e) {
       setErr('No pudimos crear tu PIN. Probá de nuevo o consultá en la barra.')
     } finally { setBusy(false) }
@@ -516,8 +534,7 @@ export default function Kiosk() {
     setBusy(true); setErr('')
     try {
       const p = await kioskLogin(dni, pin)
-      const c = await loyaltyCheckin(p.token).catch(() => null)
-      setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
+      await entrarConSocio(p)
     } catch (e) {
       setErr('PIN incorrecto. Probá de nuevo — y si no te sale, en la barra te ayudamos con tu DNI.')
       setPin('')
@@ -527,9 +544,10 @@ export default function Kiosk() {
   async function submitRegister() {
     if (reg.name.trim().length < 3) { setErr('Escribí tu nombre'); return }
     if (!/^\d{4}$/.test(pin)) { setErr('El PIN son 4 números.'); return }
+    if (!aceptoBases) { setErr('Para sumarte tenés que aceptar los términos y condiciones.'); return }
     setBusy(true); setErr('')
     try {
-      const r = await kioskSignup({ dni, name: reg.name.trim(), tel: reg.tel.trim(), email: reg.email.trim(), pin })
+      const r = await kioskSignup({ dni, name: reg.name.trim(), tel: reg.tel.trim(), email: reg.email.trim(), pin, acceptTerms: true })
       const c = await loyaltyCheckin(r.player.token).catch(() => null)
       setPlayer(r.player); setCheckin(c); setBalance(c?.balance ?? r.balance ?? 0); setScreen('done')
     } catch (e) { setErr(e.message) } finally { setBusy(false) }
@@ -654,10 +672,38 @@ export default function Kiosk() {
                 placeholder="tu@email.com" />
             </label>
           </div>
+          <label className="kiosk__acepto">
+            <input type="checkbox" checked={aceptoBases} onChange={e => { setAceptoBases(e.target.checked); setErr('') }} />
+            <span>Leí y acepto los <button type="button" className="kiosk__link" onClick={() => setVerBases(true)}>términos y condiciones de Jackpoints</button></span>
+          </label>
           {err && <div className="kiosk__err">{err}</div>}
-          <button className="kiosk__cta" disabled={busy} onClick={submitRegister}>
+          <button className="kiosk__cta" disabled={busy || !aceptoBases} onClick={submitRegister}>
             {busy ? 'Creando tu cuenta…' : 'Crear mi cuenta'}
           </button>
+        </div>
+      )}
+
+      {/* ───────── ACEPTACIÓN DE BASES (socios anteriores, una vez) ───────── */}
+      {screen === 'terminos' && (
+        <div className="kiosk__step kiosk__step--reg">
+          <button className="kiosk__back" onClick={reset}>← No acepto · salir</button>
+          <h2 className="kiosk__h">Hola {player?.name?.split(' ')[0]}, una cosa antes</h2>
+          <p className="kiosk__hint">Jackpoints tiene términos y condiciones. Para seguir usando tu cuenta necesitamos que los aceptes. Podés leerlos completos acá.</p>
+          <button type="button" className="kiosk__cta kiosk__cta--pack" onClick={() => setVerBases(true)}>VER TÉRMINOS Y CONDICIONES</button>
+          {err && <div className="kiosk__err">{err}</div>}
+          <button className="kiosk__cta" disabled={aceptandoBases} onClick={aceptarBasesYEntrar}>
+            {aceptandoBases ? 'Guardando…' : 'ACEPTO Y CONTINÚO'}
+          </button>
+        </div>
+      )}
+
+      {verBases && (
+        <div className="kiosk__carta kiosk__confirm" onClick={() => setVerBases(false)}>
+          <div className="kiosk__carta-panel kiosk__bases-panel" onClick={e => e.stopPropagation()}>
+            <div className="kiosk__hub-title">TÉRMINOS Y CONDICIONES · JACKPOINTS</div>
+            <iframe className="kiosk__bases-frame" src="/legal/bases-jackpoints.html" title="Bases y condiciones de Jackpoints" />
+            <button className="kiosk__cta kiosk__cta--hub" onClick={() => setVerBases(false)}>VOLVER ✓</button>
+          </div>
         </div>
       )}
 
