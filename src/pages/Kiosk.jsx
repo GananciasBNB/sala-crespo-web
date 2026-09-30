@@ -166,6 +166,17 @@ function desbloquearAudio() {
   if (musicaClub && musicaClub.paused) aDesbloquear.push(musicaClub)
   aDesbloquear.forEach(a => {
     if (!a.paused) return   // ya esta sonando: no tocarla
+    if (DEMO) {
+      // Demo on phones: play() resolves only after the file downloads, and some
+      // mobile browsers let the muted clip be heard for a moment. Starting and
+      // stopping in the same tick unlocks the element without any sound.
+      a.muted = true
+      const p = a.play()
+      a.pause()
+      if (p) p.catch(() => {}).finally(() => { a.muted = false })
+      else a.muted = false
+      return
+    }
     a.muted = true
     const p = a.play()
     if (p) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false })
