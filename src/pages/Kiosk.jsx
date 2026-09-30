@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import * as realApi from '../api/client'
 import * as demoApi from '../api/kiosk-demo'
 import './Kiosk.css'
-import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta } from './kiosk-art'
+import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, IconTicket, IconCopa } from './kiosk-art'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
@@ -945,11 +945,17 @@ export default function Kiosk() {
                 <div className="kiosk__canje-aviso">Todavía no llegás a ningún premio con tus puntos — ¡seguí sumando, cada visita te acerca!</div>
               )}
               <div className="kiosk__tabs">
-                <button className={`kiosk__tab ${canjeTab === 'tickets' ? 'kiosk__tab--on' : ''}`} onClick={() => setCanjeTab('tickets')}>TICKETS PROMOCIONALES</button>
-                <button className={`kiosk__tab ${canjeTab === 'consumo' ? 'kiosk__tab--on' : ''}`} onClick={() => setCanjeTab('consumo')}>BEBIDAS Y COMIDAS</button>
+                <button className={`kiosk__tab ${canjeTab === 'tickets' ? 'kiosk__tab--on' : ''}`} onClick={() => setCanjeTab('tickets')}><IconTicket />TICKETS PROMOCIONALES</button>
+                <button className={`kiosk__tab ${canjeTab === 'consumo' ? 'kiosk__tab--on' : ''}`} onClick={() => setCanjeTab('consumo')}><IconCopa />BEBIDAS Y COMIDAS</button>
               </div>
               <div className="kiosk__canje-grid">
-                {rewards
+                {(() => {
+                  // only the closest locked reward says how many points are missing;
+                  // the rest show a progress bar (less noise on screen)
+                  const tabRewards = rewards.filter(r => canjeTab === 'tickets' ? r.category === 'ticket' : r.category !== 'ticket')
+                  const locked = tabRewards.filter(r => balance < r.points).map(r => r.points)
+                  const proximoPts = locked.length ? Math.min(...locked) : null
+                  return rewards
                   .filter(r => canjeTab === 'tickets' ? r.category === 'ticket' : r.category !== 'ticket')
                   .sort((a, b) => ((balance >= a.points ? 0 : 1) - (balance >= b.points ? 0 : 1)) || a.points - b.points)
                   .map(r => {
@@ -970,11 +976,14 @@ export default function Kiosk() {
                             {busyReward === r.id ? 'Canjeando…' : 'CANJEAR'}
                           </button>
                         ) : (
-                          <div className="kiosk__canje-falta">Te faltan {(r.points - balance).toLocaleString('es-AR')}</div>
+                          r.points === proximoPts
+                            ? <div className="kiosk__canje-falta kiosk__canje-falta--proximo">Te faltan {(r.points - balance).toLocaleString('es-AR')} pts</div>
+                            : <div className="kiosk__canje-barra"><span style={{ width: `${Math.min(100, Math.round(balance / r.points * 100))}%` }} /></div>
                         )}
                       </div>
                     )
-                  })}
+                  })
+                })()}
               </div>
             </div>
             <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprime un cupón: presentalo en caja para retirarlo.</p>

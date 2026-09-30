@@ -112,3 +112,21 @@ export function ArtCarta() {
     </div>
   )
 }
+
+// Small icons for the redemption tabs (inherit the tab text color)
+export function IconTicket() {
+  return (
+    <svg className="kiosk__tab-ico" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M3 7h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M15 8v8" stroke="currentColor" strokeWidth="1.6" strokeDasharray="2 2" />
+    </svg>
+  )
+}
+export function IconCopa() {
+  return (
+    <svg className="kiosk__tab-ico" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 4h14l-7 8z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M12 12v7M8 20h8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}

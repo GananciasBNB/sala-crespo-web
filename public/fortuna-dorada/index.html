@@ -594,6 +594,8 @@ cargarTexturas(URLS).then(T => {
     }
   });
   try { window.parent.postMessage({ tipo: 'listo' }, '*'); } catch {}
+  // kiosk demo (/kiosk?demo=1) never sends init: greet here like the real kiosk does
+  if (new URLSearchParams(location.search).get('demo') === '1') voz('giro-bienvenida');
   // cada toque dentro del juego renueva la sesion del kiosk (el padre no ve
   // los eventos del iframe: sin esto la sesion quedaria abierta para siempre)
   window.addEventListener('pointerdown', () => {
