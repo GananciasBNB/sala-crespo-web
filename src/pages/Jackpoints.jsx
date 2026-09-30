@@ -154,7 +154,7 @@ export default function Jackpoints() {
             <a className="btn-gold" href={IG} target="_blank" rel="noopener noreferrer">Enterate primero en Instagram</a>
           </div>
           <p className="jp__legal">
-            <a href="/legal/bases-jackpoints.html" target="_blank" rel="noopener noreferrer">Bases y condiciones del programa</a> · Solo para mayores de 18 años · Jugá con responsabilidad
+            <a href="/legal/bases-jackpoints.html" target="_blank" rel="noopener noreferrer">Bases y condiciones del programa</a> · <a href="/legal/bases-sorteo-jackpoints.html" target="_blank" rel="noopener noreferrer">Bases del sorteo mensual</a> · Solo para mayores de 18 años · Jugá con responsabilidad
           </p>
         </div>
       </section>
