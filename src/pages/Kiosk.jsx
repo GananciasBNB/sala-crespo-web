@@ -157,7 +157,7 @@ function vozCanje(category) {
   return `canje-${cat}-${Math.random() < 0.5 ? 1 : 2}`
 }
 const VOCES = ['atraccion-1', 'atraccion-2', 'atraccion-3', 'atraccion-4', 'checkin',
-  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'carta', 'mis-datos', 'movimientos', 'despedida', ...CANJE_VOCES, 'ya-checkin', 'ui-tap']
+  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'carta', 'mis-datos', 'movimientos', 'cortesia-email', 'despedida', ...CANJE_VOCES, 'ya-checkin', 'ui-tap']
 const poolVoz = {}
 function audioDe(name) {
   let a = poolVoz[name]
@@ -472,7 +472,8 @@ export default function Kiosk() {
       // refrescar lo mostrado sin re-loguear
       setLookup(l => l ? { ...l, player: { ...l.player, tel: telNuevo, email: emailNuevo } } : l)
       setDatosOk(true); setShowDatos(false)
-      voz('ui-tap', 0.7)
+      // the backend sends the courtesy voucher only on the FIRST email saved
+      voz(!emailActual && emailNuevo ? 'cortesia-email' : 'ui-tap', !emailActual && emailNuevo ? 0.95 : 0.7)
     } catch {
       setErr('No pudimos guardar tus datos. Consultá en la barra.')
     } finally { setDatosBusy(false) }
