@@ -12,7 +12,7 @@ const NUMEROS = [
 ]
 
 const PASOS = [
-  { t: 'Te sumás', d: 'Ponés tu DNI en la Máquina Jackpoints, elegís un PIN de 4 números y listo. Arrancás con 100 puntos de regalo.' },
+  { t: 'Te sumás', d: 'Ponés tu DNI en la máquina Jackpoints, elegís un PIN de 4 números y listo. Arrancás con 100 puntos de regalo.' },
   { t: 'Sumás por venir', d: 'Cada día que visitás la sala, pasás por la máquina y sumás 50 puntos. Vengas a jugar, a tomar algo o a ver un show.' },
   { t: 'Canjeás', d: '1 punto = $1 en nuestra carta. Elegís en la máquina, sale tu cupón y lo retirás en caja. También tickets promocionales para jugar.' },
 ]
@@ -59,7 +59,7 @@ export default function Jackpoints() {
             <a className="btn-gold" href="#como">Quiero saber más</a>
             <a className="jp__btn-ghost" href={IG} target="_blank" rel="noopener noreferrer">Seguinos en Instagram</a>
           </div>
-          <small className="jp__small">Gratis · Te sumás en la sala con tu DNI en menos de un minuto · Solo mayores de 18</small>
+          <small className="jp__small">Gratis · Te sumás en la sala con tu DNI en menos de un minuto · Solo mayores de 18 años</small>
           <div className="jp__strip">
             {NUMEROS.map(x => <div key={x.t}><b>{x.n}</b><span>{x.t}</span></div>)}
           </div>
@@ -70,10 +70,10 @@ export default function Jackpoints() {
       <section id="como" className="jp__sec">
         <div className="jp__wrap">
           <h2 className="jp__h2">Así de <span>simple</span></h2>
-          <p className="jp__sub">Sin tarjetas, sin formularios, sin app que bajar. Todo pasa en la Máquina Jackpoints, en la sala.</p>
+          <p className="jp__sub">Sin tarjetas, sin formularios, sin app que bajar.</p>
           <div className="jp__steps">
             {PASOS.map((p, i) => (
-              <div key={p.t} className="jp__step"><span className="jp__n">{i + 1}</span><h3>{p.t}</h3><p>{p.d}</p></div>
+              <div key={p.t} className="jp__step"><span className="jp__n">{i + 1}</span><div><h3>{p.t}</h3><p>{p.d}</p></div></div>
             ))}
           </div>
         </div>
@@ -100,7 +100,7 @@ export default function Jackpoints() {
         <div className="jp__wrap jp__feat">
           <div>
             <h2 className="jp__h2 jp__h2--left">Fortuna <span>Dorada</span></h2>
-            <p className="jp__sub jp__sub--left">El slot de la Máquina Jackpoints. Tirás, mirás, y si sale, sale.</p>
+            <p className="jp__sub jp__sub--left">El slot de la máquina Jackpoints. Tirás, mirás, y si sale, sale.</p>
             <ul className="jp__list">
               <li>3 giros cada 3 horas, en cada visita.</li>
               <li>Premios de 50 a 500 puntos, directo a tu cuenta.</li>
@@ -109,7 +109,7 @@ export default function Jackpoints() {
               <li>Todo se acredita al instante y lo ves en tu cuenta.</li>
             </ul>
           </div>
-          <div className="jp__shot"><img src="/jackpoints/fortuna-dorada.webp" alt="Fortuna Dorada, el slot de la Máquina Jackpoints" loading="lazy" /></div>
+          <div className="jp__shot"><img src="/jackpoints/fortuna-dorada.webp" alt="Fortuna Dorada, el slot de la máquina Jackpoints" loading="lazy" /></div>
         </div>
       </section>
 
@@ -149,7 +149,7 @@ export default function Jackpoints() {
         <div className="jp__wrap">
           <span className="jp__badge"><i /> Muy pronto</span>
           <h2 className="jp__h2">Tu próxima visita ya <span>suma</span></h2>
-          <p className="jp__sub">Jackpoints se activa en la sala. Cuando vengas, buscá la Máquina Jackpoints, poné tu DNI y empezá a sumar. Es gratis y tarda menos de un minuto.</p>
+          <p className="jp__sub">Jackpoints se activa en la sala. Cuando vengas, buscá la máquina Jackpoints, poné tu DNI y empezá a sumar. Es gratis y tarda menos de un minuto.</p>
           <div className="jp__cta">
             <a className="btn-gold" href={IG} target="_blank" rel="noopener noreferrer">Enterate primero en Instagram</a>
           </div>
