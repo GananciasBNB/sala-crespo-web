@@ -12,7 +12,7 @@
     { "source": "/admin/:path*", "destination": "/index.html" },
     { "source": "/club", "destination": "/index.html" },
     { "source": "/club-admin", "destination": "/index.html" },
-    { "source": "/kiosk", "destination": "/index.html" },
+    { "source": "/kiosk", "destination": "/kiosk.html" },
     { "source": "/carta", "destination": "/carta.html" },
     { "source": "/morphi", "destination": "/index.html" },
     { "source": "/historias", "destination": "/index.html" },

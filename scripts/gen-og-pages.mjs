@@ -28,6 +28,14 @@ const PAGES = [
     description: 'Sumá puntos por cada visita, canjealos por bebidas, comidas y tickets, girá la Fortuna Dorada y participá del sorteo mensual de $150.000. Gratis, con tu DNI, en la sala.',
     image: `${SITE}/jackpoints/og.jpg`,
   },
+  {
+    // shared as the demo link (/kiosk?demo=1); the cabinet loads the same SPA
+    file: 'kiosk.html',
+    url: `${SITE}/kiosk?demo=1`,
+    title: 'Jackpoints — Probá la máquina del club',
+    description: 'Demo de la máquina de Jackpoints, el club de beneficios de Sala de Juegos Crespo. Registrate con un DNI inventado y probá la Fortuna Dorada, los canjes y el sorteo.',
+    image: `${SITE}/jackpoints/og.jpg`,
+  },
 ];
 
 const sub = (html, re, value) => html.replace(re, (m, a, b) => `${a}${value}${b}`);
