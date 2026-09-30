@@ -9,7 +9,9 @@ const STORE_KEY = 'kiosk_demo_v1'
 const SPINS_PER_WINDOW = 3
 const WINDOW_MS = 3 * 60 * 60 * 1000
 const DEMO_GIFT = 5000 // demo-only points so testers can try a redemption
-const PACK = { size: 10, points: 150, perDay: 1 }
+// Demo: no daily limit on coupons or packs, so testers can repeat them
+const PACK = { size: 10, points: 150, perDay: 999 }
+const TICKETS_PER_DAY = 999
 
 export const isKioskDemo = () => {
   try { return new URLSearchParams(window.location.search).get('demo') === '1' } catch { return false }
@@ -144,7 +146,7 @@ export async function loyaltyRaffleStatus(token) {
   const db = load(); const p = getPlayer(db, token)
   raffleDay(p); save(db)
   return {
-    hoy: p.ticketsToday, limite: 1, puede: p.ticketsToday < 1, monto: 150000,
+    hoy: p.ticketsToday, limite: TICKETS_PER_DAY, puede: p.ticketsToday < TICKETS_PER_DAY, monto: 150000,
     pack: { ...PACK, hoy: p.packsToday, disponible: true, puede: p.packsToday < PACK.perDay, alcanza: p.balance >= PACK.points },
   }
 }
@@ -152,9 +154,9 @@ export async function loyaltyRaffleTicket(token) {
   await wait()
   const db = load(); const p = getPlayer(db, token)
   raffleDay(p)
-  if (p.ticketsToday >= 1) throw new Error('Ya imprimiste tu cupón de hoy.')
+  if (p.ticketsToday >= TICKETS_PER_DAY) throw new Error('Ya imprimiste tu cupón de hoy.')
   p.ticketsToday += 1; save(db)
-  return { ok: true, codigo: 'DEMO', hoy: p.ticketsToday, limite: 1, puede: false }
+  return { ok: true, codigo: 'DEMO', hoy: p.ticketsToday, limite: TICKETS_PER_DAY, puede: true }
 }
 export async function loyaltyRafflePack(token) {
   await wait()

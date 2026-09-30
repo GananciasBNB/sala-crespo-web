@@ -478,6 +478,7 @@ export default function Kiosk() {
       voz('cupones-pack')
       lastActRef.current = Date.now()
       setPackEstado('listo')
+      if (DEMO) setTimeout(() => setPackEstado(''), 6000) // demo: let testers repeat it
     } catch (err) {
       setPackEstado(/hoy/i.test(err.message || '') ? 'listo' : '')
       if (!/hoy/i.test(err.message || '')) setErr('No pudimos canjear el pack. Probá de nuevo o consultá en la barra.')
@@ -490,7 +491,8 @@ export default function Kiosk() {
       const r = await loyaltyRaffleTicket(player.token)   // registra el cupon y lo manda a la termica
       voz('cupon')
       lastActRef.current = Date.now()
-      setTimeout(() => setCuponEstado(r.puede ? '' : 'listo'), 3500)
+      setTimeout(() => setCuponEstado(r.puede && !DEMO ? '' : 'listo'), 3500)
+      if (DEMO) setTimeout(() => setCuponEstado(''), 9500) // demo: show 'listo', then allow another
     } catch (err) {
       // 429 = ya uso el cupo de hoy; cualquier otra cosa, que pueda reintentar
       setCuponEstado(/hoy|cupo/i.test(err.message || '') ? 'listo' : '')
@@ -790,7 +792,7 @@ export default function Kiosk() {
               )}
               {pack?.disponible && (
                 packEstado === 'listo' ? (
-                  <div className="kiosk__hub-ok">✓ Hoy ya canjeaste tu pack de {pack.size} cupones · mañana podés otro</div>
+                  <div className="kiosk__hub-ok">✓ Hoy ya canjeaste tu pack de {pack.size} cupones · mañana podés canjear otro pack</div>
                 ) : packEstado === 'canjeando' ? (
                   <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tus {pack.size} cupones…</div>
                 ) : balance >= pack.points ? (
