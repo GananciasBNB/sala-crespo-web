@@ -427,7 +427,7 @@ export default function Kiosk() {
     if (!vinculada) { setErr(SOLO_EN_SALA); return }
     setConfirmar({
       titulo: '¿CONFIRMÁS EL CANJE?',
-      texto: `Te descontamos ${reward.points.toLocaleString('es-AR')} puntos por ${reward.name}. Te quedan ${(balance - reward.points).toLocaleString('es-AR')}.`,
+      texto: `Te descontaremos ${reward.points.toLocaleString('es-AR')} puntos por ${reward.name}. Te quedan ${(balance - reward.points).toLocaleString('es-AR')}.`,
       okLabel: 'SÍ, CANJEAR',
       onOk: () => ejecutarCanje(reward),
     })
@@ -496,7 +496,7 @@ export default function Kiosk() {
     if (!vinculada) { setErr(SOLO_EN_SALA); return }
     setConfirmar({
       titulo: '¿CONFIRMÁS EL PACK?',
-      texto: `Te descontamos ${pack.points.toLocaleString('es-AR')} puntos por ${pack.size} cupones del sorteo. Te quedan ${(balance - pack.points).toLocaleString('es-AR')}.`,
+      texto: `Te descontaremos ${pack.points.toLocaleString('es-AR')} puntos por ${pack.size} cupones del sorteo. Te quedan ${(balance - pack.points).toLocaleString('es-AR')}.`,
       okLabel: `SÍ, QUIERO LOS ${pack.size} CUPONES`,
       onOk: () => ejecutarPack(),
     })
