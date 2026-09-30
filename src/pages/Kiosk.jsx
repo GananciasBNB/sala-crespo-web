@@ -430,12 +430,14 @@ export default function Kiosk() {
   // para pruebas y bajar a 1 sin tocar la maquina
   // Pack de cupones por puntos: el servidor manda precio, tamaño y si hoy ya lo usó
   const [pack, setPack] = useState(null)
+  const [sorteoMonto, setSorteoMonto] = useState(150000) // lo manda el servidor (panel: Sorteo)
   const [packEstado, setPackEstado] = useState('') // '' | 'canjeando' | 'listo'
   useEffect(() => {
     if (screen !== 'done' || !player?.token) return
     loyaltyRaffleStatus(player.token).then(r => {
       if (!r.puede) setCuponEstado('listo')
       setPack(r.pack || null)
+      if (r.monto) setSorteoMonto(r.monto)
       if (r.pack && !r.pack.puede) setPackEstado('listo')
     }).catch(() => {})
   }, [screen, player])
@@ -756,7 +758,7 @@ export default function Kiosk() {
 
             <div className="kiosk__hub-card">
               <div className="kiosk__hub-title">SORTEO DEL MES</div>
-              <div className="kiosk__hub-sub">Imprimí tu cupón y participá por $100.000</div>
+              <div className="kiosk__hub-sub">Imprimí tu cupón y participá por ${sorteoMonto.toLocaleString('es-AR')}</div>
               {cuponEstado === 'listo' ? (
                 <div className="kiosk__hub-ok">✓ Cupón impreso — no olvides depositarlo en la urna</div>
               ) : cuponEstado === 'imprimiendo' ? (
