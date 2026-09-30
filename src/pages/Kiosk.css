@@ -487,3 +487,24 @@
   .kiosk--demo .kiosk__cta.kiosk__cta--hub { width: 100%; }
 }
 
+
+/* ───────── Home card illustrations ───────── */
+.kiosk__hub-card--art .kiosk__hub-sub { flex: none; }
+.kiosk__hub-art { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 104px; width: 100%; }
+.kiosk-art { display: block; height: 96px; width: auto; max-width: 100%; filter: drop-shadow(0 4px 10px rgba(0,0,0,.45)); }
+.kiosk-art--screen {
+  position: relative; overflow: hidden; aspect-ratio: 440 / 246;
+  border-radius: 10px; border: 2px solid rgba(240,210,117,.75);
+  box-shadow: 0 0 16px rgba(201,168,76,.28), inset 0 0 0 1px rgba(0,0,0,.5);
+  filter: none;
+}
+.kiosk-art--screen img, .kiosk-art--screen video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.kiosk-art--video { aspect-ratio: 260 / 208; }
+/* light sweep over the slot screen: transform-only, cheap for the cabinet GPU */
+.kiosk-art__shine {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,241,184,.35) 50%, transparent 65%);
+  transform: translateX(-120%); animation: kiosk-shine 4.5s ease-in-out infinite;
+}
+@keyframes kiosk-shine { 0%, 55% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
+@media (prefers-reduced-motion: reduce) { .kiosk-art__shine { animation: none; display: none; } }

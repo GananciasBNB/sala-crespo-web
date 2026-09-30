@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import * as realApi from '../api/client'
 import * as demoApi from '../api/kiosk-demo'
 import './Kiosk.css'
+import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta } from './kiosk-art'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
@@ -69,7 +70,7 @@ function SesionTimer({ lastActRef, paused, onExpirar, margen = SESION_MS }) {
 
 // Contador del giro AISLADO: su tick de 1s re-renderiza solo este bloque,
 // nunca el Home entero (si viviera arriba, toda la pantalla titila).
-function FortunaEstado({ token, refreshKey, onJugar }) {
+function FortunaEstado({ token, refreshKey, onJugar, art }) {
   const [st, setSt] = useState(null) // { left, nextAt, porVentana } — del servidor
   const [cd, setCd] = useState(0)
   useEffect(() => {
@@ -95,6 +96,7 @@ function FortunaEstado({ token, refreshKey, onJugar }) {
     <>
       <div className="kiosk__hub-countdown">{fmtCountdown(cd)}</div>
       <div className="kiosk__hub-sub">Se están cargando tus {porVentana} giros gratis. Volvé en breve — ¡podrías obtener un premio!</div>
+      {art}
     </>
   )
   return (
@@ -102,6 +104,7 @@ function FortunaEstado({ token, refreshKey, onJugar }) {
       <div className="kiosk__hub-sub">
         {left === 1 ? '¡Te queda 1 giro en esta ronda!' : `Tenés ${left} giros gratis · premios y puntos`}
       </div>
+      {art}
       <button className="kiosk__cta kiosk__cta--hub" onClick={onJugar}>JUGÁ AHORA</button>
     </>
   )
@@ -587,7 +590,7 @@ export default function Kiosk() {
       {/* ───────── IDLE ───────── */}
       {screen === 'idle' && (
         <div className="kiosk__idle">
-          <img className="kiosk__logo" src="/club-logo.png" alt="Sala Crespo Club" onClick={tapSecreto} onError={e => { e.target.style.display = 'none' }} />
+          <img className="kiosk__logo" src="/jackpoints/logo.webp" alt="Jackpoints" onClick={tapSecreto} onError={e => { e.target.style.display = 'none' }} />
           <div className="kiosk__idle-kicker">★ Sala Crespo Club ★</div>
           <h1 className="kiosk__idle-title">Tu visita tiene premio</h1>
           <p className="kiosk__idle-sub">Registrá tu visita en 30 segundos y empezá a ganar HOY.</p>
@@ -733,7 +736,7 @@ export default function Kiosk() {
             <div className="kiosk__done-kicker">{esNuevo ? '¡Ya sos parte del Club!' : '¡Hola de nuevo!'}</div>
             <h1 className="kiosk__done-name">{firstName}</h1>
           </div>
-          <img className="kiosk__done-logo" src="/club-logo.png" alt="Sala Crespo Club" onError={e => { e.target.style.display = 'none' }} />
+          <img className="kiosk__done-logo" src="/jackpoints/logo.webp" alt="Jackpoints" onError={e => { e.target.style.display = 'none' }} />
 
           {checkin?.granted && (
             <div className="kiosk__done-row">
@@ -756,14 +759,16 @@ export default function Kiosk() {
           {err && <div className="kiosk__err">{err}</div>}
 
           <div className="kiosk__hub">
-            <div className="kiosk__hub-card kiosk__hub-card--giro">
+            <div className="kiosk__hub-card kiosk__hub-card--giro kiosk__hub-card--art">
               <div className="kiosk__hub-title">FORTUNA DORADA</div>
-              <FortunaEstado token={player?.token} refreshKey={spinRefresh} onJugar={jugarGiro} />
+              <FortunaEstado token={player?.token} refreshKey={spinRefresh} onJugar={jugarGiro}
+                art={<div className="kiosk__hub-art"><ArtFortuna /></div>} />
             </div>
 
-            <div className="kiosk__hub-card">
+            <div className="kiosk__hub-card kiosk__hub-card--art">
               <div className="kiosk__hub-title">TORNEO DE SLOTS</div>
               <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Serie 2026'} · participá por $2.000.000</div>
+              <div className="kiosk__hub-art"><ArtTorneo /></div>
               {tourneyReg ? (
                 <div className="kiosk__hub-ok">✓ Ya estás participando{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''} por los $2.000.000</div>
               ) : (
@@ -798,15 +803,17 @@ export default function Kiosk() {
               )}
             </div>
 
-            <div className="kiosk__hub-card">
+            <div className="kiosk__hub-card kiosk__hub-card--art">
               <div className="kiosk__hub-title">CANJEÁ TUS PUNTOS</div>
               <div className="kiosk__hub-sub">Convertilos en bebidas, comidas o tickets promocionales</div>
+              <div className="kiosk__hub-art"><ArtCanjes /></div>
               <button className="kiosk__cta kiosk__cta--hub" onClick={abrirCanjes}>QUIERO CANJEAR</button>
             </div>
 
-            <div className="kiosk__hub-card">
+            <div className="kiosk__hub-card kiosk__hub-card--art">
               <div className="kiosk__hub-title">NUESTRA CARTA</div>
               <div className="kiosk__hub-sub">Conocé nuestra variedad y promociones</div>
+              <div className="kiosk__hub-art"><ArtCarta /></div>
               <button className="kiosk__cta kiosk__cta--hub" onClick={() => setShowCarta(true)}>VER CARTA</button>
             </div>
           </div>
