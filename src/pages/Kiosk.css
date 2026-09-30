@@ -597,3 +597,5 @@
   .kiosk--demo { padding-top: 14px; }
   .kiosk--demo .kiosk__done-row { margin-bottom: 10px; }
 }
+
+.kiosk__hub-sub--antes { flex: none; color: var(--gold-light); }

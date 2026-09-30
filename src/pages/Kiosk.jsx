@@ -106,8 +106,9 @@ function FortunaEstado({ token, refreshKey, onJugar, art }) {
   const porVentana = st?.porVentana || 2
   if (left <= 0 && cd > 0) return (
     <>
+      <div className="kiosk__hub-sub kiosk__hub-sub--antes">Próxima ronda de {porVentana} giros gratis en:</div>
       <div className="kiosk__hub-countdown">{fmtCountdown(cd)}</div>
-      <div className="kiosk__hub-sub">Se están cargando tus {porVentana} giros gratis. Volvé en breve — ¡podrías obtener un premio!</div>
+      <div className="kiosk__hub-sub">Cada 3 horas, nuevos premios</div>
       {art}
     </>
   )
@@ -156,7 +157,7 @@ function vozCanje(category) {
   return `canje-${cat}-${Math.random() < 0.5 ? 1 : 2}`
 }
 const VOCES = ['atraccion-1', 'atraccion-2', 'atraccion-3', 'atraccion-4', 'checkin',
-  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'despedida', ...CANJE_VOCES, 'ya-checkin', 'ui-tap']
+  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'carta', 'mis-datos', 'movimientos', 'despedida', ...CANJE_VOCES, 'ya-checkin', 'ui-tap']
 const poolVoz = {}
 function audioDe(name) {
   let a = poolVoz[name]
@@ -391,6 +392,7 @@ export default function Kiosk() {
     }).catch(() => {})
   }
   function abrirMovs() {
+    voz('movimientos')
     setShowMovs(true)
     refrescarCuenta()
   }
@@ -454,6 +456,7 @@ export default function Kiosk() {
   const emailActual = player?.email || lookup?.player?.email || ''
   const faltanDatos = !datosOk && (!telActual || !emailActual)
   function abrirDatos() {
+    voz('mis-datos')
     setDatosForm({ tel: telActual, email: emailActual })
     setShowDatos(true)
   }
@@ -848,7 +851,7 @@ export default function Kiosk() {
               <div className="kiosk__hub-title">NUESTRA CARTA</div>
               <div className="kiosk__hub-sub">Conocé nuestra variedad y promociones</div>
               <div className="kiosk__hub-art"><ArtCarta /></div>
-              <button className="kiosk__cta kiosk__cta--hub" onClick={() => setShowCarta(true)}>VER CARTA</button>
+              <button className="kiosk__cta kiosk__cta--hub" onClick={() => { setShowCarta(true); voz('carta') }}>VER CARTA</button>
             </div>
           </div>
 
