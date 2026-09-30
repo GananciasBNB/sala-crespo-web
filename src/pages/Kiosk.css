@@ -456,16 +456,34 @@
   color: #F0D275; font-size: 11px; letter-spacing: .06em; white-space: nowrap;
 }
 
-/* Phones (demo link /kiosk?demo=1 opened on a cellphone). The cabinet is
-   1280px+, so none of this reaches the real machine. */
+/* ───────── Demo link only (/kiosk?demo=1) ─────────
+   Everything below is scoped to .kiosk--demo, a class that exists only with
+   ?demo=1. The machine in the room never gets it, so its look is untouched. */
+
+/* Any screen: content taller than the window scrolls instead of being cut
+   at the top and bottom (logo, "cerrar sesión"). margin:auto keeps it
+   centered when it fits. */
+.kiosk--demo { overflow-y: auto; align-items: flex-start; padding-top: 44px; }
+.kiosk--demo > .kiosk__idle,
+.kiosk--demo > .kiosk__step,
+.kiosk--demo > .kiosk__done { margin: auto; }
+.kiosk--demo > .kiosk__bg,
+.kiosk--demo > .kiosk__vignette { position: fixed; }
+
+/* Computers: greeting and "visita registrada" chips go back into the page
+   flow so they never sit on top of the content. */
+.kiosk--demo .kiosk__done-saludo,
+.kiosk--demo .kiosk__visita-corner { position: static; margin: 0 auto 12px; text-align: center; }
+
+/* Phones: stack the five hub cards */
 @media (max-width: 700px) {
-  .kiosk { overflow-y: auto; align-items: flex-start; padding: 44px 14px 20px; }
-  .kiosk__done-saludo, .kiosk__visita-corner { position: static; margin: 0 auto 12px; text-align: center; }
-  .kiosk__done-saludo .kiosk__done-name { font-size: 30px !important; }
-  .kiosk__done-logo { width: 64px; }
-  .kiosk__hub { flex-direction: column; gap: 10px; }
-  .kiosk__hub-card { flex: none; padding: 14px 14px 12px; }
-  .kiosk__hub-title { min-height: 0; font-size: 18px; }
-  .kiosk__hub-sub { flex: none; }
-  .kiosk__cta.kiosk__cta--hub { width: 100%; }
+  .kiosk--demo { padding: 44px 14px 20px; }
+  .kiosk--demo .kiosk__done-saludo .kiosk__done-name { font-size: 30px !important; }
+  .kiosk--demo .kiosk__done-logo { width: 64px; }
+  .kiosk--demo .kiosk__hub { flex-direction: column; gap: 10px; }
+  .kiosk--demo .kiosk__hub-card { flex: none; padding: 14px 14px 12px; }
+  .kiosk--demo .kiosk__hub-title { min-height: 0; font-size: 18px; }
+  .kiosk--demo .kiosk__hub-sub { flex: none; }
+  .kiosk--demo .kiosk__cta.kiosk__cta--hub { width: 100%; }
 }
+

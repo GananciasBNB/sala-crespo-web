@@ -196,6 +196,10 @@ function IconoBebida() {
   )
 }
 
+// Signup rules (same as the backend): first + last name, and a phone with area code
+const nombreCompleto = (n) => String(n || '').trim().split(/\s+/).filter(w => w.length >= 2).length >= 2
+const telValido = (t) => { const d = String(t || '').replace(/\D/g, ''); return d.length >= 10 && d.length <= 13 }
+
 function Dots({ value, len }) {
   return (
     <div className="kiosk-dots">
@@ -555,7 +559,8 @@ export default function Kiosk() {
   }
 
   async function submitRegister() {
-    if (reg.name.trim().length < 3) { setErr('Escribí tu nombre'); return }
+    if (!nombreCompleto(reg.name)) { setErr('Poné tu nombre y tu apellido.'); return }
+    if (!telValido(reg.tel)) { setErr('Poné tu celular con la característica. Ej: 343 4123456'); return }
     if (!/^\d{4}$/.test(pin)) { setErr('El PIN son 4 números.'); return }
     if (!aceptoBases) { setErr('Para sumarte tenés que aceptar los términos y condiciones.'); return }
     setBusy(true); setErr('')
@@ -571,7 +576,7 @@ export default function Kiosk() {
 
   return (
     <div
-      className="kiosk"
+      className={DEMO ? 'kiosk kiosk--demo' : 'kiosk'}
       onClick={screen === 'idle' ? () => { voz('ui-tap', 0.7); setScreen('dni') } : undefined}
       onPointerDownCapture={() => { lastActRef.current = Date.now(); desbloquearAudio(); if (!showGiro) musicaClubPlay() }}
     >
@@ -662,10 +667,10 @@ export default function Kiosk() {
           <p className="kiosk__hint">Con estos datos ya sos socio y empezás a sumar puntos.</p>
           <div className="kiosk__form">
             <label className="kiosk__field">
-              <span>Tu nombre</span>
+              <span>Nombre y apellido</span>
               <input type="text" value={reg.name} maxLength={40} autoComplete="off"
                 onChange={e => { setReg({ ...reg, name: e.target.value }); setErr('') }}
-                placeholder="Nombre y apellido" />
+                placeholder="Ej. María González" />
             </label>
             <label className="kiosk__field">
               <span>Creá tu PIN (4 números)</span>
@@ -674,10 +679,10 @@ export default function Kiosk() {
                 placeholder="4 números fáciles de recordar" />
             </label>
             <label className="kiosk__field">
-              <span>Teléfono <em>(opcional)</em></span>
+              <span>Celular<b className="kiosk__cortesia">Así te avisamos si ganás un premio o un sorteo</b></span>
               <input type="tel" inputMode="numeric" value={reg.tel} maxLength={15}
-                onChange={e => setReg({ ...reg, tel: e.target.value })}
-                placeholder="Ej. 3435 123456" />
+                onChange={e => { setReg({ ...reg, tel: e.target.value }); setErr('') }}
+                placeholder="Ej. 343 4123456" />
             </label>
             <label className="kiosk__field">
               <span>Email <em>(opcional)</em><b className="kiosk__cortesia"><IconoBebida /> Completalo y recibí una bebida de cortesía</b></span>
