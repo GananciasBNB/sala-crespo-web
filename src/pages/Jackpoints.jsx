@@ -21,7 +21,7 @@ const BENEFICIOS = [
   { i: 'star', t: 'Puntos por visita', d: '50 puntos cada día que venís, hagas lo que hagas. Constancia que se convierte en consumo.', k: 'Todos los días' },
   { i: 'slot', t: 'Fortuna Dorada', d: 'El slot de la máquina. 3 giros cada 3 horas, con premios de hasta 500 puntos y tickets promocionales de $5.000.', k: 'Cada visita' },
   { i: 'ticket', t: 'Sorteo del mes', d: 'Un cupón por visita para el sorteo mensual de $150.000 en tickets. ¿Querés más chances? Canjeá un pack de 10 cupones por 150 puntos.', k: '$150.000 por mes' },
-  { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en caja.', k: '1 punto = $1' },
+  { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en caja.', k: 'Con tus puntos' },
   { i: 'trophy', t: 'Torneos de slots', d: 'Anotate a los torneos directamente desde la máquina. Serie 2026: satélites mensuales y una Gran Final por $2.000.000 en tickets.', k: 'Gran Final en diciembre' },
   { i: 'mail', t: 'Bebida de cortesía', d: 'Dejanos tu email al sumarte y te llega una bebida de cortesía para tu próxima visita. Además te avisamos de shows, torneos y promos.', k: 'Al registrarte' },
 ]
@@ -133,7 +133,7 @@ export default function Jackpoints() {
       <section className="jp__sec">
         <div className="jp__wrap">
           <h2 className="jp__h2">¿En qué los <span>canjeás</span>?</h2>
-          <p className="jp__sub">Los puntos valen lo mismo que la carta: 1 punto = $1. Sin letra chica.</p>
+          <p className="jp__sub">Tus puntos valen en toda la carta. Sin letra chica.</p>
           <div className="jp__canjes">
             <div><b>Bebidas</b><span>Gaseosas, aguas, cervezas y tragos de la barra.</span></div>
             <div><b>Comidas</b><span>Picadas, sándwiches y lo que salga de la cocina.</span></div>
