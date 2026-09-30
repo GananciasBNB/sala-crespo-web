@@ -152,6 +152,7 @@ const AUDIOS_PRECARGA = [
 ];
 AUDIOS_PRECARGA.forEach(audioDe);
 let audioListo = false;
+const DEMO_KIOSK = new URLSearchParams(location.search).get('demo') === '1';
 function desbloquearAudio() {
   if (audioListo) return;
   audioListo = true;
@@ -159,6 +160,17 @@ function desbloquearAudio() {
   // fragmento audible antes de silenciar, y se escuchaba todo junto
   Object.values(poolAudio).forEach(a => {
     if (!a.paused) return;   // la musica ya esta sonando: no tocarla
+    if (DEMO_KIOSK) {
+      // kiosk demo on phones: play() resolves only after the download and the
+      // muted clip could be heard (e.g. BIG WIN on open). Start and stop in the
+      // same tick: the element gets unlocked without any sound.
+      a.muted = true;
+      const q = a.play();
+      a.pause();
+      if (q) q.catch(() => {}).finally(() => { a.muted = false; });
+      else a.muted = false;
+      return;
+    }
     a.muted = true;
     const p = a.play();
     if (p) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; })
