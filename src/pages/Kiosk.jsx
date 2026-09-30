@@ -136,7 +136,7 @@ function musicaClubPause() { try { if (musicaClub) musicaClub.pause() } catch { 
 // los MP3 se precargan y se "desbloquean" con el primer toque de la pantalla:
 // un play+pause en silencio deja a cada archivo habilitado para después.
 const VOCES = ['atraccion-1', 'atraccion-2', 'atraccion-3', 'atraccion-4', 'checkin',
-  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'despedida', 'ya-checkin', 'ui-tap']
+  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'despedida', 'ya-checkin', 'ui-tap']
 const poolVoz = {}
 function audioDe(name) {
   let a = poolVoz[name]
@@ -326,7 +326,7 @@ export default function Kiosk() {
     if (new URLSearchParams(window.location.search).has('test')) {
       setTourneyReg({ ok: true, registrationNo: 99 })
       setShowTorneoOk(true)
-      voz('ui-tap', 0.7)
+      voz('torneo-inscripto')
       return
     }
     setTourneyBusy(true); setErr('')
@@ -334,7 +334,7 @@ export default function Kiosk() {
       const r = await kioskInscribeTournament({ dni: player.dni || dni, name: player.name, tel: player.tel || lookup?.player?.tel || '', email: player.email || lookup?.player?.email || '' })
       setTourneyReg(r)
       setShowTorneoOk(true)
-      voz('ui-tap', 0.7)
+      voz('torneo-inscripto')
     } catch (e) {
       console.error('inscripcion torneo:', e)
       setErr('No pudimos completar tu inscripción. Consultá en la barra.')
@@ -365,6 +365,7 @@ export default function Kiosk() {
   }
   function abrirCanjes() {
     setShowCanjes(true)
+    voz('canjes')
     refrescarCuenta()
     getLoyaltyCatalog().then(c => setRewards((c.rewards || []).sort((a, b) => a.points - b.points))).catch(() => {})
   }
