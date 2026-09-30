@@ -20,6 +20,7 @@ const ClubAdmin = lazy(() => import('./pages/ClubAdmin'))
 const MorphiSync = lazy(() => import('./pages/MorphiSync'))
 const MatchStories = lazy(() => import('./pages/MatchStories'))
 const PromoPartido = lazy(() => import('./pages/PromoPartido'))
+const Jackpoints = lazy(() => import('./pages/Jackpoints'))
 
 function RouteFallback() {
   return (
@@ -106,6 +107,20 @@ export default function App() {
           <ChunkErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
               <TournamentLanding />
+            </Suspense>
+          </ChunkErrorBoundary>
+        </>
+      } />
+      <Route path="/jackpoints" element={
+        <>
+          <PageHead
+            title="Jackpoints — El club de beneficios de Sala de Juegos Crespo"
+            description="Sumá puntos por cada visita, canjealos por bebidas, comidas y tickets, girá la Fortuna Dorada y participá del sorteo mensual. Gratis, con tu DNI, en la sala."
+            path="/jackpoints"
+          />
+          <ChunkErrorBoundary>
+            <Suspense fallback={<RouteFallback />}>
+              <Jackpoints />
             </Suspense>
           </ChunkErrorBoundary>
         </>

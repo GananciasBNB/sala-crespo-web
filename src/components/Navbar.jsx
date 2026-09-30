@@ -4,6 +4,7 @@ import { IconSlot } from './Icons'
 import './Navbar.css'
 
 const BASE_NAV_LINKS = [
+  { label: 'Jackpoints', href: '/jackpoints', highlight: true },
   { label: 'La Sala', href: '#sala' },
   { label: 'Menú', href: '#ayb' },
   { label: 'Shows', href: '#shows' },

@@ -1,0 +1,50 @@
+/* Jackpoints en la home: card oscura con acento dorado/rojo, misma familia
+   visual que el bloque de fútbol (.vivi) pero con la paleta del club. */
+.jpt { background: var(--onyx); padding: clamp(48px, 6vw, 80px) 0; }
+.jpt__card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(240, 210, 117, 0.35);
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(196, 30, 58, 0.22), transparent 60%),
+    linear-gradient(180deg, #170a0f 0%, var(--dark) 70%);
+  padding: clamp(36px, 5vw, 64px) clamp(20px, 4vw, 56px);
+}
+.jpt__card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px; z-index: 3;
+  background: linear-gradient(90deg, var(--crimson) 0%, var(--gold) 50%, var(--crimson) 100%);
+  opacity: 0.9;
+}
+.jpt__glow {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(45% 40% at 50% 28%, rgba(240, 210, 117, 0.18), transparent 70%);
+}
+.jpt__inner { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; text-align: center; min-width: 0; }
+.jpt__badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--crimson); color: #fff;
+  font-family: var(--font-display); font-weight: 600; letter-spacing: 2px; text-transform: uppercase; font-size: 12px;
+  padding: 7px 14px; border-radius: 999px; box-shadow: 0 8px 26px rgba(196, 30, 58, 0.4);
+}
+.jpt__badge i { width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: jptPulse 1.4s infinite; }
+@keyframes jptPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.7); } }
+.jpt__logo { width: min(360px, 78vw); height: auto; display: block; margin: 16px auto 4px; filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.6)); }
+.jpt__title { margin-top: 6px; }
+.jpt__title em { color: var(--gold); font-style: normal; }
+.jpt__desc { color: var(--text2); font-size: 16px; line-height: 1.75; margin: 16px auto 0; max-width: 640px; }
+.jpt__desc strong { color: var(--cream); }
+.jpt__nums {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0; margin: 26px auto 0; max-width: 720px;
+  border: 1px solid rgba(240, 210, 117, 0.2); border-radius: 14px; background: rgba(255, 255, 255, 0.02); overflow: hidden;
+}
+.jpt__num { padding: 16px 12px; min-width: 0; border-right: 1px solid rgba(240, 210, 117, 0.15); border-bottom: 1px solid rgba(240, 210, 117, 0.15); }
+.jpt__num b { display: block; font-family: var(--font-display); font-size: 28px; color: var(--gold); line-height: 1; }
+.jpt__num span { display: block; font-size: 12.5px; color: var(--text2); margin-top: 6px; line-height: 1.35; }
+.jpt__cta { display: inline-block; margin-top: 26px; }
+@media (max-width: 640px) {
+  .jpt__nums { grid-template-columns: repeat(2, 1fr); }
+  .jpt__num b { font-size: 24px; }
+}

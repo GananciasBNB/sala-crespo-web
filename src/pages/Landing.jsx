@@ -3,6 +3,7 @@ import { useState } from 'react'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import PropuestaValor from '../components/PropuestaValor'
+import JackpointsTeaser from '../components/JackpointsTeaser'
 import LaSala from '../components/LaSala'
 import AyB from '../components/AyB'
 import VeniALaSala from '../components/VeniALaSala'
@@ -27,6 +28,7 @@ export default function Landing() {
       <main>
         <Hero />
         <PropuestaValor />
+        <JackpointsTeaser />
         {/* Bloque mundialero: anuncio del primer piso + carta de A&B */}
         <VeniALaSala />
         <LaSala />
