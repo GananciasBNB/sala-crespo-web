@@ -90,7 +90,7 @@ function Armar($job) {
       $t += "DNI:    $($p.dni)" + (Linea)
       $t += "Puntos: $($p.puntos)" + (Linea)
       $t += "Fecha:  $($p.fecha)" + (Linea 2)
-      $t += $CENTRO + "PRESENTALO EN CAJA" + (Linea)
+      $t += $CENTRO + "PRESENTALO EN LA BARRA" + (Linea)
     }
     'premio' {
       $t += "* Fortuna Dorada *" + (Linea 2)
@@ -101,7 +101,7 @@ function Armar($job) {
       $t += $IZQ + "Socio: $($p.nombre)" + (Linea)
       $t += "DNI:   $($p.dni)" + (Linea)
       $t += "Fecha: $($p.fecha)" + (Linea 2)
-      $t += $CENTRO + "RETIRALO EN CAJA CON TU DNI" + (Linea)
+      $t += $CENTRO + "RETIRALO EN LA BARRA CON TU DNI" + (Linea)
     }
   }
   $t += (Linea 6) + $CORTE   # 6 lineas: el cabezal queda unos mm abajo del cutter

@@ -147,8 +147,16 @@ function musicaClubPause() { try { if (musicaClub) musicaClub.pause() } catch { 
 // el último toque (por ejemplo tras esperar al servidor en el login). Por eso
 // los MP3 se precargan y se "desbloquean" con el primer toque de la pantalla:
 // un play+pause en silencio deja a cada archivo habilitado para después.
+// Redemption voice lines: two takes per catalog category, picked at random.
+// Unknown categories fall back to the generic 'sin_alcohol' takes.
+const CANJE_CATS = ['sin_alcohol', 'cerveza', 'trago', 'comida', 'ticket']
+const CANJE_VOCES = CANJE_CATS.flatMap(c => [`canje-${c}-1`, `canje-${c}-2`])
+function vozCanje(category) {
+  const cat = CANJE_CATS.includes(category) ? category : 'sin_alcohol'
+  return `canje-${cat}-${Math.random() < 0.5 ? 1 : 2}`
+}
 const VOCES = ['atraccion-1', 'atraccion-2', 'atraccion-3', 'atraccion-4', 'checkin',
-  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'despedida', 'ya-checkin', 'ui-tap']
+  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'despedida', ...CANJE_VOCES, 'ya-checkin', 'ui-tap']
 const poolVoz = {}
 function audioDe(name) {
   let a = poolVoz[name]
@@ -430,10 +438,10 @@ export default function Kiosk() {
     try {
       await redeemLoyaltyReward(player.token, reward.id)
       setCanjeados(c => ({ ...c, [reward.id]: true }))
-      voz('ui-tap', 0.7)
+      voz(vozCanje(reward.category))
       refrescarCuenta()
     } catch {
-      setErr('No pudimos completar el canje. Consultá en caja.')
+      setErr('No pudimos completar el canje. Consultá en la barra.')
     } finally { setBusyReward(null) }
   }
 
@@ -953,7 +961,7 @@ export default function Kiosk() {
                 </div>
               ))}
             </div>
-            <button className="kiosk__cta kiosk__cta--hub" onClick={() => setShowMovs(false)}>VOLVER ✓</button>
+            <button className="kiosk__cta kiosk__cta--volver" onClick={() => setShowMovs(false)}>← VOLVER</button>
           </div>
         </div>
       )}
@@ -998,7 +1006,7 @@ export default function Kiosk() {
                           {r.points.toLocaleString('es-AR')} pts
                         </div>
                         {canjeados[r.id] ? (
-                          <div className="kiosk__mov-ok">✓ Listo. Retirá tu cupón y presentalo en caja</div>
+                          <div className="kiosk__mov-ok">✓ Listo. Retirá tu cupón y presentalo en la barra</div>
                         ) : puede ? (
                           <button className="kiosk__mov-btn" disabled={busyReward === r.id} onClick={() => canjear(r)}>
                             {busyReward === r.id ? 'Canjeando…' : 'CANJEAR'}
@@ -1016,8 +1024,8 @@ export default function Kiosk() {
               ))}
               </div>
             </div>
-            <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprime un cupón: presentalo en caja para retirarlo.</p>
-            <button className="kiosk__cta kiosk__cta--hub" onClick={() => setShowCanjes(false)}>VOLVER ✓</button>
+            <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprime un cupón: presentalo en la barra para retirarlo.</p>
+            <button className="kiosk__cta kiosk__cta--volver" onClick={() => setShowCanjes(false)}>← VOLVER</button>
           </div>
         </div>
       )}

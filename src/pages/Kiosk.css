@@ -584,3 +584,16 @@
   .kiosk__demo-badge { right: 50%; transform: translateX(50%); font-size: 11px; padding: 5px 12px; top: 10px; }
   .kiosk--demo { padding-top: 58px; }
 }
+
+/* "Volver" in the Movimientos / Canjes panels: a normal-size centered button
+   (it used to be a full-width bar with tiny text) */
+.kiosk__cta.kiosk__cta--volver {
+  width: auto; min-width: 260px; max-width: none; align-self: center;
+  font-size: 17px; letter-spacing: 2px; padding: 13px 44px; margin-top: 4px;
+}
+/* Demo on laptops: the badge lives in the corner, so the member home can start
+   higher and fit without the small scroll */
+@media (min-width: 701px) and (max-height: 820px) {
+  .kiosk--demo { padding-top: 14px; }
+  .kiosk--demo .kiosk__done-row { margin-bottom: 10px; }
+}

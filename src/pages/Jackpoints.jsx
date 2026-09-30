@@ -14,14 +14,14 @@ const NUMEROS = [
 const PASOS = [
   { t: 'Registrate', d: 'Colocá tu DNI en la máquina Jackpoints y elegí un PIN de 4 números. ¡Listo! Sumás 100 puntos de regalo.' },
   { t: 'Sumá con tu visita', d: 'Cada día que visitás la sala, pasás por la máquina Jackpoints y sumás 50 puntos.' },
-  { t: 'Canjeá', d: 'Elegís tus canjes habilitados, imprimís tu cupón y lo retirás en la caja. ¡Ya podés disfrutar de tus puntos acumulados!' },
+  { t: 'Canjeá', d: 'Elegís tus canjes habilitados, imprimís tu cupón y lo retirás en la barra. ¡Ya podés disfrutar de tus puntos acumulados!' },
 ]
 
 const BENEFICIOS = [
   { i: 'star', t: 'Puntos por visita', d: '50 puntos cada día que venís, hagas lo que hagas. Constancia que se convierte en consumo.', k: 'Todos los días' },
   { i: 'slot', t: 'Fortuna Dorada', d: 'El slot de la máquina. 3 giros cada 3 horas, con premios de hasta 500 puntos y tickets promocionales de $5.000.', k: 'Cada visita' },
   { i: 'ticket', t: 'Sorteo del mes', d: 'Un cupón por visita para el sorteo mensual de $150.000 en tickets. ¿Querés más chances? Canjeá un pack de 10 cupones por 150 puntos.', k: '$150.000 por mes' },
-  { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en caja.', k: 'Con tus puntos' },
+  { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en la barra.', k: 'Con tus puntos' },
   { i: 'trophy', t: 'Torneos de slots', d: 'Anotate a los torneos directamente desde la máquina. Serie 2026: satélites mensuales y una Gran Final por $2.000.000 en tickets.', k: 'Gran Final en diciembre' },
   { i: 'mail', t: 'Bebida de cortesía', d: 'Dejanos tu email al sumarte y te llega una bebida de cortesía para tu próxima visita. Además te avisamos de shows, torneos y promos.', k: 'Al registrarte' },
 ]
@@ -140,7 +140,7 @@ export default function Jackpoints() {
             <div><b>Tickets promocionales</b><span>Para jugar en la sala, en distintos valores.</span></div>
             <div><b>Cupones del sorteo</b><span>Pack de 10 por 150 puntos. Más chances al mes.</span></div>
           </div>
-          <p className="jp__note">Elegís en la máquina, se imprime tu cupón y lo retirás en caja o en la barra. Los canjes no vencen: cuando quieras, lo pasás a buscar.</p>
+          <p className="jp__note">Elegís en la máquina, se imprime tu cupón y lo retirás en la barra. Los canjes no vencen: cuando quieras, lo pasás a buscar.</p>
         </div>
       </section>
 
