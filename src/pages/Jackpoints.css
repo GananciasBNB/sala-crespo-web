@@ -54,8 +54,8 @@
 .jp__sub--left { text-align: left; margin-left: 0; }
 
 .jp__steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-top: 40px; }
-.jp__step { position: relative; background: var(--dark); border: 1px solid rgba(240, 210, 117, 0.18); border-radius: 18px; padding: 26px 22px; }
-.jp__n { position: absolute; top: 12px; right: 18px; font-family: var(--font-display); font-size: 56px; line-height: 1; color: var(--gold); opacity: .3; }
+.jp__step { display: flex; gap: 18px; align-items: flex-start; background: var(--dark); border: 1px solid rgba(240, 210, 117, 0.18); border-radius: 18px; padding: 26px 22px; }
+.jp__n { flex: none; font-family: var(--font-display); font-size: 52px; line-height: .9; color: var(--gold); width: 44px; text-align: center; }
 .jp__step h3, .jp__card h3 { font-family: var(--font-display); text-transform: uppercase; font-size: 21px; margin: 0 0 8px; color: #fff; }
 .jp__step p, .jp__card p { margin: 0; color: var(--text2); line-height: 1.6; }
 
