@@ -446,3 +446,26 @@
 .kiosk__link { background:none; border:0; padding:0; color:var(--gold-light); text-decoration:underline; font:inherit; cursor:pointer; }
 .kiosk__bases-panel { width:min(900px,94vw); height:min(88vh,1100px); padding:22px 24px; }
 .kiosk__bases-frame { flex:1; width:100%; min-height:0; border:0; border-radius:12px; background:#fff; }
+
+/* Demo mode ribbon (/kiosk?demo=1) */
+.kiosk__demo-badge {
+  position: fixed; top: 8px; left: 50%; transform: translateX(-50%);
+  z-index: 50; pointer-events: none;
+  padding: 4px 12px; border-radius: 999px;
+  background: rgba(0, 0, 0, .55); border: 1px solid rgba(240, 210, 117, .5);
+  color: #F0D275; font-size: 11px; letter-spacing: .06em; white-space: nowrap;
+}
+
+/* Phones (demo link /kiosk?demo=1 opened on a cellphone). The cabinet is
+   1280px+, so none of this reaches the real machine. */
+@media (max-width: 700px) {
+  .kiosk { overflow-y: auto; align-items: flex-start; padding: 44px 14px 20px; }
+  .kiosk__done-saludo, .kiosk__visita-corner { position: static; margin: 0 auto 12px; text-align: center; }
+  .kiosk__done-saludo .kiosk__done-name { font-size: 30px !important; }
+  .kiosk__done-logo { width: 64px; }
+  .kiosk__hub { flex-direction: column; gap: 10px; }
+  .kiosk__hub-card { flex: none; padding: 14px 14px 12px; }
+  .kiosk__hub-title { min-height: 0; font-size: 18px; }
+  .kiosk__hub-sub { flex: none; }
+  .kiosk__cta.kiosk__cta--hub { width: 100%; }
+}

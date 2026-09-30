@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, API_BASE, kioskKey, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } from '../api/client'
+import * as realApi from '../api/client'
+import * as demoApi from '../api/kiosk-demo'
 import './Kiosk.css'
+
+// Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
+// goes to an in-browser simulator — no DB writes, no printing, no mails.
+const DEMO = demoApi.isKioskDemo()
+const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } = DEMO ? demoApi : realApi
+const { API_BASE } = realApi
+const kioskKey = DEMO ? () => 'demo' : realApi.kioskKey
 
 // Tótem de autogestión del Sala Crespo Club.
 // Flujo DNI-first: DNI → si existe pide PIN (login + check-in), si no registro rápido.
@@ -229,7 +237,7 @@ export default function Kiosk() {
     if (ahora - adminTaps.current.t > 4000) adminTaps.current.n = 0
     adminTaps.current.t = ahora
     adminTaps.current.n += 1
-    if (adminTaps.current.n >= 5) window.location.href = '/admin'
+    if (adminTaps.current.n >= 5 && !DEMO) window.location.href = '/admin'
   }
 
   const reset = useCallback(() => {
@@ -245,7 +253,7 @@ export default function Kiosk() {
   useEffect(() => {
     try {
       const k = new URLSearchParams(window.location.search).get('key')
-      if (k) {
+      if (k && !DEMO) {
         localStorage.setItem('kiosk_key', k)
         window.history.replaceState({}, '', window.location.pathname)
       }
@@ -278,11 +286,12 @@ export default function Kiosk() {
   useEffect(() => {
     function onMsg(e) {
       if (!e?.data?.tipo) return
-      if (e.data.tipo === 'listo' && player?.token) {
+      if (e.data.tipo === 'listo' && player?.token && !DEMO) {
         try { e.source.postMessage({ tipo: 'init', token: player.token, apiBase: API_BASE, kioskKey: kioskKey() }, '*') } catch { /* iframe cerrado */ }
       }
       if (e.data.tipo === 'actividad') { lastActRef.current = Date.now(); return }
       if (e.data.tipo === 'giro-jugado' && player) {
+        if (DEMO) demoApi.registerDemoSpin(player.token, e.data.premio)
         setSpinRefresh(k => k + 1)
         if (typeof e.data.left === 'number' && e.data.left <= 0) setGiroJugado(true)
         if (e.data.premio) refrescarCuenta() // premio en puntos -> saldo y movimientos al día
@@ -325,7 +334,9 @@ export default function Kiosk() {
     } finally { setTourneyBusy(false) }
   }
 
+  const [demoGiros, setDemoGiros] = useState(3)
   function jugarGiro() {
+    if (DEMO && player?.token) setDemoGiros(demoApi.demoSpinsLeft(player.token))
     setShowGiro(true) // el juego pide init y gira contra el servidor
   }
 
@@ -565,6 +576,7 @@ export default function Kiosk() {
       onPointerDownCapture={() => { lastActRef.current = Date.now(); desbloquearAudio(); if (!showGiro) musicaClubPlay() }}
     >
       <div className="kiosk__bg" />
+      {DEMO && <div className="kiosk__demo-badge">MODO PRUEBA · nada se guarda ni se imprime</div>}
       <div className="kiosk__vignette" />
 
       {/* ───────── IDLE ───────── */}
@@ -960,7 +972,7 @@ export default function Kiosk() {
       {/* Fortuna Dorada en overlay: el slot completo dentro del kiosk */}
       {showGiro && (
         <div className="kiosk__carta">
-          <iframe src="/fortuna-dorada/index.html" title="Fortuna Dorada" allow="autoplay" />
+          <iframe src={DEMO ? `/fortuna-dorada/index.html?demo=1&giros=${demoGiros}` : '/fortuna-dorada/index.html'} title="Fortuna Dorada" allow="autoplay" />
           <button
             className={`kiosk__carta-close ${giroJugado ? 'kiosk__carta-close--destacado' : ''}`}
             onClick={() => { setShowGiro(false); setGiroJugado(false) }}

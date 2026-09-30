@@ -662,7 +662,13 @@ cargarTexturas(URLS).then(T => {
         fijarResultado({ id: 'error', label: '', sym: null });
       }
     } else {
-      fijarResultado(sortear()); // DEMO standalone
+      const premioDemo = sortear(); // DEMO standalone
+      fijarResultado(premioDemo);
+      // kiosk demo mode (/kiosk?demo=1): report the spin so the parent keeps a fake balance
+      try {
+        window.parent.postMessage({ tipo: 'giro-jugado', left: Math.max(0, GIROS_PERMITIDOS - girosUsados - 1),
+          premio: premioDemo.id === 'nada' ? null : premioDemo.label }, '*');
+      } catch {}
     }
   });
 
