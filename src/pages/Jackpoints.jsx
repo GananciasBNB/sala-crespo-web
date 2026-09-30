@@ -12,9 +12,9 @@ const NUMEROS = [
 ]
 
 const PASOS = [
-  { t: 'Te sumás', d: 'Ponés tu DNI en la máquina Jackpoints, elegís un PIN de 4 números y listo. Arrancás con 100 puntos de regalo.' },
-  { t: 'Sumás por venir', d: 'Cada día que visitás la sala, pasás por la máquina y sumás 50 puntos. Vengas a jugar, a tomar algo o a ver un show.' },
-  { t: 'Canjeás', d: '1 punto = $1 en nuestra carta. Elegís en la máquina, sale tu cupón y lo retirás en caja. También tickets promocionales para jugar.' },
+  { t: 'Registrate', d: 'Colocá tu DNI en la máquina Jackpoints y elegí un PIN de 4 números. ¡Listo! Sumás 100 puntos de regalo.' },
+  { t: 'Sumá con tu visita', d: 'Cada día que visitás la sala, pasás por la máquina Jackpoints y sumás 50 puntos.' },
+  { t: 'Canjeá', d: 'Elegís tus canjes habilitados, imprimís tu cupón y lo retirás en la caja. ¡Ya podés disfrutar de tus puntos acumulados! 1 punto = $1.' },
 ]
 
 const BENEFICIOS = [
