@@ -21,6 +21,13 @@ const PAGES = [
     description: 'La carta del bar de Sala Crespo: minutas, cervezas, vinos, tragos, espumantes y más. San Martín 1053, Crespo, Entre Ríos.',
     image: `${SITE}/logo-light.jpg`,
   },
+  {
+    file: 'jackpoints.html',
+    url: `${SITE}/jackpoints`,
+    title: 'Jackpoints — El club de beneficios de Sala de Juegos Crespo',
+    description: 'Sumá puntos por cada visita, canjealos por bebidas, comidas y tickets, girá la Fortuna Dorada y participá del sorteo mensual de $150.000. Gratis, con tu DNI, en la sala.',
+    image: `${SITE}/jackpoints/og.jpg`,
+  },
 ];
 
 const sub = (html, re, value) => html.replace(re, (m, a, b) => `${a}${value}${b}`);
