@@ -8,7 +8,7 @@ import { getLoyaltyCatalog as realCatalog, getActiveTournament as realTournament
 const STORE_KEY = 'kiosk_demo_v1'
 const SPINS_PER_WINDOW = 3
 const WINDOW_MS = 3 * 60 * 60 * 1000
-const DEMO_GIFT = 5000 // demo-only points so testers can try a redemption
+const DEMO_GIFT = 100000 // demo-only points so testers can try every redemption
 // Demo: no daily limit on coupons or packs, so testers can repeat them
 const PACK = { size: 10, points: 150, perDay: 999 }
 const TICKETS_PER_DAY = 999
@@ -56,6 +56,14 @@ export async function kioskLogin(dni, pin) {
   await wait()
   const p = load()[dni]
   if (!p || p.pin !== pin) throw new Error('PIN incorrecto')
+  // accounts created before the gift went up get the difference once
+  const given = p.giftTotal ?? 5000
+  if (given < DEMO_GIFT) {
+    const db = load(); const q = db[dni]
+    addTx(q, 'earn_manual', DEMO_GIFT - given, 'Puntos de regalo (solo en la prueba)')
+    q.giftTotal = DEMO_GIFT
+    save(db)
+  }
   return publicPlayer(p)
 }
 
@@ -66,6 +74,7 @@ export async function kioskSignup({ dni, name, tel, email, pin }) {
   const p = { dni, name, tel, email, pin, balance: 0, tx: [], created_at: new Date().toISOString() }
   addTx(p, 'earn_signup_bonus', 100, 'Bienvenida al Club')
   addTx(p, 'earn_manual', DEMO_GIFT, 'Puntos de regalo (solo en la prueba)')
+  p.giftTotal = DEMO_GIFT
   db[dni] = p
   save(db)
   return { player: publicPlayer(p), balance: p.balance }
