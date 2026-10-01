@@ -697,6 +697,7 @@ export default function Kiosk() {
       className={DEMO ? 'kiosk kiosk--demo' : 'kiosk'}
       onClick={screen === 'idle' ? () => { voz('ui-tap', 0.7); setScreen('dni') } : undefined}
       onPointerDownCapture={() => { lastActRef.current = Date.now(); desbloquearAudio(); if (!showGiro) musicaClubPlay() }}
+      onKeyDownCapture={() => { lastActRef.current = Date.now() }}
     >
       <div className="kiosk__bg" />
       {DEMO && <div className="kiosk__demo-badge">MODO PRUEBA · nada se guarda ni se imprime</div>}
@@ -959,7 +960,9 @@ export default function Kiosk() {
       {screen === 'done' && (
         <SesionTimer
           lastActRef={lastActRef}
-          paused={showCarta || showMovs || showCanjes || showTorneoOk || showDatos || showCumple || cumpleGracias}
+          // No pause while a panel is open: every touch or key restarts the 40 s, so a
+          // member who walks away with Canjes open does not leave the session usable.
+          paused={false}
           margen={showGiro ? 80000 : SESION_MS}
           onExpirar={reset}
         />
