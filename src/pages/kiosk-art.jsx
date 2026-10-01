@@ -150,26 +150,35 @@ export function ArtVisita() {
   )
 }
 
-// Monthly raffle: ballot box with a coupon going in
+// Monthly raffle: glass ballot box full of handwritten coupons
 export function ArtSorteo() {
   const g = 'ks'
+  // coupons inside: [x, y, rotation, gold?]
+  const cupones = [
+    [40, 80, -14, 0], [62, 84, 9, 1], [86, 79, -5, 0], [106, 83, 12, 1],
+    [50, 66, 16, 1], [74, 68, -18, 0], [98, 65, 7, 0],
+    [60, 53, -8, 0], [86, 52, 20, 1],
+  ]
   return (
     <svg className="kiosk-art" viewBox="0 0 160 110" aria-hidden="true">
       <GoldDefs id={g} />
-      <ellipse cx="80" cy="102" rx="46" ry="5" fill="#000" opacity=".35" />
-      {/* coupon going into the slot */}
-      <g transform="rotate(-8 80 24)">
-        <rect x="58" y="6" width="44" height="30" rx="3" fill="#FFF7D6" stroke="#A87C2A" strokeWidth="1.5" />
-        <line x1="64" y1="15" x2="96" y2="15" stroke="#A87C2A" strokeWidth="1.5" />
-        <line x1="64" y1="21" x2="90" y2="21" stroke="#A87C2A" strokeWidth="1.2" opacity=".7" />
-        <path d="M80 24 l2 4 4.4.6 -3.2 3.1 .8 4.4 -4-2.1 -4 2.1 .8-4.4 -3.2-3.1 4.4-.6z" fill="#8E1B2B" />
-      </g>
-      {/* box */}
-      <path d="M36 44 H124 L118 98 H42 Z" fill="#5B0F1C" stroke={`url(#${g}-goldH)`} strokeWidth="2.5" strokeLinejoin="round" />
-      <rect x="32" y="38" width="96" height="10" rx="2" fill={`url(#${g}-gold)`} stroke="#7A5716" strokeWidth="1" />
-      <rect x="62" y="41" width="36" height="4" rx="2" fill="#1a0b05" />
-      <path d="M54 62 H106" stroke={`url(#${g}-goldH)`} strokeWidth="2" opacity=".8" />
-      <text x="80" y="84" textAnchor="middle" fontFamily="Georgia, serif" fontWeight="700" fontSize="14" letterSpacing="2" fill="#F0D275">SORTEO</text>
+      <ellipse cx="80" cy="104" rx="50" ry="5" fill="#000" opacity=".35" />
+      {/* coupons with scribbled names */}
+      {cupones.map(([x, y, r, oro], i) => (
+        <g key={i} transform={`rotate(${r} ${x + 12} ${y + 8})`}>
+          <rect x={x} y={y} width="24" height="16" rx="1.5" fill={oro ? '#F0D275' : '#FFF7D6'} stroke="#A87C2A" strokeWidth=".8" />
+          <path d={`M${x + 4} ${y + 6} q2 -2 4 0 t4 0 t4 0 t3 0`} fill="none" stroke="#5B0F1C" strokeWidth=".9" strokeLinecap="round" opacity=".75" />
+          <path d={`M${x + 4} ${y + 11} q2 -1.6 4 0 t4 0 t3 0`} fill="none" stroke="#5B0F1C" strokeWidth=".8" strokeLinecap="round" opacity=".55" />
+        </g>
+      ))}
+      {/* glass box */}
+      <rect x="30" y="34" width="100" height="68" rx="4" fill="rgba(255,240,200,.08)" stroke={`url(#${g}-goldH)`} strokeWidth="2.5" />
+      <path d="M38 40 L46 40 L42 96 L36 96 Z" fill="#fff" opacity=".13" />
+      <path d="M118 40 L122 40 L121 70 L117 70 Z" fill="#fff" opacity=".08" />
+      {/* lid with slot */}
+      <rect x="26" y="27" width="108" height="10" rx="2" fill={`url(#${g}-gold)`} stroke="#7A5716" strokeWidth="1" />
+      <rect x="62" y="30" width="36" height="4" rx="2" fill="#1a0b05" />
+      <rect x="30" y="98" width="100" height="6" rx="2" fill={`url(#${g}-goldH)`} />
     </svg>
   )
 }
