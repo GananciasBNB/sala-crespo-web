@@ -300,6 +300,28 @@ export default function Kiosk() {
   }, [])
   const vinculada = !!kioskKey()
 
+  // Demo on computers: shrink the visible screen just enough to fit the window,
+  // whatever its size, so testers never need to scroll. Phones keep scrolling.
+  useEffect(() => {
+    if (!DEMO) return
+    const pick = () => document.querySelector('.kiosk > .kiosk__idle, .kiosk > .kiosk__step, .kiosk > .kiosk__done')
+    const fit = () => {
+      const k = document.querySelector('.kiosk'); const c = pick()
+      if (!k || !c) return
+      c.style.zoom = ''
+      if (window.innerWidth <= 700) return
+      const cs = getComputedStyle(k)
+      const avail = k.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 8
+      const need = c.scrollHeight
+      if (need > avail) c.style.zoom = String(Math.max(0.6, avail / need))
+    }
+    const t1 = setTimeout(fit, 50); const t2 = setTimeout(fit, 600)
+    window.addEventListener('resize', fit)
+    const c = pick(); const ro = c && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => { if (!c.style.zoom) fit() }) : null
+    if (ro && c) ro.observe(c)
+    return () => { clearTimeout(t1); clearTimeout(t2); window.removeEventListener('resize', fit); if (ro) ro.disconnect() }
+  }) // runs after every render: cheap, and catches cards that grow (torneo, giros)
+
   // Auto-reset por inactividad en pantallas de trámite (dni/pin/registro).
   // El Home tiene su propio SesionTimer con contador visible; los overlays
   // (juego/carta/canjes) lo pausan y al cerrarse renuevan la actividad.
@@ -789,11 +811,14 @@ export default function Kiosk() {
 
           <div className="kiosk__done-row">
             <button className="kiosk__mini-btn" onClick={abrirMovs}>MIS MOVIMIENTOS</button>
-            <button className="kiosk__mini-btn" onClick={abrirDatos}>
-              {faltanDatos && !emailActual
-                ? <span className="kiosk__mini-btn-cortesia"><IconoBebida /> COMPLETÁ TU EMAIL — HAY CORTESÍA</span>
-                : faltanDatos ? 'MIS DATOS — FALTA TU TELÉFONO' : 'MIS DATOS'}
-            </button>
+            <button className="kiosk__mini-btn" onClick={abrirDatos}>MIS DATOS</button>
+            {faltanDatos && (
+              <button className="kiosk__datos-hint" onClick={abrirDatos}>
+                {!emailActual
+                  ? <><IconoBebida /> Ingresá tu email y recibí una cortesía</>
+                  : 'Te falta cargar tu teléfono'}
+              </button>
+            )}
           </div>
 
           {err && <div className="kiosk__err">{err}</div>}

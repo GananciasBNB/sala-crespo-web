@@ -615,3 +615,11 @@
   .kiosk--demo .kiosk__perk-art { height: 66px; margin-bottom: 2px; }
   .kiosk--demo .kiosk__perk-art .kiosk-art { height: 62px; }
 }
+
+/* Courtesy hint next to MIS DATOS (member without email / phone) */
+.kiosk__datos-hint {
+  display: inline-flex; align-items: center; gap: 7px; cursor: pointer;
+  font-family: 'Oswald', var(--font-body); font-size: 14px; letter-spacing: 1px;
+  color: var(--gold-light); background: rgba(201,168,76,.12);
+  border: 1px dashed rgba(240,210,117,.6); border-radius: 999px; padding: 9px 18px;
+}
