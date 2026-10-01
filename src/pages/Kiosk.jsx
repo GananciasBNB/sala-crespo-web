@@ -966,7 +966,7 @@ export default function Kiosk() {
               <video className="kiosk__carta-mascotas" src="/mascotas-carta.mp4" autoPlay muted loop playsInline />
               <img className="kiosk__carta-qr" src="/carta-qr.png" alt="QR de la carta" />
             </div>
-            <p className="kiosk__carta-txt">Escaneala con tu celu y mirala tranquilo.<br />Pedís en la barra — <strong>tus puntos valen</strong>.</p>
+            <p className="kiosk__carta-txt">Escaneala con la cámara de tu celular.<br />Luego podés pedir lo que quieras en la barra. <strong>¡Tus puntos valen!</strong></p>
             <button className="kiosk__cta kiosk__cta--hub" onClick={() => setShowCarta(false)}>LISTO ✓</button>
           </div>
         </div>
