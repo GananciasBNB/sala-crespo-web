@@ -623,3 +623,60 @@
   color: var(--gold-light); background: rgba(201,168,76,.12);
   border: 1px dashed rgba(240,210,117,.6); border-radius: 999px; padding: 9px 18px;
 }
+
+/* ── Cumpleaños: burbuja arriba a la derecha + teclado DD MM AAAA ───────────── */
+.kiosk__corner-stack {
+  position: fixed; top: 30px; right: 30px; z-index: 2;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 12px;
+}
+.kiosk__corner-stack .kiosk__visita-corner { position: static; }
+.kiosk--demo .kiosk__corner-stack { top: 60px; }
+.kiosk__cumple-bubble {
+  display: flex; align-items: center; gap: 12px; cursor: pointer;
+  padding: 8px 18px 8px 8px; border-radius: 20px; text-align: left;
+  background: rgba(20,6,10,.85); border: 1.5px solid rgba(240,210,117,.55);
+  box-shadow: 0 8px 24px rgba(0,0,0,.45); color: var(--text1, #f7efdd);
+}
+.kiosk__cumple-ring {
+  width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
+  background: radial-gradient(circle at 40% 35%, #3a0f19, #1a060b);
+  border: 2px solid var(--gold); animation: kioskCumplePulso 2.6s ease-in-out infinite;
+}
+@keyframes kioskCumplePulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(240,210,117,.45); }
+  50% { box-shadow: 0 0 0 11px rgba(240,210,117,0); }
+}
+.kiosk__cumple-txt { font-family: var(--font-body); font-weight: 600; font-size: 18px; line-height: 1.2; }
+.kiosk__cumple-txt small {
+  display: block; font-family: 'Oswald', var(--font-body); font-size: 12px; letter-spacing: 2px;
+  color: var(--gold); text-transform: uppercase;
+}
+.kiosk__done-earned--cumple { display: inline-flex; align-items: center; gap: 10px; }
+
+.kiosk__cumple-panel { max-width: 620px; text-align: center; gap: 12px; }
+.kiosk__cumple-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 36px; color: #fdf6e6; }
+.kiosk__cumple-fields { display: flex; justify-content: center; gap: 12px; }
+.kiosk__cumple-field {
+  width: 110px; padding: 8px 0 6px; border-radius: 14px; background: #0f0407;
+  border: 2px solid rgba(240,210,117,.3); transition: border-color .2s, box-shadow .2s;
+}
+.kiosk__cumple-field.y { width: 150px; }
+.kiosk__cumple-field.on { border-color: var(--gold); box-shadow: 0 0 16px rgba(240,210,117,.3); }
+.kiosk__cumple-field span {
+  display: block; font-family: 'Oswald', var(--font-body); font-size: 12px; letter-spacing: 3px;
+  color: var(--gold); text-transform: uppercase;
+}
+.kiosk__cumple-field div { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 38px; color: #fdf6e6; line-height: 1.1; }
+.kiosk__cumple-field div.ph { color: rgba(247,239,221,.22); }
+.kiosk__cumple-later {
+  background: none; border: 0; cursor: pointer; padding: 4px 12px;
+  font-family: var(--font-body); font-weight: 600; font-size: 16px; color: var(--text2);
+}
+.kiosk__cumple-legal { margin: 0; font-size: 13px; color: var(--text2); opacity: .8; }
+@media (max-width: 700px) {
+  .kiosk--demo .kiosk__corner-stack { position: static; align-items: center; margin: 0 auto 12px; }
+  .kiosk__cumple-panel { padding: 22px 16px; }
+  .kiosk__cumple-field { width: 84px; }
+  .kiosk__cumple-field.y { width: 116px; }
+  .kiosk__cumple-field div { font-size: 30px; }
+}

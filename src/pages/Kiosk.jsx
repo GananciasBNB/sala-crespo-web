@@ -7,7 +7,7 @@ import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconT
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
 const DEMO = demoApi.isKioskDemo()
-const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } = DEMO ? demoApi : realApi
+const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } = DEMO ? demoApi : realApi
 const { API_BASE } = realApi
 const kioskKey = DEMO ? () => 'demo' : realApi.kioskKey
 
@@ -157,7 +157,7 @@ function vozCanje(category) {
   return `canje-${cat}-${Math.random() < 0.5 ? 1 : 2}`
 }
 const VOCES = ['atraccion-1', 'atraccion-2', 'atraccion-3', 'atraccion-4', 'checkin',
-  'cumple', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'carta', 'mis-datos', 'movimientos', 'cortesia-email', 'despedida', ...CANJE_VOCES, 'ya-checkin', 'ui-tap']
+  'cumple', 'cumple-guardado', 'nuevo-socio', 'cupon', 'cupones-pack', 'torneo-inscripto', 'canjes', 'carta', 'mis-datos', 'movimientos', 'cortesia-email', 'despedida', ...CANJE_VOCES, 'ya-checkin', 'ui-tap']
 const poolVoz = {}
 function audioDe(name) {
   let a = poolVoz[name]
@@ -207,6 +207,29 @@ function voz(name, vol = 0.95) {
   } catch { /* sin audio no es error fatal */ }
 }
 
+// Plays a line right after the one that is sounding (e.g. check-in, then birthday)
+function vozDespues(name, vol = 0.95) {
+  const prev = vozActual
+  if (!prev || prev.paused || prev.ended) { voz(name, vol); return }
+  prev.addEventListener('ended', () => voz(name, vol), { once: true })
+}
+
+// Torta de cumpleaños (SVG inline en dorado, sin emojis)
+function IconoTorta({ size = 40 }) {
+  return (
+    <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" style={{ flexShrink: 0 }}>
+      <defs><linearGradient id="kTortaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff1b8" /><stop offset=".55" stopColor="#f0d275" /><stop offset="1" stopColor="#b8923e" /></linearGradient></defs>
+      <path d="M32 6c3 4 4 7 0 10c-4-3-3-6 0-10z" fill="#ffb347" />
+      <rect x="30" y="16" width="4" height="10" rx="1.5" fill="#fdf6e6" />
+      <rect x="10" y="26" width="44" height="14" rx="4" fill="url(#kTortaG)" />
+      <path d="M10 33c4 4 7 4 11 0s7-4 11 0s7 4 11 0s7-4 11 0" fill="none" stroke="#8e1b2b" strokeWidth="2.5" />
+      <rect x="6" y="40" width="52" height="16" rx="4" fill="url(#kTortaG)" />
+      <path d="M6 47c4 4 8 4 13 0s9-4 13 0s9 4 13 0s9-4 13 0" fill="none" stroke="#8e1b2b" strokeWidth="2.5" />
+      <rect x="2" y="56" width="60" height="4" rx="2" fill="#c9a84c" />
+    </svg>
+  )
+}
+
 function Numpad({ onDigit, onBack, onClear }) {
   const tap = (fn) => () => { voz('ui-tap', 0.45); fn() }
   return (
@@ -252,6 +275,13 @@ export default function Kiosk() {
   const [player, setPlayer] = useState(null)
   const [balance, setBalance] = useState(0)
   const [checkin, setCheckin] = useState(null)
+  // Cumpleaños: el socio lo carga una vez desde la burbuja de la Home (DDMMAAAA)
+  const [showCumple, setShowCumple] = useState(false)
+  const [cumpleDigits, setCumpleDigits] = useState('')
+  const [cumpleBusy, setCumpleBusy] = useState(false)
+  const [cumpleErr, setCumpleErr] = useState('')
+  const [cumpleListo, setCumpleListo] = useState(false) // saved this session
+  const [cumpleGracias, setCumpleGracias] = useState(false) // confirmation popup
   const [reg, setReg] = useState({ name: '', tel: '', email: '' })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
@@ -285,6 +315,7 @@ export default function Kiosk() {
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false)
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
+    setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
 
   // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
@@ -583,8 +614,30 @@ export default function Kiosk() {
     const esNuevo = player?.created_at && Date.now() - new Date(player.created_at).getTime() < 60000
     if (esNuevo) voz('nuevo-socio')
     else if (checkin?.granted) voz('checkin')
+    if (checkin?.birthday?.granted) vozDespues('cumple')
     // alreadyToday: sin voz — si entra varias veces en el día no hace falta repetírselo
   }, [screen]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const faltaCumple = !!checkin?.birthday && !checkin.birthday.set && !cumpleListo
+  function abrirCumple() {
+    voz('ui-tap', 0.7)
+    setCumpleDigits(''); setCumpleErr(''); setShowCumple(true)
+  }
+  async function guardarCumple() {
+    if (cumpleBusy) return
+    if (cumpleDigits.length !== 8) { setCumpleErr('Completá día, mes y año.'); return }
+    const day = Number(cumpleDigits.slice(0, 2)), month = Number(cumpleDigits.slice(2, 4)), year = Number(cumpleDigits.slice(4))
+    setCumpleBusy(true); setCumpleErr('')
+    try {
+      await kioskSetBirthday(player.token, { day, month, year })
+      setCumpleListo(true); setShowCumple(false); setCumpleGracias(true)
+      voz('cumple-guardado')
+      setTimeout(() => setCumpleGracias(false), 6500)
+    } catch (e) {
+      setCumpleErr(e.message || 'No pudimos guardar tu cumpleaños. Consultá en la barra.')
+      if (/ya está cargado/i.test(e.message || '')) setCumpleListo(true)
+    } finally { setCumpleBusy(false) }
+  }
 
   async function submitDni() {
     if (!vinculada) { setErr(SOLO_EN_SALA); return }
@@ -805,7 +858,22 @@ export default function Kiosk() {
               <div className="kiosk__done-earned">✓ +50 puntos por tu visita de hoy</div>
             </div>
           )}
-          {checkin?.alreadyToday && <div className="kiosk__visita-corner">✓ Visita de hoy registrada</div>}
+          {checkin?.birthday?.granted && (
+            <div className="kiosk__done-row">
+              <div className="kiosk__done-earned kiosk__done-earned--cumple"><IconoTorta size={30} /> ¡Feliz cumpleaños! +{checkin.birthday.points} puntos de regalo</div>
+            </div>
+          )}
+          {(checkin?.alreadyToday || faltaCumple) && (
+            <div className="kiosk__corner-stack">
+              {checkin?.alreadyToday && <div className="kiosk__visita-corner">✓ Visita de hoy registrada</div>}
+              {faltaCumple && (
+                <button className="kiosk__cumple-bubble" onClick={abrirCumple}>
+                  <span className="kiosk__cumple-ring"><IconoTorta size={34} /></span>
+                  <span className="kiosk__cumple-txt"><small>Regalo especial</small>¿Cuándo es tu cumple?</span>
+                </button>
+              )}
+            </div>
+          )}
 
           <div className="kiosk__saldo-line">Tenés <strong>{balance.toLocaleString('es-AR')}</strong> puntos</div>
 
@@ -891,10 +959,52 @@ export default function Kiosk() {
       {screen === 'done' && (
         <SesionTimer
           lastActRef={lastActRef}
-          paused={showCarta || showMovs || showCanjes || showTorneoOk || showDatos}
+          paused={showCarta || showMovs || showCanjes || showTorneoOk || showDatos || showCumple || cumpleGracias}
           margen={showGiro ? 80000 : SESION_MS}
           onExpirar={reset}
         />
+      )}
+
+      {/* Cargar cumpleaños: teclado numérico DD MM AAAA */}
+      {showCumple && (
+        <div className="kiosk__carta" onClick={() => setShowCumple(false)}>
+          <div className="kiosk__carta-panel kiosk__cumple-panel" onClick={e => e.stopPropagation()}>
+            <IconoTorta size={64} />
+            <div className="kiosk__cumple-title">¿Cuándo es tu cumple?</div>
+            <p className="kiosk__carta-txt">El día de tu cumpleaños te espera un <b>regalo especial</b></p>
+            <div className="kiosk__cumple-fields">
+              {[['Día', 0, 2, 'DD'], ['Mes', 2, 4, 'MM'], ['Año', 4, 8, 'AAAA']].map(([label, from, to, ph]) => {
+                const val = cumpleDigits.slice(from, to)
+                const activo = cumpleDigits.length >= from && cumpleDigits.length < to
+                return (
+                  <div key={label} className={'kiosk__cumple-field' + (activo ? ' on' : '') + (to === 8 ? ' y' : '')}>
+                    <span>{label}</span>
+                    <div className={val ? '' : 'ph'}>{val || ph}</div>
+                  </div>
+                )
+              })}
+            </div>
+            <Numpad
+              onDigit={d => setCumpleDigits(v => (v.length < 8 ? v + d : v))}
+              onBack={() => setCumpleDigits(v => v.slice(0, -1))}
+              onClear={() => setCumpleDigits('')} />
+            {cumpleErr && <div className="kiosk__err">{cumpleErr}</div>}
+            <button className="kiosk__cta kiosk__cta--hub" disabled={cumpleBusy || cumpleDigits.length !== 8} onClick={guardarCumple}>
+              {cumpleBusy ? 'Guardando…' : 'GUARDAR'}
+            </button>
+            <button className="kiosk__cumple-later" onClick={() => setShowCumple(false)}>Ahora no</button>
+            <p className="kiosk__cumple-legal">Una vez guardada, la fecha solo se puede cambiar en la barra.</p>
+          </div>
+        </div>
+      )}
+      {cumpleGracias && (
+        <div className="kiosk__carta" onClick={() => setCumpleGracias(false)}>
+          <div className="kiosk__carta-panel kiosk__cumple-panel">
+            <IconoTorta size={96} />
+            <div className="kiosk__cumple-title">¡Listo, {firstName}!</div>
+            <p className="kiosk__carta-txt">Te esperamos el <b>día de tu cumpleaños</b><br />con un regalo especial.</p>
+          </div>
+        </div>
       )}
 
       {/* Completar datos de contacto */}

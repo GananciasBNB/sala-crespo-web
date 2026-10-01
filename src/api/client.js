@@ -395,6 +395,10 @@ export const adminEspnTestDelete = (token, id) =>
 export const adminDeletePlayer = (token, id) =>
   api(`/api/admin/player/${id}`, { method: 'DELETE', headers: authHeaders(token) })
 
+export const adminGetPlayerBirthday = (token, id) =>
+  api(`/api/admin/player/${id}/birthday`, { headers: authHeaders(token) })
+export const kioskSetBirthday = (token, { day, month, year }) =>
+  api('/api/club/birthday', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() }, body: kioskBody({ day, month, year }) })
 export const adminEditPlayer = (token, id, data) =>
   api(`/api/admin/player/${id}`, { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(data) })
 

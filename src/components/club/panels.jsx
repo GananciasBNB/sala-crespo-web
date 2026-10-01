@@ -136,6 +136,8 @@ function FortunaAdmin({ token, toast }) {
             <input type="number" min="1" step="0.5" value={settings.cooldownHours} onChange={e => setSettings({ ...settings, cooldownHours: Number(e.target.value) })} style={numStyle} /></label>
           <label style={{ fontSize: 12, color: '#8B9BB4' }}>Puntos por visita<br />
             <input type="number" min="0" step="10" value={settings.checkinPoints} onChange={e => setSettings({ ...settings, checkinPoints: Number(e.target.value) })} style={numStyle} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }} title="Regalo el día del cumpleaños (una vez por año). Lo paga el check-in de ese día.">Puntos de cumpleaños<br />
+            <input type="number" min="0" step="50" value={settings.birthdayPoints ?? 500} onChange={e => setSettings({ ...settings, birthdayPoints: Number(e.target.value) })} style={numStyle} /></label>
           <label style={{ fontSize: 12, color: '#8B9BB4' }} title="Cuantos cupones del sorteo puede imprimir un socio por dia. Normal: 1. Subilo solo para pruebas.">Cupones sorteo/día<br />
             <input type="number" min="0" value={settings.rafflePerDay ?? 1} onChange={e => setSettings({ ...settings, rafflePerDay: Number(e.target.value) })}
               style={{ ...numStyle, borderColor: (settings.rafflePerDay ?? 1) > 1 ? '#fcd34d' : '#2a3142' }} /></label>

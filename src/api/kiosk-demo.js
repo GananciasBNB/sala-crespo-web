@@ -83,14 +83,45 @@ export async function kioskSignup({ dni, name, tel, email, pin }) {
 export async function kioskAcceptTerms() { await wait(150); return { ok: true } }
 export async function clubCreatePin() { await wait(150); return { ok: true } }
 
+// Same birthday rules as the backend: exact day, once a year, not if saved today
+function demoBirthday(p) {
+  if (!p.birthDate) return { set: false, granted: false }
+  const t = today()
+  const year = t.slice(0, 4)
+  const isDay = p.birthDate.slice(5) === t.slice(5)
+  if (!isDay || p.birthDateSetOn === t || p.birthdayGiftYear === year) return { set: true, granted: false }
+  p.birthdayGiftYear = year
+  addTx(p, 'earn_birthday', 500, 'Regalo de cumpleaños')
+  return { set: true, granted: true, points: 500 }
+}
+
 export async function loyaltyCheckin(token) {
   await wait()
   const db = load(); const p = getPlayer(db, token)
-  if (p.lastCheckin === today()) return { granted: false, alreadyToday: true, balance: p.balance }
+  if (p.lastCheckin === today()) {
+    const birthday = demoBirthday(p); save(db)
+    return { granted: false, alreadyToday: true, balance: p.balance, birthday }
+  }
   p.lastCheckin = today()
   addTx(p, 'earn_checkin', 50, 'Check-in en sala')
+  const birthday = demoBirthday(p)
   save(db)
-  return { granted: true, alreadyToday: false, balance: p.balance }
+  return { granted: true, alreadyToday: false, balance: p.balance, birthday }
+}
+
+export async function kioskSetBirthday(token, { day, month, year }) {
+  await wait(250)
+  const db = load(); const p = getPlayer(db, token)
+  if (p.birthDate) throw new Error('Tu cumpleaños ya está cargado. Si hay que corregirlo, consultá en la barra.')
+  const d = new Date(Date.UTC(year, month - 1, day))
+  if (d.getUTCFullYear() !== year || d.getUTCMonth() !== month - 1 || d.getUTCDate() !== day) throw new Error('Esa fecha no existe. Revisala.')
+  const age = (Date.now() - d.getTime()) / (365.25 * 24 * 3600 * 1000)
+  if (age < 18) throw new Error('Jackpoints es para mayores de 18 años.')
+  if (age > 110) throw new Error('Revisá el año de nacimiento.')
+  p.birthDate = d.toISOString().slice(0, 10)
+  p.birthDateSetOn = today()
+  save(db)
+  return { ok: true }
 }
 
 export async function getLoyaltyMe(token) {

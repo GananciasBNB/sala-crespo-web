@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import PromoMetricsAdmin from '../components/PromoMetricsAdmin'
 import {
   adminLogin, adminVerify, getMatches, getShows, getContent,
-  adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminSearchPlayers, adminDeletePlayer, adminEditPlayer, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
+  adminSetResult, adminDeleteResult, adminSetTeams, adminSyncTeamsFromFixture, adminGetPlayers, adminSearchPlayers, adminDeletePlayer, adminEditPlayer, adminGetPlayerBirthday, adminResetPin, adminInvitePlayer, adminTogglePlayerEmployee,
   adminGetLeagues, adminGetLeagueDetail, adminDeleteLeague,
   adminEspnTestDiscover, adminEspnTestAdd, adminEspnTestList, adminEspnTestSync, adminEspnTestDelete,
   adminGetTournaments, adminCreateTournament, adminUpdateTournament, adminDeleteTournament,
@@ -1107,6 +1107,14 @@ function ClientsAdmin({ token, toast }) {
   const [searchResults, setSearchResults] = useState(null)
   const [playersFilter, setPlayersFilter] = useState('all') // ← default: TODA la base
   const [editingPlayer, setEditingPlayer] = useState(null)
+  // The birthday isn't in the players list: fetch it when the edit form opens
+  const editingId = editingPlayer?.id
+  useEffect(() => {
+    if (!editingId) return
+    adminGetPlayerBirthday(token, editingId)
+      .then(r => setEditingPlayer(p => (p && p.id === editingId && p.birthDate === undefined ? { ...p, birthDate: r.birthDate || '' } : p)))
+      .catch(err => console.warn('birthday load failed', err))
+  }, [editingId, token])
   const [invitingPlayer, setInvitingPlayer] = useState(null)
   const [invitedPin, setInvitedPin] = useState(null)
 
@@ -1135,6 +1143,7 @@ function ClientsAdmin({ token, toast }) {
         email: editingPlayer.email || null,
         segment: editingPlayer.segment || '',
         note: editingPlayer.note || '',
+        ...(editingPlayer.birthDate !== undefined && { birthDate: editingPlayer.birthDate || null }),
       })
       toast.show('Cliente actualizado')
       setEditingPlayer(null)
@@ -1448,6 +1457,9 @@ function ClientsAdmin({ token, toast }) {
           <textarea className="ap-input" rows={2} value={editingPlayer.note || ''} maxLength={500}
             onChange={e => setEditingPlayer(p => ({ ...p, note: e.target.value }))}
             placeholder="Ej: contador, juega los viernes, amigo de…" style={{ resize: 'vertical', fontFamily: 'inherit' }} />
+          <label className="ap-label">Cumpleaños (lo carga el socio en la máquina; acá solo se corrige)</label>
+          <input className="ap-input" type="date" value={editingPlayer.birthDate || ''}
+            onChange={e => setEditingPlayer(p => ({ ...p, birthDate: e.target.value }))} />
           <div className="ap-edit-modal__btns">
             <button className="ap-btn ap-btn--primary" onClick={handleEditPlayerSave}>Guardar</button>
             <button className="ap-btn" onClick={() => setEditingPlayer(null)}>Cancelar</button>
