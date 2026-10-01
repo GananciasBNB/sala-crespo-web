@@ -518,7 +518,7 @@ export const getLoyaltyMe = (token) =>
   api('/api/loyalty/me', { headers: authHeaders(token) })
 
 export const redeemLoyaltyReward = (token, rewardId) =>
-  api('/api/loyalty/redeem', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ rewardId }) })
+  api('/api/loyalty/redeem', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() }, body: kioskBody({ rewardId }) })
 
 // ─── Kiosk / tótem del Club ───────────────────────────────────────────────────
 export const loyaltyCheckin = (token) =>
