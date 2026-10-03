@@ -1,0 +1,2234 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<title>Fortuna Dorada · Sala Crespo Club</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0406; touch-action: manipulation; }
+  #stage { position: fixed; inset: 0; }
+  .hint { position: fixed; bottom: 6px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.22);
+          font: 11px 'Segoe UI', sans-serif; letter-spacing: 1px; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.2/pixi.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/pixi-filters@5.3.0/dist/browser/pixi-filters.js" crossorigin="anonymous"></script>
+<script src="giro-diario-assets/assets-data.js"></script>
+<script src="giro-diario-assets/fondo-video-data.js"></script>
+<script>
+function mostrarErrorPantalla(msg) {
+  const d = document.createElement('div');
+  d.style.cssText = 'position:fixed;top:8px;left:8px;right:8px;color:#f87171;font:13px monospace;z-index:99;background:rgba(0,0,0,.85);padding:8px;border-radius:8px;';
+  d.textContent = 'PROBLEMA: ' + msg;
+  document.body.appendChild(d);
+}
+window.addEventListener('error', e => mostrarErrorPantalla(e.message + ' @ ' + (e.lineno || '?')));
+window.addEventListener('unhandledrejection', e => mostrarErrorPantalla(e.reason?.message || String(e.reason)));
+
+// ═══════════════════════════════════════════════════════════════════
+//  GIRO DIARIO v2 — arte final (assets ./giro-diario-assets/)
+//  Tabla DEMO: en producción el premio lo decide POST /api/loyalty/spin
+//  (1 giro/día por socio, % y stock diario configurados en el admin).
+// ═══════════════════════════════════════════════════════════════════
+
+const PREMIOS = [
+  { id: 'ticket',  label: 'TICKET $5.000', pct: 2,  sym: 'lingote', color: 0xF0D275 },
+  { id: 'pts500',  label: '+500 PUNTOS',   pct: 5,  sym: 'fenix',   color: 0xF0D275 },
+  { id: 'pts250',  label: '+250 PUNTOS',   pct: 8,  sym: 'gato',    color: 0xF0D275 },
+  { id: 'pts150',  label: '+150 PUNTOS',   pct: 12, sym: 'koi',     color: 0x7ee2a0 },
+  { id: 'pts100',  label: '+100 PUNTOS',   pct: 15, sym: 'rana',    color: 0x7ee2a0 },
+  { id: 'pts50',   label: '+50 PUNTOS',    pct: 18, sym: 'arbol',   color: 0xC9A84C },
+  { id: 'nada',    label: 'SEGUÍ PARTICIPANDO', pct: 40, sym: null, color: 0x998d75 },
+];
+
+const SYMS = ['lingote', 'fenix', 'gato', 'koi', 'rana', 'arbol', 'nudo'];
+// Ventana transparente del marco en FRACCIONES de la imagen (medida por canal
+// alfa: x164-1496, y203-736 sobre 1659×948) — así vale para cualquier escala.
+const VENT_FRAC = { x: 164 / 1659, y: 203 / 948, w: 1333 / 1659, h: 534 / 948 };
+// El gabinete tiene un monitor 5:4 (1280x1024) y hay pantallas 16:9: el juego
+// se arma en la proporción real para no dejar franjas negras. En 5:4 la tabla
+// de premios va en una fila debajo del marco (hay altura de sobra, no ancho).
+// ?forma=cuadrada fuerza el layout del gabinete (5:4) en cualquier pantalla,
+// para poder revisarlo sin ir hasta la maquina. ?forma=ancha fuerza el 16:9.
+const paramForma = new URLSearchParams(location.search).get('forma');
+const CUADRADA = paramForma === 'cuadrada' ? true
+               : paramForma === 'ancha' ? false
+               : (innerWidth / innerHeight) < 1.45;
+const W = CUADRADA ? 1280 : 1600;
+const H = CUADRADA ? 1024 : 900;
+
+// MODO LIVIANO — las PCs de gabinete no tienen placa de video: si WebGL corre
+// por software, el video de fondo + blur + partículas lo dejan a 5 fps (y el
+// audio ni arranca). Se detecta al inicio y además se mide el fps real.
+// Forzar a mano: ?liviano=1 · forzar completo: ?liviano=0
+const paramLiviano = new URLSearchParams(location.search).get('liviano');
+function glPorSoftware() {
+  try {
+    const gl = document.createElement('canvas').getContext('webgl');
+    if (!gl) return true;
+    const dbg = gl.getExtension('WEBGL_debug_renderer_info');
+    const r = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL)) : '';
+    return /swiftshader|software|llvmpipe|microsoft basic|generic/i.test(r);
+  } catch { return true; }
+}
+function maquinaLenta() {   // lo aprendido en ESTA maquina (perfil de Chrome)
+  try { return localStorage.getItem('fd_maquina_lenta') === '1'; } catch { return false; }
+}
+function recordarMaquinaLenta(nivel) {
+  try { localStorage.setItem('fd_maquina_lenta', '1'); localStorage.setItem('fd_nivel', String(nivel)); } catch {}
+}
+let LIVIANO = paramLiviano === '1' ? true
+            : paramLiviano === '0' ? false
+            : (glPorSoftware() || maquinaLenta());
+// si ya se sabe que ni en liviano alcanza, arranca directo con menos pixeles
+let nivelGuardado = 0;
+try { nivelGuardado = Number(localStorage.getItem('fd_nivel')) || 0; } catch {}
+
+const app = new PIXI.Application({ background: '#0a0406', width: W, height: H,
+  // La calidad de dibujo se mantiene: lo caro es el video de fondo y el blur,
+  // no la nitidez. Si aun asi no alcanza, se baja despues (ver vigilarFps).
+  antialias: nivelGuardado < 2, resolution: nivelGuardado >= 2 ? 0.75 : 1, powerPreference: 'high-performance' });
+if (LIVIANO) console.log('Fortuna Dorada: modo liviano (sin placa de video)');
+document.getElementById('stage').appendChild(app.view);
+
+function fit() {
+  const s = Math.min(innerWidth / W, innerHeight / H);
+  Object.assign(app.view.style, {
+    width: W * s + 'px', height: H * s + 'px', position: 'absolute',
+    left: (innerWidth - W * s) / 2 + 'px', top: (innerHeight - H * s) / 2 + 'px',
+  });
+}
+addEventListener('resize', fit); fit();
+
+// Los PNGs viven embebidos como data URIs en assets-data.js (window.GIRO_ASSETS):
+// con file:// Chrome bloquea tanto fetch como imágenes locales en WebGL
+// (SecurityError texImage2D). Un data URI es same-origin y WebGL lo acepta.
+const GA = window.GIRO_ASSETS || {};
+const URLS = {
+  fondo: GA['fondo'], marco: GA['marco-rodillos'], panel: GA['panel-premios'], logo: GA['logo'],
+  lingote: GA['lingote'], fenix: GA['fenix'], gato: GA['gato'],
+  koi: GA['koi'], rana: GA['rana'], arbol: GA['arbol'], nudo: GA['nudo'],
+};
+if (!GA['fondo']) mostrarErrorPantalla('No se encontró giro-diario-assets/assets-data.js al lado del HTML.');
+
+// ─── Sonido sintetizado (los definitivos vienen después) ───────────
+let actx = null;
+function beep(freq, dur, vol, tipo) {
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = tipo || 'square'; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+    o.connect(g); g.connect(actx.destination);
+    o.start(); o.stop(actx.currentTime + dur);
+  } catch {}
+}
+const jingle = () => [523, 659, 784, 1047, 1319].forEach((f, i) => setTimeout(() => beep(f, .28, .12, 'triangle'), i * 120));
+
+// ─── Voz del Club (MP3s pregrabados con ElevenLabs; si falta el audio,
+//     la pantalla sigue funcionando muda — nunca romper el flujo) ────
+const VOZ_DIR = 'giro-diario-assets/voz-eleven/';
+const SFX_DIR2 = 'giro-diario-assets/sfx/';
+
+// Audio de kiosk: los MP3 se precargan al abrir y se "desbloquean" con el
+// primer toque (play+pause en silencio). Sin esto, en modo kiosk el play()
+// programatico falla callado y el juego queda mudo.
+const poolAudio = {};
+function audioDe(url) {
+  let a = poolAudio[url];
+  if (!a) { a = new Audio(url); a.preload = 'auto'; poolAudio[url] = a; }
+  return a;
+}
+const AUDIOS_PRECARGA = [
+  ...['giro-bienvenida', 'giro-suerte', 'giro-ticket', 'giro-500', 'giro-250', 'giro-150',
+      'giro-100', 'giro-50', 'giro-nada', 'giro-nada-quedan', 'giro-ya-giro'].map(n => VOZ_DIR + n + '.mp3'),
+  ...['spin-loop', 'reel-stop', 'win-gong', 'win-coins', 'big-win', 'lose-soft', 'ui-tap',
+      'musica-ambiente'].map(n => SFX_DIR2 + n + '.mp3'),
+];
+AUDIOS_PRECARGA.forEach(audioDe);
+let audioListo = false;
+const DEMO_KIOSK = new URLSearchParams(location.search).get('demo') === '1';
+// ─── BONUS (demo-only for now; the server does not support it yet) ──
+const BONUS_PROB = 0.03;              // demo: chance of a bonus per spin
+const BONUS_VOZ_ENTRADA = 'bonus-B';  // entrance voice: 'bonus-A' | 'bonus-B' | 'bonus-C'
+const BONUS_TEASE_2 = 0.08;           // non-bonus spin: logos on reels 1+2 (anticipation)
+const BONUS_TEASE_1 = 0.14;           // non-bonus spin: a single logo
+const BONUS_FILLER_PROB = 0.06;       // logo frequency in the spinning strips
+if (DEMO_KIOSK) {
+  [BONUS_VOZ_ENTRADA, 'bonus-elegi', 'bonus-casi', 'bonus-casi-ticket', 'bonus-casi-1000']
+    .forEach(n => audioDe(VOZ_DIR + n + '.mp3'));
+  audioDe(SFX_DIR2 + 'bonus-musica.mp3'); audioDe(SFX_DIR2 + 'bonus-musica.mp3?b');
+  ['bonus-scatter-1', 'bonus-scatter-2', 'bonus-scatter-3', 'bonus-flip', 'bonus-reveal', 'bonus-pair', 'bonus-trio']
+    .forEach(n => audioDe(SFX_DIR2 + n + '.mp3'));
+}
+function desbloquearAudio() {
+  if (audioListo) return;
+  audioListo = true;
+  // muted (no volume 0): con volumen algunos navegadores dejan escapar un
+  // fragmento audible antes de silenciar, y se escuchaba todo junto
+  Object.values(poolAudio).forEach(a => {
+    if (!a.paused) return;   // la musica ya esta sonando: no tocarla
+    if (DEMO_KIOSK) {
+      // kiosk demo on phones: play() resolves only after the download and the
+      // muted clip could be heard (e.g. BIG WIN on open). Start and stop in the
+      // same tick: the element gets unlocked without any sound.
+      a.muted = true;
+      const q = a.play();
+      a.pause();
+      if (q) q.catch(() => {}).finally(() => { a.muted = false; });
+      else a.muted = false;
+      return;
+    }
+    a.muted = true;
+    const p = a.play();
+    if (p) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; })
+           .catch(() => { a.muted = false; });
+    else a.muted = false;
+  });
+  arrancarMusica();   // si la politica de autoplay la habia frenado, ahora si
+}
+window.addEventListener('pointerdown', desbloquearAudio);
+window.addEventListener('touchstart', desbloquearAudio);
+
+let vozActual = null;
+function voz(nombre) {
+  try {
+    if (vozActual && !vozActual.paused) { vozActual.pause(); vozActual.currentTime = 0; }
+    const a = audioDe(VOZ_DIR + nombre + '.mp3');
+    a.volume = 0.95;
+    try { a.currentTime = 0; } catch {}
+    vozActual = a;
+    const p = a.play();
+    if (p) p.catch(err => console.warn('voz ' + nombre + ' bloqueada:', err && err.name));
+  } catch (e) { console.warn('voz', e); }
+}
+const vozDice = (frag) => vozActual && !vozActual.paused && !vozActual.ended && vozActual.src.includes(frag);
+
+// ─── SFX + música (ElevenLabs; mismo criterio: fallo silencioso) ────
+const SFX_DIR = 'giro-diario-assets/sfx/';
+function sfx(nombre, vol = 0.8, loop = false) {
+  try {
+    const a = audioDe(SFX_DIR + nombre + '.mp3');
+    a.volume = vol; a.loop = loop;
+    try { a.currentTime = 0; } catch {}
+    const p = a.play();
+    if (p) p.catch(err => console.warn('sfx ' + nombre + ' bloqueado:', err && err.name));
+    return a;
+  } catch { return null; }
+}
+let spinSound = null;
+// Música ambiental en loop suave. Se intenta al cargar (funciona si Chrome
+// corre con --autoplay-policy=no-user-gesture-required, como en el gabinete);
+// si la política lo bloquea, arranca con el primer gesto.
+let musica = null;
+function arrancarMusica() {
+  if (musica && !musica.paused) return;   // ya suena
+  if (musica) { musica.play().catch(() => {}); return; }   // quedo pausada: reanudar
+  try {
+    const m = audioDe(SFX_DIR + 'musica-ambiente.mp3');
+    m.volume = 0.3; m.loop = true;
+    m.play().then(() => { musica = m; }).catch(() => {});
+  } catch {}
+}
+arrancarMusica();
+window.addEventListener('pointerdown', arrancarMusica);
+const VOZ_PREMIO = { ticket: 'giro-ticket', pts500: 'giro-500', pts250: 'giro-250',
+  pts150: 'giro-150', pts100: 'giro-100', pts50: 'giro-50', nada: 'giro-nada' };
+// server mode: el premio llega con símbolo, no con id de demo
+const VOZ_SYM = { fenix: 'giro-500', gato: 'giro-250', koi: 'giro-150', rana: 'giro-100', arbol: 'giro-50' };
+
+// Carga vía <img> (no fetch): funciona abriendo el archivo con doble click
+// (Chrome bloquea fetch sobre file://, por eso Assets.load dejaba todo negro).
+function cargarTexturas(urls) {
+  return Promise.all(Object.entries(urls).map(([k, u]) => new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => res([k, PIXI.Texture.from(img)]);
+    img.onerror = () => rej(new Error('No se pudo cargar ' + u + ' — ¿está la carpeta giro-diario-assets al lado del HTML?'));
+    img.src = u;
+  }))).then(Object.fromEntries);
+}
+
+// BONUS symbol (Jackpoints logo) loaded from its file. Only over http(s): on
+// file:// a canvas drawn from a local image taints WebGL. Baked into a square
+// texture with a soft golden glow. Failure = bonus disabled, game unaffected.
+function cargarBonusTex() {
+  return new Promise((res) => {
+    if (location.protocol === 'file:') { res(null); return; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const S = 512, cv = document.createElement('canvas');
+        cv.width = cv.height = S;
+        const c = cv.getContext('2d');
+        const k = Math.min((S * 0.92) / img.width, (S * 0.92) / img.height);
+        const w = img.width * k, h = img.height * k, x = (S - w) / 2, y = (S - h) / 2;
+        c.shadowColor = 'rgba(255,214,90,0.95)'; c.shadowBlur = 26;
+        c.drawImage(img, x, y, w, h);
+        c.shadowBlur = 0;
+        c.drawImage(img, x, y, w, h);
+        res({ glow: PIXI.Texture.from(cv), raw: PIXI.Texture.from(img) });
+      } catch (e) { console.warn('bonus textura:', e); res(null); }
+    };
+    img.onerror = () => { console.warn('No se pudo cargar bonus-jackpoints.webp: bonus desactivado'); res(null); };
+    img.src = 'giro-diario-assets/bonus-jackpoints.webp';
+  });
+}
+
+cargarTexturas(URLS)
+  .then(T => cargarBonusTex().then(b => { T.bonus = b ? b.glow : null; T.bonusLogo = b ? b.raw : null; return T; }))
+  .then(T => {
+ try {
+
+  // ─── Fondo ───────────────────────────────────────────────────────
+  const fondo = new PIXI.Sprite(T.fondo);
+  const fs = Math.max(W / fondo.texture.width, H / fondo.texture.height);
+  fondo.scale.set(fs); fondo.anchor.set(0.5); fondo.position.set(W / 2, H / 2);
+  app.stage.addChild(fondo);
+
+  // Animated background: Flow/Seedance clip embedded as a data URI
+  // (file:// taints local video for WebGL, same as images — data: is same-origin).
+  // The static PNG stays as first frame / fallback until the video can play.
+  let videoFondo = null;
+  if (window.GIRO_FONDO_VIDEO && !LIVIANO) {
+    const vid = document.createElement('video');
+    videoFondo = vid;
+    vid.muted = true; vid.loop = true; vid.playsInline = true;
+    vid.addEventListener('canplaythrough', () => {
+      try {
+        fondo.texture = PIXI.Texture.from(vid);
+        const vs = Math.max(W / vid.videoWidth, H / vid.videoHeight);
+        fondo.scale.set(vs);
+        vid.play().catch(() => {});
+      } catch (e) { console.error('video fondo:', e); }
+    }, { once: true });
+    vid.src = window.GIRO_FONDO_VIDEO;
+    vid.load();
+  }
+
+  // ─── Textura radial reutilizable (halos, motas, chispas, flash) ──
+  function texturaRadial(hex, size = 256) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = size;
+    const ctx = cv.getContext('2d');
+    const r = (hex >> 16) & 255, g = (hex >> 8) & 255, b = hex & 255;
+    const gr = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    gr.addColorStop(0, `rgba(${r},${g},${b},1)`);
+    gr.addColorStop(0.35, `rgba(${r},${g},${b},0.45)`);
+    gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    ctx.fillStyle = gr; ctx.fillRect(0, 0, size, size);
+    return PIXI.Texture.from(cv);
+  }
+  const TEX_GLOW = texturaRadial(0xF0D275);
+
+  // ─── FONDO VIVO: brasas doradas flotando + respiración de luz ────
+  const motas = [];
+  const motasLayer = new PIXI.Container();
+  for (let i = 0; i < (LIVIANO ? 12 : 44); i++) {
+    const m = new PIXI.Sprite(TEX_GLOW);
+    m.anchor.set(0.5);
+    const s = 3 + Math.random() * 9;
+    m.width = m.height = s;
+    m.x = Math.random() * W; m.y = Math.random() * H;
+    m.alpha = 0.1 + Math.random() * 0.28;
+    m.vy = 0.15 + Math.random() * 0.5;
+    m.sway = Math.random() * Math.PI * 2;
+    m.blendMode = PIXI.BLEND_MODES.ADD;
+    motasLayer.addChild(m); motas.push(m);
+  }
+  app.stage.addChild(motasLayer);
+
+  const respiro = new PIXI.Sprite(TEX_GLOW);
+  respiro.anchor.set(0.5); respiro.position.set(W / 2, H / 2 - 60);
+  respiro.width = 1500; respiro.height = 1000;
+  respiro.alpha = 0.05; respiro.blendMode = PIXI.BLEND_MODES.ADD;
+  app.stage.addChild(respiro);
+
+  // ─── Header: logo + título ───────────────────────────────────────
+  const logo = new PIXI.Sprite(T.logo);
+  logo.height = 104; logo.scale.x = logo.scale.y; logo.anchor.set(0.5);
+  const t1 = new PIXI.Text('SALA CRESPO CLUB', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 20, fontWeight: '700', fill: '#C9A84C', letterSpacing: 9,
+  }));
+  t1.anchor.set(0.5, 1); t1.position.set(W / 2, 40);
+  const t2 = new PIXI.Text('FORTUNA DORADA', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 46, fontWeight: '900',
+    fill: ['#ffffff', '#F0D275'], fillGradientStops: [0.25, 1], letterSpacing: 5,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 12, dropShadowDistance: 4,
+  }));
+  t2.anchor.set(0.5, 0); t2.position.set(W / 2, 40);
+  // logo a la izquierda del bloque de título, centrado el conjunto
+  logo.position.set(W / 2 - t2.width / 2 - 80, 58);
+  const t3 = new PIXI.Text('GRATUITO · PARTICIPÁ Y GANÁ PUNTOS Y PREMIOS', new PIXI.TextStyle({
+    fontFamily: 'Segoe UI', fontSize: 17, fontWeight: '700', fill: '#e8dfca', letterSpacing: 3.5,
+  }));
+  t3.anchor.set(0.5, 0); t3.position.set(W / 2, 98);
+  app.stage.addChild(logo, t1, t2, t3);
+
+  // ═══════════════════════════════════════════════════════════════
+  //  v2 — 3×3 grid, 3 horizontal paylines, frame drawn in code.
+  //  Reels are virtual infinite strips: strip[k] = symbol at index k,
+  //  sprite for index k sits at y = vent.y + CELL_H*(pos - k + 0.5).
+  //  pos only moves continuously; textures are assigned exclusively to
+  //  indices that are outside the window (see dibujarReel).
+  // ═══════════════════════════════════════════════════════════════
+  const PARAMS = new URLSearchParams(location.search);
+  const DEBUG = PARAMS.get('debug') === '1';
+  // Bonus only in demo (?demo=1) and only while no server session is active
+  let bonusHabilitado = DEMO_KIOSK && !!T.bonus;
+  let bonus = null;                 // pick-game state while the bonus runs
+  let bonusRayos = 0;               // 0..1 rays for the bonus entrance
+  let bonusMusicaOn = false;        // bonus loop on / game music faded out
+  const scatterFila = [-1, -1, -1]; // row of the landed logo per reel (-1 = none)
+  let scatterN = 0;                 // logos landed so far in this spin
+  let scatterSonidos = [];          // debug: scatter sounds played this spin
+  let scatter3En = 0;               // when scatter-3 started (bonus entrance timing)
+  const BONUS_VOZ_DELAY_MS = 650;   // voice/entrance offset after scatter-3 starts
+  const COLS = 3, ROWS = 3;
+  const CELL_H = CUADRADA ? 205 : 180;
+  const CELL_W = CUADRADA ? 230 : 215;
+  const BORDE = 26;
+  const vent = { w: CELL_W * COLS, h: CELL_H * ROWS };
+  vent.x = Math.round((W - vent.w) / 2);
+  vent.y = CUADRADA ? 168 : 156;
+  const marcoX = vent.x - BORDE, marcoY = vent.y - BORDE;
+  const marcoW = vent.w + BORDE * 2, marcoH = vent.h + BORDE * 2;
+  const SYM_SIZE = Math.min(CELL_W, CELL_H) * 0.9;
+  const rowCenterY = (row) => vent.y + CELL_H * (row + 0.5);
+  const reelCenterX = (i) => vent.x + CELL_W * (i + 0.5);
+
+  // Canvas-2D textures (gradients/shadows are cheap there), drawn at 1.5x
+  const CV_RES = 1.5;
+  function canvasTex(w, h, draw) {
+    const cv = document.createElement('canvas');
+    cv.width = Math.ceil(w * CV_RES); cv.height = Math.ceil(h * CV_RES);
+    const ctx = cv.getContext('2d');
+    ctx.scale(CV_RES, CV_RES);
+    draw(ctx);
+    return PIXI.Texture.from(cv);
+  }
+  function spriteDe(tex, x, y) {
+    const s = new PIXI.Sprite(tex); s.scale.set(1 / CV_RES); s.position.set(x, y); return s;
+  }
+  function roundRect(c, x, y, w, h, r) {
+    c.beginPath(); c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath();
+  }
+  function oroVertical(c, y0, y1) {
+    const g = c.createLinearGradient(0, y0, 0, y1);
+    g.addColorStop(0, '#f7e39a'); g.addColorStop(0.2, '#c9a84c'); g.addColorStop(0.5, '#8c6a1f');
+    g.addColorStop(0.8, '#c9a84c'); g.addColorStop(1, '#f0d275');
+    return g;
+  }
+
+  // ─── Window background (dark wine drums) ─────────────────────────
+  const ventBg = spriteDe(canvasTex(vent.w, vent.h, (c) => {
+    c.fillStyle = '#12060b'; c.fillRect(0, 0, vent.w, vent.h);
+    for (let i = 0; i < COLS; i++) {
+      const g = c.createLinearGradient(i * CELL_W, 0, (i + 1) * CELL_W, 0);
+      g.addColorStop(0, '#12060b'); g.addColorStop(0.5, '#2e111b'); g.addColorStop(1, '#12060b');
+      c.fillStyle = g; c.fillRect(i * CELL_W, 0, CELL_W, vent.h);
+    }
+  }), vent.x, vent.y);
+  app.stage.addChild(ventBg);
+
+  // ─── Reels ───────────────────────────────────────────────────────
+  const reelLayer = new PIXI.Container();
+  app.stage.addChild(reelLayer);
+  const mask = new PIXI.Graphics().beginFill(0xffffff).drawRect(vent.x, vent.y, vent.w, vent.h).endFill();
+  reelLayer.mask = mask; app.stage.addChild(mask);
+
+  // Per-cell halos (behind the symbols): idle breathing, near-miss, win
+  const halos = [];
+  for (let i = 0; i < COLS; i++) {
+    halos.push([]);
+    for (let row = 0; row < ROWS; row++) {
+      const h = new PIXI.Sprite(TEX_GLOW);
+      h.anchor.set(0.5); h.width = h.height = SYM_SIZE * 1.55;
+      h.position.set(reelCenterX(i), rowCenterY(row));
+      h.alpha = 0; h.blendMode = PIXI.BLEND_MODES.ADD;
+      reelLayer.addChild(h); halos[i].push(h);
+    }
+  }
+
+  const baseSym = () => SYMS[(Math.random() * SYMS.length) | 0];
+  // spinning strips: the logo shows up now and then (final grids are built by gridPara)
+  const randSym = () => (bonusHabilitado && Math.random() < BONUS_FILLER_PROB) ? 'bonus' : baseSym();
+  const POOL = 6;            // sprites per reel (5 indices in range + 1 spare)
+  const reels = [];
+  for (let i = 0; i < COLS; i++) {
+    const cont = new PIXI.Container();
+    const pool = [];
+    for (let j = 0; j < POOL; j++) {
+      const sp = new PIXI.Sprite(T.nudo);
+      sp.anchor.set(0.5); sp.width = sp.height = SYM_SIZE; sp.x = reelCenterX(i);
+      sp.k = null; sp.sym = null;
+      pool.push(sp); cont.addChild(sp);
+    }
+    reelLayer.addChild(cont);
+    const r = { i, cont, pool, cx: reelCenterX(i), strip: new Map(), pos: 0, vel: 0,
+      estado: 'quieto', stopAt: Infinity, vObj: 10.5 + i * 0.5, adelanto: 5, objetivo: null,
+      blur: new PIXI.BlurFilter(0) };
+    r.blur.blurX = 0; r.blur.blurY = 0;
+    if (!LIVIANO) cont.filters = [r.blur];
+    reels.push(r);
+  }
+
+  function symAt(r, k) {
+    let s = r.strip.get(k);
+    if (s === undefined) { s = randSym(); r.strip.set(k, s); }
+    return s;
+  }
+  // a cell is (partly) inside the window when its top edge row (pos-k) is in (-1, ROWS)
+  const celdaVisible = (pos, k) => (pos - k) > -1 && (pos - k) < ROWS;
+
+  let dbgAsignVisibles = 0;
+  // Draw the reel from its continuous pos (base = floor(pos), frac = pos - base).
+  // Cell k covers rows [pos-k, pos-k+1] (row 0 = top of the window).
+  // Index range [base-3, base+2] (6 = POOL): base+2 covers [frac-2, frac-1] — fully ABOVE
+  // the window — and the index a recycled slot leaves (k-6 = base-4) is fully
+  // below it. So a texture is only ever assigned off-screen, as long as pos
+  // advances < 1 cell per frame (guaranteed by V_MAX and the dt cap).
+  function dibujarReel(r) {
+    const base = Math.floor(r.pos);
+    for (let k = base - 3; k <= base + 2; k++) {
+      const sp = r.pool[((k % POOL) + POOL) % POOL];
+      if (sp.k !== k) {
+        if (DEBUG && celdaVisible(r.pos, k)) dbgAsignVisibles++;
+        sp.k = k; sp.sym = symAt(r, k);
+        sp.texture = T[sp.sym]; sp.width = sp.height = SYM_SIZE;
+      }
+    }
+    for (let j = 0; j < POOL; j++) {
+      const sp = r.pool[j];
+      if (sp.k !== null) sp.y = vent.y + CELL_H * (r.pos - sp.k + 0.5);
+    }
+  }
+  // sprite showing row `row` when the reel is aligned at `pos`
+  const spriteEnFila = (r, row) => r.pool[(((Math.round(r.pos) - row) % POOL) + POOL) % POOL];
+
+  // ─── Drum shading + separators (over the symbols, under the frame) ─
+  const sombra = spriteDe(canvasTex(vent.w, vent.h, (c) => {
+    const g = c.createLinearGradient(0, 0, 0, vent.h);
+    g.addColorStop(0, 'rgba(0,0,0,0.66)'); g.addColorStop(0.13, 'rgba(0,0,0,0)');
+    g.addColorStop(0.87, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.66)');
+    c.fillStyle = g; c.fillRect(0, 0, vent.w, vent.h);
+    for (let i = 1; i < COLS; i++) {
+      const x = i * CELL_W;
+      c.fillStyle = 'rgba(0,0,0,0.55)'; c.fillRect(x - 4, 0, 8, vent.h);
+      const lg = c.createLinearGradient(0, 0, 0, vent.h);
+      lg.addColorStop(0, 'rgba(240,210,117,0.15)'); lg.addColorStop(0.5, 'rgba(240,210,117,0.75)');
+      lg.addColorStop(1, 'rgba(240,210,117,0.15)');
+      c.fillStyle = lg; c.fillRect(x - 1.5, 0, 3, vent.h);
+    }
+    for (let row = 1; row < ROWS; row++) {
+      c.fillStyle = 'rgba(240,210,117,0.11)'; c.fillRect(0, row * CELL_H - 0.5, vent.w, 1);
+    }
+  }), vent.x, vent.y);
+  app.stage.addChild(sombra);
+
+  // ─── Frame (gold / wine, window cut out) ─────────────────────────
+  const PAD = 36;
+  const marcoTex = canvasTex(marcoW + PAD * 2, marcoH + PAD * 2, (c) => {
+    const x = PAD, y = PAD, w = marcoW, h = marcoH;
+    c.save();
+    c.shadowColor = 'rgba(240,210,117,0.5)'; c.shadowBlur = 30;
+    roundRect(c, x, y, w, h, 26); c.fillStyle = '#8c6a1f'; c.fill();
+    c.restore();
+    roundRect(c, x, y, w, h, 26); c.fillStyle = oroVertical(c, y, y + h); c.fill();
+    const brillo = c.createLinearGradient(x, y, x + w * 0.6, y + h);
+    brillo.addColorStop(0, 'rgba(255,255,255,0.32)'); brillo.addColorStop(0.35, 'rgba(255,255,255,0)');
+    roundRect(c, x, y, w, h, 26); c.fillStyle = brillo; c.fill();
+    const vino = c.createLinearGradient(0, y, 0, y + h);
+    vino.addColorStop(0, '#7a1828'); vino.addColorStop(1, '#3a0812');
+    roundRect(c, x + 7, y + 7, w - 14, h - 14, 20); c.fillStyle = vino; c.fill();
+    roundRect(c, x + BORDE - 5, y + BORDE - 5, vent.w + 10, vent.h + 10, 12);
+    c.fillStyle = oroVertical(c, y, y + h); c.fill();
+    c.globalCompositeOperation = 'destination-out';
+    roundRect(c, x + BORDE, y + BORDE, vent.w, vent.h, 8); c.fill();
+    c.globalCompositeOperation = 'source-over';
+    roundRect(c, x + 0.75, y + 0.75, w - 1.5, h - 1.5, 26);
+    c.strokeStyle = 'rgba(70,40,6,0.9)'; c.lineWidth = 1.5; c.stroke();
+    // little gold diamonds on the wine band (corners + bottom)
+    const rombo = (cx, cy, s) => {
+      c.beginPath(); c.moveTo(cx, cy - s); c.lineTo(cx + s, cy); c.lineTo(cx, cy + s); c.lineTo(cx - s, cy); c.closePath();
+      c.fillStyle = '#F0D275'; c.fill(); c.strokeStyle = '#5a0f1c'; c.lineWidth = 1; c.stroke();
+    };
+    const m = BORDE / 2 + 1;
+    [[x + m, y + m], [x + w - m, y + m], [x + m, y + h - m], [x + w - m, y + h - m]].forEach(([a, b]) => rombo(a, b, 6));
+    rombo(x + w * 0.25, y + h - m, 4); rombo(x + w * 0.75, y + h - m, 4);
+    // top plaque: "3 LÍNEAS DE PAGO"
+    const pw = 214, ph = 30, px = x + w / 2 - pw / 2, py = y + BORDE / 2 - ph / 2 + 1;
+    roundRect(c, px, py, pw, ph, 15); c.fillStyle = '#4a0b17'; c.fill();
+    c.strokeStyle = '#F0D275'; c.lineWidth = 2; c.stroke();
+    c.fillStyle = '#F0D275'; c.font = '700 14px Georgia'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    try { c.letterSpacing = '3px'; } catch (e) { console.warn('letterSpacing', e); }
+    c.fillText('3 LÍNEAS DE PAGO', x + w / 2 + 1.5, py + ph / 2 + 1);
+  });
+  const marco = spriteDe(marcoTex, marcoX - PAD, marcoY - PAD);
+  app.stage.addChild(marco); // covers the window edges
+
+  // Payline badges on both sides of the frame (light up on a win)
+  const badges = [];
+  for (let row = 0; row < ROWS; row++) {
+    [vent.x - BORDE / 2, vent.x + vent.w + BORDE / 2].forEach((bx) => {
+      const b = new PIXI.Container();
+      const glow = new PIXI.Sprite(TEX_GLOW);
+      glow.anchor.set(0.5); glow.width = glow.height = 74; glow.alpha = 0; glow.blendMode = PIXI.BLEND_MODES.ADD;
+      const disco = new PIXI.Graphics().lineStyle(2, 0xF0D275).beginFill(0x4a0b17).drawCircle(0, 0, 13).endFill();
+      const num = new PIXI.Text(String(row + 1), new PIXI.TextStyle({
+        fontFamily: 'Georgia', fontSize: 15, fontWeight: '900', fill: '#F0D275' }));
+      num.anchor.set(0.5);
+      b.addChild(glow, disco, num); b.position.set(bx, rowCenterY(row));
+      b.glow = glow; b.row = row;
+      app.stage.addChild(b); badges.push(b);
+    });
+  }
+
+  // Anticipation glow around the last reel
+  const anticipTex = canvasTex(CELL_W + 70, vent.h + 70, (c) => {
+    c.shadowColor = 'rgba(255,214,90,1)'; c.shadowBlur = 26;
+    c.strokeStyle = 'rgba(255,226,130,0.95)'; c.lineWidth = 7;
+    roundRect(c, 35, 35, CELL_W, vent.h, 10); c.stroke(); c.stroke();
+  });
+  const anticipGlow = spriteDe(anticipTex, reelCenterX(COLS - 1) - CELL_W / 2 - 35, vent.y - 35);
+  anticipGlow.blendMode = PIXI.BLEND_MODES.ADD; anticipGlow.alpha = 0;
+  app.stage.addChild(anticipGlow);
+
+  // Winning payline (redrawn only while it is being "drawn" left→right)
+  const lineaG = new PIXI.Graphics();
+  lineaG.blendMode = PIXI.BLEND_MODES.ADD;
+  const cajasG = new PIXI.Graphics();
+  app.stage.addChild(cajasG, lineaG);
+  function pintarLinea(fila, prog) {
+    lineaG.clear();
+    const y = rowCenterY(fila), x0 = vent.x - BORDE / 2, x1 = x0 + (vent.w + BORDE) * prog;
+    lineaG.lineStyle(26, 0xF0D275, 0.16).moveTo(x0, y).lineTo(x1, y);
+    lineaG.lineStyle(12, 0xF0D275, 0.35).moveTo(x0, y).lineTo(x1, y);
+    lineaG.lineStyle(4, 0xFFF4C8, 0.95).moveTo(x0, y).lineTo(x1, y);
+  }
+  function pintarCajas(fila) {
+    cajasG.clear();
+    for (let i = 0; i < COLS; i++) {
+      const x = vent.x + CELL_W * i + 8, y = vent.y + CELL_H * fila + 6;
+      cajasG.lineStyle(10, 0xF0D275, 0.18).drawRoundedRect(x, y, CELL_W - 16, CELL_H - 12, 16);
+      cajasG.lineStyle(3, 0xFFE9A0, 0.95).drawRoundedRect(x, y, CELL_W - 16, CELL_H - 12, 16);
+    }
+  }
+  function pintarCajasCeldas(filas) {
+    cajasG.clear();
+    for (let i = 0; i < COLS; i++) {
+      const x = vent.x + CELL_W * i + 8, y = vent.y + CELL_H * filas[i] + 6;
+      cajasG.lineStyle(10, 0xF0D275, 0.18).drawRoundedRect(x, y, CELL_W - 16, CELL_H - 12, 16);
+      cajasG.lineStyle(3, 0xFFE9A0, 0.95).drawRoundedRect(x, y, CELL_W - 16, CELL_H - 12, 16);
+    }
+  }
+  function limpiarLinea() { lineaG.clear(); cajasG.clear(); lineaG.alpha = cajasG.alpha = 1; }
+
+  let celebrarHasta = 0;
+
+  // ─── Botón GIRAR (centrado abajo) ────────────────────────────────
+  const boton = new PIXI.Container();
+  const bg = new PIXI.Graphics();
+  function pintarBoton(activo) {
+    bg.clear();
+    bg.lineStyle(4, activo ? 0xF0D275 : 0x555555)
+      .beginFill(activo ? 0x8f1524 : 0x3a3342)
+      .drawRoundedRect(-185, -55, 370, 110, 55).endFill();
+    // doble borde interior fino (mismo lenguaje que el modal de premios)
+    bg.lineStyle(1.5, 0xF0D275, activo ? 0.45 : 0.15)
+      .drawRoundedRect(-172, -42, 344, 84, 42);
+  }
+  pintarBoton(true);
+  const btxt = new PIXI.Text('GIRAR', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 44, fontWeight: '900', fill: '#F0D275', letterSpacing: 12,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
+  }));
+  btxt.anchor.set(0.5);
+  boton.addChild(bg, btxt);
+  boton.position.set(W / 2, CUADRADA ? H - 72 : H - 62);
+  boton.eventMode = 'static'; boton.cursor = 'pointer';
+  app.stage.addChild(boton);
+
+  // Indicador "GIRO 1/2" entre el marco y el botón: siempre se sabe cuál giro va
+  const giroLabel = new PIXI.Text('', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 22, fontWeight: '700', fill: '#C9A84C', letterSpacing: 5,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
+  }));
+  giroLabel.anchor.set(0.5);
+  giroLabel.position.set(W / 2, (marcoY + marcoH + boton.y - 55) / 2);
+  app.stage.addChild(giroLabel);
+  window.__actualizarGiroLabel = (total, restantes) => {
+    giroLabel.text = restantes > 0
+      ? `GIRO ${total - restantes + 1} / ${total}`
+      : 'GIROS AGOTADOS · VOLVÉ MÁS TARDE';
+  };
+
+  // ─── TABLA DE PREMIOS SIEMPRE VISIBLE: columnas laterales ────────
+  // 3 premios a la izquierda y 3 a la derecha del marco (en ambas formas:
+  // con 3 filas el marco es alto y la fila de abajo ya no entra en 5:4).
+  // El chip del premio ganado celebra con su halo; en reposo un brillo
+  // recorre los chips de a uno (modo atracción).
+  const combos = PREMIOS.filter(p => p.sym);
+  const tablaLayer = new PIXI.Container();
+  const chipRefs = [];
+  const ladoX = [marcoX / 2, W - marcoX / 2];
+  const CHIP_R   = CUADRADA ? 50 : 52;
+  const CHIP_ICO = CUADRADA ? 86 : 88;
+  const chipPos = (i) => ({ cx: ladoX[(i / 3) | 0], cy: rowCenterY(i % 3) - 22 });
+  combos.forEach((p, i) => {
+    const { cx, cy } = chipPos(i);
+    const halo = new PIXI.Sprite(TEX_GLOW);
+    halo.anchor.set(0.5); halo.width = halo.height = CHIP_R * 3.8;
+    halo.position.set(cx, cy); halo.alpha = 0; halo.blendMode = PIXI.BLEND_MODES.ADD;
+    const chip = new PIXI.Graphics()
+      .beginFill(0x0d0509, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, 0, CHIP_R).endFill()
+      .beginFill(0xF0D275, 0.05).drawCircle(0, 0, CHIP_R - 10).endFill();
+    chip.position.set(cx, cy);
+    const ic = new PIXI.Sprite(T[p.sym]);
+    ic.anchor.set(0.5); ic.width = ic.height = CHIP_ICO; ic.position.set(cx, cy);
+    const x3 = new PIXI.Text('× 3', new PIXI.TextStyle({ fontFamily: 'Georgia', fontSize: 16, fontWeight: '900', fill: '#C9A84C', letterSpacing: 3, dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2 }));
+    x3.anchor.set(0.5, 0); x3.position.set(cx, cy + CHIP_R + 4);
+    const lbl = new PIXI.Text(p.label, new PIXI.TextStyle({
+      fontFamily: 'Segoe UI', fontSize: CUADRADA ? 18 : 20, fontWeight: '700',
+      fill: '#F5E6B8', letterSpacing: 0.5,
+      wordWrap: true, wordWrapWidth: Math.min(250, marcoX - 24), align: 'center',
+      dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 8, dropShadowDistance: 2, dropShadowAlpha: 0.9,
+    }));
+    lbl.anchor.set(0.5, 0); lbl.position.set(cx, cy + CHIP_R + 25);
+    tablaLayer.addChild(halo, chip, ic, x3, lbl);
+    chipRefs.push({ id: p.id, halo, ic, base: CHIP_ICO });
+  });
+  app.stage.addChild(tablaLayer);
+  let chipGanador = null;
+  function tablaTick(ahora) {
+    const idx = ((ahora / 1100) | 0) % chipRefs.length;
+    const suave = Math.sin(((ahora % 1100) / 1100) * Math.PI) * 0.4;
+    chipRefs.forEach((c, i) => {
+      if (chipGanador === c.id && ahora < celebrarHasta) {
+        c.halo.alpha = 0.7 + Math.sin(ahora / 90) * 0.3;
+        c.ic.width = c.ic.height = c.base * (1 + Math.sin(ahora / 120) * 0.08);
+      } else {
+        c.halo.alpha += ((i === idx ? suave : 0) - c.halo.alpha) * 0.12;
+        c.ic.width = c.ic.height = c.base;
+      }
+    });
+  }
+
+  // ─── Cartel resultado ────────────────────────────────────────────
+  const dim = new PIXI.Graphics().beginFill(0x000000, 0.55).drawRect(0, 0, W, H).endFill();
+  dim.visible = false; app.stage.addChild(dim);
+  // golden rays behind the cartel (ticket only)
+  const rayos = new PIXI.Sprite(canvasTex(900, 900, (c) => {
+    const g = c.createRadialGradient(450, 450, 0, 450, 450, 450);
+    g.addColorStop(0, 'rgba(255,230,140,0.9)'); g.addColorStop(0.6, 'rgba(255,220,120,0.35)'); g.addColorStop(1, 'rgba(255,230,140,0)');
+    c.fillStyle = g; c.translate(450, 450);
+    for (let i = 0; i < 16; i++) {
+      c.beginPath(); c.moveTo(0, 0); c.arc(0, 0, 450, -0.11, 0.11); c.closePath(); c.fill();
+      c.rotate(Math.PI * 2 / 16);
+    }
+  }));
+  rayos.anchor.set(0.5); rayos.scale.set(1.2 / CV_RES); rayos.position.set(W / 2, H / 2 - 40);
+  rayos.blendMode = PIXI.BLEND_MODES.ADD; rayos.visible = false;
+  app.stage.addChild(rayos);
+  const cartel = new PIXI.Text('', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 64, fontWeight: '900', fill: '#F0D275', align: 'center',
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 16, dropShadowDistance: 5, letterSpacing: 2,
+  }));
+  cartel.anchor.set(0.5); cartel.position.set(W / 2, H / 2 - 40); cartel.visible = false;
+  const cartelSub = new PIXI.Text('', new PIXI.TextStyle({
+    fontFamily: 'Segoe UI', fontSize: 24, fill: '#e8dfca', align: 'center',
+  }));
+  cartelSub.anchor.set(0.5); cartelSub.position.set(W / 2, H / 2 + 40); cartelSub.visible = false;
+  const cartelLogo = new PIXI.Sprite(T.logo);
+  cartelLogo.anchor.set(0.5); cartelLogo.height = 90; cartelLogo.scale.x = cartelLogo.scale.y;
+  cartelLogo.position.set(W / 2, H / 2 - 160); cartelLogo.visible = false;
+  app.stage.addChild(cartel, cartelSub, cartelLogo);
+  let cartelTicket = false;
+  function mostrarCartel(txt, sub, color, esTicket) {
+    cartel.text = txt; cartel.style.fill = color; cartelSub.text = sub;
+    dim.visible = cartel.visible = cartelSub.visible = cartelLogo.visible = true;
+    cartelTicket = !!esTicket;
+  }
+  function ocultarCartel() { dim.visible = cartel.visible = cartelSub.visible = cartelLogo.visible = false; cartelTicket = false; }
+  dim.eventMode = 'static';
+  dim.on('pointertap', ocultarCartel);
+
+  // Full-screen gold flash (ticket)
+  const fogonazo = new PIXI.Graphics().beginFill(0xFFE9A0).drawRect(0, 0, W, H).endFill();
+  fogonazo.alpha = 0; fogonazo.blendMode = PIXI.BLEND_MODES.ADD;
+  app.stage.addChild(fogonazo);
+
+  // ─── Partículas ──────────────────────────────────────────────────
+  const parts = [];
+
+  // Moneda china (círculo de oro con agujero cuadrado) para la lluvia del premio
+  const monedaTex = (() => {
+    const g = new PIXI.Graphics();
+    g.beginFill(0xC9A84C).lineStyle(5, 0x8c6a1f).drawCircle(50, 50, 44).endFill();
+    g.beginFill(0xF0D275, 0.6).drawCircle(44, 42, 30).endFill();
+    g.beginFill(0x0d0509).lineStyle(4, 0x8c6a1f).drawRect(36, 36, 28, 28).endFill();
+    return app.renderer.generateTexture(g, { region: new PIXI.Rectangle(0, 0, 100, 100) });
+  })();
+
+  // Lluvia de monedas al ganar: caen desde arriba de la pantalla girando
+  function lluviaMonedas(n) {
+    for (let i = 0; i < n; i++) {
+      const p = new PIXI.Sprite(monedaTex);
+      p.anchor.set(0.5);
+      const s = 26 + Math.random() * 34;
+      p.width = p.height = s; p.tam = s;
+      p.position.set(Math.random() * W, -60 - Math.random() * 650);
+      p.vx = (Math.random() - 0.5) * 3; p.vy = 6 + Math.random() * 7;
+      p.rot = (Math.random() - 0.5) * 0.25;
+      p.flip = Math.random() * Math.PI * 2; p.flipVel = 0.12 + Math.random() * 0.2;
+      p.vida = 3; p.esMoneda = true;
+      app.stage.addChild(p); parts.push(p);
+    }
+  }
+  function burst(n) { lluviaMonedas(Math.round(n * (LIVIANO ? 0.3 : 0.7))); }
+
+  // ─── Animaciones de impacto (aterrizaje de símbolos) ─────────────
+  const tweens = [];
+  function squash(sp) { tweens.push({ tipo: 'squash', sp, t: 0, dur: 420 }); }
+  function flash(x, y, a) {
+    const f = new PIXI.Sprite(TEX_GLOW);
+    f.anchor.set(0.5); f.position.set(x, y);
+    f.width = f.height = SYM_SIZE * 1.3; f.alpha = a; f.a0 = a; f.blendMode = PIXI.BLEND_MODES.ADD;
+    reelLayer.addChild(f);
+    tweens.push({ tipo: 'flash', sp: f, t: 0, dur: 320 });
+  }
+  function chispas(x, y, n) {
+    for (let i = 0; i < n; i++) {
+      const p = new PIXI.Sprite(TEX_GLOW);
+      p.anchor.set(0.5); p.width = p.height = 6 + Math.random() * 10;
+      p.blendMode = PIXI.BLEND_MODES.ADD;
+      p.position.set(x + (Math.random() - 0.5) * SYM_SIZE * 0.7, y);
+      p.vx = (Math.random() - 0.5) * 10; p.vy = -3 - Math.random() * 7;
+      p.rot = 0; p.vida = 0.9;
+      app.stage.addChild(p); parts.push(p);
+    }
+  }
+  function cortarTweensSimbolos() {
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      if (tweens[i].tipo === 'squash') tweens.splice(i, 1);
+    }
+    reels.forEach(r => r.pool.forEach(sp => { sp.width = sp.height = SYM_SIZE; }));
+  }
+  let sacudidaHasta = 0, sacudidaAmp = 0;
+
+  // ─── Sorteo (DEMO — producción: servidor) ────────────────────────
+  function sortear() {
+    const r = Math.random() * 100; let acc = 0;
+    for (const p of PREMIOS) { acc += p.pct; if (r < acc) return p; }
+    return PREMIOS[PREMIOS.length - 1];
+  }
+  // DEMO-only outcome forcing for tests: &forzar=pts250,nada,casi,ticket&linea=0,2
+  const FORZAR = DEMO_KIOSK ? (PARAMS.get('forzar') || '').split(',').filter(Boolean) : [];
+  const LINEAS_F = DEMO_KIOSK ? (PARAMS.get('linea') || '').split(',').filter(s => /^[0-2]$/.test(s)).map(Number) : [];
+  let giroDemoN = 0;
+
+  const otroSym = (no, sinNudo) => {
+    let s = baseSym();
+    while (s === no || (sinNudo && s === 'nudo')) s = baseSym();
+    return s;
+  };
+  // Builds the 3×3 result: g[reel] = [top, middle, bottom].
+  // Win: the prize symbol on ONE random payline; no other row may be 3-of-a-kind.
+  // Nada: no row 3-of-a-kind; near-misses often (like v1's comboPara).
+  // BONUS (scatter): one Jackpoints logo on EACH reel, any row. Non-bonus
+  // spins: at most one logo per reel and never on all 3 reels (tease only).
+  function gridPara(premio, lineaForzada) {
+    const g = [0, 1, 2].map(() => [baseSym(), baseSym(), baseSym()]);
+    let linea = -1, filaCasi = -1, scatter = null;
+    const esBonus = premio.sym === 'bonus' && bonusHabilitado;
+    const sym = esBonus ? null
+      : premio.sym ? (SYMS.includes(premio.sym) && premio.sym !== 'nudo' ? premio.sym : 'lingote') : null;
+    if (esBonus) {
+      for (let row = 0; row < ROWS; row++) if (g[0][row] === g[1][row]) g[1][row] = otroSym(g[0][row]);
+    } else if (sym) {
+      linea = lineaForzada != null ? lineaForzada : (Math.random() * ROWS) | 0;
+      for (let i = 0; i < COLS; i++) g[i][linea] = sym;
+    } else {
+      // pairs on reels 1-2 trigger the anticipation: only when designed
+      for (let row = 0; row < ROWS; row++) if (g[0][row] === g[1][row]) g[1][row] = otroSym(g[0][row]);
+      const fila = lineaForzada != null ? lineaForzada : (Math.random() * ROWS) | 0;
+      const a = Math.random() < 0.45 ? (Math.random() < 0.5 ? 'lingote' : 'fenix') : otroSym(null, true);
+      const b = otroSym(a);
+      const roll = premio.casi ? 0 : Math.random();
+      if (roll < 0.85) filaCasi = fila;
+      if (roll < 0.6) { g[0][fila] = a; g[1][fila] = a; g[2][fila] = b; }          // A A B (anticipation)
+      else if (roll < 0.85) {                                                       // A B A / B A A
+        if (Math.random() < 0.5) { g[0][fila] = a; g[1][fila] = b; g[2][fila] = a; }
+        else { g[0][fila] = b; g[1][fila] = a; g[2][fila] = a; }
+      }
+    }
+    const evitar = linea >= 0 ? linea : filaCasi;
+    const filaLibre = () => { let f; do { f = (Math.random() * ROWS) | 0; } while (f === evitar); return f; };
+    if (esBonus) {
+      scatter = [0, 1, 2].map(() => (Math.random() * ROWS) | 0);
+      scatter.forEach((f, i) => { g[i][f] = 'bonus'; });
+    } else if (bonusHabilitado) {
+      const roll = premio.tease ? 0 : Math.random();
+      if (roll < BONUS_TEASE_2) { g[0][filaLibre()] = 'bonus'; g[1][filaLibre()] = 'bonus'; }
+      else if (roll < BONUS_TEASE_2 + BONUS_TEASE_1) g[(Math.random() * COLS) | 0][filaLibre()] = 'bonus';
+    }
+    for (let row = 0; row < ROWS; row++) {
+      if (row !== linea && g[0][row] !== 'bonus' && g[0][row] === g[1][row] && g[1][row] === g[2][row]) g[2][row] = otroSym(g[0][row]);
+    }
+    return { g, linea, sym: esBonus ? 'bonus' : sym, scatter };
+  }
+  const filasConPar = (g) => {
+    const out = [];
+    for (let row = 0; row < ROWS; row++) if (g[0][row] === g[1][row] && g[0][row] !== 'nudo' && g[0][row] !== 'bonus') out.push(row);
+    return out;
+  };
+
+  // initial screen: a random non-winning grid already in the strips
+  (() => {
+    const { g } = gridPara({ sym: null });
+    reels.forEach((r, i) => {
+      for (let row = 0; row < ROWS; row++) r.strip.set(-row, g[i][row]);
+      dibujarReel(r);
+    });
+  })();
+
+  // ─── Spin ────────────────────────────────────────────────────────
+  // SERVER MODE: the kiosk parent posts {tipo:'init', token, apiBase}; the
+  // outcome then ALWAYS comes from POST /api/loyalty/spin (rolling window and
+  // daily stock live server-side). Opened standalone (no init) = DEMO mode.
+  const GIROS_PERMITIDOS = Math.max(1, Number(new URLSearchParams(location.search).get('giros')) || 1);
+  let girosUsados = 0;
+  let girosTotal = GIROS_PERMITIDOS, girosRestantes = GIROS_PERMITIDOS;
+  let girando = false, yaGiroHoy = false, resolviendo = false;
+  const pintarGiroLabel = () => { if (window.__actualizarGiroLabel) window.__actualizarGiroLabel(girosTotal, girosRestantes); };
+  let SRV = null; // { token, apiBase }
+  window.addEventListener('message', (e) => {
+    if (e && e.data && e.data.tipo === 'init' && e.data.token) {
+      SRV = { token: e.data.token, apiBase: e.data.apiBase || '', kioskKey: e.data.kioskKey || '' };
+      bonusHabilitado = false;   // server mode never produces a bonus (not supported yet)
+      voz('giro-bienvenida');
+      fetch(SRV.apiBase + '/api/loyalty/spin-status', { headers: { Authorization: 'Bearer ' + SRV.token } })
+        .then(r => r.json())
+        .then(s => {
+          if (typeof s.left === 'number') {
+            yaGiroHoy = s.left <= 0;
+            girosTotal = s.porVentana || 2;
+            girosRestantes = s.left;
+            pintarGiroLabel();
+          }
+        })
+        .catch(() => {});
+    }
+  });
+  try { window.parent.postMessage({ tipo: 'listo' }, '*'); } catch {}
+  // kiosk demo (/kiosk?demo=1) never sends init: greet here like the real kiosk does
+  if (new URLSearchParams(location.search).get('demo') === '1') voz('giro-bienvenida');
+  // cada toque dentro del juego renueva la sesion del kiosk (el padre no ve
+  // los eventos del iframe: sin esto la sesion quedaria abierta para siempre)
+  window.addEventListener('pointerdown', () => {
+    try { window.parent.postMessage({ tipo: 'actividad' }, '*'); } catch {}
+  });
+  pintarGiroLabel();
+
+  // Motion constants (cells, seconds)
+  const WIND_A = 0.22, WIND_T = 0.3;        // wind-up: reels rise a bit before falling
+  const ACEL_K = 6;                          // exponential approach to cruise speed (1/s)
+  const V_MAX = 14;                          // hard cap: < 1 cell per (capped) frame
+  const V_ANTICIP = 13.5;
+  const V_LLEGADA = 4.4;                     // speed when the symbols reach the line
+  const RES_W = 2 * Math.PI * 3.2, RES_Z = 0.42; // landing spring: ~0.13 cell overshoot
+  const RES_ZW = RES_Z * RES_W, RES_WD = RES_W * Math.sqrt(1 - RES_Z * RES_Z);
+  const RES_T = 0.6;
+
+  let resultado = null;      // { premio, g, linea, sym, pares }
+  let anticip = null;        // { desde, hasta, pares, fin }
+  let festejo = null;        // { fila, desde, hasta, sps }
+  let riser = null;
+
+  function arrancarRodillos() {
+    const ahora = performance.now();
+    cortarTweensSimbolos();
+    limpiarLinea();
+    festejo = null; resultado = null; anticip = null;
+    scatterFila.fill(-1); scatterN = 0; scatterSonidos = [];
+    badges.forEach(b => { b.glow.alpha = 0; });
+    reels.forEach((r, i) => {
+      r.estado = 'windup'; r.t0 = ahora + i * 90; r.p0 = r.pos; r.vel = 0;
+      r.vObj = 10.5 + i * 0.5; r.adelanto = 5;
+      r.stopAt = Infinity; // spins "forever" until the result is known
+      r.objetivo = null;
+      const lim = Math.floor(r.pos) - 10; // prune old strip entries
+      for (const k of r.strip.keys()) if (k < lim) r.strip.delete(k);
+    });
+  }
+  function fijarResultado(premio) {
+    const res = gridPara(premio, premio.lineaForzada);
+    res.premio = premio;
+    res.pares = filasConPar(res.g);
+    res.anticipScatter = res.g[0].includes('bonus') && res.g[1].includes('bonus');
+    resultado = res;
+    const ahora = performance.now();
+    reels.forEach((r, i) => {
+      r.objetivo = res.g[i];
+      r.stopAt = ahora + 1100 + i * 1200;
+    });
+    if (res.pares.length || res.anticipScatter) reels[COLS - 1].stopAt += 1400; // anticipation: last reel spins longer
+    window.__premio = premio;
+  }
+
+  boton.on('pointertap', async () => {
+    if (girando || bonus) return;
+    ocultarCartel();
+    if (yaGiroHoy) {
+      voz('giro-ya-giro');
+      mostrarCartel('YA USASTE TUS GIROS', 'Revisá el contador para saber cuándo podés volver a participar', '#998d75');
+      return;
+    }
+    girando = true; resolviendo = false;
+    pintarBoton(false); btxt.text = '· · ·';
+    sfx('ui-tap', 0.7);
+    spinSound = sfx('spin-loop', 0.4, true);
+    if (spinSound) { try { spinSound.preservesPitch = false; spinSound.playbackRate = 1; } catch (e) { console.warn(e); } }
+    try { if (actx && actx.state === 'suspended') actx.resume(); } catch (e) { console.warn(e); }
+    if (!vozDice('bienvenida')) voz('giro-suerte');
+    arrancarRodillos();
+    if (SRV) {
+      try {
+        const resp = await fetch(SRV.apiBase + '/api/loyalty/spin', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + SRV.token, 'x-kiosk-key': SRV.kioskKey },
+        });
+        const j = await resp.json();
+        if (!resp.ok) throw new Error(j.error || 'spin rechazado');
+        yaGiroHoy = j.left <= 0;
+        girosRestantes = j.left;
+        try { window.parent.postMessage({ tipo: 'giro-jugado', left: j.left, premio: j.premio ? j.premio.label : null }, '*'); } catch {}
+        fijarResultado(j.premio
+          ? { id: 'srv', label: j.premio.label.toUpperCase(), sym: j.premio.sym, kind: j.premio.kind }
+          : { id: 'nada', label: 'SEGUÍ PARTICIPANDO', sym: null });
+      } catch (err) {
+        console.error('spin server:', err);
+        fijarResultado({ id: 'error', label: '', sym: null });
+      }
+    } else {
+      // DEMO standalone (forced outcomes only with ?demo=1&forzar=...)
+      const n = giroDemoN++;
+      const idF = FORZAR.length ? FORZAR[n % FORZAR.length] : null;
+      // 'casi' = forced near-miss (nada with A A B on the forced row)
+      // 'bonus' = forced bonus (scatter rows are random) · 'tease' = nada with logos on reels 1+2
+      const esBonusDemo = bonusHabilitado && (idF === 'bonus' || (!idF && Math.random() < BONUS_PROB));
+      const base = esBonusDemo ? { id: 'bonus', label: 'BONUS', sym: 'bonus', bonus: resolverBonus(null) }
+        : idF === 'casi' ? Object.assign({}, PREMIOS.find(p => p.id === 'nada'), { casi: true })
+        : idF === 'tease' ? Object.assign({}, PREMIOS.find(p => p.id === 'nada'), { tease: true })
+        : ((idF && PREMIOS.find(p => p.id === idF)) || sortear());
+      const premioDemo = Object.assign({}, base,
+        LINEAS_F.length && !esBonusDemo ? { lineaForzada: LINEAS_F[n % LINEAS_F.length] } : {});
+      fijarResultado(premioDemo);
+      // kiosk demo mode (/kiosk?demo=1): report the spin so the parent keeps a fake balance
+      // (a bonus spin is reported when the pick game ends, with its real prize)
+      if (!esBonusDemo) {
+        try {
+          window.parent.postMessage({ tipo: 'giro-jugado', left: Math.max(0, GIROS_PERMITIDOS - girosUsados - 1),
+            premio: premioDemo.id === 'nada' ? null : premioDemo.label }, '*');
+        } catch {}
+      }
+    }
+  });
+
+  // ─── Rising anticipation sound (Web Audio; silent failure) ────────
+  function iniciarRiser(dur) {
+    try {
+      actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+      const t = actx.currentTime;
+      const o = actx.createOscillator(), o2 = actx.createOscillator();
+      const f = actx.createBiquadFilter(), g = actx.createGain();
+      const lfo = actx.createOscillator(), lfoG = actx.createGain();
+      o.type = 'sawtooth'; o2.type = 'triangle'; f.type = 'lowpass';
+      o.frequency.setValueAtTime(170, t); o.frequency.exponentialRampToValueAtTime(680, t + dur);
+      o2.frequency.setValueAtTime(340, t); o2.frequency.exponentialRampToValueAtTime(1360, t + dur);
+      f.frequency.setValueAtTime(700, t); f.frequency.exponentialRampToValueAtTime(3200, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.07, t + dur * 0.85);
+      lfo.frequency.setValueAtTime(5, t); lfo.frequency.linearRampToValueAtTime(14, t + dur);
+      lfoG.gain.value = 0.025;
+      lfo.connect(lfoG); lfoG.connect(g.gain);
+      o.connect(f); o2.connect(f); f.connect(g); g.connect(actx.destination);
+      [o, o2, lfo].forEach(x => { x.start(t); x.stop(t + dur + 1.5); });
+      riser = { g, osc: [o, o2, lfo] };
+    } catch (e) { console.warn('riser', e); riser = null; }
+  }
+  function pararRiser() {
+    if (!riser) return;
+    try {
+      const t = actx.currentTime;
+      riser.g.gain.cancelScheduledValues(t);
+      riser.g.gain.setValueAtTime(Math.max(0.0001, riser.g.gain.value), t);
+      riser.g.gain.linearRampToValueAtTime(0, t + 0.08);
+      riser.osc.forEach(x => x.stop(t + 0.1));
+    } catch (e) { console.warn('riser stop', e); }
+    riser = null;
+  }
+
+  // ─── Reel motion ─────────────────────────────────────────────────
+  function iniciarFrenado(r, ahora) {
+    // Final aligned position F: its 3 visible indices (F, F-1, F-2) are all
+    // > floor(pos)+2, i.e. never drawn yet — safe to write the result there.
+    const F = Math.floor(r.pos) + r.adelanto;
+    for (let row = 0; row < ROWS; row++) r.strip.set(F - row, r.objetivo[row]);
+    r.F = F; r.p0 = r.pos; r.v0 = r.vel; r.t0 = ahora;
+    const D = F - r.pos;
+    // constant deceleration from v0 to V_LLEGADA over distance D (velocity-continuous)
+    r.T = 2 * D / (r.v0 + V_LLEGADA);
+    r.acc = (r.v0 - V_LLEGADA) / r.T;
+    r.estado = 'frenando';
+  }
+  function moverReel(r, ahora, dtS) {
+    if (r.estado === 'windup') {
+      const t = (ahora - r.t0) / 1000;
+      if (t < 0) return;
+      if (t < WIND_T) {
+        // rise and come back: pos = p0 - A*sin²(πt/T) (zero speed at both ends)
+        const s = Math.sin(Math.PI * t / WIND_T);
+        r.pos = r.p0 - WIND_A * s * s;
+        r.vel = -WIND_A * Math.PI / WIND_T * Math.sin(2 * Math.PI * t / WIND_T);
+        return;
+      }
+      r.pos = r.p0; r.vel = 0;
+      r.estado = 'girando';
+      moverReel(r, ahora, (t - WIND_T));
+      return;
+    }
+    if (r.estado === 'girando') {
+      r.vel += (r.vObj - r.vel) * (1 - Math.exp(-ACEL_K * dtS));
+      if (r.vel > V_MAX) r.vel = V_MAX;
+      r.pos += r.vel * dtS;
+      if (ahora >= r.stopAt && r.objetivo && r.vel > r.vObj * 0.8) iniciarFrenado(r, ahora);
+      return;
+    }
+    if (r.estado === 'frenando') {
+      const t = (ahora - r.t0) / 1000;
+      if (t < r.T) {
+        r.pos = r.p0 + r.v0 * t - 0.5 * r.acc * t * t;
+        r.vel = r.v0 - r.acc * t;
+        return;
+      }
+      r.estado = 'asentando'; r.t0 += r.T * 1000;
+      aterrizar(r, ahora);
+    }
+    if (r.estado === 'asentando') {
+      const t = (ahora - r.t0) / 1000;
+      if (t >= RES_T) { r.pos = r.F; r.vel = 0; r.estado = 'quieto'; return; }
+      const e = Math.exp(-RES_ZW * t), s = Math.sin(RES_WD * t), c = Math.cos(RES_WD * t);
+      r.pos = r.F + (V_LLEGADA / RES_WD) * e * s;
+      r.vel = V_LLEGADA * e * (c - (RES_ZW / RES_WD) * s);
+    }
+  }
+
+  // The symbols hit the line: sound + squash + flash + sparks (+ anticipation)
+  function aterrizar(r, ahora) {
+    sfx('reel-stop', 1);
+    for (let row = 0; row < ROWS; row++) {
+      squash(r.pool[(((r.F - row) % POOL) + POOL) % POOL]);
+      flash(r.cx, rowCenterY(row), 0.5);
+    }
+    chispas(r.cx, vent.y + vent.h - 14, LIVIANO ? 5 : 12);
+    if (!resultado) return;
+    const filaLogo = r.objetivo ? r.objetivo.indexOf('bonus') : -1;
+    if (filaLogo >= 0) {
+      // progressive scatter sound: 1st, 2nd, 3rd logo landed in this spin
+      scatterN++;
+      scatterFila[r.i] = filaLogo;
+      const nombre = 'bonus-scatter-' + Math.min(3, scatterN);
+      sfx(nombre, 1);
+      scatterSonidos.push(nombre);
+      flash(r.cx, rowCenterY(filaLogo), 1);
+      if (scatterN === 3 && resultado.scatter) { scatter3En = ahora; pintarCajasCeldas(resultado.scatter); }
+      chispas(r.cx, rowCenterY(filaLogo), LIVIANO ? 4 : 10);
+    }
+    if (r.i === COLS - 2 && (resultado.pares.length || resultado.anticipScatter)) {
+      const last = reels[COLS - 1];
+      last.vObj = V_ANTICIP; last.adelanto = 8;   // longer, more dramatic slow-down
+      const dur = Math.max(0.8, (last.stopAt - ahora) / 1000 + 0.75);
+      anticip = { desde: ahora, hasta: ahora + dur * 1000, pares: resultado.pares, fin: 0 };
+      iniciarRiser(dur);
+    }
+    if (r.i === COLS - 1 && anticip) {
+      pararRiser();
+      anticip.fin = ahora;
+      if (spinSound) { try { spinSound.playbackRate = 1; spinSound.volume = 0.4; } catch (e) { console.warn(e); } }
+    }
+  }
+
+  // All reels settled: reveal the line, then the cartel (as v1)
+  function resolverGiro() {
+    resolviendo = true;
+    girosUsados++;
+    if (!SRV) { // server mode: lo fijó la respuesta del spin
+      yaGiroHoy = girosUsados >= GIROS_PERMITIDOS;
+      girosRestantes = Math.max(0, GIROS_PERMITIDOS - girosUsados);
+    }
+    if (spinSound) { spinSound.pause(); try { spinSound.playbackRate = 1; } catch (e) { console.warn(e); } spinSound = null; }
+    pararRiser();
+    const premio = window.__premio;
+    const res = resultado;
+    if (DEBUG) registrarGiro(res);
+    const esBonusGiro = !!premio && premio.id === 'bonus' && !!res && !!res.scatter;
+    const esGanador = esBonusGiro || (!!premio && premio.id !== 'nada' && premio.id !== 'error' && !!res && res.linea >= 0);
+    const esTicket = !!premio && (premio.sym === 'lingote' || premio.kind === 'promo_ticket' || premio.id === 'ticket');
+    let espera = 450;
+    if (!premio || premio.id === 'error') espera = 0;
+    if (esBonusGiro) {
+      // no payline: glow boxes on the 3 logo cells, then the entrance
+      const ahora = performance.now();
+      festejo = { fila: -1, scatter: res.scatter, desde: ahora, hasta: ahora + 3600, lineaLista: true,
+        sps: reels.map((r, i) => spriteEnFila(r, res.scatter[i])) };
+      pintarCajasCeldas(res.scatter);
+      // the BONUS voice + entrance hit ~0.65 s after scatter-3 starts (over its tail)
+      setTimeout(() => iniciarBonus(premio), Math.max(0, scatter3En + BONUS_VOZ_DELAY_MS - ahora));
+      return;
+    }
+    if (!esGanador) scatterFila.fill(-1);   // teased logos stay lit until the spin ends
+    if (esGanador) {
+      const ahora = performance.now();
+      festejo = { fila: res.linea, desde: ahora, hasta: ahora + (esTicket ? 5200 : 3800), lineaLista: false,
+        sps: reels.map(r => spriteEnFila(r, res.linea)) };
+      pintarCajas(res.linea);
+      sfx('win-gong', esTicket ? 1 : 0.85);
+      if (esTicket) { sacudidaHasta = ahora + 700; sacudidaAmp = 9; }
+      espera = esTicket ? 1100 : 1150;
+    }
+    setTimeout(() => terminarGiro(premio, esGanador, esTicket), espera);
+  }
+  function terminarGiro(premio, esGanador, esTicket) {
+    girando = false; resolviendo = false;
+    if (premio && premio.id !== 'error') pintarGiroLabel();
+    btxt.text = 'GIRAR'; pintarBoton(true);
+    if (!premio || premio.id === 'error') {
+      mostrarCartel('SE CORTÓ LA CONEXIÓN', 'Tu giro NO se descontó — tocá GIRAR de nuevo', '#c9c0d0');
+    } else if (premio.id !== 'nada') {
+      mostrarCartel('¡GANASTE ' + premio.label + '!',
+        esTicket ? 'Retiralo en la barra con tu DNI' : 'Ya están acreditados en tu cuenta', '#F0D275', esTicket);
+      burst(esTicket ? 200 : 110);
+      if (esTicket) {
+        sfx('big-win', 1); // el stinger ya trae el grito BIG WIN — sin voz encima
+        fogonazo.alpha = 0.7;
+      } else {
+        sfx('win-coins', 0.7);
+        const vz = premio.esBonus ? premio.voz : (VOZ_SYM[premio.sym] || VOZ_PREMIO[premio.id]);
+        if (vz) setTimeout(() => voz(vz), 500);
+      }
+      celebrarHasta = performance.now() + (esTicket ? 3500 : 2200);
+      chipGanador = premio.esBonus ? null : (PREMIOS.find(p => p.sym === premio.sym) || premio).id;
+    } else if (girosRestantes > 0) {
+      // perdió pero le quedan giros: invitarlo a seguir YA
+      mostrarCartel('SEGUÍ PARTICIPANDO',
+        girosRestantes === 1 ? '¡Te queda 1 giro — probá de nuevo!' : `¡Te quedan ${girosRestantes} giros — probá de nuevo!`, '#c9c0d0');
+      sfx('lose-soft', 0.7);
+      setTimeout(() => voz('giro-nada-quedan'), 400);
+    } else {
+      // perdió el último de la ronda: suerte para la próxima
+      mostrarCartel('SEGUÍ PARTICIPANDO', 'Volvé en un rato por tus próximos giros — ¡mucha suerte!', '#c9c0d0');
+      sfx('lose-soft', 0.7);
+      setTimeout(() => voz('giro-nada'), 400);
+    }
+    if (DEBUG) dbg.terminados++;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  //  BONUS · ELEGÍ TUS FICHAS (demo-only for now)
+  //  Trigger: 3 Jackpoints logos as SCATTER (one per reel, any row).
+  //  The prize is decided BEFORE the pick game by resolverBonus(); the
+  //  board only PRESENTS it. Later the server will send it with the spin
+  //  response and resolverBonus() will just map that answer.
+  // ═══════════════════════════════════════════════════════════════
+  const BONUS_IDLE_MS = 5000;         // idle → shimmer on the closed vases (no voice)
+  const BONUS_AUTO_MS = 20000;        // idle → auto-pick one chip per second
+  const BONUS_PREMIOS = [             // demo weights (sum = 100)
+    { id: 'ticket2000', sym: 'lingote', label: 'TICKET $2.000', peso: 5,  voz: null, ticket: true, color: 0xFFD84A, casi: 'bonus-casi-ticket' },
+    { id: 'ticket1000', sym: 'fenix',   label: 'TICKET $1.000', peso: 15, voz: null, ticket: true, color: 0x3CE09A, casi: 'bonus-casi-1000' },
+    { id: 'pts500',     sym: 'gato',    label: '+500 PUNTOS',   peso: 35, voz: 'giro-500', color: 0xFF7A3C, casi: 'bonus-casi' },
+    { id: 'pts250',     sym: 'koi',     label: '+250 PUNTOS',   peso: 45, voz: 'giro-250', color: 0x4ED4E0, casi: 'bonus-casi' },
+  ];
+  const COLOR_SYM = {}, CASI_SYM = {};
+  BONUS_PREMIOS.forEach(p => { COLOR_SYM[p.sym] = p.color; CASI_SYM[p.sym] = p.casi; });
+  const ORO = 0xF0D275;
+  const TEX_GLOW_B = texturaRadial(0xFFFFFF);   // white glow: takes the tier tint
+
+  // Single source of truth for the bonus prize. `respuesta` = future server
+  // spin response ({ bonus: { id } }); demo = weighted random (or
+  // &bonuspremio=ticket|1000|500|250 with ?demo=1 for testing).
+  function resolverBonus(respuesta) {
+    if (respuesta && respuesta.bonus) {
+      const p = BONUS_PREMIOS.find(b => b.id === respuesta.bonus.id || b.sym === respuesta.bonus.sym);
+      if (p) return p;
+    }
+    const f = DEMO_KIOSK ? PARAMS.get('bonuspremio') : null;
+    if (f) {
+      const alias = { ticket: 'ticket2000', '2000': 'ticket2000', '1000': 'ticket1000' };
+      const p = BONUS_PREMIOS.find(b => b.id === (alias[f] || f) || b.id === 'pts' + f);
+      if (p) return p;
+    }
+    let r = Math.random() * BONUS_PREMIOS.reduce((a, b) => a + b.peso, 0);
+    for (const b of BONUS_PREMIOS) { r -= b.peso; if (r < 0) return b; }
+    return BONUS_PREMIOS[BONUS_PREMIOS.length - 1];
+  }
+
+  function mezclar(a) {
+    for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; const t = a[i]; a[i] = a[j]; a[j] = t; }
+    return a;
+  }
+  // The board holds 3 of each of the 4 symbols (12 chips). Picks reveal W
+  // twice and every other symbol at most twice (always a rival pair for
+  // tension), then the 3rd W — so W completes first whatever chip is tapped.
+  // `resto` is what was left on the board (shown dimmed at the end).
+  function secuenciaBonus(wSym) {
+    const otros = mezclar(BONUS_PREMIOS.map(b => b.sym).filter(s => s !== wSym));
+    const L = [5, 6, 6, 7][(Math.random() * 4) | 0];
+    const previos = [wSym, wSym, otros[0], otros[0]];
+    if (L >= 6) previos.push(otros[1]);
+    if (L >= 7) previos.push(Math.random() < 0.5 ? otros[1] : otros[2]);
+    mezclar(previos);
+    // don't open with the W pair: let the rival show up first
+    if (previos[0] === wSym && previos[1] === wSym) { const t = previos[1]; previos[1] = previos[2]; previos[2] = t; }
+    const seq = previos.concat([wSym]);
+    const cuenta = {};
+    seq.forEach(s => { cuenta[s] = (cuenta[s] || 0) + 1; });
+    const resto = [];
+    BONUS_PREMIOS.forEach(b => { for (let i = cuenta[b.sym] || 0; i < 3; i++) resto.push(b.sym); });
+    return { seq, resto: mezclar(resto) };
+  }
+
+  // ─── Bonus screen layout (logical px; kiosk 5:4 and 16:9) ─────────
+  const BZ = CUADRADA
+    ? { tituloY: 118, subY: 172, logoY: 46, leyY: 260, panelTop: 226, gridTop: 298, gridBot: 970, chipW: 200, gapX: 26, gapY: 16 }
+    : { tituloY: 108, subY: 158, logoY: 40, leyY: 0, panelTop: 208, gridTop: 222, gridBot: 858, chipW: 182, gapX: 24, gapY: 16 };
+  const B_COLS = 4, B_ROWS = 3, B_N = B_COLS * B_ROWS;
+  const chipW = BZ.chipW;
+  const chipH = Math.floor((BZ.gridBot - BZ.gridTop - BZ.gapY * (B_ROWS - 1)) / B_ROWS);
+  const gridW = chipW * B_COLS + BZ.gapX * (B_COLS - 1);
+  const gridX = (W - gridW) / 2;
+  const panelPad = 24;
+
+  const bonusLayer = new PIXI.Container();
+  bonusLayer.visible = false; bonusLayer.alpha = 0;
+  bonusLayer.pivot.set(W / 2, H / 2); bonusLayer.position.set(W / 2, H / 2);
+  // below the cartel/dim/rays/flash, above the reels screen
+  app.stage.addChildAt(bonusLayer, app.stage.getChildIndex(dim));
+
+  const panelH = BZ.gridBot + 14 - BZ.panelTop;
+  const panelBg = spriteDe(canvasTex(gridW + panelPad * 2, panelH, (c) => {
+    const w = gridW + panelPad * 2, h = panelH;
+    roundRect(c, 1, 1, w - 2, h - 2, 26); c.fillStyle = 'rgba(18,6,11,0.82)'; c.fill();
+    c.strokeStyle = 'rgba(240,210,117,0.85)'; c.lineWidth = 2.5; c.stroke();
+    roundRect(c, 8, 8, w - 16, h - 16, 20); c.strokeStyle = 'rgba(240,210,117,0.25)'; c.lineWidth = 1.2; c.stroke();
+  }), gridX - panelPad, BZ.panelTop);
+  bonusLayer.addChild(panelBg);
+
+  const BONUS_TITULO = 'BONUS · VASIJAS DE LA FORTUNA';
+  const bTitulo = new PIXI.Text(BONUS_TITULO, new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: CUADRADA ? 54 : 50, fontWeight: '900',
+    fill: ['#ffffff', '#F0D275'], fillGradientStops: [0.25, 1], letterSpacing: 3,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 12, dropShadowDistance: 4,
+  }));
+  bTitulo.anchor.set(0.5); bTitulo.position.set(W / 2, BZ.tituloY);
+  const SUB_INICIAL = 'Destapá las vasijas · Encontrá tu tesoro';
+  const bSub = new PIXI.Text(SUB_INICIAL, new PIXI.TextStyle({
+    fontFamily: 'Segoe UI', fontSize: CUADRADA ? 21 : 19, fontWeight: '700', fill: '#e8dfca', letterSpacing: 1,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 8, dropShadowDistance: 2,
+  }));
+  bSub.anchor.set(0.5); bSub.position.set(W / 2, BZ.subY);
+  bonusLayer.addChild(bTitulo, bSub);
+  // Small Jackpoints logo crowning the bonus title (one, centered)
+  if (T.bonusLogo) {
+    const bLogo = new PIXI.Sprite(T.bonusLogo);
+    bLogo.anchor.set(0.5);
+    bLogo.height = CUADRADA ? 70 : 62; bLogo.scale.x = bLogo.scale.y;
+    bLogo.position.set(W / 2, BZ.logoY);
+    bonusLayer.addChild(bLogo);
+  }
+
+  // ─── Legend: the 4 prize symbols ──────────────────────────────────
+  const leyenda = [];
+  BONUS_PREMIOS.forEach((p, i) => {
+    const it = new PIXI.Container();
+    const halo = new PIXI.Sprite(TEX_GLOW_B);
+    halo.anchor.set(0.5); halo.blendMode = PIXI.BLEND_MODES.ADD; halo.alpha = 0; halo.tint = p.color;
+    const ic = new PIXI.Sprite(T[p.sym]); ic.anchor.set(0.5);
+    const lbl = new PIXI.Text(p.label, new PIXI.TextStyle({
+      fontFamily: 'Segoe UI', fontSize: CUADRADA ? 17 : 19, fontWeight: '800', fill: '#F5E6B8', letterSpacing: 0.5,
+      dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
+    }));
+    it.addChild(halo);
+    if (CUADRADA) {
+      // one row inside the panel, above the chips
+      const cx = gridX + (gridW / B_COLS) * (i + 0.5);
+      ic.width = ic.height = 58; ic.position.set(-62, 0);
+      halo.width = halo.height = 120; halo.position.set(-62, 0);
+      lbl.anchor.set(0, 0.5); lbl.position.set(-30, 0);
+      it.position.set(cx, BZ.leyY);
+    } else {
+      // two per side, outside the panel (like the reels' prize table)
+      const izq = i < 2;
+      const cx = izq ? (gridX - panelPad) / 2 : W - (gridX - panelPad) / 2;
+      const cy = BZ.gridTop + (BZ.gridBot - BZ.gridTop) * (i % 2 === 0 ? 0.27 : 0.73);
+      const disco = new PIXI.Graphics()
+        .beginFill(0x0d0509, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, -26, 54).endFill();
+      it.addChild(disco);
+      ic.width = ic.height = 92; ic.position.set(0, -26);
+      halo.width = halo.height = 200; halo.position.set(0, -26);
+      lbl.anchor.set(0.5, 0); lbl.position.set(0, 40);
+      it.position.set(cx, cy);
+    }
+    // "2/3" badge that pops when this prize has a pair
+    const badge = new PIXI.Container();
+    const pill = new PIXI.Graphics().lineStyle(2, 0xFFE9A0, 1).beginFill(0x7a1020, 0.96).drawRoundedRect(-22, -13, 44, 26, 13).endFill();
+    const estiloBadge = new PIXI.TextStyle({ fontFamily: 'Georgia', fontSize: 17, fontWeight: '900', fill: '#FFE9A0' });
+    const b23 = new PIXI.Text('2/3', estiloBadge); b23.anchor.set(0.5);
+    const b33 = new PIXI.Text('3/3', estiloBadge); b33.anchor.set(0.5); b33.visible = false;
+    badge.addChild(pill, b23, b33); badge.visible = false;
+    if (CUADRADA) badge.position.set(-40, -22); else badge.position.set(46, -74);
+    it.addChild(ic, lbl, badge);
+    it.badge = badge; it.b23 = b23; it.b33 = b33; it.badgeT0 = 0;
+    it.halo = halo; it.ic = ic; it.icBase = ic.width; it.sym = p.sym;
+    bonusLayer.addChild(it); leyenda.push(it);
+  });
+
+  // ─── Vases (fortune urns), drawn once on canvas → textures ──────
+  // Body textures (one per seal character) + one lid texture. The game
+  // only moves/tints sprites afterwards: nothing is allocated per frame.
+  const SELLOS = ['福', '财', '喜'];   // fortune · wealth · joy
+  const FUENTE_CJK = '"Microsoft YaHei", "SimSun", "MS Gothic", serif';
+  const RIM_Y = 0.25;                  // vase mouth (fraction of chipH from the top)
+  function bronce(c, x0, x1) {
+    const g = c.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, '#4a2a0c'); g.addColorStop(0.18, '#9a6524'); g.addColorStop(0.36, '#f7e39a');
+    g.addColorStop(0.52, '#d6aa4e'); g.addColorStop(0.78, '#8c5a1c'); g.addColorStop(1, '#3e2208');
+    return g;
+  }
+  function cuerpoVasija(c, w, h) {
+    const cx = w / 2;
+    c.beginPath();
+    c.moveTo(cx - w * 0.15, h * 0.35);
+    c.bezierCurveTo(cx - w * 0.47, h * 0.40, cx - w * 0.47, h * 0.80, cx - w * 0.20, h * 0.875);
+    c.lineTo(cx + w * 0.20, h * 0.875);
+    c.bezierCurveTo(cx + w * 0.47, h * 0.80, cx + w * 0.47, h * 0.40, cx + w * 0.15, h * 0.35);
+    c.closePath();
+  }
+  function texVasija(sello) {
+    const w = chipW, h = chipH;
+    return canvasTex(w, h, (c) => {
+      const cx = w / 2;
+      // floor shadow
+      c.fillStyle = 'rgba(0,0,0,0.45)';
+      c.beginPath(); c.ellipse(cx, h * 0.935, w * 0.30, 7, 0, 0, Math.PI * 2); c.fill();
+      // foot
+      c.beginPath();
+      c.moveTo(cx - w * 0.19, h * 0.86); c.lineTo(cx + w * 0.19, h * 0.86);
+      c.lineTo(cx + w * 0.23, h * 0.93); c.lineTo(cx - w * 0.23, h * 0.93); c.closePath();
+      c.fillStyle = bronce(c, cx - w * 0.23, cx + w * 0.23); c.fill();
+      c.strokeStyle = 'rgba(60,30,6,0.8)'; c.lineWidth = 1.2; c.stroke();
+      // neck
+      c.beginPath();
+      c.moveTo(cx - w * 0.17, h * RIM_Y); c.lineTo(cx + w * 0.17, h * RIM_Y);
+      c.lineTo(cx + w * 0.14, h * 0.36); c.lineTo(cx - w * 0.14, h * 0.36); c.closePath();
+      c.fillStyle = bronce(c, cx - w * 0.17, cx + w * 0.17); c.fill();
+      // body + bands (clipped to the body)
+      cuerpoVasija(c, w, h);
+      c.fillStyle = bronce(c, cx - w * 0.42, cx + w * 0.42); c.fill();
+      c.save();
+      cuerpoVasija(c, w, h); c.clip();
+      const brillo = c.createRadialGradient(cx - w * 0.15, h * 0.50, 2, cx - w * 0.15, h * 0.50, w * 0.32);
+      brillo.addColorStop(0, 'rgba(255,248,215,0.55)'); brillo.addColorStop(1, 'rgba(255,248,215,0)');
+      c.fillStyle = brillo; c.fillRect(0, 0, w, h);
+      [h * 0.415, h * 0.80].forEach((y) => {
+        c.fillStyle = '#5e0f1e'; c.fillRect(0, y - 6, w, 12);
+        c.fillStyle = '#F0D275'; c.fillRect(0, y - 7, w, 1.6); c.fillRect(0, y + 5.4, w, 1.6);
+        for (let x = 6; x < w; x += 13) { c.beginPath(); c.arc(x, y, 2, 0, Math.PI * 2); c.fill(); }
+      });
+      c.restore();
+      cuerpoVasija(c, w, h); c.strokeStyle = 'rgba(60,30,6,0.85)'; c.lineWidth = 1.5; c.stroke();
+      // red seal with the character
+      const s = Math.min(w * 0.34, h * 0.2), sy = h * 0.61;
+      c.save();
+      c.shadowColor = 'rgba(0,0,0,0.5)'; c.shadowBlur = 6; c.shadowOffsetY = 2;
+      roundRect(c, cx - s / 2, sy - s / 2, s, s, 6);
+      const rojo = c.createLinearGradient(0, sy - s / 2, 0, sy + s / 2);
+      rojo.addColorStop(0, '#d0202e'); rojo.addColorStop(1, '#8a0c16');
+      c.fillStyle = rojo; c.fill();
+      c.restore();
+      roundRect(c, cx - s / 2 + 3, sy - s / 2 + 3, s - 6, s - 6, 4);
+      c.strokeStyle = '#F0D275'; c.lineWidth = 1.6; c.stroke();
+      c.fillStyle = '#FFE9A0'; c.font = `700 ${Math.round(s * 0.66)}px ${FUENTE_CJK}`;
+      c.textAlign = 'center'; c.textBaseline = 'middle';
+      c.fillText(sello, cx, sy + 1);
+      // rim + dark mouth (covered by the lid until it opens)
+      c.beginPath(); c.ellipse(cx, h * RIM_Y, w * 0.185, 7, 0, 0, Math.PI * 2);
+      c.fillStyle = '#F0D275'; c.fill();
+      c.beginPath(); c.ellipse(cx, h * RIM_Y, w * 0.15, 4.5, 0, 0, Math.PI * 2);
+      c.fillStyle = '#1a0806'; c.fill();
+    });
+  }
+  const LID_W = Math.round(chipW * 0.46), LID_H = Math.round(chipH * 0.2);
+  const texTapa = canvasTex(LID_W, LID_H, (c) => {
+    const cx = LID_W / 2, base = LID_H * 0.8;
+    c.beginPath(); c.ellipse(cx, base, LID_W * 0.46, LID_H * 0.5, 0, Math.PI, 0); c.closePath();
+    c.fillStyle = bronce(c, cx - LID_W * 0.46, cx + LID_W * 0.46); c.fill();
+    c.strokeStyle = 'rgba(60,30,6,0.85)'; c.lineWidth = 1.3; c.stroke();
+    c.fillStyle = '#5e0f1e'; c.fillRect(cx - LID_W * 0.40, base - LID_H * 0.2, LID_W * 0.8, 4);
+    c.beginPath(); c.ellipse(cx, base, LID_W * 0.48, 5, 0, 0, Math.PI * 2);
+    c.fillStyle = '#F0D275'; c.fill(); c.stroke();
+    // knob
+    c.beginPath(); c.arc(cx, LID_H * 0.2, LID_H * 0.15, 0, Math.PI * 2);
+    const pomo = c.createRadialGradient(cx - 2, LID_H * 0.15, 1, cx, LID_H * 0.2, LID_H * 0.15);
+    pomo.addColorStop(0, '#fff4c8'); pomo.addColorStop(1, '#b8862e');
+    c.fillStyle = pomo; c.fill(); c.stroke();
+  });
+  const texVasijas = SELLOS.map(texVasija);
+  const MOUTH_Y = chipH * RIM_Y - chipH / 2;          // mouth, in vase-local coords
+  const SYM_Y = chipH * 0.06;                          // symbol rests in front of the body
+  const OPEN_MS = 600;
+  // dark wine/black disc with a thin gold ring + soft shadow: the revealed
+  // symbol must read at a glance in front of the (receded) gold vase
+  const DISCO_D = Math.round(Math.min(chipW, chipH) * 0.86), DISCO_PAD = 12;
+  const texDisco = canvasTex(DISCO_D + DISCO_PAD * 2, DISCO_D + DISCO_PAD * 2, (c) => {
+    const m = DISCO_D / 2 + DISCO_PAD, r = DISCO_D / 2;
+    c.save();
+    c.shadowColor = 'rgba(0,0,0,0.75)'; c.shadowBlur = 12; c.shadowOffsetY = 4;
+    const g = c.createRadialGradient(m, m - r * 0.2, r * 0.1, m, m, r);
+    g.addColorStop(0, '#4a1020'); g.addColorStop(0.65, '#1c060c'); g.addColorStop(1, '#070203');
+    c.beginPath(); c.arc(m, m, r, 0, Math.PI * 2); c.fillStyle = g; c.fill();
+    c.restore();
+    c.beginPath(); c.arc(m, m, r - 2, 0, Math.PI * 2); c.strokeStyle = '#F0D275'; c.lineWidth = 2.2; c.stroke();
+    c.beginPath(); c.arc(m, m, r - 7, 0, Math.PI * 2); c.strokeStyle = 'rgba(240,210,117,0.3)'; c.lineWidth = 1; c.stroke();
+  });
+  const DISCO_ESC = 1 / CV_RES;
+
+  const chipsLayer = new PIXI.Container();
+  bonusLayer.addChild(chipsLayer);
+  const fichas = [];
+  for (let i = 0; i < B_N; i++) {
+    const ch = new PIXI.Container();
+    ch.position.set(gridX + (chipW + BZ.gapX) * (i % B_COLS) + chipW / 2,
+                    BZ.gridTop + (chipH + BZ.gapY) * ((i / B_COLS) | 0) + chipH / 2);
+    // aura: tap flash · pair pulse · winning trio
+    const ring = new PIXI.Sprite(TEX_GLOW_B);
+    ring.anchor.set(0.5); ring.width = chipW * 1.6; ring.height = chipH * 1.4; ring.tint = ORO;
+    ring.alpha = 0; ring.blendMode = PIXI.BLEND_MODES.ADD;
+    const body = new PIXI.Sprite(texVasijas[i % SELLOS.length]);
+    body.anchor.set(0.5); body.scale.set(1 / CV_RES);
+    const shine = new PIXI.Sprite(TEX_GLOW);
+    shine.anchor.set(0.5); shine.width = chipW * 0.8; shine.height = chipH * 0.6; shine.y = chipH * 0.1;
+    shine.blendMode = PIXI.BLEND_MODES.ADD; shine.alpha = 0;
+    const lid = new PIXI.Sprite(texTapa);
+    lid.anchor.set(0.5, 0.8); lid.scale.set(1 / CV_RES);
+    const lidY0 = MOUTH_Y + 2;
+    const symHalo = new PIXI.Sprite(TEX_GLOW_B); symHalo.tint = ORO;
+    symHalo.anchor.set(0.5); symHalo.blendMode = PIXI.BLEND_MODES.ADD; symHalo.alpha = 0;
+    symHalo.width = symHalo.height = Math.min(chipW, chipH) * 1.05; symHalo.y = SYM_Y;
+    const faceSym = new PIXI.Sprite(T.lingote); faceSym.anchor.set(0.5); faceSym.visible = false;
+    const symTam = Math.min(chipW, chipH) * 0.72;
+    const disco = new PIXI.Sprite(texDisco);
+    disco.anchor.set(0.5); disco.scale.set(DISCO_ESC); disco.y = SYM_Y; disco.alpha = 0;
+    ch.addChild(ring, body, shine, lid, symHalo, disco, faceSym);
+    ch.hitArea = new PIXI.Rectangle(-chipW / 2, -chipH / 2, chipW, chipH);
+    ch.eventMode = 'static'; ch.cursor = 'pointer';
+    Object.assign(ch, { idx: i, ring, body, disco, lid, lidY0, lidDir: 1, symHalo, faceSym, shine, symTam,
+      estado: 'tapada', sym: null, tPress: 0, tFlip: 0, tPop: 0, tRing: 0, sonoReveal: false,
+      par: false, gana: false, apagada: false, silenciosa: false });
+    ch.on('pointerdown', () => tocarFicha(ch, false));
+    chipsLayer.addChild(ch); fichas.push(ch);
+  }
+  function resetVasija(ch) {
+    ch.estado = 'tapada'; ch.sym = null; ch.par = ch.gana = ch.apagada = ch.silenciosa = ch.sonoReveal = false;
+    ch.tPress = ch.tFlip = ch.tPop = ch.tRing = 0;
+    ch.alpha = 1; ch.scale.set(1); ch.ring.alpha = 0; ch.shine.alpha = 0;
+    ch.body.tint = 0xFFFFFF; ch.body.alpha = 1; ch.disco.alpha = 0; ch.disco.scale.set(DISCO_ESC);
+    ch.ring.tint = ORO; ch.symHalo.tint = ORO;
+    ch.lid.position.set(0, ch.lidY0); ch.lid.rotation = 0; ch.lid.alpha = 1;
+    ch.faceSym.visible = false; ch.symHalo.alpha = 0;
+  }
+  // assigns the symbol and starts the opening (lid pops, symbol rises)
+  function abrirVasija(ch, sym, inicio) {
+    ch.sym = sym;
+    ch.faceSym.texture = T[sym]; ch.faceSym.width = ch.faceSym.height = ch.symTam * 0.35;
+    ch.lidDir = Math.random() < 0.5 ? -1 : 1;
+    ch.estado = 'girando'; ch.tFlip = inicio; ch.sonoReveal = false;
+  }
+
+  const HILO_N = 16;
+  const hilosLayer = new PIXI.Container();
+  bonusLayer.addChild(hilosLayer);
+  const hilos = [];
+  for (let i = 0; i < 3; i++) {
+    const g = new PIXI.Graphics(); g.visible = false; g.blendMode = PIXI.BLEND_MODES.ADD;
+    hilosLayer.addChild(g);
+    const dots = [];
+    for (let j = 0; j < HILO_N; j++) {
+      const d = new PIXI.Sprite(TEX_GLOW_B);
+      d.anchor.set(0.5); d.blendMode = PIXI.BLEND_MODES.ADD; d.visible = false;
+      hilosLayer.addChild(d); dots.push(d);
+    }
+    hilos.push({ g, dots, activo: false, t0: 0, ax: 0, ay: 0, bx: 0, by: 0, cx: 0, cy: 0 });
+  }
+  // arc bowed towards the top of the screen, drawn once per pair
+  function crearHilo(a, b, sym, ahora) {
+    const h = hilos.find(x => !x.activo);
+    if (!h) return;
+    h.activo = true; h.t0 = ahora;
+    h.ax = a.x; h.ay = a.y + SYM_Y; h.bx = b.x; h.by = b.y + SYM_Y;
+    const dx = h.bx - h.ax, dy = h.by - h.ay, L = Math.hypot(dx, dy) || 1;
+    let nx = dy / L, ny = -dx / L;
+    if (ny > 0) { nx = -nx; ny = -ny; }
+    const bow = Math.min(110, L * 0.25);
+    h.cx = (h.ax + h.bx) / 2 + nx * bow; h.cy = (h.ay + h.by) / 2 + ny * bow;
+    const col = COLOR_SYM[sym] || ORO;
+    const g = h.g;
+    g.clear();
+    g.lineStyle(16, col, 0.16).moveTo(h.ax, h.ay).quadraticCurveTo(h.cx, h.cy, h.bx, h.by);
+    g.lineStyle(6, ORO, 0.5).moveTo(h.ax, h.ay).quadraticCurveTo(h.cx, h.cy, h.bx, h.by);
+    g.lineStyle(2, 0xFFF4C8, 0.95).moveTo(h.ax, h.ay).quadraticCurveTo(h.cx, h.cy, h.bx, h.by);
+    g.visible = true; g.alpha = 0;
+    h.dots.forEach((d, j) => { d.tint = j % 3 === 0 ? 0xFFFFFF : col; d.visible = true; d.alpha = 0; });
+  }
+  function apagarHilos() {
+    hilos.forEach(h => { h.activo = false; h.g.visible = false; h.dots.forEach(d => { d.visible = false; }); });
+  }
+
+  // Sparkle pool (no allocations while the bonus runs)
+  const bChispas = [];
+  for (let i = 0; i < 48; i++) {
+    const p = new PIXI.Sprite(TEX_GLOW);
+    p.anchor.set(0.5); p.blendMode = PIXI.BLEND_MODES.ADD; p.visible = false;
+    p.vx = 0; p.vy = 0; p.vida = 0;
+    bonusLayer.addChild(p); bChispas.push(p);
+  }
+  let bChispaIdx = 0;
+  function chispasFicha(x, y, n) {
+    for (let i = 0; i < n; i++) {
+      const p = bChispas[bChispaIdx]; bChispaIdx = (bChispaIdx + 1) % bChispas.length;
+      const a = Math.random() * Math.PI * 2, v = 3 + Math.random() * 6;
+      p.visible = true; p.vida = 1; p.alpha = 1;
+      p.width = p.height = 8 + Math.random() * 14;
+      p.position.set(x + Math.cos(a) * chipW * 0.25, y + Math.sin(a) * chipH * 0.25);
+      p.vx = Math.cos(a) * v; p.vy = Math.sin(a) * v - 2.5;
+    }
+  }
+
+  // ─── Entrance: big Jackpoints logo over the reels ─────────────────
+  const intro = new PIXI.Container();
+  intro.visible = false;
+  intro.position.set(W / 2, rowCenterY(1) - 30);
+  const introLogo = new PIXI.Sprite(T.bonusLogo || T.logo);
+  introLogo.anchor.set(0.5); introLogo.width = CUADRADA ? 600 : 540; introLogo.scale.y = introLogo.scale.x;
+  const introTxt = new PIXI.Text('¡BONUS!', new PIXI.TextStyle({
+    fontFamily: 'Georgia', fontSize: 92, fontWeight: '900',
+    fill: ['#ffffff', '#F0D275', '#c9a84c'], fillGradientStops: [0.2, 0.6, 1], letterSpacing: 8,
+    stroke: '#4a0b17', strokeThickness: 8,
+    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 18, dropShadowDistance: 6,
+  }));
+  introTxt.anchor.set(0.5); introTxt.y = introLogo.height / 2 + 30;
+  intro.addChild(introLogo, introTxt);
+  app.stage.addChild(intro);
+
+  // reels-screen elements that fade out while the bonus board is up
+  const capasJuego = [ventBg, reelLayer, sombra, marco, ...badges, anticipGlow, cajasG, lineaG, boton, giroLabel, tablaLayer];
+  const RAYOS_POS_X = rayos.x, RAYOS_POS_Y = rayos.y;
+
+  function iniciarBonus(premioGiro) {
+    const ahora = performance.now();
+    const premio = premioGiro.bonus || resolverBonus(null);
+    const { seq, resto } = secuenciaBonus(premio.sym);
+    bonus = { fase: 'entrada', t0: ahora, premio, seq, resto, n: 0, cuentas: {},
+      ultimoToque: ahora, autoUlt: 0, otraDicha: false, casiDichas: 0, completo: false,
+      restoIni: false, restoN: 0, elegi: 'espera', tElegi: 0 };
+    if (DEBUG) {
+      dbg.bonus = dbg.bonus || [];
+      dbg.bonusActual = { W: premio.id, wSym: premio.sym, seq: seq.slice(), reveladas: [], maxOtrosAntesDeW: 0, autoPicks: 0, ok: null };
+      dbg.bonus.push(dbg.bonusActual);
+    }
+    fichas.forEach(resetVasija);
+    apagarHilos();
+    leyenda.forEach(it => { it.badge.visible = false; it.badgeT0 = 0; });
+    bonusMusicaOn = true;
+    leyenda.forEach(it => { it.halo.alpha = 0; it.ic.width = it.ic.height = it.icBase; });
+    bSub.text = SUB_INICIAL;
+    // the logos pulse harder for the entrance
+    if (festejo) { festejo.amp = 0.22; festejo.hasta = ahora + 2600; }
+    fogonazo.alpha = 0.85;
+    sacudidaHasta = ahora + 600; sacudidaAmp = 8;
+    rayos.position.set(W / 2, rowCenterY(1));
+    voz(BONUS_VOZ_ENTRADA);
+    intro.visible = true; intro.alpha = 1; intro.scale.set(0);
+    chispas(W / 2, rowCenterY(1), LIVIANO ? 8 : 24);
+  }
+
+  function tocarFicha(ch, auto) {
+    const b = bonus;
+    if (!b || b.fase !== 'picks' || b.completo || ch.estado !== 'tapada') return;
+    const ahora = performance.now();
+    if (!auto) b.ultimoToque = ahora;
+    else {
+      // auto-picks keep the kiosk session alive too
+      try { window.parent.postMessage({ tipo: 'actividad' }, '*'); } catch {}
+      if (DEBUG && dbg.bonusActual) dbg.bonusActual.autoPicks++;
+    }
+    const sym = b.seq[b.n++];
+    if (b.n >= b.seq.length) b.completo = true;   // no more taps: the trio is on its way
+    abrirVasija(ch, sym, ahora + 90);
+    ch.tPress = ahora; ch.tRing = ahora;
+    sfx('bonus-flip', 0.8);
+    chispasFicha(ch.x, ch.y + MOUTH_Y, LIVIANO ? 4 : 10);   // golden puff from the lid
+  }
+
+  function fichaRevelada(ch, ahora) {
+    ch.estado = 'abierta'; ch.tPop = ahora;
+    const b = bonus;
+    if (ch.silenciosa) return;   // leftovers at the end: no counting, no sounds
+    const c = (b.cuentas[ch.sym] || 0) + 1;
+    b.cuentas[ch.sym] = c;
+    const W_SYM = b.premio.sym;
+    if (DEBUG && dbg.bonusActual) {
+      dbg.bonusActual.reveladas.push(ch.sym);
+      if (!(b.cuentas[W_SYM] >= 3)) {
+        for (const k in b.cuentas) if (k !== W_SYM && b.cuentas[k] > dbg.bonusActual.maxOtrosAntesDeW) dbg.bonusActual.maxOtrosAntesDeW = b.cuentas[k];
+      }
+    }
+    if (c === 2) {
+      sfx('bonus-pair', 0.75);
+      const col = COLOR_SYM[ch.sym] || ORO;
+      let otra = null;
+      fichas.forEach(f => {
+        if (f.estado === 'abierta' && f.sym === ch.sym && !f.silenciosa) {
+          f.par = true; f.ring.tint = col; f.symHalo.tint = col;
+          if (f !== ch) otra = f;
+        }
+      });
+      if (otra) crearHilo(otra, ch, ch.sym, ahora);
+      const it = leyenda.find(x => x.sym === ch.sym);
+      if (it) it.badgeT0 = ahora;
+      // ticket / 1000 pairs get their own line; 500 / 250 the generic one (60%)
+      const vozCasi = CASI_SYM[ch.sym] || 'bonus-casi';
+      const personal = vozCasi !== 'bonus-casi';
+      if (b.casiDichas < 2 && (personal || Math.random() < 0.6) && !vozDice('bonus-elegi')) {
+        b.casiDichas++;
+        setTimeout(() => { if (bonus === b && b.fase === 'picks' && !vozDice('bonus-elegi')) voz(vozCasi); }, 280);
+      }
+    }
+    if (ch.sym === W_SYM && c === 3) {
+      b.fase = 'resuelto'; b.t0 = ahora;
+      sfx('bonus-trio', 0.5);
+      apagarHilos();
+      const itW = leyenda.find(x => x.sym === W_SYM);
+      if (itW) itW.badgeT0 = ahora;
+      const colW = COLOR_SYM[W_SYM] || ORO;
+      fichas.forEach(f => {
+        if (f.estado === 'abierta' && f.sym === W_SYM) {
+          f.gana = true; f.par = false; f.ring.tint = colW; f.symHalo.tint = colW;
+          chispasFicha(f.x, f.y + SYM_Y, LIVIANO ? 4 : 10);
+        }
+        else { f.par = false; if (f.estado === 'abierta') f.apagada = true; }   // trio stands out
+      });
+      bSub.text = '¡3 IGUALES! GANASTE ' + b.premio.label;
+      if (DEBUG && dbg.bonusActual) {
+        const cu = b.cuentas;
+        dbg.bonusActual.ok = cu[W_SYM] === 3 && Object.keys(cu).every(k => k === W_SYM || cu[k] <= 2);
+        dbg.bonusActual.cuentas = Object.assign({}, cu);
+      }
+    }
+  }
+
+  function terminarBonusPremio(b) {
+    const p = b.premio;
+    const premioFinal = { id: 'bonus-' + p.id, label: p.label, sym: p.sym, esBonus: true, voz: p.voz };
+    window.__premio = premioFinal;
+    // kiosk demo: the spin is reported once its real prize is known
+    try {
+      window.parent.postMessage({ tipo: 'giro-jugado', left: Math.max(0, GIROS_PERMITIDOS - girosUsados), premio: p.label }, '*');
+    } catch {}
+    if (p.ticket) { sacudidaHasta = performance.now() + 700; sacudidaAmp = 9; }
+    try { const tr = audioDe(SFX_DIR2 + 'bonus-trio.mp3'); if (!tr.paused) tr.volume = 0.12; } catch (e) { console.warn(e); }
+    terminarGiro(premioFinal, true, !!p.ticket);
+  }
+
+  function finalizarBonus() {
+    bonus = null;
+    bonusMusicaOn = false;
+    apagarHilos();
+    bonusLayer.visible = false; bonusLayer.alpha = 0;
+    capasJuego.forEach(o => { o.alpha = 1; });
+    intro.visible = false; bonusRayos = 0;
+    rayos.position.set(RAYOS_POS_X, RAYOS_POS_Y);
+    bChispas.forEach(p => { p.visible = false; });
+    scatterFila.fill(-1);
+  }
+
+  const BONUS_MUSICA_VOL = 0.32, MUSICA_JUEGO_VOL = 0.3, MUSICA_FADE_S = 0.6, MUSICA_XF_S = 1.2;
+  const bMus = DEMO_KIOSK ? [audioDe(SFX_DIR2 + 'bonus-musica.mp3'), audioDe(SFX_DIR2 + 'bonus-musica.mp3?b')] : [];
+  let gBonus = 0, gJuego = 1, gDuck = 1, bmCur = 0, bmXf = -1, bmIniciada = false;
+  function arrancarPista(a) {
+    try {
+      a.loop = false; a.volume = 0; a.currentTime = 0;
+      const p = a.play();
+      if (p) p.catch(e => console.warn('bonus musica:', e && e.name));
+    } catch (e) { console.warn('bonus musica', e); }
+  }
+  function mezclaMusica(dtMs) {
+    const paso = dtMs / 1000 / MUSICA_FADE_S;
+    gJuego = bonusMusicaOn ? Math.max(0, gJuego - paso) : Math.min(1, gJuego + paso);
+    gBonus = bonusMusicaOn ? Math.min(1, gBonus + paso) : Math.max(0, gBonus - paso);
+    if (musica) musica.volume = MUSICA_JUEGO_VOL * gJuego;
+    if (!bMus.length) return;
+    if (gBonus <= 0) {
+      if (bmIniciada) { bMus.forEach(a => { if (!a.paused) a.pause(); }); bmIniciada = false; bmXf = -1; bmCur = 0; }
+      return;
+    }
+    const hablando = !!vozActual && !vozActual.paused && !vozActual.ended;
+    gDuck += ((hablando ? 0.6 : 1) - gDuck) * Math.min(1, dtMs / 150);
+    let a = bMus[bmCur], o = bMus[1 - bmCur];
+    if (!bmIniciada) { bmIniciada = true; arrancarPista(a); }
+    else if (bmXf < 0 && a.ended) arrancarPista(a);   // no duration known: plain restart
+    // seamless loop: start the twin copy before the end and crossfade
+    if (bmXf < 0 && a.duration > MUSICA_XF_S * 3 && a.currentTime > a.duration - MUSICA_XF_S) { bmXf = 0; arrancarPista(o); }
+    let wa = 1, wo = 0;
+    if (bmXf >= 0) {
+      bmXf += dtMs / 1000;
+      const k = Math.min(1, bmXf / MUSICA_XF_S);
+      wa = 1 - k; wo = k;
+      if (k >= 1) { a.pause(); bmCur = 1 - bmCur; bmXf = -1; const t = a; a = o; o = t; wa = 1; wo = 0; }
+    }
+    const v = BONUS_MUSICA_VOL * gBonus * gDuck;
+    a.volume = Math.max(0, Math.min(1, v * wa));
+    o.volume = Math.max(0, Math.min(1, v * wo));
+  }
+
+  const easeOutBack = (k) => { const c1 = 1.9, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+
+  function bonusTick(ahora, dt) {
+    const b = bonus;
+    const t = ahora - b.t0;
+    if (b.fase === 'entrada') {
+      // 0-600 flash + rays + logos pulse · 500-1100 big logo pops · hold · 2600 transition
+      bonusRayos = Math.min(1, t / 300);
+      const k = Math.min(1, Math.max(0, (t - 500) / 600));
+      intro.scale.set(k > 0 ? easeOutBack(k) * (1 + 0.03 * Math.sin(ahora / 160)) : 0);
+      if (t >= 2600) {
+        b.fase = 'transicion'; b.t0 = ahora;
+        bonusLayer.visible = true;
+      }
+    } else if (b.fase === 'transicion') {
+      const k = Math.min(1, t / 600);
+      const e = k * k * (3 - 2 * k);
+      capasJuego.forEach(o => { o.alpha = 1 - e; });
+      intro.alpha = 1 - e; intro.scale.set(1 + e * 0.5);
+      bonusRayos = 1 - e;
+      bonusLayer.alpha = e; bonusLayer.scale.set(0.9 + 0.1 * e);
+      if (k >= 1) {
+        intro.visible = false; bonusRayos = 0;
+        rayos.position.set(RAYOS_POS_X, RAYOS_POS_Y);
+        b.fase = 'picks'; b.t0 = ahora; b.ultimoToque = ahora;
+        b.elegi = 'espera';   // "bonus-elegi" plays once the BONUS voice is over
+      }
+    } else if (b.fase === 'picks') {
+      if (b.elegi === 'espera' && !vozDice(BONUS_VOZ_ENTRADA)) {
+        b.elegi = 'sonando'; b.tElegi = ahora; voz('bonus-elegi');
+      } else if (b.elegi === 'sonando' && ((!vozDice('bonus-elegi') && ahora - b.tElegi > 300) || ahora - b.tElegi > 9000)) {
+        // idle (5 s) and autopick (20 s) timers start when the line is over
+        b.elegi = 'listo'; if (b.ultimoToque < ahora) b.ultimoToque = ahora;
+      }
+      const idle = b.elegi === 'listo' ? ahora - b.ultimoToque : 0;
+      if (!b.completo && idle > BONUS_AUTO_MS && ahora - b.autoUlt >= 1000) {
+        b.autoUlt = ahora;
+        let libres = 0;
+        for (let i = 0; i < B_N; i++) if (fichas[i].estado === 'tapada') libres++;
+        let elegida = (Math.random() * libres) | 0;
+        for (let i = 0; i < B_N; i++) {
+          if (fichas[i].estado === 'tapada' && elegida-- === 0) { tocarFicha(fichas[i], true); break; }
+        }
+      }
+    } else if (b.fase === 'resuelto') {
+      // highlight the trio · then show what was left (dimmed) · then the cartel
+      if (!b.restoIni && t >= 1400) {
+        b.restoIni = true;
+        let j = 0;
+        for (let i = 0; i < B_N; i++) {
+          const f = fichas[i];
+          if (f.estado !== 'tapada') continue;
+          f.silenciosa = true; f.apagada = true;
+          abrirVasija(f, b.resto[j], ahora + j * 110);
+          f.tPress = 0; f.tRing = 0;
+          j++;
+        }
+        b.restoN = j;
+      }
+      if (b.restoIni && t >= 1400 + b.restoN * 110 + 900) {
+        b.fase = 'cartel'; b.t0 = ahora;
+        terminarBonusPremio(b);
+      }
+    } else if (b.fase === 'cartel') {
+      if (t >= (b.premio.ticket ? 4200 : 3200)) { b.fase = 'salida'; b.t0 = ahora; bonusMusicaOn = false; }
+    } else if (b.fase === 'salida') {
+      const k = Math.min(1, t / 600);
+      bonusLayer.alpha = 1 - k;
+      capasJuego.forEach(o => { o.alpha = k; });
+      if (k >= 1) { finalizarBonus(); return; }
+    }
+
+    // ─── vases ───
+    const brillo = b.fase === 'picks' && !b.completo && b.elegi === 'listo' && (ahora - b.ultimoToque) > BONUS_IDLE_MS;
+    for (let i = 0; i < B_N; i++) {
+      const ch = fichas[i];
+      let sx = 1, sy = 1;
+      if (ch.estado === 'tapada') {
+        ch.shine.alpha = brillo ? 0.22 + 0.25 * Math.sin(ahora / 170 - i * 0.7)
+                                : 0.04 + 0.04 * Math.sin(ahora / 900 + i);
+        if (brillo) { const s = 1 + 0.025 * Math.sin(ahora / 170 - i * 0.7); sx = sy = s; }
+      } else if (ch.estado === 'girando') {
+        if (ahora < ch.tFlip) {
+          // press-down squash before the lid pops
+          const kp = ch.tPress ? Math.min(1, (ahora - ch.tPress) / 90) : 0;
+          sx = 1 + 0.06 * kp; sy = 1 - 0.1 * kp;
+        } else {
+          const k = Math.min(1, (ahora - ch.tFlip) / OPEN_MS);
+          const rb = Math.sin(Math.PI * Math.min(1, k * 2.5));
+          sx = 1 - 0.03 * rb; sy = 1 + 0.05 * rb;
+          ch.shine.alpha = 0;
+          // lid lifts off, spins away and fades
+          const kl = Math.min(1, k / 0.7);
+          ch.lid.y = ch.lidY0 - chipH * 0.3 * (1 - (1 - kl) * (1 - kl));
+          ch.lid.x = ch.lidDir * chipW * 0.38 * kl;
+          ch.lid.rotation = ch.lidDir * 1.4 * kl;
+          ch.lid.alpha = kl < 0.5 ? 1 : 1 - (kl - 0.5) / 0.5;
+          // the symbol floats out of the mouth (up, then settles in front)
+          const ks = Math.max(0, (k - 0.2) / 0.8);
+          if (ks > 0) {
+            ch.faceSym.visible = true;
+            ch.faceSym.y = MOUTH_Y + (SYM_Y - MOUTH_Y) * ks - chipH * 0.16 * Math.sin(Math.PI * ks);
+            ch.faceSym.width = ch.faceSym.height = ch.symTam * (0.35 + 0.65 * ks + 0.18 * Math.sin(Math.PI * ks));
+            ch.faceSym.alpha = Math.min(1, ks * 3);
+            ch.symHalo.alpha = 0.5 * ks;
+            ch.body.alpha = 1 - 0.6 * ks;
+            if (ks > 0.4) ch.body.tint = 0x5E4C46;
+            const kd = Math.min(1, Math.max(0, (ks - 0.35) / 0.4));
+            ch.disco.alpha = kd; ch.disco.scale.set(DISCO_ESC * (0.6 + 0.4 * kd));
+          }
+          if (!ch.sonoReveal && ks >= 0.35) {
+            ch.sonoReveal = true;
+            if (!ch.silenciosa) { sfx('bonus-reveal', 0.6); chispasFicha(ch.x, ch.y + SYM_Y, LIVIANO ? 3 : 8); }
+          }
+          if (k >= 1) { ch.lid.alpha = 0; fichaRevelada(ch, ahora); }
+        }
+      } else {
+        // open: the symbol bobs gently in front of its vase
+        const kp = Math.min(1, (ahora - ch.tPop) / 260);
+        let s = 1 + 0.1 * Math.sin(Math.PI * kp);
+        if (ch.gana) s *= 1 + 0.07 * Math.sin(ahora / 120);
+        ch.faceSym.width = ch.faceSym.height = ch.symTam * s;
+        ch.faceSym.y = SYM_Y + 3 * Math.sin(ahora / 420 + i);
+        ch.symHalo.alpha = ch.gana ? 0.8 + 0.2 * Math.sin(ahora / 90) : ch.par ? 0.6 + 0.35 * Math.sin(ahora / 140) : 0.3;
+        if (ch.apagada) ch.alpha += (0.42 - ch.alpha) * Math.min(1, 0.12 * dt);
+      }
+      ch.scale.set(sx, sy);
+      // aura: tap flash · pulsing pair · winning trio
+      let ra = 0;
+      if (ch.tRing) {
+        const kr = (ahora - ch.tRing) / 420;
+        if (kr < 1) ra = 0.8 * (1 - kr); else ch.tRing = 0;
+      }
+      if (ch.gana) ra = Math.max(ra, 0.85 + 0.15 * Math.sin(ahora / 90));
+      else if (ch.par) ra = Math.max(ra, 0.65 + 0.35 * Math.sin(ahora / 140));
+      ch.ring.alpha = ra;
+    }
+    // legend: pair → glow, winner → pulse
+    for (let i = 0; i < leyenda.length; i++) {
+      const it = leyenda[i];
+      const c = b.cuentas[it.sym] || 0;
+      let a = 0, s = 1;
+      if (c >= 3) { a = 0.8 + 0.2 * Math.sin(ahora / 90); s = 1 + 0.1 * Math.sin(ahora / 120); }
+      else if (c === 2) { a = 0.55 + 0.3 * Math.sin(ahora / 140); s = 1 + 0.05 * Math.sin(ahora / 140); }
+      it.halo.alpha += (a - it.halo.alpha) * 0.2;
+      it.ic.width = it.ic.height = it.icBase * s;
+      if (c >= 2 && it.badgeT0) {
+        it.badge.visible = true; it.b23.visible = c === 2; it.b33.visible = c >= 3;
+        const kb = Math.min(1, (ahora - it.badgeT0) / 320);
+        it.badge.scale.set(Math.max(0, easeOutBack(kb)) * (1 + 0.06 * Math.sin(ahora / 150)));
+      } else it.badge.visible = false;
+    }
+    // energy threads: particles flow along the arc between the pair
+    for (let i = 0; i < hilos.length; i++) {
+      const h = hilos[i];
+      if (!h.activo) continue;
+      const k = Math.min(1, (ahora - h.t0) / 350);
+      h.g.alpha = k * (0.6 + 0.3 * Math.sin(ahora / 120));
+      for (let j = 0; j < HILO_N; j++) {
+        const d = h.dots[j];
+        const u = (ahora / 1100 + j / HILO_N) % 1, v = 1 - u;
+        d.x = v * v * h.ax + 2 * v * u * h.cx + u * u * h.bx;
+        d.y = v * v * h.ay + 2 * v * u * h.cy + u * u * h.by;
+        const e = Math.sin(Math.PI * u);
+        d.alpha = k * e;
+        d.width = d.height = 10 + 12 * e;
+      }
+    }
+    // sparkles
+    for (let i = 0; i < bChispas.length; i++) {
+      const p = bChispas[i];
+      if (!p.visible) continue;
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.22 * dt;
+      p.vida -= 0.028 * dt; p.alpha = p.vida;
+      if (p.vida <= 0) p.visible = false;
+    }
+  }
+
+  if (DEBUG) {
+    window.__fdBonus = () => bonus ? {
+      fase: bonus.fase, W: bonus.premio.id, wSym: bonus.premio.sym, seq: bonus.seq, n: bonus.n,
+      cuentas: Object.assign({}, bonus.cuentas), completo: bonus.completo,
+      fichas: fichas.map(f => ({ x: f.x, y: f.y, w: chipW, h: chipH, estado: f.estado, sym: f.sym })),
+    } : null;
+  }
+
+  // ─── DEBUG instrumentation (&debug=1) ────────────────────────────
+  const dbg = { frames: 0, cambiosTexturaVisibles: 0, reasignacionesVisibles: 0, asignacionesEnVentana: 0,
+    saltosPos: 0, maxExcesoPos: 0, maxDeltaCeldas: 0, maxDeltaVel: 0, incoherenciasY: 0,
+    giros: [], terminados: 0, frameMs: [], muestras: [], saltosDetalle: [] };
+  if (DEBUG) {
+    window.__fdDebug = dbg;
+    window.__fdGirar = () => { ocultarCartel(); boton.emit('pointertap'); };
+    window.__fdEstado = () => ({ girando, resolviendo, estados: reels.map(r => r.estado),
+      pos: reels.map(r => r.pos), vel: reels.map(r => r.vel), anticip: !!(anticip && !anticip.fin) });
+  }
+  function registrarGiro(res) {
+    const visto = reels.map(r => [0, 1, 2].map(row => spriteEnFila(r, row).sym));
+    const texOk = reels.every((r, i) => [0, 1, 2].every(row => spriteEnFila(r, row).texture === T[visto[i][row]]));
+    const filasGanadorasVistas = [];
+    for (let row = 0; row < ROWS; row++) {
+      if (visto[0][row] === visto[1][row] && visto[1][row] === visto[2][row]) filasGanadorasVistas.push(row);
+    }
+    dbg.giros.push({ premio: res && res.premio.id, sym: res && res.sym, linea: res ? res.linea : -1,
+      anticipacion: !!(res && (res.pares.length || res.anticipScatter)), pares: res ? res.pares : [],
+      scatter: res ? res.scatter : null, logosPorReel: visto.map(col => col.filter(s => s === 'bonus').length),
+      sonidosScatter: scatterSonidos.slice(),
+      esperado: res ? res.g : null, visto, texOk,
+      coincide: !!res && JSON.stringify(res.g) === JSON.stringify(visto), filasGanadorasVistas,
+      posFinal: reels.map(r => r.pos) });
+  }
+  let dbgPrevAhora = 0;
+  function debugFrame(ahora) {
+    dbg.frames++;
+    const dt = dbgPrevAhora ? (ahora - dbgPrevAhora) / 1000 : 0;
+    dbgPrevAhora = ahora;
+    if (dbg.frameMs.length < 50000) dbg.frameMs.push(app.ticker.deltaMS);
+    dbg.asignacionesEnVentana = dbgAsignVisibles;
+    for (const r of reels) {
+      if (r._pp !== undefined && dt > 0) {
+        const d = r.pos - r._pp;
+        const lim = Math.max(Math.abs(r.vel), Math.abs(r._pv)) * dt * 1.1 + 0.004;
+        const exceso = Math.abs(d) / lim;
+        if (exceso > dbg.maxExcesoPos) dbg.maxExcesoPos = exceso;
+        if (exceso > 1) {
+          dbg.saltosPos++;
+          if (dbg.saltosDetalle.length < 40) dbg.saltosDetalle.push({ reel: r.i, estado: r.estado, d, lim, dt, vel: r.vel, pv: r._pv });
+        }
+        if (Math.abs(d) > dbg.maxDeltaCeldas) dbg.maxDeltaCeldas = Math.abs(d);
+        const dv = Math.abs(r.vel - r._pv);
+        if (dv > dbg.maxDeltaVel) dbg.maxDeltaVel = dv;
+      }
+      for (const sp of r.pool) {
+        const vis = sp.k !== null && celdaVisible(r.pos, sp.k);
+        if (vis && sp._pvis) {
+          if (sp.texture !== sp._pt) dbg.cambiosTexturaVisibles++;
+          if (sp.k !== sp._pk) dbg.reasignacionesVisibles++;
+          else if (Math.abs((sp.y - sp._py) - (r.pos - r._pp) * CELL_H) > 0.01) dbg.incoherenciasY++;
+        }
+        sp._pvis = vis; sp._pt = sp.texture; sp._pk = sp.k; sp._py = sp.y;
+      }
+      r._pp = r.pos; r._pv = r.vel;
+    }
+    if (girando && dbg.muestras.length < 20000 && (dbg.frames % 2 === 0)) {
+      dbg.muestras.push([Math.round(ahora), ...reels.map(r => +r.pos.toFixed(4)), ...reels.map(r => +r.vel.toFixed(3))]);
+    }
+  }
+
+  // Vigila el fps real los primeros segundos: si la PC no llega (gabinetes
+  // con video integrado viejo), apaga video de fondo, blur y motas en caliente.
+  let fpsFrames = 0, fpsDesde = performance.now(), fpsMedido = false, segundaMedicion = false;
+  function vigilarFps(ahora) {
+    if (fpsMedido || LIVIANO) return;
+    fpsFrames++;
+    const transcurrido = ahora - fpsDesde;
+    if (transcurrido < 4000) return;
+    fpsMedido = true;
+    const fps = fpsFrames / (transcurrido / 1000);
+    if (DEBUG) dbg.fpsVigilado = fps;
+    if (fps >= 26) return;
+    if (segundaMedicion) {
+      // ya se apago todo lo caro y sigue lento: ultimo recurso, menos pixeles
+      console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> bajando resolucion');
+      recordarMaquinaLenta(2);
+      try { app.renderer.resolution = 0.75; app.renderer.resize(W, H); fit(); } catch (e) { console.warn(e); }
+      return;
+    }
+    LIVIANO = true;
+    recordarMaquinaLenta(1);
+    console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> modo liviano');
+    try { if (videoFondo) videoFondo.pause(); } catch {}
+    fondo.texture = T.fondo;
+    fondo.scale.set(Math.max(W / T.fondo.width, H / T.fondo.height));
+    reels.forEach(r => { r.cont.filters = null; });
+    motas.forEach((m, i) => { if (i >= 12) m.visible = false; });
+    // se vuelve a medir: si ni asi alcanza, ahi si se resigna nitidez
+    fpsFrames = 0; fpsDesde = performance.now(); fpsMedido = false; segundaMedicion = true;
+  }
+
+  let ultimoTick = performance.now();
+  // Bonus screen: hide the game header (logo + 3 lines) and make the bonus title blink
+  app.ticker.add(() => {
+    const enBonus = bonusLayer.visible;
+    const hdr = enBonus ? 1 - bonusLayer.alpha : 1;
+    logo.alpha = t1.alpha = t2.alpha = t3.alpha = hdr;
+    if (enBonus) {
+      const f = performance.now() / 1000;
+      bTitulo.alpha = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(f * 5.5));
+      bTitulo.scale.set(1 + 0.03 * Math.sin(f * 2.75));
+    } else if (bTitulo.alpha !== 1) { bTitulo.alpha = 1; bTitulo.scale.set(1); }
+  });
+  app.ticker.add(() => {
+    const ahora = performance.now();
+    vigilarFps(ahora);
+    const dt = Math.min(app.ticker.deltaMS / 16.667, 4);
+    // reels integrate with the same clock as their analytic phases (capped)
+    const dtS = Math.min((ahora - ultimoTick) / 1000, 0.066);
+    ultimoTick = ahora;
+    tablaTick(ahora);
+
+    let algunoGirando = false;
+    for (let i = 0; i < COLS; i++) {
+      const r = reels[i];
+      if (r.estado !== 'quieto') { algunoGirando = true; moverReel(r, ahora, dtS); }
+      dibujarReel(r);
+      // motion blur proportional to speed (px per frame)
+      r.blur.blurY = Math.min(26, Math.abs(r.vel) * CELL_H / 60 * 0.38);
+    }
+    if (DEBUG) debugFrame(ahora);
+    if (girando && !resolviendo && !algunoGirando && resultado) resolverGiro();
+    if (bonus) bonusTick(ahora, dt);
+    mezclaMusica(app.ticker.deltaMS);
+
+    // ─── Anticipation: glow on the last reel + rising spin sound ───
+    if (anticip && !anticip.fin) {
+      const k = Math.min(1, (ahora - anticip.desde) / (anticip.hasta - anticip.desde));
+      anticipGlow.alpha = Math.min(1, (ahora - anticip.desde) / 250) * (0.65 + 0.35 * Math.sin(ahora / 70));
+      if (spinSound) { try { spinSound.playbackRate = 1 + 0.45 * k; spinSound.volume = Math.min(1, 0.4 + 0.5 * k); } catch (e) { console.warn(e); } }
+    } else if (anticipGlow.alpha > 0) {
+      anticipGlow.alpha = Math.max(0, anticipGlow.alpha - 0.06 * dt);
+    }
+
+    // ─── Winning payline: drawn left→right, then pulsing ───────────
+    if (festejo) {
+      const t = ahora - festejo.desde;
+      if (festejo.fila >= 0) {
+        if (t < 420) pintarLinea(festejo.fila, t / 420);
+        else if (!festejo.lineaLista) { pintarLinea(festejo.fila, 1); festejo.lineaLista = true; }
+      }
+      const vivo = ahora < festejo.hasta;
+      const pul = vivo ? 0.7 + 0.3 * Math.sin(ahora / 95) : 0.55;
+      // marco.alpha < 1 while the bonus board is up (reels screen faded out)
+      lineaG.alpha = cajasG.alpha = pul * marco.alpha;
+      for (let i = 0; i < festejo.sps.length; i++) {
+        const sp = festejo.sps[i];
+        const s = vivo ? 1 + (festejo.amp || 0.085) * Math.sin(ahora / 140 - i * 0.6) : 1;
+        sp.width = sp.height = SYM_SIZE * s;
+      }
+      for (const b of badges) {
+        if (b.row === festejo.fila) b.glow.alpha = vivo ? 0.6 + 0.4 * Math.sin(ahora / 95) : 0.4;
+      }
+    }
+
+    // ─── Ticket: screen shake + gold flash + rays ───────────────────
+    if (ahora < sacudidaHasta) {
+      const k = (sacudidaHasta - ahora) / 700;
+      app.stage.position.set((Math.random() - 0.5) * sacudidaAmp * k, (Math.random() - 0.5) * sacudidaAmp * k);
+    } else if (app.stage.x !== 0 || app.stage.y !== 0) app.stage.position.set(0, 0);
+    if (fogonazo.alpha > 0) fogonazo.alpha = Math.max(0, fogonazo.alpha - 0.03 * dt);
+    const rayosCartel = cartelTicket && cartel.visible;
+    rayos.visible = rayosCartel || bonusRayos > 0;
+    if (rayos.visible) {
+      rayos.rotation += 0.006 * dt;
+      rayos.alpha = (0.75 + 0.25 * Math.sin(ahora / 300)) * (rayosCartel ? 1 : bonusRayos);
+    }
+
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      if (p.esMoneda) {
+        // moneda: cae con gravedad suave y "flipea" sobre su eje
+        p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.12 * dt;
+        p.rotation += p.rot * dt;
+        p.flip += p.flipVel * dt;
+        p.width = Math.max(2, Math.abs(Math.cos(p.flip)) * p.tam);
+        if (p.y > H + 80) { app.stage.removeChild(p); p.destroy(); parts.splice(i, 1); }
+        continue;
+      }
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 0.55 * dt; p.rotation += p.rot * dt; p.vida -= 0.011 * dt; p.alpha = p.vida;
+      if (p.vida <= 0) { app.stage.removeChild(p); p.destroy(); parts.splice(i, 1); }
+    }
+
+    // ─── FONDO VIVO: brasas + respiración ────────────────────────
+    for (const m of motas) {
+      m.y -= m.vy * dt;
+      m.sway += 0.008 * dt;
+      m.x += Math.sin(m.sway) * 0.25 * dt;
+      if (m.y < -20) { m.y = H + 20; m.x = Math.random() * W; }
+    }
+    respiro.alpha = 0.045 + 0.025 * Math.sin(ahora / 950);
+
+    // ─── Cell halos: idle breathing / near-miss pair / win ─────────
+    for (let i = 0; i < COLS; i++) {
+      const r = reels[i];
+      for (let row = 0; row < ROWS; row++) {
+        const h = halos[i][row];
+        let a = 0;
+        if (festejo && (row === festejo.fila || (festejo.scatter && festejo.scatter[i] === row))) {
+          a = ahora < festejo.hasta ? 0.55 + 0.3 * Math.sin(ahora / 110 + i) : 0.3;
+          h.width = h.height = SYM_SIZE * (1.55 + 0.2 * Math.sin(ahora / 220 + i));
+        } else if (scatterFila[i] === row) {
+          a = 0.6 + 0.25 * Math.sin(ahora / 130 + i);   // landed logo: stays lit until the spin ends
+        } else if (anticip && !anticip.fin && i < COLS - 1 && anticip.pares.indexOf(row) >= 0) {
+          a = 0.45 + 0.3 * Math.sin(ahora / 80);
+        } else if (r.estado === 'quieto' && !girando && !festejo) {
+          a = 0.12 + 0.06 * Math.sin(ahora / 620 + i * 1.4 + row);
+        }
+        h.alpha += (a - h.alpha) * 0.2;
+      }
+    }
+
+    // ─── Tweens de impacto (squash / flash) ──────────────────────
+    for (let i = tweens.length - 1; i >= 0; i--) {
+      const tw = tweens[i]; tw.t += app.ticker.deltaMS;
+      const k = Math.min(1, tw.t / tw.dur);
+      if (tw.tipo === 'squash') {
+        // aplasta y vuelve con resorte amortiguado
+        let sy;
+        if (k < 0.3) sy = 1 - 0.12 * (k / 0.3);
+        else sy = 1 + 0.12 * Math.sin((k - 0.3) * 9) * (1 - k);
+        tw.sp.height = SYM_SIZE * sy;
+        tw.sp.width = SYM_SIZE * (1 + (1 - sy) * 0.55);
+        if (k >= 1) { tw.sp.width = tw.sp.height = SYM_SIZE; tweens.splice(i, 1); }
+      } else if (tw.tipo === 'flash') {
+        tw.sp.alpha = tw.sp.a0 * (1 - k);
+        tw.sp.width = tw.sp.height = SYM_SIZE * (1.3 + k * 0.6);
+        if (k >= 1) { reelLayer.removeChild(tw.sp); tw.sp.destroy(); tweens.splice(i, 1); }
+      }
+    }
+    if (!girando && !yaGiroHoy) boton.scale.set(1 + Math.sin(ahora / 420) * 0.02);
+    else boton.scale.set(1);
+  });
+ } catch (err) {
+   mostrarErrorPantalla((err && err.message ? err.message : String(err)) + (err && err.stack ? ' · ' + String(err.stack).split('\n')[1] : ''));
+ }
+}).catch(e => mostrarErrorPantalla(e && e.message ? e.message : String(e)));
+</script>
+</body>
+</html>
