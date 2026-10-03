@@ -390,7 +390,8 @@ cargarTexturas(URLS)
   const BONUS_VOZ_DELAY_MS = 650;   // voice/entrance offset after scatter-3 starts
   const COLS = 3, ROWS = 3;
   const CELL_H = CUADRADA ? 205 : 180;
-  const CELL_W = CUADRADA ? 230 : 215;
+  // wider than tall: symbols size off CELL_H, so the extra width is air between reels
+  const CELL_W = CUADRADA ? 255 : 255;
   const BORDE = 26;
   const vent = { w: CELL_W * COLS, h: CELL_H * ROWS };
   vent.x = Math.round((W - vent.w) / 2);
