@@ -37,6 +37,7 @@ $NEGRITA   = "$ESC" + 'E' + [char]1
 $NORMAL    = "$ESC" + 'E' + [char]0
 $DOBLE     = "$GS"  + '!' + [char]17   # alto y ancho doble
 $CHICO     = "$GS"  + '!' + [char]0
+$ALTO      = "$GS"  + '!' + [char]1    # alto doble, ancho normal (48 col)
 $CORTE     = "$GS"  + 'V' + [char]1    # corte parcial (GS V 1): probado en la XP-E200M
 
 # Codigo de barras (Code 39): lo lee cualquier lector y acepta el guion del
@@ -63,6 +64,13 @@ function Barras($codigo) {
 
 function Linea($n = 1) { "`n" * $n }
 
+# Double width fits only 24 columns on 80mm paper: longer text wrapped mid-word
+# ("Ticket promocional $5.000" printed "$5.00" + "0" on the next line).
+# Long text goes in tall-only letters, which keep the 48-column width.
+function Grande($txt) {
+  if ("$txt".Length -le 24) { return $DOBLE + $txt } else { return $ALTO + $txt }
+}
+
 # Arma el texto del cupon segun su tipo.
 function Armar($job) {
   $p = $job.payload
@@ -83,7 +91,7 @@ function Armar($job) {
     'canje' {
       $t += "* Sala Crespo Club *" + (Linea 2)
       $t += $NEGRITA + "CANJE DE PUNTOS" + $NORMAL + (Linea)
-      $t += $DOBLE + $NEGRITA + $p.premio + $NORMAL + $CHICO + (Linea 2)
+      $t += $NEGRITA + (Grande $p.premio) + $NORMAL + $CHICO + (Linea 2)
       $t += (QR $p.codigo) + (Linea) + (Barras $p.codigo) + (Linea)
       $t += $DOBLE + $p.codigo + $CHICO + (Linea 2)
       $t += $IZQ + "Socio:  $($p.nombre)" + (Linea)
@@ -95,7 +103,7 @@ function Armar($job) {
     'premio' {
       $t += "* Fortuna Dorada *" + (Linea 2)
       $t += $NEGRITA + "GANASTE" + $NORMAL + (Linea)
-      $t += $DOBLE + $NEGRITA + $p.premio + $NORMAL + $CHICO + (Linea 2)
+      $t += $NEGRITA + (Grande $p.premio) + $NORMAL + $CHICO + (Linea 2)
       $t += (QR $p.codigo) + (Linea) + (Barras $p.codigo) + (Linea)
       $t += $DOBLE + $p.codigo + $CHICO + (Linea 2)
       $t += $IZQ + "Socio: $($p.nombre)" + (Linea)

@@ -751,8 +751,20 @@ cargarTexturas(URLS)
   cartelLogo.position.set(W / 2, H / 2 - 160); cartelLogo.visible = false;
   app.stage.addChild(cartel, cartelSub, cartelLogo);
   let cartelTicket = false;
+  // Long prizes ('TICKET PROMOCIONAL $5.000') overflowed the 1280px cabinet canvas and
+  // got clipped at both edges: shrink the font to fit, wrap as a last resort.
+  const CARTEL_MAX_W = W - 120;
+  function ajustarCartel() {
+    const st = cartel.style;
+    st.wordWrap = false; st.fontSize = 64;
+    while (cartel.width > CARTEL_MAX_W && st.fontSize > 40) st.fontSize -= 4;
+    if (cartel.width > CARTEL_MAX_W) { st.wordWrap = true; st.wordWrapWidth = CARTEL_MAX_W; }
+    // keep the subtitle below the title when it wraps to two lines
+    cartelSub.y = Math.max(H / 2 + 40, cartel.y + cartel.height / 2 + 28);
+  }
   function mostrarCartel(txt, sub, color, esTicket) {
     cartel.text = txt; cartel.style.fill = color; cartelSub.text = sub;
+    ajustarCartel();
     dim.visible = cartel.visible = cartelSub.visible = cartelLogo.visible = true;
     cartelTicket = !!esTicket;
   }
