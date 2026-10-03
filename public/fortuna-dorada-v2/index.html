@@ -153,13 +153,13 @@ const AUDIOS_PRECARGA = [
 AUDIOS_PRECARGA.forEach(audioDe);
 let audioListo = false;
 const DEMO_KIOSK = new URLSearchParams(location.search).get('demo') === '1';
-// ─── BONUS (demo-only for now; the server does not support it yet) ──
+// ─── BONUS (demo: local draw · server mode: decided by POST /api/loyalty/spin) ──
 const BONUS_PROB = 0.03;              // demo: chance of a bonus per spin
 const BONUS_VOZ_ENTRADA = 'bonus-B';  // entrance voice: 'bonus-A' | 'bonus-B' | 'bonus-C'
 const BONUS_TEASE_2 = 0.08;           // non-bonus spin: logos on reels 1+2 (anticipation)
 const BONUS_TEASE_1 = 0.14;           // non-bonus spin: a single logo
 const BONUS_FILLER_PROB = 0.06;       // logo frequency in the spinning strips
-if (DEMO_KIOSK) {
+{
   [BONUS_VOZ_ENTRADA, 'bonus-elegi', 'bonus-casi', 'bonus-casi-ticket', 'bonus-casi-1000']
     .forEach(n => audioDe(VOZ_DIR + n + '.mp3'));
   audioDe(SFX_DIR2 + 'bonus-musica.mp3'); audioDe(SFX_DIR2 + 'bonus-musica.mp3?b');
@@ -377,7 +377,8 @@ cargarTexturas(URLS)
   // ═══════════════════════════════════════════════════════════════
   const PARAMS = new URLSearchParams(location.search);
   const DEBUG = PARAMS.get('debug') === '1';
-  // Bonus only in demo (?demo=1) and only while no server session is active
+  // Bonus: demo (?demo=1) draws it locally; server mode turns it on at init.
+  // Without the logo texture the game never asks the server for a bonus.
   let bonusHabilitado = DEMO_KIOSK && !!T.bonus;
   let bonus = null;                 // pick-game state while the bonus runs
   let bonusRayos = 0;               // 0..1 rays for the bonus entrance
@@ -910,7 +911,7 @@ cargarTexturas(URLS)
   window.addEventListener('message', (e) => {
     if (e && e.data && e.data.tipo === 'init' && e.data.token) {
       SRV = { token: e.data.token, apiBase: e.data.apiBase || '', kioskKey: e.data.kioskKey || '' };
-      bonusHabilitado = false;   // server mode never produces a bonus (not supported yet)
+      bonusHabilitado = !!T.bonus;   // the server only sends a bonus to clients that declare it
       voz('giro-bienvenida');
       fetch(SRV.apiBase + '/api/loyalty/spin-status', { headers: { Authorization: 'Bearer ' + SRV.token } })
         .then(r => r.json())
@@ -1000,14 +1001,19 @@ cargarTexturas(URLS)
     if (SRV) {
       try {
         const resp = await fetch(SRV.apiBase + '/api/loyalty/spin', {
-          method: 'POST', headers: { Authorization: 'Bearer ' + SRV.token, 'x-kiosk-key': SRV.kioskKey },
+          method: 'POST',
+          headers: { Authorization: 'Bearer ' + SRV.token, 'x-kiosk-key': SRV.kioskKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bonus: bonusHabilitado }),
         });
         const j = await resp.json();
         if (!resp.ok) throw new Error(j.error || 'spin rechazado');
         yaGiroHoy = j.left <= 0;
         girosRestantes = j.left;
         try { window.parent.postMessage({ tipo: 'giro-jugado', left: j.left, premio: j.premio ? j.premio.label : null }, '*'); } catch {}
-        fijarResultado(j.premio
+        const pr = j.premio;
+        fijarResultado(pr && pr.kind === 'bonus'
+          ? { id: 'bonus', label: 'BONUS', sym: 'bonus', bonus: resolverBonus(pr) }
+          : pr
           ? { id: 'srv', label: j.premio.label.toUpperCase(), sym: j.premio.sym, kind: j.premio.kind }
           : { id: 'nada', label: 'SEGUÍ PARTICIPANDO', sym: null });
       } catch (err) {
@@ -1257,13 +1263,16 @@ cargarTexturas(URLS)
   const ORO = 0xF0D275;
   const TEX_GLOW_B = texturaRadial(0xFFFFFF);   // white glow: takes the tier tint
 
-  // Single source of truth for the bonus prize. `respuesta` = future server
-  // spin response ({ bonus: { id } }); demo = weighted random (or
-  // &bonuspremio=ticket|1000|500|250 with ?demo=1 for testing).
+  // Single source of truth for the bonus prize. `respuesta` = server spin
+  // response ({ bonus: { id } }) — what the server already paid; demo =
+  // weighted random (or &bonuspremio=ticket|1000|500|250 with ?demo=1).
   function resolverBonus(respuesta) {
     if (respuesta && respuesta.bonus) {
-      const p = BONUS_PREMIOS.find(b => b.id === respuesta.bonus.id || b.sym === respuesta.bonus.sym);
+      const p = BONUS_PREMIOS.find(b => b.id === respuesta.bonus.id);
       if (p) return p;
+      // never invent a prize in server mode: show the lowest one
+      console.error('bonus desconocido del servidor:', respuesta.bonus);
+      return BONUS_PREMIOS[BONUS_PREMIOS.length - 1];
     }
     const f = DEMO_KIOSK ? PARAMS.get('bonuspremio') : null;
     if (f) {
@@ -1744,10 +1753,18 @@ cargarTexturas(URLS)
     const p = b.premio;
     const premioFinal = { id: 'bonus-' + p.id, label: p.label, sym: p.sym, esBonus: true, voz: p.voz };
     window.__premio = premioFinal;
-    // kiosk demo: the spin is reported once its real prize is known
-    try {
-      window.parent.postMessage({ tipo: 'giro-jugado', left: Math.max(0, GIROS_PERMITIDOS - girosUsados), premio: p.label }, '*');
-    } catch {}
+    if (SRV) {
+      // the ticket print was held so the printer would not spoil the pick game
+      fetch(SRV.apiBase + '/api/loyalty/spin/release', {
+        method: 'POST', headers: { Authorization: 'Bearer ' + SRV.token, 'x-kiosk-key': SRV.kioskKey },
+      }).catch(e => console.warn('release print:', e));
+      try { window.parent.postMessage({ tipo: 'giro-jugado', left: girosRestantes, premio: p.label }, '*'); } catch {}
+    } else {
+      // kiosk demo: the spin is reported once its real prize is known
+      try {
+        window.parent.postMessage({ tipo: 'giro-jugado', left: Math.max(0, GIROS_PERMITIDOS - girosUsados), premio: p.label }, '*');
+      } catch {}
+    }
     if (p.ticket) { sacudidaHasta = performance.now() + 700; sacudidaAmp = 9; }
     try { const tr = audioDe(SFX_DIR2 + 'bonus-trio.mp3'); if (!tr.paused) tr.volume = 0.12; } catch (e) { console.warn(e); }
     terminarGiro(premioFinal, true, !!p.ticket);
@@ -1766,7 +1783,7 @@ cargarTexturas(URLS)
   }
 
   const BONUS_MUSICA_VOL = 0.32, MUSICA_JUEGO_VOL = 0.3, MUSICA_FADE_S = 0.6, MUSICA_XF_S = 1.2;
-  const bMus = DEMO_KIOSK ? [audioDe(SFX_DIR2 + 'bonus-musica.mp3'), audioDe(SFX_DIR2 + 'bonus-musica.mp3?b')] : [];
+  const bMus = [audioDe(SFX_DIR2 + 'bonus-musica.mp3'), audioDe(SFX_DIR2 + 'bonus-musica.mp3?b')];
   let gBonus = 0, gJuego = 1, gDuck = 1, bmCur = 0, bmXf = -1, bmIniciada = false;
   function arrancarPista(a) {
     try {

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import {
   adminLoyaltyRewards, adminLoyaltyCreateReward, adminLoyaltyUpdateReward, adminLoyaltyDeleteReward,
   adminSpinConfig, adminSpinCreatePrize, adminSpinUpdatePrize, adminSpinDeletePrize,
-  adminSpinSettings, adminSpinLog,
+  adminSpinSettings, adminSpinLog, adminSpinBonus,
   adminLoyaltyAccount, adminLoyaltyAdjust, adminLoyaltyCheckin, adminLoyaltyAyb,
   adminLoyaltyPending, adminLoyaltyDeliver, adminLoyaltyCancel,
   getMenu,
@@ -24,6 +24,69 @@ const CLUB_CATEGORIES = [
   { id: 'ticket',      label: 'Tickets de juego' },
 ]
 
+
+// Bonus de las vasijas (solo Fortuna Dorada v2). Se editan % y topes; los
+// premios y montos son fijos porque estan dibujados en el tablero del juego.
+function BonusAdmin({ token, toast, bonus, bonusHoy, onSaved, card, h4, numStyle }) {
+  const [b, setB] = useState(bonus)
+  useEffect(() => { setB(bonus) }, [bonus])
+  if (!b) return null
+  const sumInterna = b.prizes.reduce((a, p) => a + (Number(p.pct) || 0), 0)
+  const hoyPor = bonusHoy?.porPremio || {}
+  const setPrize = (id, k, v) => setB({ ...b, prizes: b.prizes.map(p => p.id === id ? { ...p, [k]: v } : p) })
+  async function guardar() {
+    if (Math.round(sumInterna * 10) !== 1000) return toast.show(`Los % internos del bonus tienen que sumar 100 (suman ${sumInterna})`, 'err')
+    try {
+      await adminSpinBonus(token, {
+        enabled: !!b.enabled, pct: Number(b.pct) || 0, dailyCap: Number(b.dailyCap) || 0,
+        prizes: b.prizes.map(p => ({ id: p.id, pct: Number(p.pct) || 0, dailyCap: Number(p.dailyCap) || 0 })),
+      })
+      toast.show('Bonus guardado', 'ok'); await onSaved()
+    } catch (err) { toast.show(err.message, 'err') }
+  }
+  const th = { textAlign: 'left', padding: '6px 6px', borderBottom: '1px solid #2a3142' }
+  return (
+    <div style={card}>
+      <h4 style={h4}>Bonus de las vasijas · solo Fortuna Dorada v2</h4>
+      <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'end' }}>
+        <label style={{ fontSize: 12, color: '#8B9BB4' }}>Activo<br />
+          <input type="checkbox" checked={!!b.enabled} onChange={e => setB({ ...b, enabled: e.target.checked })} style={{ marginTop: 10 }} /></label>
+        <label style={{ fontSize: 12, color: '#8B9BB4' }} title='Sale del "seguí participando": la tabla de premios no cambia'>% de giros con bonus<br />
+          <input type="number" min="0" step="0.5" value={b.pct} onChange={e => setB({ ...b, pct: e.target.value })} style={numStyle} /></label>
+        <label style={{ fontSize: 12, color: '#8B9BB4' }} title="0 = sin tope">Bonus por día (tope)<br />
+          <input type="number" min="0" value={b.dailyCap} onChange={e => setB({ ...b, dailyCap: e.target.value })} style={numStyle} /></label>
+        <span style={{ fontSize: 13, color: '#8B9BB4', alignSelf: 'center' }}>
+          Hoy: <b style={{ color: (bonusHoy?.total || 0) >= (Number(b.dailyCap) || Infinity) ? '#f87171' : '#7ee2a0' }}>{bonusHoy?.total || 0}/{Number(b.dailyCap) || '∞'}</b>
+        </span>
+      </div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, marginTop: 14 }}>
+        <thead>
+          <tr style={{ color: '#8B9BB4', fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 }}>
+            {['Premio dentro del bonus', '% interno', 'Tope/día', 'Hoy'].map(h => <th key={h} style={th}>{h}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {b.prizes.map(p => (
+            <tr key={p.id}>
+              <td style={{ padding: 6 }}>{p.label}</td>
+              <td style={{ padding: 4 }}><input type="number" min="0" step="0.5" value={p.pct} onChange={e => setPrize(p.id, 'pct', e.target.value)} style={numStyle} /></td>
+              <td style={{ padding: 4 }}><input type="number" min="0" value={p.dailyCap} onChange={e => setPrize(p.id, 'dailyCap', e.target.value)} title="0 = sin tope" style={numStyle} /></td>
+              <td style={{ padding: 6, color: '#8B9BB4' }}>{hoyPor[p.id] || 0}{Number(p.dailyCap) ? `/${p.dailyCap}` : ''}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginTop: 12, flexWrap: 'wrap' }}>
+        <button onClick={guardar} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Guardar bonus</button>
+        <span style={{ fontSize: 12, color: Math.round(sumInterna * 10) === 1000 ? '#7ee2a0' : '#f87171' }}>Suma interna: {sumInterna}%</span>
+      </div>
+      <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0', lineHeight: 1.5 }}>
+        El bonus solo lo reciben las máquinas con la versión 2 del juego. Si sale un ticket con el tope del día agotado, paga +250 puntos.
+        El ticket del bonus se imprime cuando el socio termina de destapar las vasijas.
+      </p>
+    </div>
+  )
+}
 
 function FortunaAdmin({ token, toast }) {
   const [cfg, setCfg] = useState(null)
@@ -229,6 +292,9 @@ function FortunaAdmin({ token, toast }) {
         </form>
       </div>
 
+      <BonusAdmin token={token} toast={toast} bonus={cfg.bonus} bonusHoy={cfg.bonusHoy} onSaved={load}
+        card={card} h4={h4} numStyle={numStyle} />
+
       {(cfg.drops || []).length > 0 && (
         <div style={card}>
           <h4 style={h4}>Momentos de hoy</h4>
@@ -286,7 +352,7 @@ function FortunaAdmin({ token, toast }) {
             <th style={{ textAlign: 'left', padding: 6 }}>Premio</th><th style={{ textAlign: 'right', padding: 6 }}>Sale 1 cada</th><th style={{ textAlign: 'right', padding: 6 }}>Salidas/día</th><th style={{ textAlign: 'right', padding: 6 }}>Puntos/día</th><th style={{ textAlign: 'right', padding: 6 }}>$ tickets/día</th>
           </tr></thead>
           <tbody>
-            {proy.map(({ r, salidas, pts, pesos }) => (
+            {proy.map(({ r, salidas, pts, pesos, porMomento, topeado }) => (
               <tr key={r.id} style={{ borderTop: '1px solid #1c2230' }}>
                 <td style={{ padding: 6 }}>{r.label}</td>
                 <td style={{ padding: 6, textAlign: 'right' }}>

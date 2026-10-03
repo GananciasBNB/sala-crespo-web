@@ -1177,7 +1177,8 @@ export default function Kiosk() {
       {/* Fortuna Dorada en overlay: el slot completo dentro del kiosk */}
       {showGiro && (
         <div className="kiosk__carta">
-          <iframe src={DEMO ? `/fortuna-dorada/index.html?demo=1&giros=${demoGiros}` : '/fortuna-dorada/index.html'} title="Fortuna Dorada" allow="autoplay" />
+          {/* v2 (3x3 + bonus) in trial at the venue; rollback = point back to /fortuna-dorada/ (v1 kept intact) */}
+          <iframe src={DEMO ? `/fortuna-dorada-v2/index.html?demo=1&giros=${demoGiros}` : '/fortuna-dorada-v2/index.html'} title="Fortuna Dorada" allow="autoplay" />
           <button
             className={`kiosk__carta-close ${giroJugado ? 'kiosk__carta-close--destacado' : ''}`}
             onClick={() => { setShowGiro(false); setGiroJugado(false) }}

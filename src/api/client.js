@@ -562,6 +562,8 @@ export const adminSpinDeletePrize = (token, id) =>
   api(`/api/admin/spin/prizes/${id}`, { method: 'DELETE', headers: authHeaders(token) })
 export const adminSpinSettings = (token, body) =>
   api('/api/admin/spin/settings', { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
+export const adminSpinBonus = (token, body) =>
+  api('/api/admin/spin/bonus', { method: 'PATCH', headers: authHeaders(token), body: JSON.stringify(body) })
 export const adminSpinLog = (token, limit = 300) =>
   api(`/api/admin/spin/log?limit=${limit}`, { headers: authHeaders(token) })
 
