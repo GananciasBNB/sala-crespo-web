@@ -92,7 +92,7 @@ function FortunaAdmin({ token, toast }) {
   const [cfg, setCfg] = useState(null)
   const [log, setLog] = useState([])
   const [verLog, setVerLog] = useState(false)
-  const [settings, setSettings] = useState({ cooldownHours: 3, spinsPerWindow: 2, sorteoMonto: 100000, checkinPoints: 50, rafflePerDay: 1 })
+  const [settings, setSettings] = useState({ cooldownHours: 3, spinsPerWindow: 3, sorteoMonto: 100000, checkinPoints: 50, rafflePerDay: 1 })
   const [rows, setRows] = useState([])
   // la proyección arranca de cuánta gente viene, no de un número de giros suelto
   const [clientesDia, setClientesDia] = useState(60)
@@ -219,9 +219,9 @@ function FortunaAdmin({ token, toast }) {
         <p style={{ fontSize: 12, color: '#8B9BB4', margin: '10px 0 0', lineHeight: 1.5 }}>
           Cada socio tiene <b style={{ color: '#fff' }}>{settings.spinsPerWindow} giros</b> por ventana rodante de <b style={{ color: '#fff' }}>{settings.cooldownHours} hs</b>, y suma <b style={{ color: '#fff' }}>{settings.checkinPoints} puntos</b> por venir, gire o no. El resultado lo decide el servidor con azar criptográfico; el stock diario corta a las 00:00 (hora argentina).
         </p>
-        {settings.spinsPerWindow > 5 && (
+        {settings.spinsPerWindow > 3 && (
           <p style={{ fontSize: 12.5, color: '#fcd34d', margin: '10px 0 0', background: 'rgba(252,211,77,.1)', border: '1px solid rgba(252,211,77,.35)', borderRadius: 8, padding: '9px 12px', lineHeight: 1.5 }}>
-            ⚠ {settings.spinsPerWindow} giros por ronda es un valor de prueba. Con la sala abierta esto multiplica lo que entregás: acordate de volverlo a 2 antes de abrir.
+            ⚠ {settings.spinsPerWindow} giros por ronda es un valor de prueba. Con la sala abierta esto multiplica lo que entregás: acordate de volverlo a 3 antes de abrir.
           </p>
         )}
       </div>
