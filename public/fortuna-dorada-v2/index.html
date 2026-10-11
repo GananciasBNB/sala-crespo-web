@@ -1265,9 +1265,11 @@ cargarTexturas(URLS)
   // ═══════════════════════════════════════════════════════════════
   const BONUS_IDLE_MS = 5000;         // idle → shimmer on the closed vases (no voice)
   const BONUS_AUTO_MS = 20000;        // idle → auto-pick one chip per second
+  // ids keep their old names (ticket2000/ticket1000): the server and the spin log use them.
+  // Since 11/10/2026 they pay $5.000 and $2.500.
   const BONUS_PREMIOS = [             // demo weights (sum = 100)
-    { id: 'ticket2000', sym: 'lingote', label: 'TICKET $2.000', peso: 5,  voz: null, ticket: true, color: 0xFFD84A, casi: 'bonus-casi-ticket' },
-    { id: 'ticket1000', sym: 'fenix',   label: 'TICKET $1.000', peso: 15, voz: null, ticket: true, color: 0x3CE09A, casi: 'bonus-casi-1000' },
+    { id: 'ticket2000', sym: 'lingote', label: 'TICKET $5.000', peso: 5,  voz: null, ticket: true, color: 0xFFD84A, casi: 'bonus-casi-ticket' },
+    { id: 'ticket1000', sym: 'fenix',   label: 'TICKET $2.500', peso: 15, voz: null, ticket: true, color: 0x3CE09A, casi: 'bonus-casi-1000' },
     { id: 'pts500',     sym: 'gato',    label: '+500 PUNTOS',   peso: 35, voz: 'giro-500', color: 0xFF7A3C, casi: 'bonus-casi' },
     { id: 'pts250',     sym: 'koi',     label: '+250 PUNTOS',   peso: 45, voz: 'giro-250', color: 0x4ED4E0, casi: 'bonus-casi' },
   ];
@@ -1289,7 +1291,7 @@ cargarTexturas(URLS)
     }
     const f = DEMO_KIOSK ? PARAMS.get('bonuspremio') : null;
     if (f) {
-      const alias = { ticket: 'ticket2000', '2000': 'ticket2000', '1000': 'ticket1000' };
+      const alias = { ticket: 'ticket2000', '5000': 'ticket2000', '2500': 'ticket1000', '2000': 'ticket2000', '1000': 'ticket1000' };
       const p = BONUS_PREMIOS.find(b => b.id === (alias[f] || f) || b.id === 'pts' + f);
       if (p) return p;
     }
