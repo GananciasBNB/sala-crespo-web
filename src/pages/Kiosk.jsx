@@ -901,7 +901,7 @@ export default function Kiosk() {
 
             <div className="kiosk__hub-card kiosk__hub-card--art">
               <div className="kiosk__hub-title">TORNEO DE SLOTS</div>
-              <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Serie 2026'} · participá por $2.000.000</div>
+              <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Torneo de slots'} · participá por $2.000.000</div>
               <div className="kiosk__hub-art"><ArtTorneo /></div>
               {tourneyReg ? (
                 <div className="kiosk__hub-ok">✓ Ya estás inscripto{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''} para participar por los $2.000.000 en la Gran Final{tourney?.tournament_date ? `. Te esperamos el ${fmtTorneoFecha(tourney.tournament_date)}` : ''}</div>

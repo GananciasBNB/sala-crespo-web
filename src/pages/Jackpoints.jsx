@@ -22,7 +22,7 @@ const BENEFICIOS = [
   { i: 'slot', t: 'Fortuna Dorada', d: 'El slot de la máquina. 3 giros cada 3 horas, con premios de hasta 500 puntos y tickets promocionales de $5.000.', k: 'Cada visita' },
   { i: 'ticket', t: 'Sorteo del mes', d: 'Un cupón por visita para el sorteo mensual de $150.000 en tickets. ¿Querés más chances? Canjeá un pack de 10 cupones por 150 puntos.', k: '$150.000 por mes' },
   { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en la barra.', k: 'Con tus puntos' },
-  { i: 'trophy', t: 'Torneos de slots', d: 'Anotate a los torneos directamente desde la máquina. Serie 2026: satélites mensuales y una Gran Final por $2.000.000 en tickets.', k: 'Gran Final en diciembre' },
+  { i: 'trophy', t: 'Torneos de slots', d: 'Anotate a los torneos directamente desde la máquina. Torneos mensuales que clasifican a una Gran Final por $2.000.000 en tickets.', k: 'Gran Final en diciembre' },
   { i: 'mail', t: 'Bebida de cortesía', d: 'Dejanos tu email al sumarte y te llega una bebida de cortesía para tu próxima visita. Además te avisamos de shows, torneos y promos.', k: 'Al registrarte' },
 ]
 
