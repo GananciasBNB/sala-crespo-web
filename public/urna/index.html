@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Carteles para la urna</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Oswald:wght@500;600&family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#120609; --card:#1e0b10; --line:rgba(240,210,117,.3); --gold:#f0d275; --tx:#f5ecd7; --mut:#c4b59c; }
+  * { box-sizing:border-box; margin:0; padding:0; overflow-wrap:break-word; }
+  body { background:var(--bg); color:var(--tx); font:16px/1.5 Montserrat, system-ui, sans-serif; padding:28px 16px 48px; }
+  .w { max-width:1040px; margin:0 auto; }
+  h1 { font:900 32px/1.15 "Playfair Display", serif; color:var(--gold); }
+  .sub { color:var(--mut); margin-top:6px; max-width:640px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:18px; margin-top:26px; }
+  .grid > * { min-width:0; }
+  .opt { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .opt img { width:100%; height:auto; border-radius:10px; display:block; }
+  .opt h2 { font:600 15px Oswald, sans-serif; letter-spacing:3px; text-transform:uppercase; color:var(--gold); }
+  .opt p { font-size:14px; color:var(--mut); }
+  .dl { display:flex; gap:8px; flex-wrap:wrap; }
+  .dl a { flex:1 1 auto; text-align:center; text-decoration:none; font:700 14px Montserrat; padding:10px 12px; border-radius:10px; }
+  .pdf { background:var(--gold); color:#1a060b; }
+  .img { border:1px solid var(--gold); color:var(--gold); }
+  .dl a:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+  .info { margin-top:28px; background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 18px; font-size:14.5px; color:var(--mut); }
+  .info b { color:var(--tx); }
+  .info li { margin:6px 0 6px 18px; }
+</style>
+</head>
+<body>
+<div class="w">
+  <h1>Carteles para la urna del sorteo</h1>
+  <p class="sub">Tres opciones. El mismo cartel se imprime tres veces: frente y los dos costados de la urna. Tamaño 20 × 30 cm.</p>
+
+  <div class="grid">
+    <div class="opt">
+      <h2>Opción A · Marco dorado</h2>
+      <img src="preview-a.jpg" alt="Cartel opción A: fondo oscuro con marco dorado, Depositá tu cupón acá arriba">
+      <p>El “Depositá tu cupón acá” va arriba, con flecha hacia la ranura.</p>
+      <div class="dl">
+        <a class="pdf" href="cartel-urna-a-20x30cm.pdf" download>PDF para imprimir</a>
+        <a class="img" href="cartel-urna-a-20x30cm-300dpi.jpg" download>Imagen (Canva)</a>
+      </div>
+    </div>
+    <div class="opt">
+      <h2>Opción B · Bordó</h2>
+      <img src="preview-b.jpg" alt="Cartel opción B: fondo bordó con el monto grande en dorado">
+      <p>Fondo bordó liso, el monto bien grande. Es la que más se ve de lejos.</p>
+      <div class="dl">
+        <a class="pdf" href="cartel-urna-b-20x30cm.pdf" download>PDF para imprimir</a>
+        <a class="img" href="cartel-urna-b-20x30cm-300dpi.jpg" download>Imagen (Canva)</a>
+      </div>
+    </div>
+    <div class="opt">
+      <h2>Opción C · Lingote</h2>
+      <img src="preview-c.jpg" alt="Cartel opción C: fondo negro con lingote dorado y rayos">
+      <p>Fondo negro con rayos y el lingote dorado de Fortuna Dorada.</p>
+      <div class="dl">
+        <a class="pdf" href="cartel-urna-c-20x30cm.pdf" download>PDF para imprimir</a>
+        <a class="img" href="cartel-urna-c-20x30cm-300dpi.jpg" download>Imagen (Canva)</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="info"><ul>
+    <li><b>PDF:</b> tamaño exacto 20 × 30 cm, listo para la imprenta. Se puede agrandar sin perder calidad.</li>
+    <li><b>Imagen:</b> JPG en alta resolución (300 dpi) para retocar en Canva.</li>
+    <li>Premio: $150.000 en tickets promocionales, como dicen las bases del sorteo.</li>
+  </ul></div>
+</div>
+</body>
+</html>
