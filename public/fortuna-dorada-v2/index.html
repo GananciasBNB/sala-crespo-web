@@ -1231,6 +1231,10 @@ cargarTexturas(URLS)
       mostrarCartel('¡GANASTE ' + premio.label + '!',
         esTicket ? 'Retiralo en la barra con tu DNI' : 'Ya están acreditados en tu cuenta', '#F0D275', esTicket);
       burst(esTicket ? 200 : 110);
+      // the server held the ticket print until now, so it does not come out mid-spin
+      if (esTicket && SRV) fetch(SRV.apiBase + '/api/loyalty/spin/release', {
+        method: 'POST', headers: { Authorization: 'Bearer ' + SRV.token, 'x-kiosk-key': SRV.kioskKey },
+      }).catch(e => console.warn('release print:', e));
       if (esTicket) {
         sfx('big-win', 1); // el stinger ya trae el grito BIG WIN — sin voz encima
         fogonazo.alpha = 0.7;
