@@ -149,5 +149,9 @@
   <button class="print" onclick="window.print()">Imprimir</button>
   <p class="note">Bases completas: saladejuegoscrespo.ar/legal/bases-jackpoints.html · Solo para mayores de 18 años · Jugá con responsabilidad.</p>
 </div>
+<script>
+  // print with every FAQ answer visible (closed details hide their content)
+  addEventListener("beforeprint", () => document.querySelectorAll("details").forEach(d => d.open = true))
+</script>
 </body>
 </html>
