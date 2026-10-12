@@ -256,6 +256,8 @@ function IconoBebida() {
 
 // Signup rules (same as the backend): first + last name, and a phone with area code
 const nombreCompleto = (n) => String(n || '').trim().split(/\s+/).filter(w => w.length >= 2).length >= 2
+// digits still missing to reach area code + number (10); 0 while short-empty or complete
+const telFaltan = (t) => { const d = String(t || '').replace(/\D/g, '').length; return d >= 3 && d < 10 ? 10 - d : 0 }
 const telValido = (t) => { const d = String(t || '').replace(/\D/g, ''); return d.length >= 10 && d.length <= 13 }
 
 function Dots({ value, len }) {
@@ -285,6 +287,7 @@ export default function Kiosk() {
   const [reg, setReg] = useState({ name: '', tel: '', email: '' })
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [regErr, setRegErr] = useState(null) // { campo, msg }: sign-up field with a problem
   const [lookup, setLookup] = useState(null) // respuesta del lookup-dni (estado torneo, tel, email)
   const [tourney, setTourney] = useState(null)
   const [tourneyReg, setTourneyReg] = useState(null)
@@ -311,7 +314,7 @@ export default function Kiosk() {
 
   const reset = useCallback(() => {
     setScreen('idle'); setDni(''); setPin(''); setPlayer(null); setBalance(0)
-    setCheckin(null); setReg({ name: '', tel: '', email: '' }); setErr(''); setBusy(false)
+    setCheckin(null); setReg({ name: '', tel: '', email: '' }); setErr(''); setRegErr(null); setBusy(false)
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false)
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
@@ -676,12 +679,22 @@ export default function Kiosk() {
     } finally { setBusy(false) }
   }
 
+  // A sign-up error must be seen: the on-screen keyboard covers the bottom of the form,
+  // so close it (blur), mark the field and scroll to it.
+  function errorEnCampo(campo, msg) {
+    try { document.activeElement?.blur() } catch (e) { console.warn(e) }
+    setRegErr({ campo, msg }); setErr(msg)
+    setTimeout(() => {
+      try { document.querySelector(`[data-campo="${campo}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' }) } catch (e) { console.warn(e) }
+    }, 120)
+  }
   async function submitRegister() {
-    if (!nombreCompleto(reg.name)) { setErr('Poné tu nombre y tu apellido.'); return }
-    if (!telValido(reg.tel)) { setErr('Poné tu celular con la característica. Ej: 343 4123456'); return }
-    if (!/^\d{4}$/.test(pin)) { setErr('El PIN son 4 números.'); return }
-    if (!aceptoBases) { setErr('Para sumarte tenés que aceptar los términos y condiciones.'); return }
-    setBusy(true); setErr('')
+    if (!nombreCompleto(reg.name)) return errorEnCampo('name', 'Poné tu nombre y tu apellido.')
+    if (!/^\d{4}$/.test(pin)) return errorEnCampo('pin', 'El PIN son 4 números.')
+    if (!telValido(reg.tel)) return errorEnCampo('tel', 'Poné tu celular con la característica: 10 números. Ej: 343 4123456')
+    if (!aceptoBases) return errorEnCampo('bases', 'Para sumarte tenés que tildar que aceptás los términos y condiciones.')
+    try { document.activeElement?.blur() } catch (e) { console.warn(e) }
+    setBusy(true); setErr(''); setRegErr(null)
     try {
       const r = await kioskSignup({ dni, name: reg.name.trim(), tel: reg.tel.trim(), email: reg.email.trim(), pin, acceptTerms: true })
       const c = await loyaltyCheckin(r.player.token).catch(() => null)
@@ -785,23 +798,31 @@ export default function Kiosk() {
           <h2 className="kiosk__h">¡Sumate al Club!</h2>
           <p className="kiosk__hint">Con estos datos ya sos socio y empezás a sumar puntos.</p>
           <div className="kiosk__form">
-            <label className="kiosk__field">
+            <label className={`kiosk__field${regErr?.campo === 'name' ? ' kiosk__field--err' : ''}`} data-campo="name">
               <span>Nombre y apellido</span>
               <input type="text" value={reg.name} maxLength={40} autoComplete="off"
-                onChange={e => { setReg({ ...reg, name: e.target.value }); setErr('') }}
+                onChange={e => { setReg({ ...reg, name: e.target.value }); setErr(''); setRegErr(null) }}
                 placeholder="Ej. María González" />
+              {regErr?.campo === 'name' && <div className="kiosk__field-err">{regErr.msg}</div>}
             </label>
-            <label className="kiosk__field">
+            <label className={`kiosk__field${regErr?.campo === 'pin' ? ' kiosk__field--err' : ''}`} data-campo="pin">
               <span>Creá tu PIN (4 números)</span>
               <input type="tel" inputMode="numeric" value={pin} maxLength={4}
-                onChange={e => { setPin(e.target.value.replace(/\D/g, '').slice(0, 4)); setErr('') }}
+                onChange={e => { setPin(e.target.value.replace(/\D/g, '').slice(0, 4)); setErr(''); setRegErr(null) }}
                 placeholder="4 números fáciles de recordar" />
+              {regErr?.campo === 'pin' && <div className="kiosk__field-err">{regErr.msg}</div>}
             </label>
-            <label className="kiosk__field">
+            <label className={`kiosk__field${regErr?.campo === 'tel' ? ' kiosk__field--err' : ''}`} data-campo="tel">
               <span>Celular<b className="kiosk__cortesia">Así te avisamos si ganás un premio o un sorteo</b></span>
               <input type="tel" inputMode="numeric" value={reg.tel} maxLength={15}
-                onChange={e => { setReg({ ...reg, tel: e.target.value }); setErr('') }}
+                onChange={e => { setReg({ ...reg, tel: e.target.value }); setErr(''); setRegErr(null) }}
                 placeholder="Ej. 343 4123456" />
+              {telFaltan(reg.tel) > 0 && regErr?.campo !== 'tel' && (
+                <div className="kiosk__field-hint">
+                  Te {telFaltan(reg.tel) === 1 ? 'falta 1 número' : `faltan ${telFaltan(reg.tel)} números`} (característica + número: 10 en total)
+                </div>
+              )}
+              {regErr?.campo === 'tel' && <div className="kiosk__field-err">{regErr.msg}</div>}
             </label>
             <label className="kiosk__field">
               <span>Email <em>(opcional)</em><b className="kiosk__cortesia"><IconoBebida /> Completalo y recibí una bebida de cortesía</b></span>
@@ -810,12 +831,14 @@ export default function Kiosk() {
                 placeholder="tu@email.com" />
             </label>
           </div>
-          <label className="kiosk__acepto">
-            <input type="checkbox" checked={aceptoBases} onChange={e => { setAceptoBases(e.target.checked); setErr('') }} />
+          <label className={`kiosk__acepto${regErr?.campo === 'bases' ? ' kiosk__acepto--err' : ''}`} data-campo="bases">
+            <input type="checkbox" checked={aceptoBases} onChange={e => { setAceptoBases(e.target.checked); setErr(''); setRegErr(null) }} />
             <span>Leí y acepto los <button type="button" className="kiosk__link" onClick={() => setVerBases(true)}>términos y condiciones de Jackpoints</button></span>
           </label>
-          {err && <div className="kiosk__err">{err}</div>}
-          <button className="kiosk__cta" disabled={busy || !aceptoBases} onClick={submitRegister}>
+          {/* field errors show under their field; this line is for server errors (e.g. DNI already registered) and the terms */}
+          {err && (!regErr || regErr.campo === 'bases') && <div className="kiosk__err">{err}</div>}
+          {/* not disabled without the terms: on tap it says what is missing */}
+          <button className="kiosk__cta" disabled={busy} onClick={submitRegister}>
             {busy ? 'Creando tu cuenta…' : 'Crear mi cuenta'}
           </button>
         </div>

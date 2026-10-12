@@ -680,3 +680,9 @@
   .kiosk__cumple-field.y { width: 116px; }
   .kiosk__cumple-field div { font-size: 30px; }
 }
+
+/* Sign-up: the field with a problem is marked and explained right below it */
+.kiosk__field--err input { border-color: #E9899A; box-shadow: 0 0 0 3px rgba(233,137,154,.25); }
+.kiosk__field-err { color: #F2A3B0; font-size: 15px; font-weight: 700; line-height: 1.35; }
+.kiosk__field-hint { color: var(--gold); font-size: 14px; font-weight: 600; }
+.kiosk__acepto--err { outline: 2px solid #E9899A; outline-offset: 6px; border-radius: 10px; }
