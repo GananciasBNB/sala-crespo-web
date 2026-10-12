@@ -5,153 +5,111 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <title>Guía Jackpoints · Personal</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Oswald:wght@500;600&family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Oswald:wght@500;600&family=Montserrat:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#120609; --card:#1e0b10; --card2:#2a0f17; --line:rgba(240,210,117,.28); --gold:#f0d275; --gold2:#c9a84c; --crim:#8f1129; --tx:#f5ecd7; --mut:#c4b59c; --ok:#7ee2a0; --no:#f29a86; }
+  :root { --bg:#120609; --card:#1e0b10; --line:rgba(240,210,117,.3); --gold:#f0d275; --crim:#8f1129; --tx:#f5ecd7; --mut:#c4b59c; }
   * { box-sizing:border-box; margin:0; padding:0; overflow-wrap:break-word; }
-  body { background:radial-gradient(120% 60% at 50% 0%, #3a0f19 0%, var(--bg) 55%); background-color:var(--bg); color:var(--tx); font:16px/1.55 Montserrat, system-ui, sans-serif; padding:20px 16px 48px; }
+  body { background:radial-gradient(120% 60% at 50% 0%, #3a0f19 0%, var(--bg) 55%); background-color:var(--bg); color:var(--tx); font:16px/1.45 Montserrat, system-ui, sans-serif; padding:20px 16px 44px; }
   .w { max-width:760px; margin:0 auto; }
-  header { text-align:center; padding:8px 0 18px; }
-  header img { width:min(260px, 70%); height:auto; }
-  .kick { font:600 13px Oswald, sans-serif; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-top:6px; }
-  h1 { font:900 30px/1.15 "Playfair Display", serif; margin-top:6px; }
-  h2 { font:700 22px/1.2 "Playfair Display", serif; color:var(--gold); margin:30px 0 12px; display:flex; align-items:center; gap:10px; }
-  h2 .n { flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--gold); color:#1a060b; font:700 16px Oswald; display:grid; place-items:center; }
-  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; }
-  .pitch { background:linear-gradient(140deg, var(--crim), #3a0b16 70%); border:2px solid var(--gold); border-radius:18px; padding:20px; }
-  .pitch .lbl { font:600 12px Oswald; letter-spacing:3px; text-transform:uppercase; color:var(--gold); }
-  .pitch p { font:700 19px/1.5 Montserrat; margin-top:8px; }
-  .pitch p b { color:var(--gold); }
-  .tip { margin-top:12px; font-size:14px; color:var(--mut); }
-  .steps { display:grid; gap:10px; counter-reset:s; }
-  .step { display:flex; gap:14px; align-items:flex-start; background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
-  .step .ic { flex:0 0 auto; width:44px; height:44px; border-radius:12px; background:var(--card2); border:1px solid var(--line); display:grid; place-items:center; font-size:22px; }
-  .step div { min-width:0; }
-  .step > div > b { display:block; font-size:16px; }
-  .step span { font-size:14.5px; color:var(--mut); }
-  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
-  .grid > * { min-width:0; }
-  .tile { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px; }
-  .tile .big { font:900 26px/1.1 "Playfair Display", serif; color:var(--gold); }
-  .tile .t { font-weight:800; margin-top:4px; }
-  .tile .d { font-size:14px; color:var(--mut); margin-top:4px; }
-  table { width:100%; border-collapse:collapse; font-size:15px; }
-  td { padding:7px 4px; border-bottom:1px solid rgba(240,210,117,.14); }
-  td.p { text-align:right; font-weight:800; color:var(--gold); white-space:nowrap; }
-  .faq details { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:8px; }
-  .faq summary { font-weight:800; cursor:pointer; list-style:none; }
-  .faq summary::before { content:"＋ "; color:var(--gold); }
-  .faq details[open] summary::before { content:"－ "; }
-  .faq p { margin-top:8px; color:var(--mut); font-size:15px; }
-  .dodont { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-  .dodont > div { background:var(--card); border-radius:14px; padding:14px; min-width:0; }
-  .do { border:1px solid rgba(126,226,160,.4); } .dont { border:1px solid rgba(242,154,134,.4); }
-  .do h3 { color:var(--ok); } .dont h3 { color:var(--no); }
-  .dodont h3 { font:600 15px Oswald; letter-spacing:2px; text-transform:uppercase; margin-bottom:6px; }
-  .dodont li { margin:6px 0 6px 18px; font-size:14.5px; }
-  .note { font-size:13px; color:var(--mut); text-align:center; margin-top:28px; }
-  .print { display:block; margin:22px auto 0; background:var(--gold); color:#1a060b; border:0; border-radius:12px; padding:12px 22px; font:700 15px Montserrat; cursor:pointer; }
-  @media (max-width:560px) { h1 { font-size:25px; } .dodont { grid-template-columns:1fr; } }
+  header { text-align:center; }
+  header img { width:min(240px, 66%); height:auto; }
+  .kick { font:600 13px Oswald, sans-serif; letter-spacing:4px; text-transform:uppercase; color:var(--gold); margin-top:4px; }
+  .lead { font:900 26px/1.2 "Playfair Display", serif; margin-top:6px; }
+  .lead b { color:var(--gold); }
+  h2 { font:600 15px Oswald, sans-serif; letter-spacing:3px; text-transform:uppercase; color:var(--gold); text-align:center; margin:30px 0 14px; }
+
+  /* the five bubbles: what a member can do */
+  .bubbles { display:grid; grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); gap:14px; }
+  .bubbles > * { min-width:0; }
+  .b { position:relative; text-align:center; padding:22px 16px 18px; border-radius:26px; background:linear-gradient(160deg, #2c0f17, #170709); border:2px solid var(--line); }
+  .b .ic { width:74px; height:74px; margin:0 auto 10px; border-radius:50%; display:grid; place-items:center; font-size:36px;
+    background:radial-gradient(circle at 35% 30%, #fff1b8, #f0d275 45%, #b8923e); box-shadow:0 0 0 5px rgba(240,210,117,.15), 0 10px 24px rgba(0,0,0,.5); }
+  .b .t { font:900 21px/1.15 "Playfair Display", serif; }
+  .b .t em { font-style:normal; color:var(--gold); }
+  .b .d { font-size:14.5px; color:var(--mut); margin-top:6px; }
+  .b.star { border-color:var(--gold); background:linear-gradient(160deg, var(--crim), #2a0810); }
+
+  .row { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+  .pill { display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--line); border-radius:999px; padding:10px 18px 10px 10px; font-weight:700; font-size:15px; min-width:0; }
+  .pill .n { flex:0 0 auto; width:30px; height:30px; border-radius:50%; background:var(--gold); color:#1a060b; font:700 15px Oswald; display:grid; place-items:center; }
+
+  .canjes { display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:10px; }
+  .canjes > * { min-width:0; }
+  .c { background:var(--card); border:1px solid var(--line); border-radius:18px; padding:14px 10px; text-align:center; }
+  .c .e { font-size:30px; }
+  .c .k { font-weight:800; margin-top:4px; font-size:15px; }
+  .c .p { font:600 15px Oswald; letter-spacing:1px; color:var(--gold); margin-top:2px; }
+
+  .faq { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:10px; }
+  .faq > * { min-width:0; }
+  .q { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:14px; }
+  .q b { display:block; color:var(--gold); font-size:15px; }
+  .q span { font-size:14.5px; }
+
+  .no { margin-top:26px; background:rgba(242,154,134,.08); border:1px solid rgba(242,154,134,.45); border-radius:16px; padding:14px 16px; font-size:14.5px; text-align:center; }
+  .no b { color:#f29a86; }
+  .note { font-size:12.5px; color:var(--mut); text-align:center; margin-top:22px; }
+  .print { display:block; margin:20px auto 0; background:var(--gold); color:#1a060b; border:0; border-radius:12px; padding:12px 22px; font:700 15px Montserrat; cursor:pointer; }
   @media print {
-    @page { size:A4; margin:12mm; }
-    body { background:#fff; color:#111; padding:0; font-size:12.5px; }
-    .card, .step, .tile, .faq details, .dodont > div { background:#fff; border-color:#c9a84c; }
-    .pitch { background:#fff6dc; color:#111; }
-    .step .ic { background:#fff6dc; }
-    h2, .tile .big, td.p, .kick, .pitch .lbl, .pitch p b { color:#8f1129; }
-    .step span, .tile .d, .faq p, .tip, .note { color:#444; }
-    .faq details { break-inside:avoid; } .faq details > p { display:block; }
+    @page { size:A4; margin:10mm; }
+    body { background:#fff; color:#111; padding:0; font-size:12px; }
+    .b, .b.star, .c, .q, .pill { background:#fff; border-color:#c9a84c; color:#111; }
+    .b .d, .q span, .note { color:#444; }
+    .kick, h2, .b .t em, .c .p, .q b, .lead b { color:#8f1129; }
+    .b, .c, .q { break-inside:avoid; }
     .print { display:none; }
-    header img { width:160px; }
+    header img { width:150px; }
   }
 </style>
 </head>
 <body>
 <div class="w">
   <header>
-    <img src="/jackpoints/logo.webp" alt="Jackpoints">
+    <img src="jackpoints/logo.webp" alt="Jackpoints">
     <div class="kick">Guía para el personal</div>
-    <h1>Cómo explicarle Jackpoints a un cliente</h1>
+    <p class="lead">El club de beneficios de la sala.<br><b>Gratis.</b></p>
   </header>
 
-  <h2><span class="n">1</span>Lo que hay que decir (10 segundos)</h2>
-  <div class="pitch">
-    <div class="lbl">Decilo así</div>
-    <p>“Es el <b>club de beneficios de la sala, gratis</b>. Te anotás con tu DNI en esa máquina, y <b>cada vez que venís sumás puntos</b>, jugás <b>gratis</b> a Fortuna Dorada, donde podés ganar <b>tickets de $5.000</b>, y te llevás un cupón para el <b>sorteo de $150.000</b>. Con los puntos te llevás <b>bebidas, comida o tickets</b>.”</p>
-    <div class="tip">No es solo para canjear puntos: lo más atractivo para arrancar es que <b>es gratis, juega ya y puede ganar un ticket hoy mismo</b>. Los canjes vienen después, cuando junta puntos.</div>
+  <h2>Qué puede hacer el socio</h2>
+  <div class="bubbles">
+    <div class="b"><div class="ic">🚶</div><div class="t">Suma puntos <em>solo por venir</em></div><div class="d">Cada vez que viene: 50 puntos.</div></div>
+    <div class="b star"><div class="ic">🎰</div><div class="t">Juega gratis a <em>Fortuna Dorada</em></div><div class="d">Gana tickets de $5.000 o puntos. 3 giros cada 3 horas.</div></div>
+    <div class="b"><div class="ic">🎟️</div><div class="t">Cupón diario para el <em>sorteo de $150.000</em></div><div class="d">Lo imprime todos los días y lo pone en la urna.</div></div>
+    <div class="b"><div class="ic">🍔</div><div class="t">Canjea puntos por <em>bebidas, comidas o tickets</em></div><div class="d">1 punto = $1 de la carta.</div></div>
+    <div class="b"><div class="ic">🏆</div><div class="t">Se inscribe a los <em>eventos</em></div><div class="d">Como el torneo de slots, con un toque.</div></div>
   </div>
 
-  <h2><span class="n">2</span>Cómo se anota (2 minutos)</h2>
-  <div class="steps">
-    <div class="step"><div class="ic">🪪</div><div><b>Pone su DNI en la máquina</b><span>Si es la primera vez, la máquina le pide registrarse.</span></div></div>
-    <div class="step"><div class="ic">✍️</div><div><b>Nombre y apellido, celular y un PIN de 4 números</b><span>El PIN es su clave para entrar. Que elija uno que no se olvide.</span></div></div>
-    <div class="step"><div class="ic">✅</div><div><b>Acepta las bases y listo</b><span>Recibe <b>100 puntos de bienvenida</b> más los <b>50 de la visita</b>.</span></div></div>
-    <div class="step"><div class="ic">🎰</div><div><b>Ya puede jugar e imprimir su cupón</b><span>No necesita celular ni app: siempre entra con DNI + PIN.</span></div></div>
+  <h2>Cómo se anota</h2>
+  <div class="row">
+    <div class="pill"><span class="n">1</span>DNI en la máquina</div>
+    <div class="pill"><span class="n">2</span>Nombre, celular y PIN de 4 números</div>
+    <div class="pill"><span class="n">3</span>¡Listo! +100 puntos de regalo</div>
   </div>
 
-  <h2><span class="n">3</span>Qué gana el socio</h2>
-  <div class="grid">
-    <div class="tile"><div class="big">50 pts</div><div class="t">Por venir</div><div class="d">Una vez por día, solo con entrar a la máquina.</div></div>
-    <div class="tile"><div class="big">3 giros</div><div class="t">Fortuna Dorada, gratis</div><div class="d">Cada 3 horas. Premios en puntos y tickets de hasta <b>$5.000</b>. Con 3 logos de Jackpoints entra al <b>bonus de las vasijas</b>.</div></div>
-    <div class="tile"><div class="big">$150.000</div><div class="t">Sorteo del mes</div><div class="d">Un cupón por día para la urna. Próximo sorteo: <b>jueves 29 de octubre, 23 h</b>, la noche del torneo.</div></div>
-    <div class="tile"><div class="big">Canjes</div><div class="t">Bebidas, comida y tickets</div><div class="d">Con los puntos acumulados. 1 punto = $1 de la carta.</div></div>
-    <div class="tile"><div class="big">🏆</div><div class="t">Torneos de slots</div><div class="d">Se inscribe con un toque desde la máquina.</div></div>
-    <div class="tile"><div class="big">🎂</div><div class="t">Cumpleaños</div><div class="d">Si cargó su fecha, en su cumpleaños recibe un regalo en puntos.</div></div>
+  <h2>Algunos canjes</h2>
+  <div class="canjes">
+    <div class="c"><div class="e">☕</div><div class="k">Café</div><div class="p">1.000 pts</div></div>
+    <div class="c"><div class="e">🥤</div><div class="k">Gaseosa</div><div class="p">3.500 pts</div></div>
+    <div class="c"><div class="e">🍺</div><div class="k">Cerveza</div><div class="p">desde 4.500</div></div>
+    <div class="c"><div class="e">🍟</div><div class="k">Papas</div><div class="p">5.000 pts</div></div>
+    <div class="c"><div class="e">🍕</div><div class="k">Pizza</div><div class="p">5.500 pts</div></div>
+    <div class="c"><div class="e">🎫</div><div class="k">Tickets</div><div class="p">desde 5.000</div></div>
   </div>
 
-  <h2><span class="n">4</span>Ejemplos de canjes</h2>
-  <div class="card"><table>
-    <tr><td>Café · Agua o soda · Agua saborizada</td><td class="p">1.000 pts</td></tr>
-    <tr><td>Gaseosa 350 cc</td><td class="p">3.500 pts</td></tr>
-    <tr><td>Cerveza individual</td><td class="p">desde 4.500 pts</td></tr>
-    <tr><td>Porción de papas · Fernet con coca</td><td class="p">5.000 pts</td></tr>
-    <tr><td>Pizza individual · Empanadas x3</td><td class="p">5.500 / 6.000 pts</td></tr>
-    <tr><td>Ticket promocional de $5.000 a $30.000</td><td class="p">5.000 a 30.000 pts</td></tr>
-    <tr><td>Pack de 10 cupones extra para el sorteo</td><td class="p">150 pts</td></tr>
-  </table>
-  <div class="tip">El catálogo completo está en la máquina, en “Quiero canjear”.</div></div>
-
-  <h2><span class="n">5</span>Cuando gana o canjea algo</h2>
-  <div class="steps">
-    <div class="step"><div class="ic">🧾</div><div><b>La máquina imprime un cupón con código</b><span>Empieza con FD- (premio de Fortuna), CJ- (canje) o PT- (ticket).</span></div></div>
-    <div class="step"><div class="ic">🍸</div><div><b>Lo retira en la barra con su DNI</b><span>En la barra escanean o tipean el código y se lo entregan. El cupón no vence.</span></div></div>
-    <div class="step"><div class="ic">🗳️</div><div><b>El cupón del sorteo va a la urna</b><span>Ese no se retira: se deposita en la urna de la sala.</span></div></div>
-  </div>
-
-  <h2><span class="n">6</span>Preguntas que te van a hacer</h2>
+  <h2>Si te preguntan</h2>
   <div class="faq">
-    <details><summary>¿Cuesta algo?</summary><p>No. Es gratis, y no hace falta comprar, consumir ni jugar para sumar puntos o participar.</p></details>
-    <details><summary>¿Necesito el celular o bajar una app?</summary><p>No. Todo se hace en la máquina con el DNI y el PIN.</p></details>
-    <details><summary>¿Los puntos vencen?</summary><p>No vencen mientras el programa esté vigente.</p></details>
-    <details><summary>Me olvidé el PIN</summary><p>Que se acerque a la caja con su DNI: se lo reinician y crea uno nuevo en la máquina. No pierde sus puntos.</p></details>
-    <details><summary>¿Cuántas veces puedo jugar?</summary><p>3 giros cada 3 horas, todos los días. Los 50 puntos de visita son una vez por día.</p></details>
-    <details><summary>¿Suma puntos lo que consumo en la barra?</summary><p>Todavía no: viene muy pronto. Por ahora suma por venir y jugando a Fortuna Dorada.</p></details>
-    <details><summary>¿Cuándo es el sorteo? ¿Tengo que estar?</summary><p>El próximo es el jueves 29 de octubre a las 23 h. No hace falta estar: si sale su cupón, lo llaman al celular que registró.</p></details>
-    <details><summary>¿Puedo anotar a otra persona?</summary><p>No. Cada uno se anota con su propio DNI, y la cuenta es personal.</p></details>
+    <div class="q"><b>¿Cuesta algo?</b><span>No, es gratis. No hace falta jugar ni consumir.</span></div>
+    <div class="q"><b>¿Necesito celular?</b><span>No. Solo DNI y PIN.</span></div>
+    <div class="q"><b>¿Gané un premio o canjeé algo?</b><span>Sale un cupón: se retira en la barra con el DNI.</span></div>
+    <div class="q"><b>¿Me olvidé el PIN?</b><span>En la caja, con el DNI, se lo reinician. No pierde puntos.</span></div>
+    <div class="q"><b>¿Vencen los puntos?</b><span>No.</span></div>
+    <div class="q"><b>¿Suma lo que consumo?</b><span>Todavía no: muy pronto.</span></div>
   </div>
 
-  <h2><span class="n">7</span>Sí y no</h2>
-  <div class="dodont">
-    <div class="do"><h3>Sí</h3><ul>
-      <li>Ofrecéselo a todo el que entra: “¿Ya te anotaste en Jackpoints? Es gratis.”</li>
-      <li>Acompañalo a la máquina la primera vez.</li>
-      <li>Contá que hoy ya hubo ganadores de tickets.</li>
-      <li>Recordale que puede volver a girar en 3 horas.</li>
-    </ul></div>
-    <div class="dont"><h3>No</h3><ul>
-      <li>Prometer que va a ganar: no todos los giros tienen premio.</li>
-      <li>Decir que hay que jugar o consumir para sumar.</li>
-      <li>Anotar a menores de 18 años.</li>
-      <li>Usar tu cuenta para canjear o girar: el personal no participa de premios ni sorteos.</li>
-    </ul></div>
-  </div>
+  <div class="no"><b>No prometer que va a ganar</b> (no todos los giros tienen premio) · <b>Solo mayores de 18</b> · <b>El personal no participa</b> de premios ni sorteos</div>
 
   <button class="print" onclick="window.print()">Imprimir</button>
-  <p class="note">Bases completas: saladejuegoscrespo.ar/legal/bases-jackpoints.html · Solo para mayores de 18 años · Jugá con responsabilidad.</p>
+  <p class="note">Bases completas: saladejuegoscrespo.ar/legal/bases-jackpoints.html · Jugá con responsabilidad.</p>
 </div>
-<script>
-  // print with every FAQ answer visible (closed details hide their content)
-  addEventListener("beforeprint", () => document.querySelectorAll("details").forEach(d => d.open = true))
-</script>
 </body>
 </html>
