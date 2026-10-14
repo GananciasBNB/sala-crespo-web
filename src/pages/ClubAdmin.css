@@ -183,6 +183,16 @@
   font-size: 13px; color: var(--mal); margin-bottom: 11px;
   background: rgba(242, 112, 111, .1); border-radius: 8px; padding: 9px;
 }
+.ca__login-info {
+  font-size: 13px; line-height: 1.45; color: #9fe0b0; margin-bottom: 11px;
+  background: rgba(120, 210, 150, .1); border-radius: 8px; padding: 9px;
+}
+.ca__login-txt { font-size: 14px; line-height: 1.45; opacity: .8; margin: 0 0 12px; }
+.ca__login-link {
+  display: block; width: 100%; margin-top: 14px; background: none; border: 0;
+  color: inherit; opacity: .75; font-size: 14px; text-decoration: underline; cursor: pointer;
+}
+.ca__login-link:hover { opacity: 1; }
 
 /* ── Aviso flotante ─────────────────────────────────────────────────────── */
 .ca__toast {

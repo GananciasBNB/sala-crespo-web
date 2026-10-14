@@ -118,6 +118,10 @@ export const getContent     = () => api('/api/content')
 // ─── Admin: autenticación ─────────────────────────────────────────────────────
 export const adminLogin  = (email, password) =>
   api('/api/admin/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+export const adminForgotPassword = (email) =>
+  api('/api/admin/forgot-password', { method: 'POST', body: JSON.stringify({ email }) })
+export const adminResetPassword = (token, password) =>
+  api('/api/admin/reset-password', { method: 'POST', body: JSON.stringify({ token, password }) })
 
 export const adminVerify = (token) =>
   api('/api/admin/me', { headers: authHeaders(token) })

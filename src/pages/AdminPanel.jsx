@@ -113,6 +113,7 @@ function AdminLogin({ onLogin }) {
           <button className="ap-login__submit" disabled={loading}>
             {loading ? 'Ingresando...' : 'Ingresar →'}
           </button>
+          <Link to="/club-admin?olvide=1" className="ap-login__back" style={{ position: 'static', display: 'block', textAlign: 'center', marginTop: 14 }}>Olvidé mi contraseña</Link>
         </form>
       </div>
     </div>

@@ -2,7 +2,7 @@
 // opera distinto: desde el celular, mirando cómo viene el día y tocando una
 // cosa puntual. Usa el mismo login de admin.
 import { useState, useEffect } from 'react'
-import { adminLogin, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
+import { adminLogin, adminForgotPassword, adminResetPassword, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
 import {
   FortunaAdmin, ClubCatalog, ClubAccountLookup, ClubDeliver, ClubManualOps,
 } from '../components/club/panels'
@@ -290,10 +290,22 @@ function Kpi({ valor, label, detalle, destacado }) {
 }
 
 function Login({ onToken }) {
+  // ?reset=<token> comes from the email link; ?olvide=1 from the /admin login
+  const params = new URLSearchParams(window.location.search)
+  const resetToken = params.get('reset') || ''
+  const [modo, setModo] = useState(resetToken ? 'reset' : params.get('olvide') ? 'olvide' : 'login')
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
+  const [pass2, setPass2] = useState('')
   const [err, setErr] = useState('')
+  const [info, setInfo] = useState('')
   const [busy, setBusy] = useState(false)
+
+  function ir(m) {
+    setModo(m); setErr(''); setInfo(''); setPass(''); setPass2('')
+    // drop the token from the address bar once it's not needed
+    if (m === 'login') window.history.replaceState(null, '', window.location.pathname)
+  }
 
   async function entrar(e) {
     e.preventDefault()
@@ -305,19 +317,83 @@ function Login({ onToken }) {
     finally { setBusy(false) }
   }
 
+  async function pedirLink(e) {
+    e.preventDefault()
+    setBusy(true); setErr('')
+    try {
+      await adminForgotPassword(email.trim())
+      setInfo('Si ese email es de un usuario del panel, te llegó un mail con el link para elegir una contraseña nueva. Vence en 1 hora. Mirá también en Spam.')
+    } catch (e2) { setErr(e2.message || 'No pudimos mandar el mail') }
+    finally { setBusy(false) }
+  }
+
+  async function guardarNueva(e) {
+    e.preventDefault()
+    if (pass.length < 8) { setErr('La contraseña tiene que tener al menos 8 caracteres.'); return }
+    if (pass !== pass2) { setErr('Las dos contraseñas no coinciden.'); return }
+    setBusy(true); setErr('')
+    try {
+      const r = await adminResetPassword(resetToken, pass)
+      ir('login'); setEmail(r.email || '')
+      setInfo('Listo, contraseña cambiada. Entrá con la nueva.')
+    } catch (e2) { setErr(e2.message || 'No pudimos cambiar la contraseña') }
+    finally { setBusy(false) }
+  }
+
+  const cabecera = (
+    <>
+      <div className="ca__star ca__star--big">★</div>
+      <h1 className="ca__login-tit">Sala Crespo Club</h1>
+      <p className="ca__login-sub">{modo === 'login' ? 'Panel de operación' : modo === 'olvide' ? 'Recuperar contraseña' : 'Elegí tu contraseña nueva'}</p>
+    </>
+  )
+  const avisos = (
+    <>
+      {err && <div className="ca__login-err">{err}</div>}
+      {info && <div className="ca__login-info">{info}</div>}
+    </>
+  )
+
   return (
     <div className="ca ca--login">
-      <form className="ca__login" onSubmit={entrar}>
-        <div className="ca__star ca__star--big">★</div>
-        <h1 className="ca__login-tit">Sala Crespo Club</h1>
-        <p className="ca__login-sub">Panel de operación</p>
-        <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="username" />
-        <input type="password" placeholder="Contraseña" value={pass} onChange={e => setPass(e.target.value)} autoComplete="current-password" />
-        {err && <div className="ca__login-err">{err}</div>}
-        <button className="ca__btn ca__btn--ok ca__btn--full" disabled={busy}>
-          {busy ? 'Entrando…' : 'Entrar'}
-        </button>
-      </form>
+      {modo === 'login' && (
+        <form className="ca__login" onSubmit={entrar}>
+          {cabecera}
+          <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="username" />
+          <input type="password" placeholder="Contraseña" value={pass} onChange={e => setPass(e.target.value)} autoComplete="current-password" />
+          {avisos}
+          <button className="ca__btn ca__btn--ok ca__btn--full" disabled={busy}>
+            {busy ? 'Entrando…' : 'Entrar'}
+          </button>
+          <button type="button" className="ca__login-link" onClick={() => ir('olvide')}>Olvidé mi contraseña</button>
+        </form>
+      )}
+      {modo === 'olvide' && (
+        <form className="ca__login" onSubmit={pedirLink}>
+          {cabecera}
+          <p className="ca__login-txt">Poné tu email del panel y te mandamos un link para elegir una contraseña nueva.</p>
+          <input type="email" placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} autoComplete="username" required />
+          {avisos}
+          {!info && (
+            <button className="ca__btn ca__btn--ok ca__btn--full" disabled={busy}>
+              {busy ? 'Enviando…' : 'Mandarme el link'}
+            </button>
+          )}
+          <button type="button" className="ca__login-link" onClick={() => ir('login')}>← Volver a entrar</button>
+        </form>
+      )}
+      {modo === 'reset' && (
+        <form className="ca__login" onSubmit={guardarNueva}>
+          {cabecera}
+          <input type="password" placeholder="Contraseña nueva (mínimo 8)" value={pass} onChange={e => setPass(e.target.value)} autoComplete="new-password" />
+          <input type="password" placeholder="Repetila" value={pass2} onChange={e => setPass2(e.target.value)} autoComplete="new-password" />
+          {avisos}
+          <button className="ca__btn ca__btn--ok ca__btn--full" disabled={busy}>
+            {busy ? 'Guardando…' : 'Guardar contraseña'}
+          </button>
+          <button type="button" className="ca__login-link" onClick={() => ir('olvide')}>Pedir otro link</button>
+        </form>
+      )}
     </div>
   )
 }
