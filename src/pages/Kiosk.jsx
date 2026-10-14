@@ -662,10 +662,20 @@ export default function Kiosk() {
     setBusy(true); setErr('')
     try {
       await clubCreatePin(dni, pin)
+    } catch (e) {
+      // already created (e.g. a retry after a failed entry): just ask for it
+      if (/ya tiene PIN/i.test(e.message || '')) { setScreen('pin'); setPin(''); setErr('Tu PIN ya está creado. Ingresalo para entrar.') }
+      else setErr('No pudimos crear tu PIN. Probá de nuevo o consultá en la barra.')
+      setBusy(false)
+      return
+    }
+    // the PIN is saved: if entering fails now, the member retries from the PIN screen
+    try {
       const p = await kioskLogin(dni, pin)
       await entrarConSocio(p)
     } catch (e) {
-      setErr('No pudimos crear tu PIN. Probá de nuevo o consultá en la barra.')
+      setScreen('pin'); setPin('')
+      setErr(`Tu PIN quedó guardado. ${e.message || 'Ingresalo de nuevo para entrar.'}`)
     } finally { setBusy(false) }
   }
 
