@@ -29,6 +29,8 @@ export default function ClubAdmin() {
 
   const toast = {
     show: (msg, tipo = 'ok') => {
+      // expired session (7 days): back to the login instead of an empty panel
+      if (/token inv[aá]lido|expirad/i.test(String(msg))) { salir(); return }
       setToastMsg({ msg, tipo })
       setTimeout(() => setToastMsg(null), 3200)
     },
