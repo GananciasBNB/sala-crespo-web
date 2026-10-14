@@ -204,6 +204,8 @@ function FortunaAdmin({ token, toast }) {
           <label style={{ fontSize: 12, color: '#8B9BB4' }} title="Cuantos cupones del sorteo puede imprimir un socio por dia. Normal: 1. Subilo solo para pruebas.">Cupones sorteo/día<br />
             <input type="number" min="0" value={settings.rafflePerDay ?? 1} onChange={e => setSettings({ ...settings, rafflePerDay: Number(e.target.value) })}
               style={{ ...numStyle, borderColor: (settings.rafflePerDay ?? 1) > 1 ? '#fcd34d' : '#2a3142' }} /></label>
+          <label style={{ fontSize: 12, color: '#8B9BB4' }} title="Cuantos tickets promocionales puede ganar un mismo socio por noche (juego + bonus). Al llegar al tope sigue jugando por puntos y obsequios. 0 = sin limite.">Tickets por socio/noche<br />
+            <input type="number" min="0" value={settings.ticketsPerPlayerDay ?? 1} onChange={e => setSettings({ ...settings, ticketsPerPlayerDay: Number(e.target.value) })} style={numStyle} /></label>
           <button onClick={guardarSettings} style={{ padding: '8px 18px', borderRadius: 6, border: 'none', background: '#C41E3A', color: '#fff', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}>Guardar reglas</button>
         </div>
         <div style={{ display: 'flex', gap: 18, flexWrap: 'wrap', alignItems: 'end', marginTop: 14, paddingTop: 12, borderTop: '1px dashed #2a3142' }}>

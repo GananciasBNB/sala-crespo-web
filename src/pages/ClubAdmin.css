@@ -284,3 +284,6 @@
 .cd__tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; }
 .cd__tab { padding: 8px 13px; border-radius: 999px; border: 1px solid var(--borde); background: none; color: var(--txt); font-family: inherit; font-size: 14px; cursor: pointer; }
 .cd__tab--on { background: rgba(201, 168, 76, .18); border-color: var(--oro); color: var(--oro-luz); }
+
+/* index.css gives every <section> the landing's big padding: not in the panel */
+.ca section, .cd__hoja section { padding: 0; }
