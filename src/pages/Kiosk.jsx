@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import * as realApi from '../api/client'
 import * as demoApi from '../api/kiosk-demo'
 import './Kiosk.css'
+import KioskKeyboard from './kiosk-keyboard'
 import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa } from './kiosk-art'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
@@ -285,6 +286,7 @@ export default function Kiosk() {
   const [cumpleListo, setCumpleListo] = useState(false) // saved this session
   const [cumpleGracias, setCumpleGracias] = useState(false) // confirmation popup
   const [reg, setReg] = useState({ name: '', tel: '', email: '' })
+  const [kb, setKb] = useState(null) // field the on-screen keyboard is typing into (see KB below)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [regErr, setRegErr] = useState(null) // { campo, msg }: sign-up field with a problem
@@ -314,7 +316,7 @@ export default function Kiosk() {
 
   const reset = useCallback(() => {
     setScreen('idle'); setDni(''); setPin(''); setPlayer(null); setBalance(0)
-    setCheckin(null); setReg({ name: '', tel: '', email: '' }); setErr(''); setRegErr(null); setBusy(false)
+    setCheckin(null); setReg({ name: '', tel: '', email: '' }); setErr(''); setRegErr(null); setKb(null); setBusy(false)
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false)
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
@@ -702,12 +704,45 @@ export default function Kiosk() {
     } catch (e) { setErr(e.message) } finally { setBusy(false) }
   }
 
+  // ── Own on-screen keyboard (sign-up and 'Mis datos'): which field it is typing into ──
+  const KB = {
+    name: { mode: 'name', label: 'Nombre y apellido', ph: 'Ej. María González', max: 40, get: () => reg.name, set: v => setReg(r => ({ ...r, name: v })), next: 'pin' },
+    pin: { mode: 'num', label: 'Creá tu PIN (4 números)', ph: '4 números fáciles de recordar', max: 4, get: () => pin, set: v => setPin(v), next: 'tel' },
+    tel: { mode: 'num', label: 'Celular con característica', ph: 'Ej. 343 4123456', max: 15, get: () => reg.tel, set: v => setReg(r => ({ ...r, tel: v })), next: null }, // email is optional: the keyboard closes after the phone
+    email: { mode: 'email', label: 'Email (opcional)', ph: 'tu@email.com', max: 80, get: () => reg.email, set: v => setReg(r => ({ ...r, email: v })), next: null },
+    dtel: { mode: 'num', label: 'Teléfono', ph: 'Ej. 343 4123456', max: 15, get: () => datosForm.tel, set: v => setDatosForm(f => ({ ...f, tel: v })), next: 'demail' },
+    demail: { mode: 'email', label: 'Email', ph: 'tu@email.com', max: 80, get: () => datosForm.email, set: v => setDatosForm(f => ({ ...f, email: v })), next: null },
+  }
+  // only while its form is on screen (leaving the screen hides it without extra cleanup)
+  const kbVisible = kb && ((screen === 'register' && !kb.startsWith('d')) || (showDatos && kb.startsWith('d')))
+  const kbCampo = kbVisible ? KB[kb] : null
+  function kbKey(k) {
+    if (!kbCampo) return
+    const v = kbCampo.get()
+    if (kbCampo.mode === 'name') {
+      if (k === ' ' && (v === '' || v.endsWith(' '))) return          // no double / leading spaces
+      if (/^[A-ZÑ]$/.test(k) && v !== '' && !v.endsWith(' ')) k = k.toLowerCase() // capital only at word start
+    }
+    kbCampo.set((v + k).slice(0, kbCampo.max)); setErr(''); setRegErr(null)
+  }
+  function kbBack() { if (kbCampo) { kbCampo.set(kbCampo.get().slice(0, -1)); setErr(''); setRegErr(null) } }
+  function kbNext() {
+    const next = kbCampo?.next
+    if (next) { document.querySelector(`[data-kb="${next}"]`)?.focus(); return }
+    setKb(null); try { document.activeElement?.blur() } catch (e) { console.warn(e) }
+  }
+  // inputs: Windows touch keyboard off, ours on
+  const kbInput = (campo) => ({
+    'data-kb': campo, inputMode: 'none', virtualkeyboardpolicy: 'manual',
+    onFocus: (e) => { setKb(campo); setTimeout(() => { try { e.target.scrollIntoView({ behavior: 'smooth', block: 'center' }) } catch (err) { console.warn(err) } }, 60) },
+  })
+
   const firstName = player?.name?.split(' ')[0] || ''
   const esNuevo = !!(player?.created_at && Date.now() - new Date(player.created_at).getTime() < 60000)
 
   return (
     <div
-      className={DEMO ? 'kiosk kiosk--demo' : 'kiosk'}
+      className={`kiosk${DEMO ? ' kiosk--demo' : ''}${kbCampo ? ' kiosk--kb' : ''}`}
       onClick={screen === 'idle' ? () => { voz('ui-tap', 0.7); setScreen('dni') } : undefined}
       onPointerDownCapture={() => { lastActRef.current = Date.now(); desbloquearAudio(); if (!showGiro) musicaClubPlay() }}
       onKeyDownCapture={() => { lastActRef.current = Date.now() }}
@@ -800,21 +835,21 @@ export default function Kiosk() {
           <div className="kiosk__form">
             <label className={`kiosk__field${regErr?.campo === 'name' ? ' kiosk__field--err' : ''}`} data-campo="name">
               <span>Nombre y apellido</span>
-              <input type="text" value={reg.name} maxLength={40} autoComplete="off"
+              <input type="text" value={reg.name} maxLength={40} autoComplete="off" {...kbInput('name')}
                 onChange={e => { setReg({ ...reg, name: e.target.value }); setErr(''); setRegErr(null) }}
                 placeholder="Ej. María González" />
               {regErr?.campo === 'name' && <div className="kiosk__field-err">{regErr.msg}</div>}
             </label>
             <label className={`kiosk__field${regErr?.campo === 'pin' ? ' kiosk__field--err' : ''}`} data-campo="pin">
               <span>Creá tu PIN (4 números)</span>
-              <input type="tel" inputMode="numeric" value={pin} maxLength={4}
+              <input type="tel" value={pin} maxLength={4} {...kbInput('pin')}
                 onChange={e => { setPin(e.target.value.replace(/\D/g, '').slice(0, 4)); setErr(''); setRegErr(null) }}
                 placeholder="4 números fáciles de recordar" />
               {regErr?.campo === 'pin' && <div className="kiosk__field-err">{regErr.msg}</div>}
             </label>
             <label className={`kiosk__field${regErr?.campo === 'tel' ? ' kiosk__field--err' : ''}`} data-campo="tel">
               <span>Celular<b className="kiosk__cortesia">Así te avisamos si ganás un premio o un sorteo</b></span>
-              <input type="tel" inputMode="numeric" value={reg.tel} maxLength={15}
+              <input type="tel" value={reg.tel} maxLength={15} {...kbInput('tel')}
                 onChange={e => { setReg({ ...reg, tel: e.target.value }); setErr(''); setRegErr(null) }}
                 placeholder="Ej. 343 4123456" />
               {telFaltan(reg.tel) > 0 && regErr?.campo !== 'tel' && (
@@ -826,7 +861,7 @@ export default function Kiosk() {
             </label>
             <label className="kiosk__field">
               <span>Email <em>(opcional)</em><b className="kiosk__cortesia"><IconoBebida /> Completalo y recibí una bebida de cortesía</b></span>
-              <input type="email" value={reg.email} maxLength={80} autoComplete="off"
+              <input type="email" value={reg.email} maxLength={80} autoComplete="off" {...kbInput('email')}
                 onChange={e => setReg({ ...reg, email: e.target.value })}
                 placeholder="tu@email.com" />
             </label>
@@ -1055,13 +1090,13 @@ export default function Kiosk() {
             <div className="kiosk__form">
               <label className="kiosk__field">
                 <span>Teléfono</span>
-                <input type="tel" inputMode="numeric" value={datosForm.tel} maxLength={15}
+                <input type="tel" value={datosForm.tel} maxLength={15} {...kbInput('dtel')}
                   onChange={e => setDatosForm(f => ({ ...f, tel: e.target.value }))}
                   placeholder="Ej. 3435 123456" />
               </label>
               <label className="kiosk__field">
                 <span>Email {!emailActual && <b className="kiosk__cortesia"><IconoBebida /> Completalo y recibí una bebida de cortesía</b>}</span>
-                <input type="email" value={datosForm.email} maxLength={80} autoComplete="off"
+                <input type="email" value={datosForm.email} maxLength={80} autoComplete="off" {...kbInput('demail')}
                   onChange={e => setDatosForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="tu@email.com" />
               </label>
@@ -1209,6 +1244,20 @@ export default function Kiosk() {
             {giroJugado ? '← VOLVER AL CLUB' : '✕ Volver al Club'}
           </button>
         </div>
+      )}
+
+      {kbCampo && (
+        <KioskKeyboard
+          mode={kbCampo.mode}
+          label={kbCampo.label}
+          value={kbCampo.get()}
+          placeholder={kbCampo.ph}
+          onKey={kbKey}
+          onBack={kbBack}
+          onNext={kbNext}
+          nextLabel={kbCampo.next ? 'SIGUIENTE ›' : 'LISTO ✓'}
+          onClose={() => { setKb(null); try { document.activeElement?.blur() } catch (e) { console.warn(e) } }}
+        />
       )}
     </div>
   )

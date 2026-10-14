@@ -686,3 +686,48 @@
 .kiosk__field-err { color: #F2A3B0; font-size: 15px; font-weight: 700; line-height: 1.35; }
 .kiosk__field-hint { color: var(--gold); font-size: 14px; font-weight: 600; }
 .kiosk__acepto--err { outline: 2px solid #E9899A; outline-offset: 6px; border-radius: 10px; }
+
+/* ── Own on-screen keyboard (replaces the Windows one) ─────────────────────── */
+.kiosk { --kkb-h: 500px; }
+.kiosk--kb { align-items: flex-start; overflow-y: auto; padding-bottom: calc(var(--kkb-h) + 24px); }
+.kiosk--kb .kiosk__step--reg .kiosk__hint { display: none; }
+.kkb {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 14px 16px 12px; box-sizing: border-box;
+  background: linear-gradient(180deg, rgba(26,10,16,.97), rgba(12,4,8,.99));
+  border-top: 2px solid var(--gold); box-shadow: 0 -18px 40px rgba(0,0,0,.6);
+  animation: kkbUp .18s ease-out;
+}
+@keyframes kkbUp { from { transform: translateY(40px); opacity: 0 } to { transform: none; opacity: 1 } }
+.kkb__row { display: flex; gap: 9px; justify-content: center; width: 100%; max-width: 1240px; }
+.kkb__key {
+  flex: 1 1 0; min-width: 0; height: 74px; max-width: 112px;
+  font: 700 34px/1 var(--font-body); color: var(--cream);
+  background: rgba(40,20,28,.95); border: 1px solid rgba(240,210,117,.35); border-radius: 14px;
+  cursor: pointer; touch-action: manipulation; transition: transform .07s, background .12s, border-color .12s;
+}
+.kkb__key:active { transform: scale(.93); background: var(--gold); color: #1a060b; border-color: var(--gold); }
+.kkb__key--fn { color: var(--gold); font-size: 28px; }
+.kkb__key--wide { flex: 2 1 0; max-width: 230px; font-size: 24px; }
+.kkb__key--space { flex: 6 1 0; max-width: 640px; font-size: 22px; letter-spacing: 3px; text-transform: uppercase; color: var(--text3, #c4b59c); }
+.kkb__key--ok { flex: 3 1 0; max-width: 340px; font: 700 26px/1 var(--font-impact); letter-spacing: 2px;
+  background: linear-gradient(180deg, #fff1b8, #f0d275 55%, #c9a84c); color: #1a060b; border-color: var(--gold); }
+.kkb__row--short .kkb__key--short { max-width: 270px; font-size: 22px; color: var(--gold); }
+.kkb__close { background: none; border: 0; color: var(--text3, #c4b59c); font: 600 17px var(--font-body); padding: 4px 16px; cursor: pointer; }
+
+/* numeric: big 3-column pad */
+.kkb--num { --kkb-h: 500px; }
+.kkb__numgrid { display: grid; grid-template-columns: repeat(3, 190px); gap: 10px; }
+.kkb__key--num { max-width: none; height: 78px; font-size: 40px; }
+.kkb__numgrid .kkb__key--ok { max-width: none; font-size: 20px; white-space: nowrap; }
+/* big display above the keys: what is being typed, readable at a glance */
+.kkb__visor { width: 100%; max-width: 1000px; text-align: left; background: rgba(0,0,0,.45); border: 2px solid var(--gold);
+  border-radius: 16px; padding: 10px 20px 12px; box-sizing: border-box; }
+.kkb__visor-label { font: 700 18px var(--font-body); color: var(--gold); letter-spacing: 1px; }
+.kkb__visor-value { font: 700 46px/1.15 var(--font-body); color: #fff; min-height: 54px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kkb__visor-value--empty { color: rgba(245,236,215,.35); font-weight: 500; }
+.kkb__caret { display: inline-block; width: 3px; height: 44px; margin-left: 4px; vertical-align: -6px; background: var(--gold); animation: kkbBlink 1s steps(1) infinite; }
+@keyframes kkbBlink { 50% { opacity: 0 } }
+.kkb__key { height: 66px; }
+.kkb__key--num { height: 70px; }
