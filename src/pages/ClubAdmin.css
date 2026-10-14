@@ -220,3 +220,67 @@
    ya combinan; solo emparejamos el ancho de sus tablas. */
 .ca__main .ap-section { padding: 0; }
 .ca__main .ap-section__title { display: none; }
+
+/* ── Clickable cards + detail sheets (club-detail.jsx) ──────────────────── */
+.ca__kpi--click { position: relative; cursor: pointer; text-align: left; font-family: inherit; color: inherit; width: 100%; transition: border-color .15s, transform .15s; }
+.ca__kpi--click:hover { border-color: rgba(240, 210, 117, .55); transform: translateY(-1px); }
+.ca__kpi-ver { position: absolute; top: 10px; right: 12px; color: var(--oro); font-size: 20px; line-height: 1; opacity: .7; }
+.ca__alerta--calma { background: var(--panel); border-color: var(--borde); }
+
+.cd__fondo { position: fixed; inset: 0; z-index: 50; background: rgba(0, 0, 0, .66); display: flex; align-items: flex-end; justify-content: center; }
+.cd__hoja {
+  --oro: #C9A84C; --oro-luz: #F0D275; --borde: rgba(201, 168, 76, .18); --txt: #E8DFD0; --txt2: #9a8f82;
+  width: 100%; max-width: 980px; max-height: 92dvh; display: flex; flex-direction: column;
+  background: #150a0e; border: 1px solid var(--borde); border-radius: 18px 18px 0 0; color: var(--txt);
+  font-family: 'Oswald', 'Barlow Condensed', system-ui, sans-serif;
+}
+@media (min-width: 760px) { .cd__fondo { align-items: center; padding: 24px; } .cd__hoja { border-radius: 18px; } }
+.cd__cab { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--borde); }
+.cd__tit { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 21px; color: var(--oro-luz); min-width: 0; overflow-wrap: break-word; }
+.cd__cerrar { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--borde); background: none; color: var(--txt); font-size: 16px; cursor: pointer; }
+.cd__cuerpo { overflow-y: auto; padding: 16px 18px 26px; }
+.cd__vacio { color: var(--txt2); font-size: 14px; padding: 12px 0; }
+.cd__nota { font-size: 13px; color: var(--txt2); margin: 0 0 14px; line-height: 1.45; overflow-wrap: break-word; }
+.cd__resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 16px; }
+.cd__res { background: rgba(255, 255, 255, .035); border: 1px solid var(--borde); border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.cd__res-v { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: var(--oro-luz); line-height: 1.15; overflow-wrap: break-word; }
+.cd__res-l { font-size: 12px; color: var(--txt2); margin-top: 2px; }
+.cd__sec { margin-top: 18px; }
+.cd__sec-tit { margin: 0 0 8px; font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase; color: var(--oro); }
+.cd__sec-tit span { color: var(--txt2); margin-left: 6px; }
+.cd__tabla-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--borde); border-radius: 12px; }
+.cd__tabla { width: 100%; border-collapse: collapse; font-size: 14px; }
+.cd__tabla th { position: sticky; top: 0; background: #1c0f14; text-align: left; font-weight: 500; font-size: 12px; letter-spacing: .8px; text-transform: uppercase; color: var(--txt2); padding: 9px 10px; white-space: nowrap; }
+.cd__tabla td { padding: 9px 10px; border-top: 1px solid rgba(201, 168, 76, .09); vertical-align: top; }
+.cd__der { text-align: right !important; white-space: nowrap; }
+.cd__oro { color: var(--oro-luz); font-weight: 600; }
+.cd__fila-click { cursor: pointer; }
+.cd__fila-click:hover td { background: rgba(240, 210, 117, .06); }
+
+.cd__feed { display: flex; flex-direction: column; gap: 2px; }
+.cd__ev { display: grid; grid-template-columns: 46px 24px 1fr; align-items: baseline; gap: 6px; padding: 7px 4px; border-bottom: 1px solid rgba(201, 168, 76, .08); font-size: 14px; }
+.cd__ev-hora { color: var(--txt2); font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.cd__ev-txt { min-width: 0; overflow-wrap: break-word; }
+.cd__ev-txt strong { color: var(--crema); font-weight: 600; }
+.cd__mas { margin-top: 10px; background: none; border: 1px solid var(--borde); color: var(--txt); border-radius: 10px; padding: 9px; font-family: inherit; cursor: pointer; }
+
+.cd__filtros { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.cd__filtros input, .cd__filtros select {
+  min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--borde);
+  background: rgba(0, 0, 0, .35); color: var(--txt); font-family: inherit; font-size: 14px;
+}
+.cd__buscar { flex: 1 1 260px; }
+.cd__filtros select { flex: 0 1 auto; }
+.cd__conteo { font-size: 13.5px; color: var(--txt); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.cd__conteo strong { color: var(--oro-luz); font-size: 16px; }
+.cd__conteo-nota { color: var(--txt2); font-size: 12px; }
+.cd__tabla--socios { min-width: 820px; }
+.cd__th-orden { cursor: pointer; user-select: none; }
+.cd__th-orden:hover { color: var(--oro-luz); }
+.cd__socio-nom { color: var(--crema); font-weight: 600; }
+.cd__socio-sub { font-size: 12px; color: var(--txt2); margin-top: 1px; }
+.cd__ficha-datos { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13.5px; color: var(--txt2); margin-bottom: 12px; }
+.cd__ficha-datos span { overflow-wrap: anywhere; }
+.cd__tabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; }
+.cd__tab { padding: 8px 13px; border-radius: 999px; border: 1px solid var(--borde); background: none; color: var(--txt); font-family: inherit; font-size: 14px; cursor: pointer; }
+.cd__tab--on { background: rgba(201, 168, 76, .18); border-color: var(--oro); color: var(--oro-luz); }

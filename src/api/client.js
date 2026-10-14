@@ -574,6 +574,12 @@ export const adminSpinLog = (token, limit = 300) =>
 // Panel del Club: foto del día/mes y el net win que sirve de denominador
 export const adminClubOverview = (token) =>
   api('/api/admin/club/overview', { headers: authHeaders(token) })
+export const adminClubDetail = (token, tipo) =>
+  api(`/api/admin/club/detail/${encodeURIComponent(tipo)}`, { headers: authHeaders(token) })
+export const adminClubSocios = (token) =>
+  api('/api/admin/club/socios', { headers: authHeaders(token) })
+export const adminClubSocio = (token, id) =>
+  api(`/api/admin/club/socio/${encodeURIComponent(id)}`, { headers: authHeaders(token) })
 export const adminClubSetNw = (token, nwMensual) =>
   api('/api/admin/club/nw', { method: 'POST', headers: authHeaders(token), body: JSON.stringify({ nwMensual }) })
 

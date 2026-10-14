@@ -4,8 +4,9 @@
 import { useState, useEffect } from 'react'
 import { adminLogin, adminForgotPassword, adminResetPassword, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
 import {
-  FortunaAdmin, ClubCatalog, ClubAccountLookup, ClubDeliver, ClubManualOps,
+  FortunaAdmin, ClubCatalog, ClubDeliver, ClubManualOps,
 } from '../components/club/panels'
+import { DetalleHoja, FeedHoy, SociosLista } from '../components/club/club-detail'
 import WhatsAppAdmin from '../components/club/whatsapp'
 import './ClubAdmin.css'
 
@@ -17,7 +18,7 @@ const SECCIONES = [
   { id: 'canjes',   icon: '🛍',  label: 'Canjes',   sub: 'Catálogo y promos' },
   { id: 'sorteo',   icon: '🎟',  label: 'Sorteo',   sub: 'El sorteo del mes' },
   { id: 'whatsapp', icon: '💬', label: 'WhatsApp', sub: 'El bot de atención' },
-  { id: 'socios',   icon: '👤', label: 'Socios',   sub: 'Buscar y ajustar' },
+  { id: 'socios',   icon: '👤', label: 'Socios',   sub: 'Lista, filtros e historial' },
   { id: 'barra',    icon: '💁', label: 'Barra',    sub: 'Entregar canjes' },
   { id: 'puntos',   icon: '⚡', label: 'Puntos',   sub: 'Sumar a mano' },
 ]
@@ -75,7 +76,7 @@ export default function ClubAdmin() {
         {seccion === 'canjes'  && <ClubCatalog token={token} toast={toast} />}
         {seccion === 'sorteo'  && <Sorteo token={token} toast={toast} />}
         {seccion === 'whatsapp' && <WhatsAppAdmin token={token} toast={toast} />}
-        {seccion === 'socios'  && <ClubAccountLookup token={token} toast={toast} />}
+        {seccion === 'socios'  && <SociosLista token={token} toast={toast} />}
         {seccion === 'barra'   && <ClubDeliver token={token} toast={toast} />}
         {seccion === 'puntos'  && <ClubManualOps token={token} toast={toast} />}
       </main>
@@ -91,6 +92,7 @@ function Hoy({ token, toast, onIr }) {
   const [cargando, setCargando] = useState(true)
   const [editandoNw, setEditandoNw] = useState(false)
   const [nw, setNw] = useState('')
+  const [detalle, setDetalle] = useState(null)   // which card's detail is open
 
   async function cargar() {
     try { const r = await adminClubOverview(token); setD(r); setNw(String(r.nwMensual || '')) }
@@ -121,27 +123,29 @@ function Hoy({ token, toast, onIr }) {
     <>
       <Bloque titulo="Hoy en la sala">
         <div className="ca__kpis">
-          <Kpi valor={d.hoy.giros} label="giros" detalle={`${d.hoy.personas} ${d.hoy.personas === 1 ? 'socio' : 'socios'}`} />
+          <Kpi valor={d.hoy.giros} label="giros" detalle={`${d.hoy.personas} ${d.hoy.personas === 1 ? 'socio' : 'socios'}`} onClick={() => setDetalle('giros')} />
           <Kpi valor={d.hoy.girosPremiados} label="premiados"
-            detalle={d.hoy.giros ? `${Math.round(d.hoy.girosPremiados / d.hoy.giros * 100)}% de los giros` : '—'} />
-          <Kpi valor={d.hoy.checkins} label="visitas" detalle="check-in del día" />
-          <Kpi valor={pts(d.hoy.puntosEmitidos)} label="puntos dados" detalle={d.hoy.puntosCanjeados ? `${pts(d.hoy.puntosCanjeados)} canjeados` : 'sin canjes aún'} />
+            detalle={d.hoy.giros ? `${Math.round(d.hoy.girosPremiados / d.hoy.giros * 100)}% de los giros` : '—'} onClick={() => setDetalle('premiados')} />
+          <Kpi valor={d.hoy.checkins} label="visitas" detalle="check-in del día" onClick={() => setDetalle('visitas')} />
+          <Kpi valor={pts(d.hoy.puntosEmitidos)} label="puntos dados" detalle={d.hoy.puntosCanjeados ? `${pts(d.hoy.puntosCanjeados)} canjeados` : 'sin canjes aún'} onClick={() => setDetalle('puntos-hoy')} />
         </div>
       </Bloque>
 
-      {d.canjesPendientes > 0 && (
-        <button className="ca__alerta" onClick={() => onIr('barra')}>
-          <strong>{d.canjesPendientes} {d.canjesPendientes === 1 ? 'canje pendiente' : 'canjes pendientes'}</strong>
-          <span>de retirar en la barra — tocá para entregarlos</span>
-        </button>
-      )}
+      <button className={`ca__alerta ${d.canjesPendientes ? '' : 'ca__alerta--calma'}`} onClick={() => setDetalle('pendientes')}>
+        <strong>{d.canjesPendientes ? `${d.canjesPendientes} ${d.canjesPendientes === 1 ? 'canje pendiente' : 'canjes pendientes'}` : 'Sin canjes por retirar'}</strong>
+        <span>{d.canjesPendientes ? 'de retirar en la barra — tocá para ver quiénes' : 'tocá para ver la lista de la barra'}</span>
+      </button>
+
+      <Bloque titulo="Lo último en el kiosco">
+        <FeedHoy token={token} />
+      </Bloque>
 
       <Bloque titulo="Lo que va del mes">
         <div className="ca__kpis">
-          <Kpi valor={pts(d.mes.puntosEmitidos)} label="puntos emitidos" detalle={`${d.mes.checkins} visitas`} />
-          <Kpi valor={pts(d.mes.puntosCanjeados)} label="puntos canjeados" detalle={`${d.mes.canjesEntregados} entregados`} />
-          <Kpi valor={pesos(d.mes.ticketsPesos)} label="en tickets" detalle={`${d.mes.ticketsCantidad} de la ruleta`} />
-          <Kpi valor={pesos(d.mes.entregado)} label="entregado total" detalle="canjes + tickets" destacado />
+          <Kpi valor={pts(d.mes.puntosEmitidos)} label="puntos emitidos" detalle={`${d.mes.checkins} visitas`} onClick={() => setDetalle('puntos-mes')} />
+          <Kpi valor={pts(d.mes.puntosCanjeados)} label="puntos canjeados" detalle={`${d.mes.canjesEntregados} entregados`} onClick={() => setDetalle('canjes-mes')} />
+          <Kpi valor={pesos(d.mes.ticketsPesos)} label="en tickets" detalle={`${d.mes.ticketsCantidad} de Fortuna Dorada`} onClick={() => setDetalle('tickets-mes')} />
+          <Kpi valor={pesos(d.mes.entregado)} label="entregado total" detalle="canjes + tickets" destacado onClick={() => setDetalle('entregado-mes')} />
         </div>
       </Bloque>
 
@@ -158,7 +162,7 @@ function Hoy({ token, toast, onIr }) {
                 del net win. {semaforo === 'ok'
                   ? 'Dentro de lo previsto para el kiosco (0,50%).'
                   : semaforo === 'ojo'
-                    ? 'Por encima del 0,50% previsto — mirá los premios de la ruleta.'
+                    ? 'Por encima del 0,50% previsto — mirá los premios de Fortuna Dorada.'
                     : 'Muy por encima de lo previsto. Revisá stock de tickets y descuentos.'}
               </div>
               <div className="ca__nw-nota">
@@ -185,12 +189,27 @@ function Hoy({ token, toast, onIr }) {
 
       <Bloque titulo="Socios">
         <div className="ca__kpis">
-          <Kpi valor={d.socios.total} label="con cuenta" />
-          <Kpi valor={d.socios.activos7d} label="vinieron" detalle="últimos 7 días" />
+          <Kpi valor={d.socios.total} label="con cuenta" detalle="ver la lista" onClick={() => onIr('socios')} />
+          <Kpi valor={d.socios.activos7d} label="vinieron" detalle="últimos 7 días" onClick={() => setDetalle('activos')} />
           <Kpi valor={pts(d.socios.puntosEnCirculacion)} label="puntos sin canjear"
-            detalle={`${pesos(d.socios.puntosEnCirculacion)} de deuda`} />
+            detalle={`${pesos(d.socios.puntosEnCirculacion)} de deuda`} onClick={() => setDetalle('saldo')} />
         </div>
       </Bloque>
+
+      <Bloque titulo="Sorteo del mes">
+        <div className="ca__kpis">
+          <Kpi valor={d.sorteo.cuponesHoy} label="cupones hoy" onClick={() => setDetalle('cupones')} />
+          <Kpi valor={d.sorteo.cuponesMes} label="cupones del mes" detalle={`${d.sorteo.personas} socios`} onClick={() => setDetalle('cupones')} />
+          <Kpi valor={pesos(d.sorteo.monto)} label="premio" detalle="se edita en Sorteo" onClick={() => onIr('sorteo')} />
+        </div>
+      </Bloque>
+
+      {detalle && (
+        <DetalleHoja token={token} tipo={detalle} toast={toast} onClose={() => setDetalle(null)}
+          pie={detalle === 'pendientes' ? (
+            <button className="ca__btn ca__btn--ok ca__btn--full" onClick={() => { setDetalle(null); onIr('barra') }}>Ir a la Barra a entregar</button>
+          ) : null} />
+      )}
 
       {d.topCanjes.length > 0 && (
         <Bloque titulo="Lo más canjeado del mes">
@@ -279,14 +298,19 @@ function Bloque({ titulo, children }) {
   )
 }
 
-function Kpi({ valor, label, detalle, destacado }) {
-  return (
-    <div className={`ca__kpi ${destacado ? 'ca__kpi--top' : ''}`}>
+function Kpi({ valor, label, detalle, destacado, onClick }) {
+  const clase = `ca__kpi ${destacado ? 'ca__kpi--top' : ''} ${onClick ? 'ca__kpi--click' : ''}`
+  const contenido = (
+    <>
       <div className="ca__kpi-valor">{valor}</div>
       <div className="ca__kpi-label">{label}</div>
       {detalle && <div className="ca__kpi-det">{detalle}</div>}
-    </div>
+      {onClick && <span className="ca__kpi-ver" aria-hidden="true">›</span>}
+    </>
   )
+  return onClick
+    ? <button type="button" className={clase} onClick={onClick}>{contenido}</button>
+    : <div className={clase}>{contenido}</div>
 }
 
 function Login({ onToken }) {
