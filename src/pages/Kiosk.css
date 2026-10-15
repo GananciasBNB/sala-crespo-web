@@ -745,3 +745,21 @@
 /* the whole hub card is touchable when it has something to do */
 .kiosk__hub-card:has(.kiosk__cta--hub:not(.kiosk__cta--pack):not([disabled])) { cursor: pointer; transition: transform .1s; }
 .kiosk__hub-card:has(.kiosk__cta--hub:not(.kiosk__cta--pack):not([disabled])):active { transform: scale(.985); }
+
+/* Cabinet monitor 1280x1024 (5:4): the member home had empty bands above and
+   below. Taller cards, bigger art and type; logo a bit smaller so it sits higher. */
+@media (min-width: 1100px) and (max-width: 1400px) and (min-height: 960px) {
+  .kiosk__done-logo { width: 150px; margin-bottom: 10px; }
+  .kiosk__done-row { margin-bottom: 14px; }
+  .kiosk__saldo-line { margin-bottom: 14px; }
+  .kiosk__hub { gap: 10px; margin-bottom: 22px; }
+  .kiosk__hub-card { min-height: 470px; padding: 26px 10px 20px; gap: 14px; }
+  .kiosk__hub-title { font-size: 20px; min-height: 50px; }
+  .kiosk__hub-sub { font-size: 14.5px; }
+  .kiosk__hub-art { min-height: 190px; }
+  .kiosk-art { height: 165px; }
+  .kiosk__hub-countdown { font-size: 34px; }
+  .kiosk__hub-ok { font-size: 14px; }
+  .kiosk__cta.kiosk__cta--hub { font-size: 15px; padding: 16px 4px; }
+  .kiosk__hub-sub--pack { font-size: 13px; }
+}
