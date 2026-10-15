@@ -731,3 +731,17 @@
 @keyframes kkbBlink { 50% { opacity: 0 } }
 .kkb__key { height: 66px; }
 .kkb__key--num { height: 70px; }
+
+/* suggestion strip of the keyboard (kiosk-suggest.js) */
+.kiosk { --kkb-h: 566px; }
+.kkb__sug { display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 1000px; min-height: 56px; }
+.kkb__sug-btn {
+  flex: 1 1 0; max-width: 320px; height: 56px; min-width: 0; padding: 0 14px;
+  font: 700 26px/1 var(--font-body); color: #1a060b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(180deg, #fff1b8, #f0d275); border: 0; border-radius: 28px;
+  cursor: pointer; touch-action: manipulation; transition: transform .07s;
+}
+.kkb__sug-btn:active { transform: scale(.94); }
+/* the whole hub card is touchable when it has something to do */
+.kiosk__hub-card:has(.kiosk__cta--hub:not(.kiosk__cta--pack):not([disabled])) { cursor: pointer; transition: transform .1s; }
+.kiosk__hub-card:has(.kiosk__cta--hub:not(.kiosk__cta--pack):not([disabled])):active { transform: scale(.985); }

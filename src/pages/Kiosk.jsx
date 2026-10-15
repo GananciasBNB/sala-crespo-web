@@ -3,6 +3,7 @@ import * as realApi from '../api/client'
 import * as demoApi from '../api/kiosk-demo'
 import './Kiosk.css'
 import KioskKeyboard from './kiosk-keyboard'
+import { sugerencias } from './kiosk-suggest'
 import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa } from './kiosk-art'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
@@ -735,6 +736,14 @@ export default function Kiosk() {
     }
     kbCampo.set((v + k).slice(0, kbCampo.max)); setErr(''); setRegErr(null)
   }
+  function kbPick(v) { if (kbCampo) { kbCampo.set(v.slice(0, kbCampo.max)); setErr(''); setRegErr(null) } }
+  // members tap the whole card, not just its button: the card presses its main
+  // button (never the points pack, which spends points)
+  function tocarTarjeta(e) {
+    if (e.target.closest('button, a, input')) return
+    const card = e.target.closest('.kiosk__hub-card')
+    card?.querySelector('.kiosk__cta--hub:not(.kiosk__cta--pack):not([disabled])')?.click()
+  }
   function kbBack() { if (kbCampo) { kbCampo.set(kbCampo.get().slice(0, -1)); setErr(''); setRegErr(null) } }
   function kbNext() {
     const next = kbCampo?.next
@@ -960,7 +969,7 @@ export default function Kiosk() {
 
           {err && <div className="kiosk__err">{err}</div>}
 
-          <div className="kiosk__hub">
+          <div className="kiosk__hub" onClick={tocarTarjeta}>
             <div className="kiosk__hub-card kiosk__hub-card--giro kiosk__hub-card--art">
               <div className="kiosk__hub-title">FORTUNA DORADA</div>
               <FortunaEstado token={player?.token} refreshKey={spinRefresh} onJugar={jugarGiro}
@@ -1267,6 +1276,8 @@ export default function Kiosk() {
           onNext={kbNext}
           nextLabel={kbCampo.next ? 'SIGUIENTE ›' : 'LISTO ✓'}
           onClose={() => { setKb(null); try { document.activeElement?.blur() } catch (e) { console.warn(e) } }}
+          suggestions={sugerencias(kbCampo.mode, kbCampo.get(), { nombre: reg.name })}
+          onPick={kbPick}
         />
       )}
     </div>

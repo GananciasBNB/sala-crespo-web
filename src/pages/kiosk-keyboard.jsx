@@ -4,7 +4,7 @@
 const ROWS_LETTERS = ['QWERTYUIOP', 'ASDFGHJKLÑ', 'ZXCVBNM']
 const EMAIL_SHORTCUTS = ['@gmail.com', '@hotmail.com', '@yahoo.com.ar', '.com']
 
-export default function KioskKeyboard({ mode, label, value, placeholder, secret, onKey, onBack, onNext, nextLabel = 'SIGUIENTE', onClose }) {
+export default function KioskKeyboard({ mode, label, value, placeholder, secret, onKey, onBack, onNext, nextLabel = 'SIGUIENTE', onClose, suggestions = [], onPick }) {
   // pointerdown (not click): no focus loss on the input, instant response on touch
   const press = (fn) => (e) => { e.preventDefault(); fn() }
   // big display of the field being typed: the form itself may sit behind the keyboard
@@ -14,6 +14,15 @@ export default function KioskKeyboard({ mode, label, value, placeholder, secret,
       <div className={`kkb__visor-value${value ? '' : ' kkb__visor-value--empty'}`}>
         {value ? (secret ? '•'.repeat(value.length) : value) : placeholder}<span className="kkb__caret" />
       </div>
+    </div>
+  )
+
+  // phone-like suggestion strip; the row is always there so the keys don't jump
+  const sugeridas = (
+    <div className="kkb__sug" aria-label="Sugerencias">
+      {suggestions.map(s => (
+        <button key={s.value} type="button" className="kkb__sug-btn" onPointerDown={press(() => onPick?.(s.value))}>{s.label}</button>
+      ))}
     </div>
   )
 
@@ -38,6 +47,7 @@ export default function KioskKeyboard({ mode, label, value, placeholder, secret,
   return (
     <div className="kkb" role="group" aria-label="Teclado">
       {visor}
+      {sugeridas}
       {email && (
         <div className="kkb__row kkb__row--short">
           {EMAIL_SHORTCUTS.map(s => (
