@@ -755,7 +755,7 @@
   .kiosk__hub { gap: 10px; margin-bottom: 22px; }
   .kiosk__hub-card { min-height: 470px; padding: 26px 10px 20px; gap: 14px; }
   .kiosk__hub-title { font-size: 20px; min-height: 50px; }
-  .kiosk__hub-sub { font-size: 14.5px; }
+  .kiosk__hub-sub { font-size: 15px; font-weight: 600; color: #e6dccb; }
   .kiosk__hub-art { min-height: 190px; }
   .kiosk-art { height: 165px; }
   .kiosk__hub-countdown { font-size: 34px; }
