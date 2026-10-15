@@ -763,3 +763,11 @@
   .kiosk__cta.kiosk__cta--hub { font-size: 15px; padding: 16px 4px; }
   .kiosk__hub-sub--pack { font-size: 13px; }
 }
+
+/* card descriptions: the thin small type was hard to read on any wide screen */
+@media (min-width: 1100px) {
+  .kiosk__hub-sub { font-size: 14px; font-weight: 600; color: #e6dccb; }
+}
+@media (min-width: 1100px) and (max-width: 1400px) and (min-height: 960px) {
+  .kiosk__hub-sub { font-size: 15px; }
+}
