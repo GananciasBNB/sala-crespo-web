@@ -1,0 +1,92 @@
+{
+ "pescador": {
+  "w": 899,
+  "h": 801,
+  "aro": [
+   702,
+   218,
+   106
+  ],
+  "asiento": [
+   414,
+   747
+  ]
+ },
+ "pescador-izq": true,
+ "bote": {
+  "w": 1100,
+  "h": 561
+ },
+ "pez-comun": {
+  "w": 420,
+  "h": 241
+ },
+ "pez-plateado": {
+  "w": 440,
+  "h": 212
+ },
+ "pez-dorado": {
+  "w": 460,
+  "h": 230
+ },
+ "pez-legendario": {
+  "w": 520,
+  "h": 260
+ },
+ "basura-botella": {
+  "w": 340,
+  "h": 149
+ },
+ "basura-bota": {
+  "w": 383,
+  "h": 320
+ },
+ "basura-rama": {
+  "w": 380,
+  "h": 120
+ },
+ "logo": {
+  "w": 1100,
+  "h": 536
+ },
+ "fondo-cielo": {
+  "w": 1600,
+  "h": 800
+ },
+ "fondo-cerros": {
+  "w": 1600,
+  "h": 800
+ },
+ "fondo-orilla": {
+  "w": 1600,
+  "h": 800
+ },
+ "fondo-agua": {
+  "w": 1600,
+  "h": 800
+ },
+ "fondo-juncos": {
+  "w": 1600,
+  "h": 800
+ },
+ "ui-reloj": {
+  "w": 480,
+  "h": 420
+ },
+ "ui-puntaje": {
+  "w": 760,
+  "h": 330
+ },
+ "ui-insignia": {
+  "w": 275,
+  "h": 241
+ },
+ "ui-boton": {
+  "w": 639,
+  "h": 564
+ },
+ "ui-tarjeta": {
+  "w": 880,
+  "h": 644
+ }
+}

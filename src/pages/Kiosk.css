@@ -771,3 +771,71 @@
 @media (min-width: 1100px) and (max-width: 1400px) and (min-height: 960px) {
   .kiosk__hub-sub { font-size: 15px; }
 }
+
+/* ───────── Member home, layout A: two big games on top, three compact benefits below ───────── */
+.kiosk__hub--a { flex-direction: column; gap: 12px; }
+.kiosk__juegos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.kiosk__extras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.kiosk__hub--a .kiosk__hub-card { min-height: 0; }
+.kiosk__juego { position: relative; overflow: hidden; display: grid !important; grid-template-columns: 1.05fr 1fr; gap: 14px; align-items: center; padding: 20px 20px 18px; min-height: 300px; }
+.kiosk__juego-arte { display: flex; align-items: center; justify-content: center; height: 100%; min-width: 0; }
+.kiosk__juego-arte .kiosk-art { height: 168px; max-width: 100%; }
+.kiosk__juego-col { display: flex; flex-direction: column; align-items: stretch; gap: 12px; text-align: center; min-width: 0; }
+.kiosk__juego-col .kiosk__hub-sub { flex: none; }
+.kiosk__pesca-img { height: 250px; width: auto; max-width: 100%; object-fit: contain; filter: drop-shadow(0 6px 12px rgba(0,0,0,.5)); }
+.kiosk__nuevo { position: absolute; top: 16px; right: -34px; transform: rotate(38deg); z-index: 2; background: linear-gradient(180deg, #fff1b8, #f0d275 55%, #c9a84c); color: #2a1606; font: 700 12px 'Oswald', var(--font-body); letter-spacing: 2px; padding: 4px 38px; box-shadow: 0 3px 10px rgba(0,0,0,.4); }
+.kiosk__pesca-lider { width: 100%; text-align: center; cursor: pointer; font-family: 'Oswald', var(--font-body); letter-spacing: 1px; color: #F0D275; font-size: 14px; line-height: 1.35; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.35); border: 1px solid rgba(201,168,76,.35); touch-action: manipulation; }
+.kiosk__pesca-lider b { display: block; font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #fff3c4; letter-spacing: .5px; }
+.kiosk__pesca-lider span { display: block; color: #e6dccb; font-size: 13px; letter-spacing: .5px; }
+.kiosk__pesca-lider .kiosk__pesca-ver { color: #F0D275; letter-spacing: 2px; font-size: 12px; margin-top: 4px; }
+.kiosk__extra { display: grid !important; grid-template-columns: 96px 1fr; gap: 14px; align-items: center; padding: 16px 18px; min-height: 170px; text-align: left; }
+.kiosk__extra-ico { display: flex; align-items: center; justify-content: center; min-width: 0; }
+.kiosk__extra-ico .kiosk-art { height: 78px; max-width: 100px; }
+.kiosk__extra-col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.kiosk__extra-col .kiosk__hub-title { justify-content: flex-start; text-align: left; min-height: 0; font-size: 20px; }
+.kiosk__extra-col .kiosk__hub-sub { text-align: left; flex: none; }
+.kiosk__extra-col .kiosk__hub-ok { text-align: left; padding: 4px 0; }
+.kiosk__extra-col .kiosk__cta.kiosk__cta--hub { width: 100%; max-width: none; margin: 0; }
+.kiosk__cta.kiosk__cta--pack-fuerte { border: 2px solid #F0D275 !important; color: #fff3c4 !important; background: rgba(240,210,117,.08) !important; box-shadow: 0 0 14px rgba(240,210,117,.25); margin-top: 0; }
+/* the old cabinet rule made every card 470 px tall: not in this layout */
+@media (min-width: 1100px) and (max-width: 1400px) and (min-height: 960px) {
+  .kiosk__hub--a .kiosk__hub-card { min-height: 0; padding: 18px 18px 16px; }
+  .kiosk__hub--a .kiosk__juego { min-height: 300px; }
+  .kiosk__hub--a .kiosk__extra { min-height: 170px; }
+  .kiosk__hub--a .kiosk__juego-arte .kiosk-art { height: 168px; }
+  .kiosk__hub--a .kiosk__extra-ico .kiosk-art { height: 78px; }
+}
+@media (max-width: 700px) {
+  .kiosk__juegos, .kiosk__extras { grid-template-columns: 1fr; }
+  .kiosk__juego { grid-template-columns: 1fr; }
+}
+
+/* attract screen: tonight's leader */
+.kiosk__lider-pesca { margin: -4px auto 18px; display: inline-flex; gap: 12px; align-items: center; padding: 10px 22px; border-radius: 999px; border: 1.5px solid #C9A84C; background: linear-gradient(160deg, rgba(109,17,32,.9), rgba(61,10,18,.9)); font-family: 'Oswald', var(--font-body); letter-spacing: 2px; color: #F0D275; font-size: 17px; box-shadow: 0 0 24px rgba(201,168,76,.25); }
+.kiosk__lider-pesca b { font-family: 'Playfair Display', Georgia, serif; color: #fff3c4; letter-spacing: .5px; font-size: 20px; }
+
+/* ranking sheet */
+.kiosk__rank { width: min(900px, 94vw); text-align: center; gap: 6px; }
+.kiosk__rank-kick { font-family: 'Oswald', var(--font-body); letter-spacing: 5px; color: #C9A84C; font-size: 14px; }
+.kiosk__rank-tit { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 44px; color: #F0D275; }
+.kiosk__rank-sub { color: #e6dccb; font-size: 16px; margin-bottom: 12px; }
+.kiosk__rank-tabla { width: 100%; display: flex; flex-direction: column; gap: 5px; }
+.kiosk__rank-fila { display: grid; grid-template-columns: 70px 1fr 110px 150px; align-items: center; gap: 10px; padding: 9px 16px; border-radius: 12px; font-size: 22px; color: #EDE4D3; text-align: left; }
+.kiosk__rank-fila:nth-child(even) { background: rgba(255,255,255,.03); }
+.kiosk__rank-fila--head { font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 2px; color: #a89d8f; background: none !important; padding-bottom: 0; }
+.kiosk__rank-fila--head span:nth-child(3) { text-align: center; }
+.kiosk__rank-fila--head span:last-child { text-align: right; }
+.kiosk__rank-fila--yo { background: linear-gradient(90deg, rgba(201,168,76,.28), rgba(201,168,76,.08)) !important; border: 1.5px solid #C9A84C; }
+.kiosk__rank-pos { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 24px; color: #F0D275; }
+.kiosk__rank-med { display: inline-flex; width: 42px; height: 42px; border-radius: 50%; align-items: center; justify-content: center; font-style: normal; font-size: 19px; color: #2a1606; box-shadow: inset 0 -3px 0 rgba(0,0,0,.25), 0 0 14px rgba(240,210,117,.35); }
+.kiosk__rank-med--1 { background: radial-gradient(circle at 35% 30%, #fff3c4, #e0b440 60%, #9a7420); }
+.kiosk__rank-med--2 { background: radial-gradient(circle at 35% 30%, #ffffff, #c9d2dc 60%, #7d8894); }
+.kiosk__rank-med--3 { background: radial-gradient(circle at 35% 30%, #ffe0c2, #c98a4c 60%, #7e5226); }
+.kiosk__rank-nom { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.kiosk__rank-nom em { font-style: normal; color: #F0D275; font-family: 'Oswald', var(--font-body); font-size: 14px; letter-spacing: 2px; }
+.kiosk__rank-nom small { display: block; font-family: 'Oswald', var(--font-body); font-size: 12px; letter-spacing: 1.5px; color: #C9A84C; font-weight: 500; }
+.kiosk__rank-hora { color: #a89d8f; font-size: 18px; text-align: center; }
+.kiosk__rank-pts { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; color: #fff3c4; text-align: right; font-size: 26px; }
+.kiosk__rank-vacio { color: #e6dccb; font-size: 20px; padding: 40px 0; }
+.kiosk__rank-pie { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 14px; color: #a89d8f; font-size: 14px; text-align: left; }
+.kiosk__rank-pie .kiosk__cta { max-width: 220px; margin: 0; }

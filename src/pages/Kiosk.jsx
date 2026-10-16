@@ -9,7 +9,7 @@ import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconT
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
 const DEMO = demoApi.isKioskDemo()
-const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack } = DEMO ? demoApi : realApi
+const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider } = DEMO ? demoApi : realApi
 const { API_BASE } = realApi
 const kioskKey = DEMO ? () => 'demo' : realApi.kioskKey
 
@@ -84,6 +84,19 @@ function SesionTimer({ lastActRef, paused, onExpirar, margen = SESION_MS }) {
 
 // Contador del giro AISLADO: su tick de 1s re-renderiza solo este bloque,
 // nunca el Home entero (si viviera arriba, toda la pantalla titila).
+// La Gran Pesca: live countdown to the next attempt ("Otro intento en 2:14:05")
+function CuentaPesca({ hasta, onFin }) {
+  const [ahora, setAhora] = useState(Date.now())
+  useEffect(() => {
+    const iv = setInterval(() => setAhora(Date.now()), 1000)
+    return () => clearInterval(iv)
+  }, [])
+  const s = Math.max(0, Math.ceil((new Date(hasta).getTime() - ahora) / 1000))
+  useEffect(() => { if (s === 0 && onFin) onFin() }, [s === 0]) // eslint-disable-line react-hooks/exhaustive-deps
+  const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), seg = s % 60
+  return <>OTRO INTENTO EN {h ? `${h}:${String(m).padStart(2, '0')}` : m}:{String(seg).padStart(2, '0')}</>
+}
+
 function FortunaEstado({ token, refreshKey, onJugar, art }) {
   const [st, setSt] = useState(null) // { left, nextAt, porVentana } — del servidor
   const [cd, setCd] = useState(0)
@@ -298,6 +311,12 @@ export default function Kiosk() {
   const [showTorneoOk, setShowTorneoOk] = useState(false)
   const [showCarta, setShowCarta] = useState(false)
   const [showGiro, setShowGiro] = useState(false)
+  // La Gran Pesca: daily game in an iframe; this page owns the session and talks to the server
+  const [showPesca, setShowPesca] = useState(false)
+  const [pescaInfo, setPescaInfo] = useState(null)
+  const pescaInfoRef = useRef(null)
+  const [ranking, setRanking] = useState(null)   // open ranking sheet (null = closed)
+  const [liderPesca, setLiderPesca] = useState(null)
   const [showMovs, setShowMovs] = useState(false)
   const [showCanjes, setShowCanjes] = useState(false)
   const [canjeTab, setCanjeTab] = useState('tickets')
@@ -318,7 +337,7 @@ export default function Kiosk() {
   const reset = useCallback(() => {
     setScreen('idle'); setDni(''); setPin(''); setPlayer(null); setBalance(0)
     setCheckin(null); setReg({ name: '', tel: '', email: '' }); setErr(''); setRegErr(null); setKb(null); setBusy(false)
-    setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false)
+    setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false); setShowPesca(false); setRanking(null); setPescaInfo(null)
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
     setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
@@ -367,14 +386,14 @@ export default function Kiosk() {
     if (screen !== 'idle' && screen !== 'done') idleTimer.current = setTimeout(reset, IDLE_MS)
     return () => idleTimer.current && clearTimeout(idleTimer.current)
   }, [screen, dni, pin, reg, reset])
-  useEffect(() => { lastActRef.current = Date.now() }, [screen, showCarta, showMovs, showCanjes, showGiro])
+  useEffect(() => { lastActRef.current = Date.now() }, [screen, showCarta, showMovs, showCanjes, showGiro, showPesca, ranking])
 
   // Música del Club: arranca al cargar (con el flag de kiosk) o al primer toque;
   // se pausa mientras el juego está abierto y vuelve al cerrarlo.
   useEffect(() => {
-    if (showGiro) musicaClubPause()
+    if (showGiro || showPesca) musicaClubPause()   // the games bring their own music
     else musicaClubPlay()
-  }, [showGiro])
+  }, [showGiro, showPesca])
 
   // Diálogo con Fortuna Dorada (iframe): al abrirse pide init (le pasamos el
   // token para que gire contra el servidor); cada giro jugado refresca el
@@ -388,6 +407,22 @@ export default function Kiosk() {
         try { e.source.postMessage({ tipo: 'init', token: player.token, apiBase: API_BASE, kioskKey: kioskKey() }, '*') } catch { /* iframe cerrado */ }
       }
       if (e.data.tipo === 'actividad') { lastActRef.current = Date.now(); return }
+      // La Gran Pesca: the game asks, this page calls the server with the member's session
+      if (String(e.data.tipo).startsWith('pesca-') && player?.token) {
+        lastActRef.current = Date.now()
+        const responder = (datos) => { try { e.source.postMessage({ respuestaPesca: true, id: e.data.id, ...datos }, '*') } catch (err) { console.warn('pesca: iframe cerrado', err) } }
+        if (e.data.tipo === 'pesca-listo') { try { e.source.postMessage({ tipo: 'pesca-estado', ...(pescaInfoRef.current || {}) }, '*') } catch (err) { console.warn(err) } }
+        else if (e.data.tipo === 'pesca-empezar') {
+          pescaEmpezar(player.token).then(r => responder({ ok: true, ...r }))
+            .catch(err => responder({ ok: false, error: err.body?.error === 'sin_intentos' ? 'sin_intentos' : 'error', proximoIntento: err.body?.proximoIntento || null }))
+        } else if (e.data.tipo === 'pesca-terminar') {
+          const { token, puntaje, atrapados, mejorRacha, dorados } = e.data
+          pescaTerminar(player.token, { token, puntaje, atrapados, mejorRacha, dorados })
+            .then(r => { responder({ ok: true, ...r }); refrescarPesca() })
+            .catch(err => { console.error('pesca terminar:', err); responder({ ok: false }) })
+        } else if (e.data.tipo === 'pesca-ranking') { setShowPesca(false); abrirRanking() }
+        return
+      }
       if (e.data.tipo === 'giro-jugado' && player) {
         if (DEMO) demoApi.registerDemoSpin(player.token, e.data.premio)
         setSpinRefresh(k => k + 1)
@@ -431,6 +466,30 @@ export default function Kiosk() {
       setErr('No pudimos completar tu inscripción. Consultá en la barra.')
     } finally { setTourneyBusy(false) }
   }
+
+  async function refrescarPesca() {
+    if (!player?.token) return
+    try { const r = await pescaEstado(player.token); pescaInfoRef.current = r; setPescaInfo(r) }
+    catch (e) { console.warn('pesca estado:', e.message) }
+  }
+  async function abrirRanking() {
+    if (!player?.token) return
+    try { setRanking(await pescaRanking(player.token)) }
+    catch (e) { console.warn('pesca ranking:', e.message); setErr('No pudimos cargar el ranking. Probá de nuevo.') }
+  }
+  function jugarPesca() {
+    if (!vinculada && !DEMO) { setErr(SOLO_EN_SALA); return }
+    setShowPesca(true)
+  }
+  useEffect(() => { if (screen === 'done' && player?.token) refrescarPesca() }, [screen, player?.token]) // eslint-disable-line react-hooks/exhaustive-deps
+  // leader of tonight on the attract screen (refreshes every minute while idle)
+  useEffect(() => {
+    if (screen !== 'idle' || (!vinculada && !DEMO)) return
+    let vivo = true
+    const cargar = () => pescaLider().then(r => { if (vivo) setLiderPesca(r?.lider || null) }).catch(e => console.warn('pesca lider:', e.message))
+    cargar(); const iv = setInterval(cargar, 60000)
+    return () => { vivo = false; clearInterval(iv) }
+  }, [screen]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const [demoGiros, setDemoGiros] = useState(3)
   function jugarGiro() {
@@ -794,6 +853,9 @@ export default function Kiosk() {
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtSorteo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">PARTICIPÁ DE SORTEOS</span><span className="kiosk__perk-lbl">Obtené cupones a diario</span></div>
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtTorneo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">TORNEOS DE SLOTS</span><span className="kiosk__perk-lbl">Inscribite acá y competí por premios</span></div>
           </div>
+          {liderPesca && (
+            <div className="kiosk__lider-pesca">LÍDER DE LA GRAN PESCA HOY <b>{liderPesca.nombre} · {liderPesca.puntaje.toLocaleString('es-AR')}</b></div>
+          )}
           <button className="kiosk__idle-btn">TOCÁ Y EMPEZÁ A GANAR</button>
           <p className="kiosk__idle-note">{vinculada ? 'Es gratis · Solo necesitás tu DNI' : 'Máquina no vinculada · el check-in y los giros solo funcionan en la Máquina del Club'}</p>
         </div>
@@ -969,6 +1031,7 @@ export default function Kiosk() {
           <div className="kiosk__done-row">
             <button className="kiosk__mini-btn" onClick={abrirMovs}>MIS MOVIMIENTOS</button>
             <button className="kiosk__mini-btn" onClick={abrirDatos}>MIS DATOS</button>
+            <button className="kiosk__mini-btn" onClick={() => { setShowCarta(true); voz('carta') }}>NUESTRA CARTA</button>
             {faltanDatos && (
               <button className="kiosk__datos-hint" onClick={abrirDatos}>
                 {!emailActual
@@ -980,63 +1043,88 @@ export default function Kiosk() {
 
           {err && <div className="kiosk__err">{err}</div>}
 
-          <div className="kiosk__hub" onClick={tocarTarjeta}>
-            <div className="kiosk__hub-card kiosk__hub-card--giro kiosk__hub-card--art">
-              <div className="kiosk__hub-title">FORTUNA DORADA</div>
-              <FortunaEstado token={player?.token} refreshKey={spinRefresh} onJugar={jugarGiro}
-                art={<div className="kiosk__hub-art"><ArtFortuna /></div>} />
-            </div>
-
-            <div className="kiosk__hub-card kiosk__hub-card--art">
-              <div className="kiosk__hub-title">TORNEO DE SLOTS</div>
-              <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Torneo de slots'} · participá por $2.000.000</div>
-              <div className="kiosk__hub-art"><ArtTorneo /></div>
-              {tourneyReg ? (
-                <div className="kiosk__hub-ok">✓ Ya estás inscripto{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''} para participar por los $2.000.000 en la Gran Final{tourney?.tournament_date ? `. Te esperamos el ${fmtTorneoFecha(tourney.tournament_date)}` : ''}</div>
-              ) : (
-                <button className="kiosk__cta kiosk__cta--hub" disabled={tourneyBusy || !tourney} onClick={inscribirTorneo}>
-                  {!tourney ? 'PRÓXIMAMENTE' : tourneyBusy ? 'Inscribiendo…' : 'INSCRIBIRME'}
-                </button>
-              )}
-            </div>
-
-            <div className="kiosk__hub-card">
-              <div className="kiosk__hub-title">SORTEO DEL MES</div>
-              <div className="kiosk__hub-sub">Imprimí tu cupón y participá por ${sorteoMonto.toLocaleString('es-AR')}</div>
-              {cuponEstado === 'listo' ? (
-                <div className="kiosk__hub-ok">✓ Cupón impreso — no olvides depositarlo en la urna</div>
-              ) : cuponEstado === 'imprimiendo' ? (
-                <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tu cupón…</div>
-              ) : (
-                <button className="kiosk__cta kiosk__cta--hub" onClick={imprimirCupon}>IMPRIMIR CUPÓN</button>
-              )}
-              {pack?.disponible && (
-                packEstado === 'listo' ? (
-                  <div className="kiosk__hub-ok">✓ Hoy ya canjeaste tu pack de {pack.size} cupones · mañana podés canjear otro pack</div>
-                ) : packEstado === 'canjeando' ? (
-                  <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tus {pack.size} cupones…</div>
-                ) : balance >= pack.points ? (
-                  <button className="kiosk__cta kiosk__cta--hub kiosk__cta--pack" onClick={canjearPack}>
-                    +{pack.size} CUPONES POR {pack.points} PTS
+          <div className="kiosk__hub kiosk__hub--a" onClick={tocarTarjeta}>
+            <div className="kiosk__juegos">
+              <div className="kiosk__hub-card kiosk__hub-card--giro kiosk__juego">
+                <div className="kiosk__juego-arte"><ArtFortuna /></div>
+                <div className="kiosk__juego-col">
+                  <div className="kiosk__hub-title">FORTUNA DORADA</div>
+                  <FortunaEstado token={player?.token} refreshKey={spinRefresh} onJugar={jugarGiro} art={null} />
+                </div>
+              </div>
+              <div className="kiosk__hub-card kiosk__juego">
+                <span className="kiosk__nuevo">NUEVO</span>
+                <div className="kiosk__juego-arte"><img className="kiosk__pesca-img" src="/la-gran-pesca/img/pescador-quieto.webp" alt="" /></div>
+                <div className="kiosk__juego-col">
+                  <div className="kiosk__hub-title">LA GRAN PESCA</div>
+                  <button type="button" className="kiosk__pesca-lider" onClick={abrirRanking}>
+                    {pescaInfo?.lider
+                      ? <>LÍDER DE HOY<b>{pescaInfo.lider.nombre} · {pescaInfo.lider.puntaje.toLocaleString('es-AR')}</b></>
+                      : <>JUEGO DEL DÍA<b>¡Sé el primero de la noche!</b></>}
+                    <span>{pescaInfo ? (pescaInfo.intentosQuedan > 99 ? 'Modo prueba · intentos sin límite'
+                      : pescaInfo.intentosQuedan > 0 ? `Vos: ${pescaInfo.puesto ? pescaInfo.puesto + '.º' : 'todavía no jugaste'} · ${pescaInfo.intentosQuedan === 1 ? 'te queda 1 intento' : `te quedan ${pescaInfo.intentosQuedan} intentos`}`
+                      : `Vos: ${pescaInfo.puesto ? pescaInfo.puesto + '.º' : '—'} · ya usaste tus 2 intentos`) : 'Los 3 mejores de la noche ganan puntos'}</span>
+                    <span className="kiosk__pesca-ver">VER RANKING ›</span>
                   </button>
-                ) : (
-                  <div className="kiosk__hub-sub kiosk__hub-sub--pack">Con {pack.points} puntos canjeás {pack.size} cupones más · te faltan {(pack.points - balance).toLocaleString('es-AR')}</div>
-                )
-              )}
+                  {pescaInfo?.intentosQuedan === 0 && pescaInfo.proximoIntento
+                    ? <button className="kiosk__cta kiosk__cta--hub" disabled><CuentaPesca hasta={pescaInfo.proximoIntento} onFin={refrescarPesca} /></button>
+                    : <button className="kiosk__cta kiosk__cta--hub" onClick={jugarPesca}>JUGAR</button>}
+                </div>
+              </div>
             </div>
 
-            <div className="kiosk__hub-card kiosk__hub-card--art">
-              <div className="kiosk__hub-title">CANJEÁ TUS PUNTOS</div>
-              <div className="kiosk__hub-sub">Convertilos en bebidas, comidas o tickets promocionales</div>
-              <div className="kiosk__hub-art"><ArtCanjes /></div>
-              <button className="kiosk__cta kiosk__cta--hub" onClick={abrirCanjes}>QUIERO CANJEAR</button>
-            </div>
+            <div className="kiosk__extras">
+              <div className="kiosk__hub-card kiosk__extra">
+                <div className="kiosk__extra-ico"><ArtTorneo /></div>
+                <div className="kiosk__extra-col">
+                  <div className="kiosk__hub-title">TORNEO DE SLOTS</div>
+                  <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Torneo de slots'} · participá por $2.000.000</div>
+                  {tourneyReg ? (
+                    <div className="kiosk__hub-ok">✓ Ya estás inscripto{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''}{tourney?.tournament_date ? ` · te esperamos el ${fmtTorneoFecha(tourney.tournament_date)}` : ''}</div>
+                  ) : (
+                    <button className="kiosk__cta kiosk__cta--hub" disabled={tourneyBusy || !tourney} onClick={inscribirTorneo}>
+                      {!tourney ? 'PRÓXIMAMENTE' : tourneyBusy ? 'Inscribiendo…' : 'INSCRIBIRME'}
+                    </button>
+                  )}
+                </div>
+              </div>
 
-            <div className="kiosk__hub-card kiosk__hub-card--art">
-              <div className="kiosk__hub-title">NUESTRA CARTA</div>
-              <div className="kiosk__hub-sub">Conocé nuestra variedad y promociones</div>
-              <div className="kiosk__hub-art"><ArtCarta /></div>
-              <button className="kiosk__cta kiosk__cta--hub" onClick={() => { setShowCarta(true); voz('carta') }}>VER CARTA</button>
+              <div className="kiosk__hub-card kiosk__extra">
+                <div className="kiosk__extra-ico"><ArtSorteo /></div>
+                <div className="kiosk__extra-col">
+                  <div className="kiosk__hub-title">SORTEO DEL MES</div>
+                  <div className="kiosk__hub-sub">Imprimí tu cupón y participá por ${sorteoMonto.toLocaleString('es-AR')}</div>
+                  {cuponEstado === 'listo' ? (
+                    <div className="kiosk__hub-ok">✓ Cupón impreso · depositalo en la urna</div>
+                  ) : cuponEstado === 'imprimiendo' ? (
+                    <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tu cupón…</div>
+                  ) : (
+                    <button className="kiosk__cta kiosk__cta--hub" onClick={imprimirCupon}>IMPRIMÍ TU CUPÓN</button>
+                  )}
+                  {pack?.disponible && (
+                    packEstado === 'listo' ? (
+                      <div className="kiosk__hub-ok">✓ Pack de {pack.size} cupones canjeado · mañana podés otro</div>
+                    ) : packEstado === 'canjeando' ? (
+                      <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tus {pack.size} cupones…</div>
+                    ) : balance >= pack.points ? (
+                      <button className="kiosk__cta kiosk__cta--hub kiosk__cta--pack kiosk__cta--pack-fuerte" onClick={canjearPack}>
+                        COMPRÁ {pack.size} CUPONES POR {pack.points} PTS
+                      </button>
+                    ) : (
+                      <div className="kiosk__hub-sub kiosk__hub-sub--pack">Con {pack.points} puntos comprás {pack.size} cupones más · te faltan {(pack.points - balance).toLocaleString('es-AR')}</div>
+                    )
+                  )}
+                </div>
+              </div>
+
+              <div className="kiosk__hub-card kiosk__extra">
+                <div className="kiosk__extra-ico"><ArtCanjes /></div>
+                <div className="kiosk__extra-col">
+                  <div className="kiosk__hub-title">CANJEÁ TUS PUNTOS</div>
+                  <div className="kiosk__hub-sub">Bebidas, comidas o tickets promocionales</div>
+                  <button className="kiosk__cta kiosk__cta--hub" onClick={abrirCanjes}>QUIERO CANJEAR</button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1051,7 +1139,7 @@ export default function Kiosk() {
           // No pause while a panel is open: every touch or key restarts the 40 s, so a
           // member who walks away with Canjes open does not leave the session usable.
           paused={false}
-          margen={showGiro ? 80000 : SESION_MS}
+          margen={showGiro || showPesca ? 80000 : SESION_MS}
           onExpirar={reset}
         />
       )}
@@ -1273,6 +1361,50 @@ export default function Kiosk() {
           >
             {giroJugado ? '← VOLVER AL CLUB' : '✕ Volver al Club'}
           </button>
+        </div>
+      )}
+
+      {/* La Gran Pesca in an overlay, like Fortuna Dorada */}
+      {showPesca && (
+        <div className="kiosk__carta">
+          <iframe src="/la-gran-pesca/index.html?kiosco=1" title="La Gran Pesca" allow="autoplay" />
+          <button className="kiosk__carta-close" onClick={() => { setShowPesca(false); refrescarPesca() }}>✕ Volver al Club</button>
+        </div>
+      )}
+
+      {/* tonight's ranking: first name + surname initial and the time of the score */}
+      {ranking && (
+        <div className="kiosk__carta" onClick={() => setRanking(null)}>
+          <div className="kiosk__carta-panel kiosk__rank" onClick={e => e.stopPropagation()}>
+            <div className="kiosk__rank-kick">LA GRAN PESCA · JUEGO DEL DÍA</div>
+            <div className="kiosk__rank-tit">Ranking de la noche</div>
+            <div className="kiosk__rank-sub">Al cierre de la sala, los 3 primeros ganan puntos Jackpoints</div>
+            {ranking.filas?.length ? (
+              <div className="kiosk__rank-tabla">
+                <div className="kiosk__rank-fila kiosk__rank-fila--head"><span /><span>SOCIO</span><span>HORA</span><span>PUNTAJE</span></div>
+                {ranking.filas.map(f => (
+                  <div key={f.posicion} className={`kiosk__rank-fila${f.esYo ? ' kiosk__rank-fila--yo' : ''}`}>
+                    <span className="kiosk__rank-pos">{f.posicion <= 3 ? <i className={`kiosk__rank-med kiosk__rank-med--${f.posicion}`}>{f.posicion}</i> : `${f.posicion}.º`}</span>
+                    <span className="kiosk__rank-nom">{f.nombre}{f.esYo && <em> · VOS</em>}{f.prueba && <em> · prueba</em>}{f.premio > 0 && <small>GANA {f.premio} PUNTOS</small>}</span>
+                    <span className="kiosk__rank-hora">{f.hora}</span>
+                    <span className="kiosk__rank-pts">{f.puntaje.toLocaleString('es-AR')}</span>
+                  </div>
+                ))}
+                {ranking.yo && !ranking.filas.some(f => f.esYo) && (
+                  <div className="kiosk__rank-fila kiosk__rank-fila--yo">
+                    <span className="kiosk__rank-pos">{ranking.yo.posicion}.º</span>
+                    <span className="kiosk__rank-nom">{ranking.yo.nombre}<em> · VOS</em></span>
+                    <span className="kiosk__rank-hora">{ranking.yo.hora}</span>
+                    <span className="kiosk__rank-pts">{ranking.yo.puntaje.toLocaleString('es-AR')}</span>
+                  </div>
+                )}
+              </div>
+            ) : <div className="kiosk__rank-vacio">Todavía nadie pescó esta noche. ¡Sé el primero!</div>}
+            <div className="kiosk__rank-pie">
+              <span>Se muestra el nombre y la inicial del apellido · {ranking.total || 0} {ranking.total === 1 ? 'pescador' : 'pescadores'} hoy</span>
+              <button className="kiosk__cta kiosk__cta--hub" onClick={() => setRanking(null)}>VOLVER</button>
+            </div>
+          </div>
         </div>
       )}
 

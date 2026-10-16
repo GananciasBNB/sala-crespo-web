@@ -533,6 +533,18 @@ export const loyaltyCheckin = (token) =>
 export const kioskKey = () => { try { return localStorage.getItem('kiosk_key') || '' } catch { return '' } }
 const kioskHeaders = () => { const k = kioskKey(); return k ? { 'x-kiosk-key': k } : {} }
 
+// La Gran Pesca (juego del día): only from the keyed kiosk
+export const pescaEstado = (token) =>
+  api('/api/pesca/estado', { headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const pescaEmpezar = (token) =>
+  api('/api/pesca/empezar', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const pescaTerminar = (token, datos) =>
+  api('/api/pesca/terminar', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() }, body: JSON.stringify(datos) })
+export const pescaRanking = (token) =>
+  api('/api/pesca/ranking', { headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const pescaLider = () =>
+  api('/api/pesca/lider', { headers: kioskHeaders() })
+
 // Fortuna Dorada: el resultado del giro lo decide el servidor
 export const getSpinStatus = (token) =>
   api('/api/loyalty/spin-status', { headers: authHeaders(token) })
@@ -578,6 +590,8 @@ export const adminClubDetail = (token, tipo) =>
   api(`/api/admin/club/detail/${encodeURIComponent(tipo)}`, { headers: authHeaders(token) })
 export const adminClubSocios = (token) =>
   api('/api/admin/club/socios', { headers: authHeaders(token) })
+export const adminPesca = (token, fecha) =>
+  api(`/api/admin/pesca${fecha ? `?fecha=${encodeURIComponent(fecha)}` : ''}`, { headers: authHeaders(token) })
 export const adminClubSocio = (token, id) =>
   api(`/api/admin/club/socio/${encodeURIComponent(id)}`, { headers: authHeaders(token) })
 export const adminClubSetNw = (token, nwMensual) =>

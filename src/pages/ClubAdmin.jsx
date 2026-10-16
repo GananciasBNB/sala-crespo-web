@@ -2,11 +2,11 @@
 // opera distinto: desde el celular, mirando cómo viene el día y tocando una
 // cosa puntual. Usa el mismo login de admin.
 import { useState, useEffect } from 'react'
-import { adminLogin, adminForgotPassword, adminResetPassword, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
+import { adminPesca, adminLogin, adminForgotPassword, adminResetPassword, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
 import {
   FortunaAdmin, ClubCatalog, ClubDeliver, ClubManualOps,
 } from '../components/club/panels'
-import { DetalleHoja, FeedHoy, SociosLista } from '../components/club/club-detail'
+import { DetalleHoja, FeedHoy, SociosLista, Tabla } from '../components/club/club-detail'
 import WhatsAppAdmin from '../components/club/whatsapp'
 import './ClubAdmin.css'
 
@@ -21,6 +21,7 @@ const SECCIONES = [
   { id: 'socios',   icon: '👤', label: 'Socios',   sub: 'Lista, filtros e historial' },
   { id: 'barra',    icon: '💁', label: 'Barra',    sub: 'Entregar canjes' },
   { id: 'puntos',   icon: '⚡', label: 'Puntos',   sub: 'Sumar a mano' },
+  { id: 'pesca',    icon: '🎣', label: 'Pesca',    sub: 'La Gran Pesca · ranking y ganadores' },
 ]
 
 export default function ClubAdmin() {
@@ -79,6 +80,7 @@ export default function ClubAdmin() {
         {seccion === 'socios'  && <SociosLista token={token} toast={toast} />}
         {seccion === 'barra'   && <ClubDeliver token={token} toast={toast} />}
         {seccion === 'puntos'  && <ClubManualOps token={token} toast={toast} />}
+        {seccion === 'pesca'   && <PescaAdmin token={token} toast={toast} />}
       </main>
 
       {toastMsg && <div className={`ca__toast ca__toast--${toastMsg.tipo}`}>{toastMsg.msg}</div>}
@@ -295,6 +297,40 @@ function Bloque({ titulo, children }) {
       <h2 className="ca__bloque-tit">{titulo}</h2>
       {children}
     </section>
+  )
+}
+
+// La Gran Pesca: tonight's ranking (test games marked) and who got paid each night
+function PescaAdmin({ token, toast }) {
+  const [fecha, setFecha] = useState('')
+  const [d, setD] = useState(null)
+  useEffect(() => {
+    adminPesca(token, fecha || undefined).then(setD).catch(err => toast.show(err.message, 'err'))
+  }, [token, fecha]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!d) return <p className="ca__cargando">Cargando…</p>
+  const pts = n => (Number(n) || 0).toLocaleString('es-AR')
+  return (
+    <>
+      <Bloque titulo={`Ranking · jornada ${d.fecha.split('-').reverse().join('/')}`}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
+          <input type="date" value={fecha || d.fecha} onChange={e => setFecha(e.target.value)}
+            style={{ padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(201,168,76,.3)', background: 'rgba(0,0,0,.35)', color: '#E8DFD0', fontFamily: 'inherit' }} />
+          <span style={{ color: '#9a8f82', fontSize: 14 }}>
+            {d.resumen.jugadas} partidas · {d.resumen.socios} socios{d.resumen.rechazadas ? ` · ${d.resumen.rechazadas} rechazadas` : ''} · premios {d.reglas.premios.join(' / ')} · {d.reglas.intentos} intentos cada {d.reglas.horas} h
+          </span>
+        </div>
+        <Tabla
+          columnas={[{ key: 'pos', label: '#' }, { key: 'nombre', label: 'Socio' }, { key: 'hora', label: 'Hora' }, { key: 'pts', label: 'Puntaje', align: 'right' }, { key: 'nota', label: '' }]}
+          filas={d.ranking.map(r => ({ pos: r.posicion + '.º', nombre: r.nombre, hora: r.hora, pts: pts(r.puntaje), nota: r.prueba ? 'prueba (no cobra)' : r.posicion <= 3 ? `gana ${d.reglas.premios[r.posicion - 1]}` : '' }))}
+          vacio="Nadie jugó esa jornada." />
+      </Bloque>
+      <Bloque titulo="Ganadores pagados">
+        <Tabla
+          columnas={[{ key: 'fecha', label: 'Jornada' }, { key: 'ganadores', label: 'Ganadores' }, { key: 'pagado', label: 'Pagado' }]}
+          filas={d.premios.map(p => ({ fecha: p.fecha.split('-').reverse().join('/'), ganadores: (p.ganadores || []).map(g => `${g.posicion}.º ${g.nombre} (${pts(g.puntaje)}) +${g.puntos}`).join(' · ') || 'sin ganadores', pagado: new Date(p.pagado_at).toLocaleString('es-AR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) }))}
+          vacio="Todavía no se pagó ninguna jornada." />
+      </Bloque>
+    </>
   )
 }
 

@@ -217,3 +217,36 @@ export function demoSpinsLeft(token) {
   const s = spinState(p); save(db)
   return Math.max(1, s.left)
 }
+
+// ── La Gran Pesca (demo): unlimited attempts and a made-up leaderboard around the player ──
+const PESCA_RIVALES = [['María G.', '21:43', 2340], ['Juan P.', '22:10', 2185], ['Carlos B.', '20:58', 1960], ['Rubén S.', '21:15', 1420], ['Silvia M.', '22:31', 1310], ['Diego H.', '20:12', 1180], ['Norma K.', '23:40', 990], ['Omar R.', '21:05', 860], ['Lucía F.', '22:48', 745]]
+function pescaVista(p, top = 10) {
+  const yoNombre = (p.name || 'Socio').split(' ').filter(Boolean).map((w, i) => i === 0 ? w : w[0] + '.').slice(0, 2).join(' ')
+  const filas = PESCA_RIVALES.map(([nombre, hora, puntaje]) => ({ nombre, hora, puntaje, esYo: false }))
+  if (p.pescaMejor) filas.push({ nombre: yoNombre, hora: p.pescaHora, puntaje: p.pescaMejor, esYo: true })
+  filas.sort((a, b) => b.puntaje - a.puntaje)
+  const conPos = filas.map((f, i) => ({ ...f, posicion: i + 1, premio: [500, 300, 200][i] || 0 }))
+  return { total: conPos.length, filas: conPos.slice(0, top), yo: conPos.find(f => f.esYo) || null, lider: conPos[0] }
+}
+export async function pescaEstado(token) {
+  await wait(150)
+  const db = load(), p = getPlayer(db, token), v = pescaVista(p, 3)
+  return { intentosQuedan: 999, proximoIntento: null, intentosPorVentana: 999, horas: 3, mejorHoy: p.pescaMejor || 0, puesto: v.yo?.posicion || null, total: v.total, lider: v.lider, top: v.filas, premios: [500, 300, 200], semilla: 20261016 }
+}
+export async function pescaEmpezar(token) {
+  await wait(150); getPlayer(load(), token)
+  return { ok: true, token: 'demo-' + Date.now(), semilla: Number(new Date().toISOString().slice(0, 10).replace(/-/g, '')), segundos: 30, intentosQuedan: 999 }
+}
+export async function pescaTerminar(token, { puntaje }) {
+  await wait(200)
+  const db = load(), p = getPlayer(db, token)
+  if ((Number(puntaje) || 0) > (p.pescaMejor || 0)) { p.pescaMejor = Number(puntaje) || 0; p.pescaHora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) }
+  save(db)
+  const v = pescaVista(p, 3)
+  return { ok: true, puntaje, mejorHoy: p.pescaMejor || 0, puesto: v.yo?.posicion || null, total: v.total, top: v.filas, yo: v.yo, intentosQuedan: 999, proximoIntento: null, prueba: true }
+}
+export async function pescaRanking(token) {
+  await wait(150)
+  return { ...pescaVista(getPlayer(load(), token), 10), premios: [500, 300, 200] }
+}
+export async function pescaLider() { await wait(100); return { lider: { nombre: 'María G.', puntaje: 2340 } } }
