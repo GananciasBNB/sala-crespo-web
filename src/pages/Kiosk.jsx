@@ -530,6 +530,8 @@ export default function Kiosk() {
       await promoUpdateContact({ dni: player?.dni || dni, tel: telNuevo, email: emailNuevo })
       // refrescar lo mostrado sin re-loguear
       setLookup(l => l ? { ...l, player: { ...l.player, tel: telNuevo, email: emailNuevo } } : l)
+      // player wins over lookup when the panel reopens: keep both in sync
+      setPlayer(p => p ? { ...p, tel: telNuevo, email: emailNuevo } : p)
       setDatosOk(true); setShowDatos(false)
       // the backend sends the courtesy voucher only on the FIRST email saved
       voz(!emailActual && emailNuevo ? 'cortesia-email' : 'ui-tap', !emailActual && emailNuevo ? 0.95 : 0.7)
@@ -748,7 +750,16 @@ export default function Kiosk() {
   function kbNext() {
     const next = kbCampo?.next
     if (next) { document.querySelector(`[data-kb="${next}"]`)?.focus(); return }
+    cerrarTeclado()
+  }
+  // Keys act on pointerdown, so the keyboard is already gone when the finger lifts:
+  // the browser's click then lands on whatever was underneath (in 'Mis datos' that
+  // is the backdrop, which closed the panel without saving). Swallow that one click.
+  function cerrarTeclado() {
     setKb(null); try { document.activeElement?.blur() } catch (e) { console.warn(e) }
+    const tragar = (e) => { e.stopPropagation(); e.preventDefault() }
+    window.addEventListener('click', tragar, { capture: true, once: true })
+    setTimeout(() => window.removeEventListener('click', tragar, { capture: true }), 600)
   }
   // inputs: Windows touch keyboard off, ours on
   const kbInput = (campo) => ({
@@ -1275,7 +1286,7 @@ export default function Kiosk() {
           onBack={kbBack}
           onNext={kbNext}
           nextLabel={kbCampo.next ? 'SIGUIENTE ›' : 'LISTO ✓'}
-          onClose={() => { setKb(null); try { document.activeElement?.blur() } catch (e) { console.warn(e) } }}
+          onClose={cerrarTeclado}
           suggestions={sugerencias(kbCampo.mode, kbCampo.get(), { nombre: reg.name })}
           onPick={kbPick}
         />
