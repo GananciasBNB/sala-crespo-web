@@ -849,12 +849,15 @@ export default function Kiosk() {
           <p className="kiosk__idle-sub">Registrá tu visita en 30 segundos y empezá a ganar HOY.</p>
           <div className="kiosk__perks">
             <div className="kiosk__perk kiosk__perk--star"><div className="kiosk__perk-art"><ArtFortuna /></div><span className="kiosk__perk-num kiosk__perk-num--brand">FORTUNA DORADA</span><span className="kiosk__perk-lbl">Tres giros gratis cada 3 horas (ganá puntos y tickets promocionales)</span></div>
+            <div className="kiosk__perk kiosk__perk--pesca"><span className="kiosk__nuevo kiosk__nuevo--chico">NUEVO</span><div className="kiosk__perk-art"><img src="/la-gran-pesca/img/pescador-quieto.webp" alt="" className="kiosk__perk-pesca" /></div><span className="kiosk__perk-num kiosk__perk-num--brand">LA GRAN PESCA</span><span className="kiosk__perk-lbl">Juego del día: los 3 mejores ganan puntos</span></div>
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtVisita /></div><span className="kiosk__perk-num kiosk__perk-num--brand">SUMÁ 50 PUNTOS POR TU VISITA</span><span className="kiosk__perk-lbl">Todos los días</span></div>
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtSorteo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">PARTICIPÁ DE SORTEOS</span><span className="kiosk__perk-lbl">Obtené cupones a diario</span></div>
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtTorneo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">TORNEOS DE SLOTS</span><span className="kiosk__perk-lbl">Inscribite acá y competí por premios</span></div>
           </div>
-          {liderPesca && (
-            <div className="kiosk__lider-pesca">LÍDER DE LA GRAN PESCA HOY <b>{liderPesca.nombre} · {liderPesca.puntaje.toLocaleString('es-AR')}</b></div>
+          {(vinculada || DEMO) && (
+            <div className="kiosk__lider-pesca">{liderPesca
+              ? <>LÍDER DE LA GRAN PESCA HOY <b>{liderPesca.nombre} · {liderPesca.puntaje.toLocaleString('es-AR')}</b></>
+              : <>LA GRAN PESCA <b>¡Sé el primer líder de la noche!</b></>}</div>
           )}
           <button className="kiosk__idle-btn">TOCÁ Y EMPEZÁ A GANAR</button>
           <p className="kiosk__idle-note">{vinculada ? 'Es gratis · Solo necesitás tu DNI' : 'Máquina no vinculada · el check-in y los giros solo funcionan en la Máquina del Club'}</p>

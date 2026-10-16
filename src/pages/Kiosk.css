@@ -839,3 +839,9 @@
 .kiosk__rank-vacio { color: #e6dccb; font-size: 20px; padding: 40px 0; }
 .kiosk__rank-pie { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-top: 14px; color: #a89d8f; font-size: 14px; text-align: left; }
 .kiosk__rank-pie .kiosk__cta { max-width: 220px; margin: 0; }
+
+/* attract screen: La Gran Pesca perk */
+.kiosk__perk--pesca { position: relative; overflow: hidden; }
+.kiosk__perk-pesca { height: 74px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
+.kiosk__nuevo--chico { top: 10px; right: -30px; font-size: 10px; padding: 3px 32px; }
+.kiosk__lider-pesca { display: flex; width: fit-content; margin: -4px auto 18px; }
