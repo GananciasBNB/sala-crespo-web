@@ -100,3 +100,12 @@
   .jp__strip div:nth-child(2) { border-right: 0; }
   .jp__strip div:nth-child(-n+2) { border-bottom: 1px solid rgba(240, 210, 117, 0.15); }
 }
+
+/* 7 benefits: on 3 columns the last one takes the whole row instead of sitting alone */
+@media (min-width: 1000px) {
+  .jp__grid { grid-template-columns: repeat(3, 1fr); }
+  .jp__grid .jp__card:last-child:nth-child(3n+1) { grid-column: 1 / -1; display: grid; grid-template-columns: auto 1fr auto; column-gap: 20px; align-items: center; }
+  .jp__grid .jp__card:last-child:nth-child(3n+1) .jp__ico { grid-row: span 2; margin: 0; }
+  .jp__grid .jp__card:last-child:nth-child(3n+1) h3, .jp__grid .jp__card:last-child:nth-child(3n+1) p { grid-column: 2; margin: 0; }
+  .jp__grid .jp__card:last-child:nth-child(3n+1) .jp__k { grid-column: 3; grid-row: 1 / span 2; }
+}

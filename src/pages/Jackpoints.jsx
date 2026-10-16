@@ -20,6 +20,7 @@ const PASOS = [
 const BENEFICIOS = [
   { i: 'star', t: 'Puntos por visita', d: '50 puntos cada día que venís, hagas lo que hagas. Constancia que se convierte en consumo.', k: 'Todos los días' },
   { i: 'slot', t: 'Fortuna Dorada', d: 'El slot de la máquina. 3 giros cada 3 horas, con premios de hasta 500 puntos y tickets promocionales de $5.000.', k: 'Cada visita' },
+  { i: 'fish', t: 'La Gran Pesca', d: 'El juego del día: 30 segundos para atrapar peces con la red. Los 3 mejores de la noche ganan 500, 300 y 200 puntos.', k: 'Nuevo · todas las noches' },
   { i: 'ticket', t: 'Sorteo del mes', d: 'Un cupón por visita para el sorteo mensual de $150.000 en tickets. ¿Querés más chances? Canjeá un pack de 10 cupones por 150 puntos.', k: '$150.000 por mes' },
   { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en la barra.', k: 'Con tus puntos' },
   { i: 'trophy', t: 'Torneos de slots', d: 'Anotate a los torneos directamente desde la máquina. Torneos mensuales que clasifican a una Gran Final por $2.000.000 en tickets.', k: 'Gran Final en diciembre' },
@@ -32,6 +33,7 @@ const ICONOS = {
   ticket: <><path d="M4 7h16v4a2 2 0 000 4v4H4v-4a2 2 0 000-4z" /><path d="M12 7v12" /></>,
   bag: <><path d="M5 8h14l-1.5 12h-11z" /><path d="M8 8V6a4 4 0 018 0v2" /></>,
   trophy: <><path d="M8 21h8M12 17v4M6 3h12v5a6 6 0 01-12 0z" /><path d="M6 5H3v2a3 3 0 003 3M18 5h3v2a3 3 0 01-3 3" /></>,
+  fish: <><path d="M2 12c3-4 7-6 11-6 4 0 7 3 8 6-1 3-4 6-8 6-4 0-8-2-11-6z" /><path d="M2 12l-1-3M2 12l-1 3" /><circle cx="16" cy="11" r="1" /></>,
   mail: <><path d="M3 7l9 6 9-6" /><rect x="3" y="5" width="18" height="14" rx="2" /></>,
 }
 
@@ -53,7 +55,7 @@ export default function Jackpoints() {
           <h1 className="jp__h1">Venís, jugás, <em>sumás</em>.</h1>
           <p className="jp__lead">
             Presentamos <strong>Jackpoints</strong>, el club de beneficios de Sala de Juegos Crespo. Cada visita suma puntos.
-            Los puntos se canjean por bebidas, comidas y tickets promocionales. Y de paso girás la Fortuna Dorada.
+            Los puntos se canjean por bebidas, comidas y tickets promocionales. Y de paso girás la Fortuna Dorada y competís en La Gran Pesca.
           </p>
           <div className="jp__cta">
             <a className="btn-gold" href="#como">Quiero saber más</a>
@@ -83,7 +85,7 @@ export default function Jackpoints() {
       <section className="jp__sec jp__sec--alt">
         <div className="jp__wrap">
           <h2 className="jp__h2">Todo lo que te da <span>Jackpoints</span></h2>
-          <p className="jp__sub">Un solo club, cinco formas de ganar. Y ninguna te cuesta nada.</p>
+          <p className="jp__sub">Un solo club, seis formas de ganar. Y ninguna te cuesta nada.</p>
           <div className="jp__grid">
             {BENEFICIOS.map(b => (
               <div key={b.t} className="jp__card">
@@ -110,6 +112,24 @@ export default function Jackpoints() {
             </ul>
           </div>
           <div className="jp__shot"><img src="/jackpoints/fortuna-dorada.webp" alt="Fortuna Dorada, el slot de la máquina Jackpoints" loading="lazy" /></div>
+        </div>
+      </section>
+
+      {/* La Gran Pesca */}
+      <section className="jp__sec jp__sec--alt">
+        <div className="jp__wrap jp__feat">
+          <div className="jp__shot"><img src="/jackpoints/la-gran-pesca.webp" alt="La Gran Pesca, el juego del día de la máquina Jackpoints" loading="lazy" /></div>
+          <div>
+            <h2 className="jp__h2 jp__h2--left">La Gran <span>Pesca</span></h2>
+            <p className="jp__sub jp__sub--left">El juego del día. Treinta segundos, una red y un lago lleno de peces.</p>
+            <ul className="jp__list">
+              <li>Movés la lancha con el dedo y atrapás los peces que saltan.</li>
+              <li>Dorados y legendarios valen más; la basura resta y corta la racha.</li>
+              <li>2 intentos cada 3 horas: cuenta tu mejor pesca de la noche.</li>
+              <li>Los 3 mejores de cada noche ganan 500, 300 y 200 puntos.</li>
+              <li>El ranking se ve en vivo en la máquina.</li>
+            </ul>
+          </div>
         </div>
       </section>
 

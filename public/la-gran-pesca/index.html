@@ -371,7 +371,13 @@ async function main() {
     }
     c.esc = tipo.largo / tex.width
     const g = ev.g
-    if (Math.abs(ev.x0 - bote.x) < BORDE_BOTE.ancho + 40) ev = { ...ev, x0: bote.x + (ev.x0 >= bote.x ? 1 : -1) * (BORDE_BOTE.ancho + 60 + Math.random() * 80) }
+    if (Math.abs(ev.x0 - bote.x) < BORDE_BOTE.ancho + 40) {
+      const vuelo = 2 * Math.sqrt(2 * ev.g * (ev.y0 - ev.apex)) / ev.g
+      const xFin = ev.x0 + ev.vx * vuelo
+      const lado = bote.x < W / 2 ? 1 : -1   // the side with more water
+      const x0 = Math.max(80, Math.min(W - 80, bote.x + lado * (BORDE_BOTE.ancho + 60 + Math.random() * 80)))
+      ev = { ...ev, x0, vx: (xFin - x0) / vuelo }
+    }
     c.x = ev.x0; c.y = ev.y0
     c.vy = -Math.sqrt(2 * g * (ev.y0 - ev.apex)); c.vx = ev.vx; c.g = g
     c.y0 = ev.y0
@@ -544,9 +550,18 @@ async function main() {
   const PASOS = [
     ['bote', 'Arrastrá el bote con el dedo', 150],
     ['pez-dorado', 'Atrapá los peces con la red\ncuando vuelven a caer', 118],
-    ['basura-bota', '¡Cuidado con la basura!\nTe resta puntos y corta la racha', 78],
+    ['basura-bota', '¡Cuidado con la basura! Botella, bota\ny rama restan puntos y cortan la racha', 78],
   ]
   PASOS.forEach(([img, txt, ancho], i) => {
+    if (img === 'basura-bota') {   // the three things that take points away: bottle, boot, branch
+      const y = 340 + i * 74
+      const num = texto(String(i + 1), 32, { borde: 5 }); num.position.set(W / 2 - 262, y); instr.addChild(num)
+      ;[['basura-botella', 56, -36, -10], ['basura-bota', 40, -2, 12], ['basura-rama', 60, 34, -12]].forEach(([n, w, dx, dy]) => {
+        const ic = new PIXI.Sprite(T[n]); ic.anchor.set(.5); ic.scale.set(w / T[n].width); ic.position.set(W / 2 - 192 + dx, y + dy); instr.addChild(ic)
+      })
+      const t = texto(txt, 27, { fill: CREMA, borde: 5 }); t.anchor.set(0, .5); t.style.align = 'left'; t.style.lineHeight = 32; t.position.set(W / 2 - 128, y); instr.addChild(t)
+      return
+    }
     const y = 340 + i * 74
     const num = texto(String(i + 1), 32, { borde: 5 }); num.position.set(W / 2 - 262, y); instr.addChild(num)
     const ic = new PIXI.Sprite(T[img]); ic.anchor.set(.5); ic.scale.set(Math.min(ancho * .66, 96) / T[img].width); ic.position.set(W / 2 - 192, y); instr.addChild(ic)
@@ -785,7 +800,7 @@ async function main() {
     for (const l of luciernagas) { l.x = l.base.x + Math.sin(t * .0006 + l.fase) * 40; l.y = l.base.y + Math.sin(t * .0009 + l.fase * 2) * 26; l.alpha = Math.max(0, Math.sin(t * .002 + l.fase)) * .9 }
 
     // boat: critically damped spring toward the finger
-    const k = 60, amort = 2 * Math.sqrt(k), s = ms / 1000
+    const k = 170, amort = 2 * Math.sqrt(k), s = ms / 1000
     boteV += ((objetivoX - boteX) * k - boteV * amort) * s
     boteX += boteV * s
     bote.x = boteX

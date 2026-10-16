@@ -38,7 +38,13 @@
       const hueco = [0.95, 0.66, 0.46][fase]
       t += hueco * (0.75 + rnd() * 0.5)
       // pairs in the last third: two at once
-      if (fase === 2 && rnd() < .3) { const x2 = 200 + rnd() * (W - 320); ev.push({ t: t - .12, tipo: rnd() < .8 ? 'comun' : 'plateado', x0: x2, y0: 800 + rnd() * 120, apex: 320 + rnd() * 150, g, vx: (rnd() - .5) * 260 }) }
+      // (the second fish of a pair must also land within the net's reach)
+      if (fase === 2 && rnd() < .3) {
+        const x2 = 200 + rnd() * (W - 320), tipo2 = rnd() < .8 ? 'comun' : 'plateado', y2 = 800 + rnd() * 120, apex2 = 320 + rnd() * 150, vx2 = (rnd() - .5) * 260
+        const vuelo2 = 2 * Math.sqrt(2 * g * (y2 - apex2)) / g
+        const fin2 = Math.max(minX + aroX + 10, Math.min(maxX + aroX - 10, x2 + vx2 * vuelo2))
+        ev.push({ t: t - .12, tipo: tipo2, x0: x2, y0: y2, apex: apex2, g, vx: (fin2 - x2) / vuelo2 })
+      }
     }
     return ev
   }
