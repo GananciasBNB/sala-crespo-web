@@ -3,7 +3,7 @@ import { useScrollRevealParent } from '../hooks/useScrollReveal'
 import './JackpointsTeaser.css'
 
 // Bloque corto en la home: lo relevante de Jackpoints en 10 segundos y un
-// botón a la página completa (/jackpoints). Sale como "Próximamente" sin fecha.
+// botón a la página completa (/jackpoints). El club ya está activo en la sala.
 const NUMEROS = [
   { n: '100', t: 'puntos de bienvenida' },
   { n: '+50', t: 'puntos por cada visita' },
@@ -19,12 +19,12 @@ export default function JackpointsTeaser() {
         <div className="reveal jpt__card">
           <div className="jpt__glow" aria-hidden="true" />
           <div className="jpt__inner">
-            <span className="jpt__badge"><i /> Próximamente</span>
+            <span className="jpt__badge"><i /> Ya en la sala</span>
             <img className="jpt__logo" src="/jackpoints/logo.webp" alt="Jackpoints, programa de beneficios de Sala de Juegos Crespo" loading="lazy" />
             <h2 className="section-title jpt__title">Venís, jugás, <em>sumás</em>.</h2>
             <p className="jpt__desc">
               <strong>Jackpoints</strong> es el club de beneficios de Sala de Juegos Crespo. Cada visita suma puntos,
-              los puntos se canjean por bebidas, comidas y tickets promocionales, y de paso girás la Fortuna Dorada.
+              los puntos se canjean por bebidas, comidas y tickets promocionales, y además jugás gratis a Fortuna Dorada y La Gran Pesca.
               Gratis, con tu DNI, en la sala.
             </p>
             <div className="jpt__nums">

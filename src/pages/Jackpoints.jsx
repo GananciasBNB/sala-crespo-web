@@ -3,7 +3,7 @@ import Footer from '../components/Footer'
 import './Jackpoints.css'
 
 // Landing de Jackpoints: la página completa a la que manda el bloque de la
-// home. Sale como "Próximamente" sin fecha; los números vienen de las bases.
+// home. El club ya está activo en la sala; los números vienen de las bases.
 const NUMEROS = [
   { n: '100', t: 'puntos de bienvenida' },
   { n: '+50', t: 'puntos por cada visita' },
@@ -20,7 +20,7 @@ const PASOS = [
 const BENEFICIOS = [
   { i: 'star', t: 'Puntos por visita', d: '50 puntos cada día que venís, hagas lo que hagas. Constancia que se convierte en consumo.', k: 'Todos los días' },
   { i: 'slot', t: 'Fortuna Dorada', d: 'El slot de la máquina. 3 giros cada 3 horas, con premios de hasta 500 puntos y tickets promocionales de $5.000.', k: 'Cada visita' },
-  { i: 'fish', t: 'La Gran Pesca', d: 'El juego del día: 30 segundos para atrapar peces con la red. Los 3 mejores del día ganan 500, 300 y 200 puntos.', k: 'Nuevo · todos los días' },
+  { i: 'fish', t: 'La Gran Pesca', d: 'El juego del día: 30 segundos para atrapar peces con la red. Los 3 mejores del día ganan 500, 300 y 200 puntos, y si atrapás un pez especial te llevás un ticket de $5.000 o puntos extra.', k: 'Nuevo · todos los días' },
   { i: 'ticket', t: 'Sorteo del mes', d: 'Un cupón por visita para el sorteo mensual de $150.000 en tickets. ¿Querés más chances? Canjeá un pack de 10 cupones por 150 puntos.', k: '$150.000 por mes' },
   { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en la barra.', k: 'Con tus puntos' },
   { i: 'trophy', t: 'Torneos de slots', d: 'Anotate a los torneos directamente desde la máquina. Torneos mensuales que clasifican a una Gran Final por $2.000.000 en tickets.', k: 'Gran Final en diciembre' },
@@ -50,11 +50,11 @@ export default function Jackpoints() {
       {/* Hero */}
       <section className="jp__hero">
         <div className="jp__wrap">
-          <span className="jp__badge"><i /> Próximamente en Sala de Juegos Crespo</span>
+          <span className="jp__badge"><i /> Ya en Sala de Juegos Crespo</span>
           <img className="jp__logo" src="/jackpoints/logo.webp" alt="Jackpoints, programa de beneficios, Crespo" />
           <h1 className="jp__h1">Venís, jugás, <em>sumás</em>.</h1>
           <p className="jp__lead">
-            Presentamos <strong>Jackpoints</strong>, el club de beneficios de Sala de Juegos Crespo. Cada visita suma puntos.
+            <strong>Jackpoints</strong> es el club de beneficios de Sala de Juegos Crespo. Cada visita suma puntos.
             Los puntos se canjean por bebidas, comidas y tickets promocionales. Y de paso girás la Fortuna Dorada y competís en La Gran Pesca.
           </p>
           <div className="jp__cta">
@@ -127,6 +127,7 @@ export default function Jackpoints() {
               <li>Dorados y legendarios valen más; la basura resta y corta la racha.</li>
               <li>2 intentos cada 3 horas: cuenta tu mejor pesca del día.</li>
               <li>Los 3 mejores de cada día ganan 500, 300 y 200 puntos.</li>
+              <li>Peces especiales: el pez Jackpoints te da un ticket de $5.000 y los peces de 100 y 50 te dan esos puntos Jackpoints. ¡Si aparece uno, atrapalo!</li>
               <li>El ranking se ve en vivo en la máquina.</li>
             </ul>
           </div>
@@ -167,11 +168,11 @@ export default function Jackpoints() {
       {/* Cierre */}
       <section className="jp__final">
         <div className="jp__wrap">
-          <span className="jp__badge"><i /> Muy pronto</span>
+          <span className="jp__badge"><i /> Ya disponible</span>
           <h2 className="jp__h2">Tu próxima visita ya <span>suma</span></h2>
-          <p className="jp__sub">Jackpoints se activa en la sala. Cuando vengas, buscá la máquina Jackpoints, poné tu DNI y empezá a sumar. Es gratis y tarda menos de un minuto.</p>
+          <p className="jp__sub">Jackpoints ya está en la sala. Cuando vengas, buscá la máquina Jackpoints, poné tu DNI y empezá a sumar. Es gratis y tarda menos de un minuto.</p>
           <div className="jp__cta">
-            <a className="btn-gold" href={IG} target="_blank" rel="noopener noreferrer">Enterate primero en Instagram</a>
+            <a className="btn-gold" href={IG} target="_blank" rel="noopener noreferrer">Seguinos en Instagram</a>
           </div>
           <p className="jp__legal">
             <a href="/legal/bases-jackpoints.html" target="_blank" rel="noopener noreferrer">Bases y condiciones del programa</a> · <a href="/legal/bases-sorteo-jackpoints.html" target="_blank" rel="noopener noreferrer">Bases del sorteo mensual</a> · Solo para mayores de 18 años · Jugá con responsabilidad
