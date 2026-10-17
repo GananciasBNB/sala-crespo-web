@@ -46,7 +46,37 @@
         ev.push({ t: t - .12, tipo: tipo2, x0: x2, y0: y2, apex: apex2, g, vx: (fin2 - x2) / vuelo2 })
       }
     }
+    if (semilla >= CUOTA_DESDE) cuotaDeBasura(ev, rnd)
     return ev
+  }
+
+  // The random draw alone gave anything from 1 to 10 junk items a day (17/10 had a single boot).
+  // From this seed on: 6 to 8 per day, at least 2 of each kind, never before second 8.
+  // Only common/silver fish turn into junk (or junk back into common fish), so the gold and
+  // legendary fish of the day stay where they were.
+  const CUOTA_DESDE = 20261018
+  function cuotaDeBasura(ev, rnd) {
+    const objetivo = 6 + Math.floor(rnd() * 3)
+    const esBasura = e => BASURA.includes(e.tipo)
+    let basura = ev.filter(esBasura)
+    // too many: the latest extra junk becomes common fish
+    for (let i = basura.length - 1; basura.length > objetivo && i >= 0; i--) { basura[i].tipo = 'comun'; basura = ev.filter(esBasura) }
+    // too few: common/silver fish after second 8 become junk, spread over the candidates
+    const candidatos = ev.filter(e => e.t >= 8 && (e.tipo === 'comun' || e.tipo === 'plateado'))
+    while (basura.length < objetivo && candidatos.length) {
+      const e = candidatos.splice(Math.floor(rnd() * candidatos.length), 1)[0]
+      e.tipo = 'botella'; basura = ev.filter(esBasura)
+    }
+    // at least 2 of each kind: deal the kinds over the junk in time order
+    basura.sort((x, y) => x.t - y.t).forEach((e, i) => { e.tipo = BASURA[(i + Math.floor(rnd() * 3)) % 3] })
+    const cuenta = k => basura.filter(e => e.tipo === k).length
+    for (const k of BASURA) {
+      while (cuenta(k) < 2) {
+        const sobra = BASURA.find(o => cuenta(o) > 2)
+        if (!sobra) break
+        basura.find(e => e.tipo === sobra).tipo = k
+      }
+    }
   }
 
   // Highest score anyone could make with that sequence: every fish caught at x3 streak,
