@@ -873,3 +873,16 @@
 .kiosk__mini-btn, .kiosk__tab--on { background: rgba(10,24,52,.85); color: #F0D275; border-color: #C9A84C; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
 .kiosk__mov-btn { color: #0b1a33; background: linear-gradient(180deg, #fff1b8, #f0d275 50%, #c9a84c); border-color: #fff3c4; font-weight: 600; }
 .kiosk__sesion--urgente { color: #0b1a33; background: linear-gradient(180deg, #fff1b8, #f0d275 50%, #c9a84c); }
+/* ranking: 10 rows + "you" + the test row must fit the cabinet screen with the button visible */
+.kiosk__rank { gap: 4px; }
+.kiosk__rank-tit { font-size: 36px; line-height: 1.1; }
+.kiosk__rank-sub { margin-bottom: 6px; font-size: 15px; }
+.kiosk__rank-tabla { gap: 3px; }
+.kiosk__rank-fila { padding: 5px 16px; font-size: 20px; }
+.kiosk__rank-med { width: 34px; height: 34px; font-size: 16px; }
+.kiosk__rank-pos { font-size: 21px; }
+.kiosk__rank-pts { font-size: 23px; }
+.kiosk__rank-hora { font-size: 17px; }
+.kiosk__rank-nom small { display: inline; margin-left: 10px; }
+.kiosk__rank-pie { margin-top: 8px; }
+.kiosk__rank-fila--head { font-size: 13px; padding-top: 0; padding-bottom: 0; }

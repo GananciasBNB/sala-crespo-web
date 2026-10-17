@@ -1405,7 +1405,7 @@ export default function Kiosk() {
                 {ranking.yoPrueba && (
                   <div className="kiosk__rank-fila kiosk__rank-fila--yo">
                     <span className="kiosk__rank-pos">—</span>
-                    <span className="kiosk__rank-nom">Tu partida de prueba<em> · no cuenta para el ranking</em></span>
+                    <span className="kiosk__rank-nom">Tu prueba<em> · no cuenta</em></span>
                     <span className="kiosk__rank-hora">{ranking.yoPrueba.hora}</span>
                     <span className="kiosk__rank-pts">{ranking.yoPrueba.puntaje.toLocaleString('es-AR')}</span>
                   </div>
