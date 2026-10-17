@@ -6,7 +6,7 @@
 <title>Fortuna Dorada · Jackpoints</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0406; touch-action: manipulation; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #050b18; touch-action: manipulation; }
   #stage { position: fixed; inset: 0; }
   .hint { position: fixed; bottom: 6px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.22);
           font: 11px 'Segoe UI', sans-serif; letter-spacing: 1px; pointer-events: none; }
@@ -88,7 +88,7 @@ let LIVIANO = paramLiviano === '1' ? true
 let nivelGuardado = 0;
 try { nivelGuardado = Number(localStorage.getItem('fd_nivel')) || 0; } catch {}
 
-const app = new PIXI.Application({ background: '#0a0406', width: W, height: H,
+const app = new PIXI.Application({ background: '#050b18', width: W, height: H,
   // La calidad de dibujo se mantiene: lo caro es el video de fondo y el blur,
   // no la nitidez. Si aun asi no alcanza, se baja despues (ver vigilarFps).
   antialias: nivelGuardado < 2, resolution: nivelGuardado >= 2 ? 0.75 : 1, powerPreference: 'high-performance' });
@@ -285,6 +285,21 @@ cargarTexturas(URLS)
  try {
 
   // ─── Fondo ───────────────────────────────────────────────────────
+  // Night palette (oct 2026, like La Gran Pesca): background graded toward night blue
+  const NOCHE_MATRIZ = (() => { const k = .72, t = [.4, .62, 1.5], L = [.3, .59, .11], m = []; for (let r = 0; r < 3; r++) for (let c = 0; c < 3; c++) m.push((r === c ? 1 - k : 0) + k * t[r] * L[c]); return m })();
+  try {
+    const img = T.fondo.baseTexture.resource.source;
+    const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
+    const cx = cv.getContext('2d'); cx.drawImage(img, 0, 0);
+    const px = cx.getImageData(0, 0, cv.width, cv.height), d = px.data, M = NOCHE_MATRIZ;
+    for (let i = 0; i < d.length; i += 4) {
+      const r = d[i], g = d[i + 1], b = d[i + 2];
+      d[i] = M[0] * r + M[1] * g + M[2] * b; d[i + 1] = M[3] * r + M[4] * g + M[5] * b; d[i + 2] = M[6] * r + M[7] * g + M[8] * b;
+    }
+    cx.putImageData(px, 0, 0);
+    T.fondo = PIXI.Texture.from(cv);
+  } catch (e) { console.error('fondo noche:', e); }
+  const filtroNoche = () => { const CM = PIXI.ColorMatrixFilter || PIXI.filters.ColorMatrixFilter, f = new CM(), M = NOCHE_MATRIZ; f.matrix = [M[0], M[1], M[2], 0, 0, M[3], M[4], M[5], 0, 0, M[6], M[7], M[8], 0, 0, 0, 0, 0, 1, 0]; return f };
   const fondo = new PIXI.Sprite(T.fondo);
   const fs = Math.max(W / fondo.texture.width, H / fondo.texture.height);
   fondo.scale.set(fs); fondo.anchor.set(0.5); fondo.position.set(W / 2, H / 2);
@@ -301,6 +316,7 @@ cargarTexturas(URLS)
     vid.addEventListener('canplaythrough', () => {
       try {
         fondo.texture = PIXI.Texture.from(vid);
+        fondo.filters = [filtroNoche()];
         const vs = Math.max(W / vid.videoWidth, H / vid.videoHeight);
         fondo.scale.set(vs);
         vid.play().catch(() => {});
@@ -429,10 +445,10 @@ cargarTexturas(URLS)
 
   // ─── Window background (dark wine drums) ─────────────────────────
   const ventBg = spriteDe(canvasTex(vent.w, vent.h, (c) => {
-    c.fillStyle = '#12060b'; c.fillRect(0, 0, vent.w, vent.h);
+    c.fillStyle = '#081428'; c.fillRect(0, 0, vent.w, vent.h);
     for (let i = 0; i < COLS; i++) {
       const g = c.createLinearGradient(i * CELL_W, 0, (i + 1) * CELL_W, 0);
-      g.addColorStop(0, '#12060b'); g.addColorStop(0.5, '#2e111b'); g.addColorStop(1, '#12060b');
+      g.addColorStop(0, '#081428'); g.addColorStop(0.5, '#13284a'); g.addColorStop(1, '#081428');
       c.fillStyle = g; c.fillRect(i * CELL_W, 0, CELL_W, vent.h);
     }
   }), vent.x, vent.y);
@@ -546,7 +562,7 @@ cargarTexturas(URLS)
     brillo.addColorStop(0, 'rgba(255,255,255,0.32)'); brillo.addColorStop(0.35, 'rgba(255,255,255,0)');
     roundRect(c, x, y, w, h, 26); c.fillStyle = brillo; c.fill();
     const vino = c.createLinearGradient(0, y, 0, y + h);
-    vino.addColorStop(0, '#7a1828'); vino.addColorStop(1, '#3a0812');
+    vino.addColorStop(0, '#1d3a6b'); vino.addColorStop(1, '#0a1a38');
     roundRect(c, x + 7, y + 7, w - 14, h - 14, 20); c.fillStyle = vino; c.fill();
     roundRect(c, x + BORDE - 5, y + BORDE - 5, vent.w + 10, vent.h + 10, 12);
     c.fillStyle = oroVertical(c, y, y + h); c.fill();
@@ -558,14 +574,14 @@ cargarTexturas(URLS)
     // little gold diamonds on the wine band (corners + bottom)
     const rombo = (cx, cy, s) => {
       c.beginPath(); c.moveTo(cx, cy - s); c.lineTo(cx + s, cy); c.lineTo(cx, cy + s); c.lineTo(cx - s, cy); c.closePath();
-      c.fillStyle = '#F0D275'; c.fill(); c.strokeStyle = '#5a0f1c'; c.lineWidth = 1; c.stroke();
+      c.fillStyle = '#F0D275'; c.fill(); c.strokeStyle = '#0a1a38'; c.lineWidth = 1; c.stroke();
     };
     const m = BORDE / 2 + 1;
     [[x + m, y + m], [x + w - m, y + m], [x + m, y + h - m], [x + w - m, y + h - m]].forEach(([a, b]) => rombo(a, b, 6));
     rombo(x + w * 0.25, y + h - m, 4); rombo(x + w * 0.75, y + h - m, 4);
     // top plaque: "3 LÍNEAS DE PAGO"
     const pw = 214, ph = 30, px = x + w / 2 - pw / 2, py = y + BORDE / 2 - ph / 2 + 1;
-    roundRect(c, px, py, pw, ph, 15); c.fillStyle = '#4a0b17'; c.fill();
+    roundRect(c, px, py, pw, ph, 15); c.fillStyle = '#0d2244'; c.fill();
     c.strokeStyle = '#F0D275'; c.lineWidth = 2; c.stroke();
     c.fillStyle = '#F0D275'; c.font = '700 14px Georgia'; c.textAlign = 'center'; c.textBaseline = 'middle';
     try { c.letterSpacing = '3px'; } catch (e) { console.warn('letterSpacing', e); }
@@ -581,7 +597,7 @@ cargarTexturas(URLS)
       const b = new PIXI.Container();
       const glow = new PIXI.Sprite(TEX_GLOW);
       glow.anchor.set(0.5); glow.width = glow.height = 74; glow.alpha = 0; glow.blendMode = PIXI.BLEND_MODES.ADD;
-      const disco = new PIXI.Graphics().lineStyle(2, 0xF0D275).beginFill(0x4a0b17).drawCircle(0, 0, 13).endFill();
+      const disco = new PIXI.Graphics().lineStyle(2, 0xF0D275).beginFill(0x0d2244).drawCircle(0, 0, 13).endFill();
       const num = new PIXI.Text(String(row + 1), new PIXI.TextStyle({
         fontFamily: 'Georgia', fontSize: 15, fontWeight: '900', fill: '#F0D275' }));
       num.anchor.set(0.5);
@@ -639,16 +655,16 @@ cargarTexturas(URLS)
   function pintarBoton(activo) {
     bg.clear();
     bg.lineStyle(4, activo ? 0xF0D275 : 0x555555)
-      .beginFill(activo ? 0x8f1524 : 0x3a3342)
+      .beginFill(activo ? 0xF0D275 : 0x3a3342)
       .drawRoundedRect(-185, -55, 370, 110, 55).endFill();
     // doble borde interior fino (mismo lenguaje que el modal de premios)
-    bg.lineStyle(1.5, 0xF0D275, activo ? 0.45 : 0.15)
+    bg.lineStyle(1.5, 0x8c6a1f, activo ? 0.6 : 0.15)
       .drawRoundedRect(-172, -42, 344, 84, 42);
   }
   pintarBoton(true);
   const btxt = new PIXI.Text('GIRAR', new PIXI.TextStyle({
-    fontFamily: 'Georgia', fontSize: 44, fontWeight: '900', fill: '#F0D275', letterSpacing: 12,
-    dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
+    fontFamily: 'Georgia', fontSize: 44, fontWeight: '900', fill: '#0b1a33', letterSpacing: 12,
+    dropShadow: false, dropShadowColor: '#000', dropShadowBlur: 6, dropShadowDistance: 2,
   }));
   btxt.anchor.set(0.5);
   boton.addChild(bg, btxt);
@@ -688,7 +704,7 @@ cargarTexturas(URLS)
     halo.anchor.set(0.5); halo.width = halo.height = CHIP_R * 3.8;
     halo.position.set(cx, cy); halo.alpha = 0; halo.blendMode = PIXI.BLEND_MODES.ADD;
     const chip = new PIXI.Graphics()
-      .beginFill(0x0d0509, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, 0, CHIP_R).endFill()
+      .beginFill(0x07122a, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, 0, CHIP_R).endFill()
       .beginFill(0xF0D275, 0.05).drawCircle(0, 0, CHIP_R - 10).endFill();
     chip.position.set(cx, cy);
     const ic = new PIXI.Sprite(T[p.sym]);
@@ -785,7 +801,7 @@ cargarTexturas(URLS)
     const g = new PIXI.Graphics();
     g.beginFill(0xC9A84C).lineStyle(5, 0x8c6a1f).drawCircle(50, 50, 44).endFill();
     g.beginFill(0xF0D275, 0.6).drawCircle(44, 42, 30).endFill();
-    g.beginFill(0x0d0509).lineStyle(4, 0x8c6a1f).drawRect(36, 36, 28, 28).endFill();
+    g.beginFill(0x07122a).lineStyle(4, 0x8c6a1f).drawRect(36, 36, 28, 28).endFill();
     return app.renderer.generateTexture(g, { region: new PIXI.Rectangle(0, 0, 100, 100) });
   })();
 
@@ -1403,7 +1419,7 @@ cargarTexturas(URLS)
       const cx = izq ? (gridX - panelPad) / 2 : W - (gridX - panelPad) / 2;
       const cy = BZ.gridTop + (BZ.gridBot - BZ.gridTop) * (i % 2 === 0 ? 0.27 : 0.73);
       const disco = new PIXI.Graphics()
-        .beginFill(0x0d0509, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, -26, 54).endFill();
+        .beginFill(0x07122a, 0.88).lineStyle(3, 0xC9A84C, 0.85).drawCircle(0, -26, 54).endFill();
       it.addChild(disco);
       ic.width = ic.height = 92; ic.position.set(0, -26);
       halo.width = halo.height = 200; halo.position.set(0, -26);
@@ -1412,7 +1428,7 @@ cargarTexturas(URLS)
     }
     // "2/3" badge that pops when this prize has a pair
     const badge = new PIXI.Container();
-    const pill = new PIXI.Graphics().lineStyle(2, 0xFFE9A0, 1).beginFill(0x7a1020, 0.96).drawRoundedRect(-22, -13, 44, 26, 13).endFill();
+    const pill = new PIXI.Graphics().lineStyle(2, 0xFFE9A0, 1).beginFill(0x13284a, 0.96).drawRoundedRect(-22, -13, 44, 26, 13).endFill();
     const estiloBadge = new PIXI.TextStyle({ fontFamily: 'Georgia', fontSize: 17, fontWeight: '900', fill: '#FFE9A0' });
     const b23 = new PIXI.Text('2/3', estiloBadge); b23.anchor.set(0.5);
     const b33 = new PIXI.Text('3/3', estiloBadge); b33.anchor.set(0.5); b33.visible = false;
@@ -1526,7 +1542,7 @@ cargarTexturas(URLS)
     c.save();
     c.shadowColor = 'rgba(0,0,0,0.75)'; c.shadowBlur = 12; c.shadowOffsetY = 4;
     const g = c.createRadialGradient(m, m - r * 0.2, r * 0.1, m, m, r);
-    g.addColorStop(0, '#4a1020'); g.addColorStop(0.65, '#1c060c'); g.addColorStop(1, '#070203');
+    g.addColorStop(0, '#1d3a6b'); g.addColorStop(0.65, '#0a1a38'); g.addColorStop(1, '#040914');
     c.beginPath(); c.arc(m, m, r, 0, Math.PI * 2); c.fillStyle = g; c.fill();
     c.restore();
     c.beginPath(); c.arc(m, m, r - 2, 0, Math.PI * 2); c.strokeStyle = '#F0D275'; c.lineWidth = 2.2; c.stroke();
@@ -1654,7 +1670,7 @@ cargarTexturas(URLS)
   const introTxt = new PIXI.Text('¡BONUS!', new PIXI.TextStyle({
     fontFamily: 'Georgia', fontSize: 92, fontWeight: '900',
     fill: ['#ffffff', '#F0D275', '#c9a84c'], fillGradientStops: [0.2, 0.6, 1], letterSpacing: 8,
-    stroke: '#4a0b17', strokeThickness: 8,
+    stroke: '#0a1a38', strokeThickness: 8,
     dropShadow: true, dropShadowColor: '#000', dropShadowBlur: 18, dropShadowDistance: 6,
   }));
   introTxt.anchor.set(0.5); introTxt.y = introLogo.height / 2 + 30;
@@ -2111,7 +2127,7 @@ cargarTexturas(URLS)
     recordarMaquinaLenta(1);
     console.log('Fortuna Dorada: ' + fps.toFixed(1) + ' fps -> modo liviano');
     try { if (videoFondo) videoFondo.pause(); } catch {}
-    fondo.texture = T.fondo;
+    fondo.texture = T.fondo; fondo.filters = null;
     fondo.scale.set(Math.max(W / T.fondo.width, H / T.fondo.height));
     reels.forEach(r => { r.cont.filters = null; });
     motas.forEach((m, i) => { if (i >= 12) m.visible = false; });

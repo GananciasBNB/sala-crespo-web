@@ -20,7 +20,7 @@
 }
 .kiosk__bg {
   position: absolute; inset: 0; z-index: 0; pointer-events: none;
-  background: url('/kiosk-bg.jpg') center / cover no-repeat, var(--onyx);
+  background: url('/kiosk-bg-noche.jpg') center / cover no-repeat, var(--onyx);
 }
 .kiosk__videobg {
   position: absolute; inset: 0; width: 100%; height: 100%;
@@ -28,7 +28,7 @@
 }
 .kiosk__vignette {
   position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(100% 80% at 50% 50%, transparent 45%, rgba(5,2,3,.5) 100%);
+  background: radial-gradient(100% 80% at 50% 50%, transparent 45%, rgba(7,12,21,.5) 100%);
 }
 /* Solo las secciones de contenido participan del layout centrado del kiosk.
    (La versión anterior con :not() capturaba overlays/carteles fixed nuevos y
@@ -45,7 +45,7 @@
 .kiosk__perks { display: flex; gap: 14px; justify-content: center; margin: 0 0 34px; flex-wrap: wrap; }
 .kiosk__perk {
   display: flex; flex-direction: column; gap: 5px; min-width: 150px; justify-content: center;
-  background: linear-gradient(170deg, rgba(38,14,22,.78), rgba(12,5,9,.82));
+  background: linear-gradient(170deg, rgba(23,40,71,.78), rgba(11,19,31,.82));
   border: 1px solid rgba(201,168,76,.55); border-radius: 14px;
   box-shadow: inset 0 1px 0 rgba(240,210,117,.14), 0 6px 18px rgba(0,0,0,.35);
   padding: 16px 18px;
@@ -71,10 +71,10 @@
 .kiosk__idle-btn {
   position: relative; overflow: hidden;
   font-family: var(--font-impact); font-size: 24px; letter-spacing: 4px;
-  color: #F0D275; background: linear-gradient(160deg, #8f1524, #550c16);
+  color: #F0D275; background: linear-gradient(160deg, #21488c, #1e4280);
   border: 2px solid #C9A84C; border-radius: 999px;
   padding: 20px 56px; cursor: pointer;
-  box-shadow: 0 12px 40px rgba(120,15,30,.55), inset 0 1px 0 rgba(240,210,117,.25);
+  box-shadow: 0 12px 40px rgba(33,72,140,.55), inset 0 1px 0 rgba(240,210,117,.25);
   animation: kpulse 2.4s ease-in-out infinite;
   text-shadow: 0 2px 6px rgba(0,0,0,.6);
 }
@@ -110,7 +110,7 @@
 .kiosk-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%; max-width: 360px; margin-bottom: 20px; }
 .kiosk-pad__key {
   font-family: var(--font-impact); font-size: 34px; color: var(--cream);
-  background: rgba(20,12,16,.85); border: 1px solid var(--border); border-radius: 14px;
+  background: rgba(21,29,43,.85); border: 1px solid var(--border); border-radius: 14px;
   padding: 20px 0; cursor: pointer; transition: transform .08s, background .15s, border-color .15s; touch-action: manipulation;
 }
 .kiosk-pad__key:active { transform: scale(.94); background: var(--dark3); border-color: var(--gold); }
@@ -137,10 +137,10 @@
 .kiosk__cta {
   position: relative;
   font-family: var(--font-impact); font-size: 24px; letter-spacing: 3px;
-  color: #F0D275; background: linear-gradient(160deg, #8f1524, #550c16);
+  color: #F0D275; background: linear-gradient(160deg, #21488c, #1e4280);
   border: 2px solid #C9A84C; border-radius: 999px;
   padding: 18px 36px; cursor: pointer; width: 100%; max-width: 360px;
-  box-shadow: 0 10px 30px rgba(120,15,30,.5), inset 0 1px 0 rgba(240,210,117,.25);
+  box-shadow: 0 10px 30px rgba(33,72,140,.5), inset 0 1px 0 rgba(240,210,117,.25);
   transition: .15s; touch-action: manipulation;
   text-shadow: 0 2px 6px rgba(0,0,0,.6);
 }
@@ -160,7 +160,7 @@
 .kiosk__hub { display: flex; gap: 12px; width: 100%; margin-bottom: 18px; align-items: stretch; }
 .kiosk__hub-card {
   flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: linear-gradient(170deg, rgba(34,14,22,.85), rgba(12,5,9,.9));
+  background: linear-gradient(170deg, rgba(23,38,64,.85), rgba(11,19,31,.9));
   border: 1px solid rgba(201,168,76,.4); border-radius: 16px; padding: 16px 12px 14px;
 }
 .kiosk__hub-card--giro { border-color: var(--gold); box-shadow: 0 0 24px rgba(201,168,76,.18); }
@@ -187,14 +187,14 @@
 .kiosk__visita-corner {
   position: fixed; top: 30px; right: 30px; z-index: 2;
   font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 1.5px;
-  color: var(--text2); background: rgba(15,7,10,.8); border: 1px solid var(--border);
+  color: var(--text2); background: rgba(14,22,36,.8); border: 1px solid var(--border);
   border-radius: 999px; padding: 9px 18px;
 }
 
 /* Saludo en la esquina superior izquierda (experimento de layout 14/9) */
 .kiosk__done-saludo {
   position: fixed; top: 22px; left: 28px; text-align: left; z-index: 2;
-  background: linear-gradient(170deg, rgba(38,14,22,.85), rgba(12,5,9,.85));
+  background: linear-gradient(170deg, rgba(23,40,71,.85), rgba(11,19,31,.85));
   border: 1px solid rgba(201,168,76,.45); border-radius: 14px; padding: 12px 22px 14px;
   box-shadow: 0 8px 24px rgba(0,0,0,.35);
 }
@@ -211,11 +211,11 @@
 .kiosk__sesion {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 70;
   font-family: 'Oswald', var(--font-body); font-size: 16px; letter-spacing: 1px;
-  color: var(--cream); background: rgba(20,8,12,.94); border: 1px solid var(--gold);
+  color: var(--cream); background: rgba(15,25,43,.94); border: 1px solid var(--gold);
   border-radius: 999px; padding: 10px 26px; pointer-events: none; white-space: nowrap;
 }
 .kiosk__sesion--urgente {
-  font-size: 19px; color: #fff; background: #7d1220; border-color: #F0D275;
+  font-size: 19px; color: #fff; background: #21488c; border-color: #F0D275;
   box-shadow: 0 0 30px rgba(240,210,117,.5);
   animation: ksesion 1s ease-in-out infinite;
 }
@@ -226,11 +226,11 @@
 }
 
 /* Overlays (juego / carta) */
-.kiosk__carta { position: fixed; inset: 0; z-index: 60; background: rgba(4,2,3,.92); display: flex; align-items: center; justify-content: center; }
+.kiosk__carta { position: fixed; inset: 0; z-index: 60; background: rgba(8,12,19,.92); display: flex; align-items: center; justify-content: center; }
 .kiosk__carta iframe { width: 100%; height: 100%; border: 0; }
 .kiosk__carta-panel {
   display: flex; flex-direction: column; align-items: center; gap: 16px;
-  background: linear-gradient(170deg, rgba(38,14,22,.95), rgba(12,5,9,.97));
+  background: linear-gradient(170deg, rgba(23,40,71,.95), rgba(11,19,31,.97));
   border: 1px solid var(--gold); border-radius: 20px; padding: 34px 44px;
   box-shadow: 0 0 60px rgba(201,168,76,.2);
 }
@@ -245,13 +245,13 @@
 .kiosk__carta-close {
   position: fixed; top: 14px; right: 14px; z-index: 61;
   font-family: var(--font-impact); font-size: 17px; letter-spacing: 2px;
-  color: #F0D275; background: rgba(20,8,12,.92); border: 2px solid #C9A84C; border-radius: 999px;
+  color: #F0D275; background: rgba(15,25,43,.92); border: 2px solid #C9A84C; border-radius: 999px;
   padding: 12px 24px; cursor: pointer; transition: .25s;
 }
 /* Giro jugado: el camino de salida se enciende y late para guiar al socio */
 .kiosk__carta-close--destacado {
   font-size: 22px; padding: 16px 34px; font-weight: 700;
-  background: linear-gradient(160deg, #8f1524, #550c16);
+  background: linear-gradient(160deg, #21488c, #1e4280);
   border-color: #F0D275;
   box-shadow: 0 0 30px rgba(240,210,117,.55), 0 0 60px rgba(201,168,76,.3);
   animation: kpulse 1.6s ease-in-out infinite;
@@ -266,9 +266,9 @@
 .kiosk__saldo-line strong { font-size: 40px; color: var(--gold-light); font-weight: 900; padding: 0 4px; }
 .kiosk__mini-btn {
   font-family: 'Oswald', var(--font-body); font-size: 14px; font-weight: 600; letter-spacing: 2px;
-  color: #F0D275; background: linear-gradient(160deg, #6d1120, #3d0a12);
+  color: #F0D275; background: linear-gradient(160deg, #21488c, #173262);
   border: 1.5px solid #C9A84C; border-radius: 999px; padding: 11px 24px; cursor: pointer;
-  box-shadow: 0 6px 18px rgba(120,15,30,.35), inset 0 1px 0 rgba(240,210,117,.2);
+  box-shadow: 0 6px 18px rgba(33,72,140,.35), inset 0 1px 0 rgba(240,210,117,.2);
   transition: .15s; touch-action: manipulation;
 }
 .kiosk__mini-btn:active { transform: scale(.95); }
@@ -286,11 +286,11 @@
 .kiosk__tabs { display: flex; gap: 10px; justify-content: center; margin-bottom: 12px; }
 .kiosk__tab {
   font-family: 'Oswald', var(--font-body); font-size: 14px; font-weight: 600; letter-spacing: 1.5px;
-  color: var(--text2); background: rgba(15,7,10,.7); border: 1px solid var(--border);
+  color: var(--text2); background: rgba(14,22,36,.7); border: 1px solid var(--border);
   border-radius: 999px; padding: 10px 24px; cursor: pointer; transition: .15s;
 }
 .kiosk__tab--on {
-  color: #F0D275; background: linear-gradient(160deg, #6d1120, #3d0a12);
+  color: #F0D275; background: linear-gradient(160deg, #21488c, #173262);
   border-color: #C9A84C; box-shadow: 0 0 14px rgba(201,168,76,.25);
 }
 .kiosk__canje-aviso {
@@ -301,12 +301,12 @@
 .kiosk__canje-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 6px; }
 .kiosk__canje {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; text-align: center;
-  background: rgba(10,4,7,.6); border: 1px solid var(--border); border-radius: 12px; padding: 10px 8px; min-height: 96px;
+  background: rgba(10,17,28,.6); border: 1px solid var(--border); border-radius: 12px; padding: 10px 8px; min-height: 96px;
 }
 /* iluminado = lo que YA puede llevarse; apagado = objetivo pendiente */
 .kiosk__canje--ya {
   border-color: var(--gold);
-  background: linear-gradient(170deg, rgba(60,28,16,.75), rgba(20,9,6,.85));
+  background: linear-gradient(170deg, rgba(25,54,103,.75), rgba(12,23,44,.85));
   box-shadow: 0 0 20px rgba(201,168,76,.3), inset 0 1px 0 rgba(240,210,117,.2);
 }
 .kiosk__canje--no { opacity: .5; }
@@ -326,10 +326,10 @@
   margin-right: 6px; font-weight: 400;
 }
 .kiosk__hub-ok--proceso { color: var(--text2); animation: kpulse 1.2s ease-in-out infinite; }
-.kiosk__puntos-h { font-family: 'Oswald', var(--font-body); font-size: 14px; letter-spacing: 3px; color: var(--gold); position: sticky; top: 0; background: rgba(18,7,11,.95); padding: 4px 0; }
+.kiosk__puntos-h { font-family: 'Oswald', var(--font-body); font-size: 14px; letter-spacing: 3px; color: var(--gold); position: sticky; top: 0; background: rgba(14,23,40,.95); padding: 4px 0; }
 .kiosk__mov {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  background: rgba(10,4,7,.6); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;
+  background: rgba(10,17,28,.6); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px;
 }
 .kiosk__mov-lbl { font-size: 15px; color: var(--cream); font-weight: 600; }
 .kiosk__mov-fecha { font-size: 12px; color: var(--text3); }
@@ -338,7 +338,7 @@
 .kiosk__mov-ok { color: var(--gold-light); font-size: 13px; font-weight: 700; white-space: nowrap; }
 .kiosk__mov-btn {
   font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 1px; white-space: nowrap;
-  color: #F0D275; background: linear-gradient(160deg, #8f1524, #550c16);
+  color: #F0D275; background: linear-gradient(160deg, #21488c, #1e4280);
   border: 1px solid #C9A84C; border-radius: 999px; padding: 8px 16px; cursor: pointer;
 }
 .kiosk__mov-btn:disabled { opacity: .45; filter: saturate(.4); cursor: default; }
@@ -434,7 +434,7 @@
 .kiosk__hub-sub--pack { flex: 0 0 auto; font-size: 12px; margin-top: 8px; }
 
 /* Confirmación antes de descontar puntos: va por encima del panel de canjes */
-.kiosk__confirm { z-index: 80; background: rgba(4,2,3,.85); }
+.kiosk__confirm { z-index: 80; background: rgba(8,12,19,.85); }
 .kiosk__confirm-panel { max-width: 560px; text-align: center; }
 .kiosk__confirm-txt { font-size: 17px; line-height: 1.45; }
 .kiosk__confirm-btns { display: flex; gap: 14px; width: 100%; }
@@ -453,7 +453,7 @@
   padding: 7px 16px; border-radius: 999px;
   background: linear-gradient(180deg, #FBE7A1, #F0D275 55%, #C9A84C);
   border: 1px solid #FFF1B8; box-shadow: 0 4px 14px rgba(0,0,0,.45);
-  color: #2a1206; font-size: 13px; font-weight: 700; letter-spacing: .06em; white-space: nowrap;
+  color: #112447; font-size: 13px; font-weight: 700; letter-spacing: .06em; white-space: nowrap;
 }
 
 /* ───────── Demo link only (/kiosk?demo=1) ─────────
@@ -522,7 +522,7 @@
 /* ───────── Redemption panel: two clear sections ───────── */
 .kiosk__tabs {
   display: flex; gap: 0; justify-content: center; margin: 4px auto 16px; width: fit-content;
-  padding: 5px; border-radius: 999px; background: rgba(8,3,5,.75);
+  padding: 5px; border-radius: 999px; background: rgba(8,15,25,.75);
   border: 1px solid rgba(201,168,76,.55); box-shadow: inset 0 2px 8px rgba(0,0,0,.5);
 }
 .kiosk__tab {
@@ -532,7 +532,7 @@
 }
 .kiosk__tab-ico { width: 22px; height: 22px; flex: none; }
 .kiosk__tab--on {
-  color: #1a0b05; background: linear-gradient(180deg, #FBE7A1, #F0D275 45%, #C9A84C);
+  color: #0c1a33; background: linear-gradient(180deg, #FBE7A1, #F0D275 45%, #C9A84C);
   border-color: #FBE7A1; box-shadow: 0 0 18px rgba(240,210,117,.45);
 }
 /* locked rewards: only the closest one says how much is missing */
@@ -634,12 +634,12 @@
 .kiosk__cumple-bubble {
   display: flex; align-items: center; gap: 12px; cursor: pointer;
   padding: 8px 18px 8px 8px; border-radius: 20px; text-align: left;
-  background: rgba(20,6,10,.85); border: 1.5px solid rgba(240,210,117,.55);
+  background: rgba(12,23,44,.85); border: 1.5px solid rgba(240,210,117,.55);
   box-shadow: 0 8px 24px rgba(0,0,0,.45); color: var(--text1, #f7efdd);
 }
 .kiosk__cumple-ring {
   width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center;
-  background: radial-gradient(circle at 40% 35%, #3a0f19, #1a060b);
+  background: radial-gradient(circle at 40% 35%, #183464, #0c1b34);
   border: 2px solid var(--gold); animation: kioskCumplePulso 2.6s ease-in-out infinite;
 }
 @keyframes kioskCumplePulso {
@@ -657,7 +657,7 @@
 .kiosk__cumple-title { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 36px; color: #fdf6e6; }
 .kiosk__cumple-fields { display: flex; justify-content: center; gap: 12px; }
 .kiosk__cumple-field {
-  width: 110px; padding: 8px 0 6px; border-radius: 14px; background: #0f0407;
+  width: 110px; padding: 8px 0 6px; border-radius: 14px; background: #091325;
   border: 2px solid rgba(240,210,117,.3); transition: border-color .2s, box-shadow .2s;
 }
 .kiosk__cumple-field.y { width: 150px; }
@@ -695,7 +695,7 @@
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 200;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
   padding: 14px 16px 12px; box-sizing: border-box;
-  background: linear-gradient(180deg, rgba(26,10,16,.97), rgba(12,4,8,.99));
+  background: linear-gradient(180deg, rgba(18,30,52,.97), rgba(9,18,32,.99));
   border-top: 2px solid var(--gold); box-shadow: 0 -18px 40px rgba(0,0,0,.6);
   animation: kkbUp .18s ease-out;
 }
@@ -704,15 +704,15 @@
 .kkb__key {
   flex: 1 1 0; min-width: 0; height: 74px; max-width: 112px;
   font: 700 34px/1 var(--font-body); color: var(--cream);
-  background: rgba(40,20,28,.95); border: 1px solid rgba(240,210,117,.35); border-radius: 14px;
+  background: rgba(31,47,74,.95); border: 1px solid rgba(240,210,117,.35); border-radius: 14px;
   cursor: pointer; touch-action: manipulation; transition: transform .07s, background .12s, border-color .12s;
 }
-.kkb__key:active { transform: scale(.93); background: var(--gold); color: #1a060b; border-color: var(--gold); }
+.kkb__key:active { transform: scale(.93); background: var(--gold); color: #0c1b34; border-color: var(--gold); }
 .kkb__key--fn { color: var(--gold); font-size: 28px; }
 .kkb__key--wide { flex: 2 1 0; max-width: 230px; font-size: 24px; }
 .kkb__key--space { flex: 6 1 0; max-width: 640px; font-size: 22px; letter-spacing: 3px; text-transform: uppercase; color: var(--text3, #c4b59c); }
 .kkb__key--ok { flex: 3 1 0; max-width: 340px; font: 700 26px/1 var(--font-impact); letter-spacing: 2px;
-  background: linear-gradient(180deg, #fff1b8, #f0d275 55%, #c9a84c); color: #1a060b; border-color: var(--gold); }
+  background: linear-gradient(180deg, #fff1b8, #f0d275 55%, #c9a84c); color: #0c1b34; border-color: var(--gold); }
 .kkb__row--short .kkb__key--short { max-width: 270px; font-size: 22px; color: var(--gold); }
 .kkb__close { background: none; border: 0; color: var(--text3, #c4b59c); font: 600 17px var(--font-body); padding: 4px 16px; cursor: pointer; }
 
@@ -737,7 +737,7 @@
 .kkb__sug { display: flex; gap: 10px; justify-content: center; width: 100%; max-width: 1000px; min-height: 56px; }
 .kkb__sug-btn {
   flex: 1 1 0; max-width: 320px; height: 56px; min-width: 0; padding: 0 14px;
-  font: 700 26px/1 var(--font-body); color: #1a060b; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font: 700 26px/1 var(--font-body); color: #0c1b34; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   background: linear-gradient(180deg, #fff1b8, #f0d275); border: 0; border-radius: 28px;
   cursor: pointer; touch-action: manipulation; transition: transform .07s;
 }
@@ -811,7 +811,7 @@
 }
 
 /* attract screen: tonight's leader */
-.kiosk__lider-pesca { margin: -4px auto 18px; display: inline-flex; gap: 12px; align-items: center; padding: 10px 22px; border-radius: 999px; border: 1.5px solid #C9A84C; background: linear-gradient(160deg, rgba(109,17,32,.9), rgba(61,10,18,.9)); font-family: 'Oswald', var(--font-body); letter-spacing: 2px; color: #F0D275; font-size: 17px; box-shadow: 0 0 24px rgba(201,168,76,.25); }
+.kiosk__lider-pesca { margin: -4px auto 18px; display: inline-flex; gap: 12px; align-items: center; padding: 10px 22px; border-radius: 999px; border: 1.5px solid #C9A84C; background: linear-gradient(160deg, rgba(33,72,140,.9), rgba(23,50,98,.9)); font-family: 'Oswald', var(--font-body); letter-spacing: 2px; color: #F0D275; font-size: 17px; box-shadow: 0 0 24px rgba(201,168,76,.25); }
 .kiosk__lider-pesca b { font-family: 'Playfair Display', Georgia, serif; color: #fff3c4; letter-spacing: .5px; font-size: 20px; }
 
 /* ranking sheet */
@@ -845,3 +845,31 @@
 .kiosk__perk-pesca { height: 74px; width: auto; filter: drop-shadow(0 4px 8px rgba(0,0,0,.5)); }
 .kiosk__nuevo--chico { top: 10px; right: -30px; font-size: 10px; padding: 3px 32px; }
 .kiosk__lider-pesca { display: flex; width: fit-content; margin: -4px auto 18px; }
+
+
+/* ── Paleta noche (oct 2026, la de La Gran Pesca) ─────────────────────────
+   Fondo frío (azul noche) y lo importante cálido: el dorado queda para premios,
+   puntos, títulos y los botones de acción; lo secundario va en azul con borde. */
+.kiosk {
+  --onyx: #050b18; --dark: #081428; --dark2: #0b1a33; --dark3: #13284a;
+  --crimson-deep: #0d2244; --border: rgba(201,168,76,.2);
+}
+.kiosk__vignette { background: radial-gradient(100% 80% at 50% 50%, transparent 45%, rgba(2,6,16,.55) 100%); }
+.kiosk__cta, .kiosk__idle-btn, .kiosk__carta-close--destacado {
+  color: #0b1a33; background: linear-gradient(180deg, #fff1b8, #f0d275 50%, #c9a84c);
+  border-color: #fff3c4; text-shadow: 0 1px 0 rgba(255,255,255,.4);
+  box-shadow: 0 10px 30px rgba(240,210,117,.28), inset 0 -3px 0 rgba(120,80,20,.35);
+}
+.kiosk__cta::before, .kiosk__idle-btn::before { border-color: rgba(120,80,20,.35); }
+.kiosk__cta:disabled { filter: saturate(.35); }
+/* secondary: leave, go back, the "pack" outline */
+.kiosk__cta.kiosk__cta--done, .kiosk__cta.kiosk__cta--volver {
+  color: #F0D275; background: rgba(10,24,52,.72); border: 1.5px solid rgba(201,168,76,.6);
+  box-shadow: none; text-shadow: none;
+}
+.kiosk__cta.kiosk__cta--done::before, .kiosk__cta.kiosk__cta--volver::before { border-color: rgba(240,210,117,.18); }
+.kiosk__cta.kiosk__cta--pack, .kiosk__cta.kiosk__cta--pack-fuerte { text-shadow: none; }
+.kiosk__cta.kiosk__cta--pack::before, .kiosk__cta.kiosk__cta--pack-fuerte::before { border-color: rgba(240,210,117,.25); }
+.kiosk__mini-btn, .kiosk__tab--on { background: rgba(10,24,52,.85); color: #F0D275; border-color: #C9A84C; box-shadow: 0 6px 18px rgba(0,0,0,.35); }
+.kiosk__mov-btn { color: #0b1a33; background: linear-gradient(180deg, #fff1b8, #f0d275 50%, #c9a84c); border-color: #fff3c4; font-weight: 600; }
+.kiosk__sesion--urgente { color: #0b1a33; background: linear-gradient(180deg, #fff1b8, #f0d275 50%, #c9a84c); }
