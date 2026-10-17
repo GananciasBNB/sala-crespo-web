@@ -417,7 +417,7 @@ export default function Kiosk() {
             .catch(err => responder({ ok: false, error: err.body?.error === 'sin_intentos' ? 'sin_intentos' : 'error', proximoIntento: err.body?.proximoIntento || null }))
         } else if (e.data.tipo === 'pesca-terminar') {
           const { token, puntaje, atrapados, mejorRacha, dorados } = e.data
-          pescaTerminar(player.token, { token, puntaje, atrapados, mejorRacha, dorados })
+          pescaTerminar(player.token, { token, puntaje, atrapados, mejorRacha, dorados, especialAtrapado: e.data.especialAtrapado === true })
             .then(r => { responder({ ok: true, ...r }); refrescarPesca() })
             .catch(err => { console.error('pesca terminar:', err); responder({ ok: false }) })
         } else if (e.data.tipo === 'pesca-ranking') { setShowPesca(false); abrirRanking() }
@@ -857,7 +857,7 @@ export default function Kiosk() {
           {(vinculada || DEMO) && (
             <div className="kiosk__lider-pesca">{liderPesca
               ? <>LÍDER DE LA GRAN PESCA HOY <b>{liderPesca.nombre} · {liderPesca.puntaje.toLocaleString('es-AR')}</b></>
-              : <>LA GRAN PESCA <b>¡Sé el primer líder de la noche!</b></>}</div>
+              : <>LA GRAN PESCA <b>¡Sé el primer líder del día!</b></>}</div>
           )}
           <button className="kiosk__idle-btn">TOCÁ Y EMPEZÁ A GANAR</button>
           <p className="kiosk__idle-note">{vinculada ? 'Es gratis · Solo necesitás tu DNI' : 'Máquina no vinculada · el check-in y los giros solo funcionan en la Máquina del Club'}</p>
@@ -1063,10 +1063,10 @@ export default function Kiosk() {
                   <button type="button" className="kiosk__pesca-lider" onClick={abrirRanking}>
                     {pescaInfo?.lider
                       ? <>LÍDER DE HOY<b>{pescaInfo.lider.nombre} · {pescaInfo.lider.puntaje.toLocaleString('es-AR')}</b></>
-                      : <>JUEGO DEL DÍA<b>¡Sé el primero de la noche!</b></>}
+                      : <>JUEGO DEL DÍA<b>¡Sé el primero del día!</b></>}
                     <span>{pescaInfo ? (pescaInfo.intentosQuedan > 99 ? 'Modo prueba · intentos sin límite'
                       : pescaInfo.intentosQuedan > 0 ? `Vos: ${pescaInfo.puesto ? pescaInfo.puesto + '.º' : 'todavía no jugaste'} · ${pescaInfo.intentosQuedan === 1 ? 'te queda 1 intento' : `te quedan ${pescaInfo.intentosQuedan} intentos`}`
-                      : `Vos: ${pescaInfo.puesto ? pescaInfo.puesto + '.º' : '—'} · ya usaste tus 2 intentos`) : 'Los 3 mejores de la noche ganan puntos'}</span>
+                      : `Vos: ${pescaInfo.puesto ? pescaInfo.puesto + '.º' : '—'} · ya usaste tus 2 intentos`) : 'Los 3 mejores del día ganan puntos'}</span>
                     <span className="kiosk__pesca-ver">VER RANKING ›</span>
                   </button>
                   {pescaInfo?.intentosQuedan === 0 && pescaInfo.proximoIntento
@@ -1380,9 +1380,9 @@ export default function Kiosk() {
         <div className="kiosk__carta" onClick={() => setRanking(null)}>
           <div className="kiosk__carta-panel kiosk__rank" onClick={e => e.stopPropagation()}>
             <div className="kiosk__rank-kick">LA GRAN PESCA · JUEGO DEL DÍA</div>
-            <div className="kiosk__rank-tit">Ranking de la noche</div>
+            <div className="kiosk__rank-tit">Ranking del día</div>
             <div className="kiosk__rank-sub">Al cierre de la sala, los 3 primeros ganan puntos Jackpoints</div>
-            {ranking.filas?.length ? (
+            {ranking.filas?.length || ranking.yoPrueba ? (
               <div className="kiosk__rank-tabla">
                 <div className="kiosk__rank-fila kiosk__rank-fila--head"><span /><span>SOCIO</span><span>HORA</span><span>PUNTAJE</span></div>
                 {ranking.filas.map(f => (
@@ -1401,8 +1401,17 @@ export default function Kiosk() {
                     <span className="kiosk__rank-pts">{ranking.yo.puntaje.toLocaleString('es-AR')}</span>
                   </div>
                 )}
+                {/* testers and employees: their own test game apart, never mixed with the members */}
+                {ranking.yoPrueba && (
+                  <div className="kiosk__rank-fila kiosk__rank-fila--yo">
+                    <span className="kiosk__rank-pos">—</span>
+                    <span className="kiosk__rank-nom">Tu partida de prueba<em> · no cuenta para el ranking</em></span>
+                    <span className="kiosk__rank-hora">{ranking.yoPrueba.hora}</span>
+                    <span className="kiosk__rank-pts">{ranking.yoPrueba.puntaje.toLocaleString('es-AR')}</span>
+                  </div>
+                )}
               </div>
-            ) : <div className="kiosk__rank-vacio">Todavía nadie pescó esta noche. ¡Sé el primero!</div>}
+            ) : <div className="kiosk__rank-vacio">Todavía nadie pescó hoy. ¡Sé el primero!</div>}
             <div className="kiosk__rank-pie">
               <span>Se muestra el nombre y la inicial del apellido · {ranking.total || 0} {ranking.total === 1 ? 'pescador' : 'pescadores'} hoy</span>
               <button className="kiosk__cta kiosk__cta--hub" onClick={() => setRanking(null)}>VOLVER</button>

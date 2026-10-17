@@ -33,6 +33,26 @@
   "w": 520,
   "h": 260
  },
+ "pez-jackpoints": {
+  "w": 520,
+  "h": 264
+ },
+ "especial-jackpoints": {
+  "w": 520,
+  "h": 369
+ },
+ "pez-ticket": {
+  "w": 520,
+  "h": 251
+ },
+ "pez-puntos-100": {
+  "w": 520,
+  "h": 261
+ },
+ "pez-puntos-50": {
+  "w": 520,
+  "h": 258
+ },
  "basura-botella": {
   "w": 340,
   "h": 149

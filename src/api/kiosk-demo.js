@@ -233,17 +233,24 @@ export async function pescaEstado(token) {
   const db = load(), p = getPlayer(db, token), v = pescaVista(p, 3)
   return { intentosQuedan: 999, proximoIntento: null, intentosPorVentana: 999, horas: 3, mejorHoy: p.pescaMejor || 0, puesto: v.yo?.posicion || null, total: v.total, lider: v.lider, top: v.filas, premios: [500, 300, 200], semilla: 20261016 }
 }
+// demo: special fish show up often so the demo can show them (in the sala the server draws them)
+const demoEspeciales = {}
 export async function pescaEmpezar(token) {
   await wait(150); getPlayer(load(), token)
-  return { ok: true, token: 'demo-' + Date.now(), semilla: Number(new Date().toISOString().slice(0, 10).replace(/-/g, '')), segundos: 30, intentosQuedan: 999 }
+  const t = 'demo-' + Date.now(), r = Math.random()
+  const especial = r < .15 ? { tipo: 'ticket', t: 8 + Math.random() * 12 } : r < .32 ? { tipo: 'pts100', t: 8 + Math.random() * 12 } : r < .5 ? { tipo: 'pts50', t: 8 + Math.random() * 12 } : null
+  if (especial) demoEspeciales[t] = especial.tipo
+  return { ok: true, token: t, semilla: Number(new Date().toISOString().slice(0, 10).replace(/-/g, '')), segundos: 30, intentosQuedan: 999, especial }
 }
-export async function pescaTerminar(token, { puntaje }) {
+export async function pescaTerminar(token, { puntaje, token: partida, especialAtrapado }) {
   await wait(200)
   const db = load(), p = getPlayer(db, token)
   if ((Number(puntaje) || 0) > (p.pescaMejor || 0)) { p.pescaMejor = Number(puntaje) || 0; p.pescaHora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) }
   save(db)
   const v = pescaVista(p, 3)
-  return { ok: true, puntaje, mejorHoy: p.pescaMejor || 0, puesto: v.yo?.posicion || null, total: v.total, top: v.filas, yo: v.yo, intentosQuedan: 999, proximoIntento: null, prueba: true }
+  const tipo = especialAtrapado ? demoEspeciales[partida] : null
+  const premioEspecial = tipo ? { tipo, prueba: true, ...(tipo === 'ticket' ? { codigo: 'FD-DEMO' } : { puntos: tipo === 'pts100' ? 100 : 50 }) } : null
+  return { ok: true, puntaje, mejorHoy: p.pescaMejor || 0, puesto: v.yo?.posicion || null, total: v.total, top: v.filas, yo: v.yo, intentosQuedan: 999, proximoIntento: null, premioEspecial }
 }
 export async function pescaRanking(token) {
   await wait(150)

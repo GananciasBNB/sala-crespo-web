@@ -39,6 +39,9 @@ function semillaDeHoy() {
 let SEMILLA = Number(params.get('semilla')) || semillaDeHoy()
 // inside the kiosk: attempts, the night's seed and the ranking come from the server through the parent page
 const KIOSCO = params.get('kiosco') === '1' && window.parent !== window
+// special fish: in the kiosk the server draws it per game; locally ?especial=ticket|pts100|pts50 (&especialT=seconds)
+const ESPECIALES = ['ticket', 'pts100', 'pts50']
+const ESPECIAL_PRUEBA = !KIOSCO && ESPECIALES.includes(params.get('especial')) ? { tipo: params.get('especial'), t: Number(params.get('especialT')) || 8 } : null
 let pedidoId = 0
 const esperas = {}
 let estadoKiosco = null   // { mejorHoy, intentosQuedan, proximoIntento }
@@ -84,6 +87,7 @@ function tween(obj, props, dur, ease = E.outCubic, delay = 0) {
 }
 function correrTweens(ms) {
   for (const tw of tweens) {
+    if (tw.done) continue   // cancelled by a newer tween on the same thing
     if (tw.obj.destroyed) { tw.done = true; continue }   // destroyed meanwhile: just finish it
     tw.t += ms
     if (tw.t < 0) continue
@@ -108,7 +112,7 @@ const Sonido = {
       this.master = this.ctx.createGain(); this.master.gain.value = 0.9; this.master.connect(this.ctx.destination)
       const nombres = ['salto', 'cae-agua', 'atrapa', 'atrapa-plata', 'atrapa-dorado', 'atrapa-legendario', 'basura', 'racha',
         'cuenta', 'ya', 'ultimos10', 'tiempo', 'conteo', 'record', 'tap', 'ambiente', 'musica-juego', 'musica-menu',
-        'voz-3', 'voz-2', 'voz-1', 'voz-ya', 'voz-dorado', 'voz-legendario', 'voz-racha', 'voz-ultimos10', 'voz-tiempo', 'voz-record', 'voz-top2', 'voz-top3', 'voz-instrucciones']
+        'voz-3', 'voz-2', 'voz-1', 'voz-ya', 'voz-dorado', 'voz-legendario', 'voz-racha', 'voz-ultimos10', 'voz-tiempo', 'voz-record', 'voz-top2', 'voz-top3', 'voz-pez-aparece', 'voz-pez-ticket', 'voz-pez-100', 'voz-pez-50', 'voz-instrucciones']
       await Promise.all(nombres.map(async n => {
         try {
           const r = await fetch(SFX + n + '.mp3'); if (!r.ok) return
@@ -202,6 +206,7 @@ async function main() {
     'ui-reloj', 'ui-puntaje', 'ui-insignia', 'ui-boton', 'ui-tarjeta']
   const T = {}
   if (M['pescador-izq']) nombres.push('pescador-izq')
+  for (const n of ['pez-jackpoints', 'especial-jackpoints', 'pez-ticket', 'pez-puntos-100', 'pez-puntos-50']) if (M[n]) nombres.push(n)
   await Promise.all(nombres.map(async n => { T[n] = await PIXI.Assets.load(IMG + n + '.webp') }))
   Sonido.iniciar()   // loads in the background; the game never waits for audio
   document.getElementById('cargando').remove()
@@ -245,7 +250,7 @@ async function main() {
   const P = M.pescador
   const poses = {}
   for (const k of ['quieto', 'red', 'festeja', 'uhno', ...(T['pescador-izq'] ? ['izq'] : [])]) {
-    const s = new PIXI.Sprite(T['pescador-' + k]); s.anchor.set(P.asiento[0] / P.w, P.asiento[1] / P.h); s.alpha = k === 'quieto' ? 1 : 0; pescC.addChild(s); poses[k] = s
+    const s = new PIXI.Sprite(T['pescador-' + k]); s.anchor.set(P.asiento[0] / P.w, P.asiento[1] / P.h); s.alpha = k === 'quieto' ? 1 : 0; s.esPose = true; pescC.addChild(s); poses[k] = s
   }
   pescC.scale.set(ESC_PESC); pescC.position.set(-28, -12)
   const casco = new PIXI.Sprite(T['bote']); casco.anchor.set(.5, .52); casco.scale.set(ESC_BOTE); bote.addChild(casco)
@@ -261,8 +266,11 @@ async function main() {
   let poseActual = 'quieto', poseHasta = 0, miraIzq = false
   function pose(nombre, ms = 0) {
     if (nombre !== poseActual) {
-      const vieja = poses[poseActual], nueva = poses[nombre]
-      tween(nueva, { alpha: 1 }, 70, E.outQuad); tween(vieja, { alpha: 0 }, 110, E.outQuad, 30)
+      const nueva = poses[nombre]
+      // two quick changes used to leave the old fade running: both poses ended invisible
+      for (const tw of tweens) if (tw.obj.esPose) tw.done = true
+      for (const p of Object.values(poses)) if (p !== nueva && p.alpha > 0) tween(p, { alpha: 0 }, 110, E.outQuad, 30)
+      tween(nueva, { alpha: 1 }, 70, E.outQuad)
       poseActual = nombre
       // squash and settle: reads as one continuous motion instead of an image swap
       pescC.scale.set(ESC_PESC * 1.035, ESC_PESC * 0.965)
@@ -357,21 +365,42 @@ async function main() {
     botella:    { tex: 'basura-botella', pts: -30, largo: 118, basura: true },
     bota:       { tex: 'basura-bota', pts: -30, largo: 100, basura: true },
     rama:       { tex: 'basura-rama', pts: -30, largo: 150, basura: true },
+    // special fish: no score (the ranking stays fair), the prize goes to the account.
+    // marca = where the label goes on the art (fraction of the texture from its centre)
+    // the ticket prize is the Jackpoints logo (Pacha): it can't be mistaken for the golden fish
+    ticket: M['pez-jackpoints'] ? { tex: 'pez-jackpoints', pts: 0, largo: 270, especial: true, brillo: 0xffc040, chapa: '$5.000', aviso: false, salto: { g: 1750, apex: 380, viaje: [560, 760] }, red: .5 }
+          : M['especial-jackpoints'] ? { tex: 'especial-jackpoints', objeto: true, pts: 0, largo: 190, especial: true, brillo: 0xffe27a, chapa: '$5.000', aviso: false, salto: { g: 1750, apex: 380, viaje: [560, 760] }, red: .5 }
+          : M['pez-ticket'] ? { tex: 'pez-ticket', pts: 0, largo: 250, especial: true, brillo: 0xffe27a, chapa: '$5.000', aviso: false, salto: { g: 1750, apex: 380, viaje: [560, 760] }, red: .5 }
+                            : { tex: 'pez-dorado', pts: 0, largo: 220, especial: true, brillo: 0xffe27a, chapa: '$5.000', aviso: false, salto: { g: 1750, apex: 380, viaje: [560, 760] }, red: .5 },
+    // the points fish carry their number on the body (Pacha's art): no floating label
+    pts100: M['pez-puntos-100'] ? { tex: 'pez-puntos-100', pts: 0, largo: 250, especial: true, brillo: 0xd07cff, aviso: true, salto: { g: 1320, apex: 280, viaje: [400, 580] }, red: .78 }
+                                : { tex: 'pez-plateado', tint: 0x8ff0ff, pts: 0, largo: 200, especial: true, brillo: 0x5fd8ff, chapa: '+100', aviso: true, salto: { g: 1320, apex: 280, viaje: [400, 580] }, red: .78 },
+    pts50: M['pez-puntos-50'] ? { tex: 'pez-puntos-50', pts: 0, largo: 240, especial: true, brillo: 0x5fb8ff, aviso: true, salto: { g: 1260, apex: 270, viaje: [360, 540] }, red: .82 }
+                              : { tex: 'pez-comun', tint: 0xb8ffb0, pts: 0, largo: 190, especial: true, brillo: 0x7ee08a, chapa: '+50', aviso: true, salto: { g: 1260, apex: 270, viaje: [360, 540] }, red: .82 },
   }
+  const PREMIO_ESPECIAL = { ticket: { voz: 'voz-pez-ticket', txt: '¡GANASTE UN TICKET DE $5.000!', color: ['#fffbe0', '#ffc928'] },
+    pts100: { voz: 'voz-pez-100', txt: '¡+100 PUNTOS JACKPOINTS!', color: ['#ffffff', '#e0a8ff'] },
+    pts50: { voz: 'voz-pez-50', txt: '¡+50 PUNTOS JACKPOINTS!', color: ['#ffffff', '#8fd0ff'] } }
   let items = []
   function crearItem(ev, atrapable = true) {
     const tipo = TIPOS[ev.tipo], tex = T[tipo.tex]
     const c = new PIXI.Container(); c.tipo = ev.tipo; c.def = tipo; c.atrapable = atrapable
-    if (tipo.basura) {
-      const s = new PIXI.Sprite(tex); s.anchor.set(.5); c.addChild(s); c.giro = (Math.random() - .5) * 5
+    if (tipo.basura || tipo.objeto) {
+      const s = new PIXI.Sprite(tex); s.anchor.set(.5); c.addChild(s); c.giro = tipo.objeto ? 0 : (Math.random() - .5) * 5
+      if (tipo.objeto) { c.fase = Math.random() * 6; const b = new PIXI.Sprite(TX.glow); b.anchor.set(.5); b.tint = tipo.brillo; b.blendMode = PIXI.BLEND_MODES.ADD; b.alpha = .85; b.scale.set(tex.width / 256 * 1.4); c.addChildAt(b, 0); c.halo = b }
     } else {
       // tail is on the left of the image: the rope bends more toward it
       const N = 12, puntos = []
       for (let i = 0; i < N; i++) puntos.push(new PIXI.Point(i / (N - 1) * tex.width - tex.width / 2, 0))
       const cuerda = new PIXI.SimpleRope(tex, puntos, 0); c.addChild(cuerda); c.puntos = puntos; c.fase = Math.random() * 6
-      if (tipo.brillo) { const b = new PIXI.Sprite(TX.glow); b.anchor.set(.5); b.tint = tipo.brillo; b.blendMode = PIXI.BLEND_MODES.ADD; b.alpha = .55; b.scale.set(tex.width / 256 * 1.1); c.addChildAt(b, 0) }
+      if (tipo.brillo) { const b = new PIXI.Sprite(TX.glow); b.anchor.set(.5); b.tint = tipo.brillo; b.blendMode = PIXI.BLEND_MODES.ADD; b.alpha = tipo.especial ? .85 : .55; b.scale.set(tex.width / 256 * (tipo.especial ? 1.5 : 1.1)); c.addChildAt(b, 0); c.halo = b }
+      if (tipo.tint) cuerda.tint = tipo.tint
     }
     c.esc = tipo.largo / tex.width
+    if (tipo.chapa) {   // the prize floats above the fish, always upright (on the art it would be too small to read)
+      const m = texto(tipo.chapa, 38 / c.esc, { fill: ['#fffbe0', '#ffc928'], borde: Math.round(7 / c.esc) })
+      m.position.set(0, -tex.height * .75); c.addChild(m); c.marca = m; c.marcaDerecha = true
+    }
     const g = ev.g
     if (Math.abs(ev.x0 - bote.x) < BORDE_BOTE.ancho + 40) {
       const vuelo = 2 * Math.sqrt(2 * ev.g * (ev.y0 - ev.apex)) / ev.g
@@ -400,7 +429,20 @@ async function main() {
         const dir = c.vx >= 0 ? 1 : -1
         c.scale.set(c.esc * dir, c.esc)
         const ang = dir > 0 ? Math.atan2(c.vy, c.vx) : Math.atan2(-c.vy, -c.vx)
-        c.rotation = Math.max(-1.25, Math.min(1.25, ang))
+        const giroMax = c.def.especial ? .5 : 1.25   // the special fish keeps its pose: it reads better
+        c.rotation = Math.max(-giroMax, Math.min(giroMax, ang))
+        if (c.marca) { c.marca.scale.x = Math.abs(c.marca.scale.x) * dir; if (c.marcaDerecha) c.marca.rotation = -c.rotation }
+        if (c.def.especial && !c.estado) {
+          if (c.halo) c.halo.alpha = .7 + Math.sin(t * .012) * .2
+          if (Math.random() < .6 * calidad) particula(TX.chispa, fxFrente, c.x + (Math.random() - .5) * 60, c.y + (Math.random() - .5) * 30, { vx: (Math.random() - .5) * 60, vy: 20 + Math.random() * 40, g: 60, vida: 520, esc: .22, escFin: 0 })
+        }
+      } else if (c.def.objeto) {   // the logo sways a little instead of spinning
+        c.rotation = Math.sin(t * .006 + c.fase) * .18
+        if (c.marca) c.marca.rotation = -c.rotation
+        if (!c.estado) {
+          if (c.halo) c.halo.alpha = .7 + Math.sin(t * .012) * .2
+          if (Math.random() < .6 * calidad) particula(TX.chispa, fxFrente, c.x + (Math.random() - .5) * 70, c.y + (Math.random() - .5) * 40, { vx: (Math.random() - .5) * 60, vy: 20 + Math.random() * 40, g: 60, vida: 520, esc: .22, escFin: 0 })
+        }
       } else c.rotation += c.giro * s
       // falling onto the boat: bounce off the gunwale with a wooden knock, out to the water
       if (c.vy > 0 && !c.estado && Math.abs(c.x - bote.x) < BORDE_BOTE.ancho && c.y > bote.y + BORDE_BOTE.y && c.y < bote.y + 40) {
@@ -478,7 +520,14 @@ async function main() {
     c.estado = 'atrapado'
     const def = c.def
     const hx = bote.x + ARO.x * (bote.scale.x), hy = bote.y + ARO.y
-    if (def.basura) {
+    if (def.especial) {
+      const pr = PREMIO_ESPECIAL[c.tipo]
+      S.especialAtrapado = true
+      pose('festeja', 1400); sacudida = 7
+      brillos(hx, hy, def.brillo, 44, 440); brillos(hx, hy - 40, 0xfff3c0, 20, 300)
+      Sonido.tocar('atrapa-legendario', 1); Sonido.voz(pr.voz)
+      bannerAbajo(pr.txt, pr.color)
+    } else if (def.basura) {
       S.combo = 0; actualizarRacha()
       S.puntaje = Math.max(0, S.puntaje + def.pts)
       popPuntos(hx, hy - 40, String(def.pts), ['#ffffff', '#ff6b6b'])
@@ -509,6 +558,27 @@ async function main() {
     tween(c, { alpha: 0 }, 220, E.lin, 90).then(() => { items = items.filter(i => i !== c); if (!c.destroyed) c.destroy({ children: true }) })
     for (let i = 0; i < 8 * calidad; i++) particula(TX.gota, fxFrente, hx, hy + 20, { vx: (Math.random() - .5) * 280, vy: -80 - Math.random() * 220, g: 1300, vida: 480, esc: .13, escFin: .05, estirar: true })
   }
+  // the special fish's jump: higher than the rest and always landing within the net's reach
+  function planEspecial(e) {
+    const { g, apex, viaje } = TIPOS[e.tipo].salto, y0 = 880, vuelo = 2 * Math.sqrt(2 * g * (y0 - apex)) / g
+    const lo = MIN_X + ARO.x + 40, hi = MAX_X + ARO.x - 40, medio = (lo + hi) / 2
+    const red = bote.x + ARO.x
+    // lands in the half of the range far from the net: the player has to cross
+    const xFin = red < medio ? medio + Math.random() * (hi - medio) : lo + Math.random() * (medio - lo)
+    const lado = Math.random() < .5 ? 1 : -1
+    let x0 = xFin + lado * (viaje[0] + Math.random() * (viaje[1] - viaje[0]))
+    if (x0 < 160 || x0 > W - 160) x0 = xFin - lado * (viaje[0] + Math.random() * (viaje[1] - viaje[0]))
+    x0 = Math.max(160, Math.min(W - 160, x0))
+    return { t: e.t, tipo: e.tipo, x0, y0, apex, g, vx: (xFin - x0) / vuelo }
+  }
+  function avisoEspecial(ev) {
+    const color = TIPOS[ev.tipo].brillo
+    for (let i = 0; i < 3; i++) setTimeout(() => anillo(ev.x0, ev.y0 - 4, 120, 900, .8), i * 280)
+    const luz = new PIXI.Sprite(TX.glow); luz.anchor.set(.5); luz.tint = color; luz.blendMode = PIXI.BLEND_MODES.ADD
+    luz.position.set(ev.x0, ev.y0); luz.scale.set(.2, .08); luz.alpha = 0; fxAtras.addChild(luz)
+    tween(luz, { alpha: .9 }, 300).then(() => tween(luz, { alpha: 0 }, 700, E.lin, 300)).then(() => { if (!luz.destroyed) luz.destroy() })
+    Sonido.voz('voz-pez-aparece'); Sonido.tocar('racha', .6, 1.2)
+  }
   function actualizarRacha() {
     const m = multiplicador()
     multTxt.text = 'x' + m
@@ -536,7 +606,7 @@ async function main() {
   const logo = new PIXI.Sprite(T['logo']); logo.anchor.set(.5); logo.scale.set(.66); logo.position.set(W / 2, 232); menu.addChild(logo)
   const cinta = new PIXI.Container(); cinta.position.set(W / 2, 498); menu.addChild(cinta)
   cinta.addChild(placa(960, 132))
-  const cintaTxt = texto('LOS MEJORES PESCADORES DE LA NOCHE\nGANAN PUNTOS JACKPOINTS', 40, { borde: 6 }); cintaTxt.style.lineHeight = 50; cinta.addChild(cintaTxt)
+  const cintaTxt = texto('LOS MEJORES PESCADORES DEL DÍA\nGANAN PUNTOS JACKPOINTS', 40, { borde: 6 }); cintaTxt.style.lineHeight = 50; cinta.addChild(cintaTxt)
   const boton = new PIXI.Container(); boton.position.set(W / 2, 712); menu.addChild(boton)
   const botonImg = new PIXI.Sprite(T['ui-boton']); botonImg.anchor.set(.5); botonImg.scale.set(.37); boton.addChild(botonImg)
   const botonTxt = texto('TOCÁ PARA JUGAR', 56, { borde: 8 }); botonTxt.position.set(W / 2, 866); menu.addChild(botonTxt)
@@ -546,8 +616,8 @@ async function main() {
 
   // instructions: wooden board with the 3 steps, fish values and the prizes
   const instr = new PIXI.Container(); instr.visible = false; pantallas.addChild(instr)
-  const tarjetaI = new PIXI.Sprite(T['ui-tarjeta']); tarjetaI.anchor.set(.5); tarjetaI.scale.set(.92, .98); tarjetaI.position.set(W / 2, 400); instr.addChild(tarjetaI)
-  const instrTit = texto('CÓMO SE JUEGA', 46, { borde: 6 }); instrTit.position.set(W / 2, 270); instr.addChild(instrTit)
+  const tarjetaI = new PIXI.Sprite(T['ui-tarjeta']); tarjetaI.anchor.set(.5); tarjetaI.scale.set(.92, .98); tarjetaI.position.set(W / 2, 372); instr.addChild(tarjetaI)
+  const instrTit = texto('CÓMO SE JUEGA', 46, { borde: 6 }); instrTit.position.set(W / 2, 242); instr.addChild(instrTit)
   const PASOS = [
     ['bote', 'Arrastrá el bote con el dedo', 150],
     ['pez-dorado', 'Atrapá los peces con la red\ncuando vuelven a caer', 118],
@@ -555,7 +625,7 @@ async function main() {
   ]
   PASOS.forEach(([img, txt, ancho], i) => {
     if (img === 'basura-bota') {   // the three things that take points away: bottle, boot, branch
-      const y = 340 + i * 74
+      const y = 312 + i * 74
       const num = texto(String(i + 1), 32, { borde: 5 }); num.position.set(W / 2 - 262, y); instr.addChild(num)
       ;[['basura-botella', 56, -36, -10], ['basura-bota', 40, -2, 12], ['basura-rama', 60, 34, -12]].forEach(([n, w, dx, dy]) => {
         const ic = new PIXI.Sprite(T[n]); ic.anchor.set(.5); ic.scale.set(w / T[n].width); ic.position.set(W / 2 - 192 + dx, y + dy); instr.addChild(ic)
@@ -563,21 +633,36 @@ async function main() {
       const t = texto(txt, 27, { fill: CREMA, borde: 5 }); t.anchor.set(0, .5); t.style.align = 'left'; t.style.lineHeight = 32; t.position.set(W / 2 - 128, y); instr.addChild(t)
       return
     }
-    const y = 340 + i * 74
+    const y = 312 + i * 74
     const num = texto(String(i + 1), 32, { borde: 5 }); num.position.set(W / 2 - 262, y); instr.addChild(num)
     const ic = new PIXI.Sprite(T[img]); ic.anchor.set(.5); ic.scale.set(Math.min(ancho * .66, 96) / T[img].width); ic.position.set(W / 2 - 192, y); instr.addChild(ic)
     const t = texto(txt, 27, { fill: CREMA, borde: 5 }); t.anchor.set(0, .5); t.style.align = 'left'; t.style.lineHeight = 32; t.position.set(W / 2 - 128, y); instr.addChild(t)
   })
-  const valores = new PIXI.Container(); valores.position.set(W / 2, 548); instr.addChild(valores)
+  const valores = new PIXI.Container(); valores.position.set(W / 2, 520); instr.addChild(valores)
   ;[['pez-comun', '10'], ['pez-plateado', '25'], ['pez-dorado', '100'], ['pez-legendario', '250']].forEach(([n, p], i) => {
     const x = (i - 1.5) * 142
     const f = new PIXI.Sprite(T[n]); f.anchor.set(.5); f.scale.set(66 / T[n].width); f.position.set(x - 22, 0); valores.addChild(f)
     const t = texto(p, 26, { borde: 4 }); t.anchor.set(0, .5); t.position.set(x + 20, 2); valores.addChild(t)
   })
-  const premiosC = new PIXI.Container(); premiosC.position.set(W / 2, 790); instr.addChild(premiosC)
+  const premiosC = new PIXI.Container(); premiosC.position.set(W / 2, 822); instr.addChild(premiosC)
   premiosC.addChild(placa(1000, 112))
-  const premiosTxt = texto(`CADA NOCHE, LOS 3 MEJORES GANAN PUNTOS JACKPOINTS\n1.º ${PREMIOS[0]}   ·   2.º ${PREMIOS[1]}   ·   3.º ${PREMIOS[2]}`, 34, { borde: 5 }); premiosTxt.style.lineHeight = 44; premiosC.addChild(premiosTxt)
-  const botonI = new PIXI.Container(); botonI.position.set(W / 2, 922); instr.addChild(botonI)
+  const premiosTxt = texto(`CADA DÍA, LOS 3 MEJORES GANAN PUNTOS JACKPOINTS\n1.º ${PREMIOS[0]}   ·   2.º ${PREMIOS[1]}   ·   3.º ${PREMIOS[2]}`, 34, { borde: 5 }); premiosTxt.style.lineHeight = 44; premiosC.addChild(premiosTxt)
+  const botonI = new PIXI.Container(); botonI.position.set(W / 2, 950); instr.addChild(botonI)
+  // the special fish, highlighted: gold frame, glow and the prize of each one
+  const especialesC = new PIXI.Container(); especialesC.position.set(W / 2, 700); instr.addChild(especialesC)
+  const especialesLuz = new PIXI.Sprite(TX.glow); especialesLuz.anchor.set(.5); especialesLuz.tint = 0xffd75a; especialesLuz.blendMode = PIXI.BLEND_MODES.ADD; especialesLuz.scale.set(4.8, .95); especialesLuz.alpha = .5; especialesC.addChild(especialesLuz)
+  // gold-themed (the rest of the screen is wood and burgundy): double border, warm fill
+  const especialesMarco = new PIXI.Graphics()
+  especialesMarco.lineStyle(5, 0xffd75a, 1).beginFill(0x2e1d05, .97).drawRoundedRect(-484, -58, 968, 116, 24).endFill()
+  especialesMarco.lineStyle(1.5, 0xfff3c4, .55).drawRoundedRect(-474, -48, 948, 96, 18)
+  especialesC.addChild(especialesMarco)
+  const especialesPeces = []
+  const especialesTit = texto('★ ¡PECES ESPECIALES! SI APARECE UNO, ATRAPALO ★', 28, { fill: ['#ffffff', '#ffd75a'], borde: 5 }); especialesTit.position.set(0, -28); especialesC.addChild(especialesTit)
+  ;[['ticket', 'TICKET $5.000'], ['pts100', '+100 PUNTOS'], ['pts50', '+50 PUNTOS']].forEach(([tipo, txt], i) => {
+    const x = (i - 1) * 310, def = TIPOS[tipo]
+    const f = new PIXI.Sprite(T[def.tex]); f.anchor.set(.5); f.scale.set(112 / T[def.tex].width); if (def.tint) f.tint = def.tint; f.position.set(x - 86, 20); f.baseY = 20; f.fase = i * 1.7; especialesC.addChild(f); especialesPeces.push(f)
+    const t = texto(txt, 26, { fill: tipo === 'ticket' ? ['#fffbe0', '#ffc928'] : tipo === 'pts100' ? ['#ffffff', '#e0a8ff'] : ['#ffffff', '#8fd0ff'], borde: 4 }); t.anchor.set(0, .5); t.position.set(x - 22, 22); especialesC.addChild(t)
+  })
   const botonIImg = new PIXI.Sprite(T['ui-puntaje']); botonIImg.anchor.set(.5); botonIImg.scale.set(.5); botonI.addChild(botonIImg)
   const botonITxt = texto('¡A PESCAR!', 50, { borde: 7 }); botonITxt.position.set(-3, 14); botonI.addChild(botonITxt)
 
@@ -649,6 +734,7 @@ async function main() {
 
   let tokenPartida = null
   async function empezar() {
+    let especial = ESPECIAL_PRUEBA
     S.estado = 'cuenta'
     if (vozInstr) { Sonido.apagar(vozInstr, .25); vozInstr = null }
     if (KIOSCO) {
@@ -661,7 +747,7 @@ async function main() {
         if (!r.proximoIntento) banner(msg, 70, ['#ffffff', '#ff8a5b'], 1600)
         return
       }
-      SEMILLA = r.semilla; tokenPartida = r.token
+      SEMILLA = r.semilla; tokenPartida = r.token; especial = r.especial && ESPECIALES.includes(r.especial.tipo) ? r.especial : null
       if (estadoKiosco) { estadoKiosco.intentosQuedan = r.intentosQuedan; refrescarMenu() }
     }
     Sonido.apagar(Sonido.musica, .8)
@@ -672,7 +758,8 @@ async function main() {
     for (const n of [3, 2, 1]) { Sonido.tocar('cuenta', .8); Sonido.voz('voz-' + n); await banner(String(n), 220, undefined, 260) }
     Sonido.tocar('ya', 1); Sonido.voz('voz-ya')
     banner('¡A PESCAR!', 130, ['#ffffff', '#7ee08a'], 300)
-    Object.assign(S, { estado: 'jugando', puntaje: 0, mostrado: 0, combo: 0, mejorCombo: 0, atrapados: 0, dorados: 0, tiempo: DURACION, plan: planDeLaNoche(SEMILLA, DURACION), idx: 0, t0: performance.now(), ultimos: false, ultimoSeg: -1 })
+    Object.assign(S, { estado: 'jugando', puntaje: 0, mostrado: 0, combo: 0, mejorCombo: 0, atrapados: 0, dorados: 0, tiempo: DURACION, plan: planDeLaNoche(SEMILLA, DURACION), idx: 0, t0: performance.now(), ultimos: false, ultimoSeg: -1,
+      especial: especial ? { tipo: especial.tipo, t: Math.max(4, Math.min(DURACION - 6, especial.t)) } : null, especialEv: null, especialSalio: false, especialAviso: false, especialAtrapado: false })
     actualizarRacha()
     Sonido.musicaDe('musica-juego', .5)
   }
@@ -682,7 +769,7 @@ async function main() {
     await banner('¡TIEMPO!', 150, ['#ffffff', '#ff8a5b'], 500)
     await espera(500)
     let rk = null
-    if (KIOSCO) rk = await pedirAlKiosco('pesca-terminar', { token: tokenPartida, puntaje: S.puntaje, atrapados: S.atrapados, mejorRacha: S.mejorCombo, dorados: S.dorados })
+    if (KIOSCO) rk = await pedirAlKiosco('pesca-terminar', { token: tokenPartida, puntaje: S.puntaje, atrapados: S.atrapados, mejorRacha: S.mejorCombo, dorados: S.dorados, especialAtrapado: !!S.especialAtrapado })
     // only the podium is announced: this game put you 1st, 2nd or 3rd of tonight's ranking
     // (improving your own score without reaching the top 3 is not announced)
     const mejorAntes = KIOSCO ? Math.max(0, (estadoKiosco?.mejorHoy || 0)) : mejorDeHoy()
@@ -705,7 +792,7 @@ async function main() {
     const escPts = KIOSCO ? .82 : 1
     resPts.scale.set(escPts * 1.18); tween(resPts, { scale: escPts }, 380, E.outBack)
     if (podioNoche === 1) {
-      resMejor.text = '¡SOS EL MEJOR DE LA NOCHE HASTA AHORA!'; resMejor.style.fill = ['#ffffff', '#7ee08a']
+      resMejor.text = '¡SOS EL MEJOR DEL DÍA HASTA AHORA!'; resMejor.style.fill = ['#ffffff', '#7ee08a']
       Sonido.tocar('record', 1); Sonido.voz('voz-record'); brillos(W / 2, 430, 0xffe08a, 40, 420)
     } else if (podioNoche) {
       resMejor.text = `¡FELICITACIONES! ENTRASTE AL TOP ${podioNoche}`; resMejor.style.fill = ['#ffffff', '#7ee08a']
@@ -715,19 +802,38 @@ async function main() {
     const anchoMax = KIOSCO ? 430 : 560
     if (resMejor.width > anchoMax) resMejor.scale.set(resMejor.scale.x * anchoMax / resMejor.width)
     if (KIOSCO) mostrarPodio(rk)
+    mostrarPremioEspecial(KIOSCO ? rk?.premioEspecial : (S.especialAtrapado && S.especial ? { tipo: S.especial.tipo } : null))
     S.estado = 'resultado'
     Sonido.musicaDe('musica-menu', .35)
   }
   // results in the kiosk: card higher and smaller, the night's position on top, podium + buttons below
   function acomodarResultado(kiosco) {
     tarjeta.position.set(W / 2, kiosco ? 345 : 470)
-    resTit.position.set(W / 2, kiosco ? 236 : 352); resTit.scale.set(kiosco ? .88 : 1)
-    resPts.position.set(W / 2, kiosco ? 310 : 452); resPts.scale.set(kiosco ? .82 : 1)
-    stats.forEach((n, i) => { n.position.set(W / 2 + (i - 1) * (kiosco ? 165 : 190), kiosco ? 382 : 552); n.scale.set(kiosco ? .85 : 1); n.etiqueta.position.set(n.x, n.y + (kiosco ? 32 : 38)) })
-    resMejor.position.set(W / 2, kiosco ? 478 : 640); resMejor.scale.set(kiosco ? .85 : 1)
+    // everything inside the chalkboard: the last line used to sit on its bottom border
+    resTit.position.set(W / 2, kiosco ? 230 : 346); resTit.scale.set(kiosco ? .88 : 1)
+    resPts.position.set(W / 2, kiosco ? 300 : 444); resPts.scale.set(kiosco ? .82 : 1)
+    stats.forEach((n, i) => { n.position.set(W / 2 + (i - 1) * (kiosco ? 165 : 190), kiosco ? 366 : 526); n.scale.set(kiosco ? .85 : 1); n.etiqueta.position.set(n.x, n.y + (kiosco ? 30 : 36)) })
+    resMejor.position.set(W / 2, kiosco ? 444 : 592); resMejor.scale.set(kiosco ? .85 : 1)
     boton2.visible = !kiosco
   }
   const podio = new PIXI.Container(); resultado.addChild(podio)
+  // prize of the special fish on the results (the ticket prints by itself in the kiosk)
+  const cintaPremio = new PIXI.Container(); resultado.addChild(cintaPremio)
+  function mostrarPremioEspecial(premio) {
+    cintaPremio.removeChildren()
+    if (!premio || !PREMIO_ESPECIAL[premio.tipo]) return
+    const ticket = premio.tipo === 'ticket', y = KIOSCO ? 550 : 78   // kiosk: right under the card; elsewhere: on top
+    const fondo = new PIXI.Graphics()
+    fondo.lineStyle(3, 0xf0d275, 1).beginFill(ticket ? 0x3a2a0c : 0x0b2a44, .95).drawRoundedRect(-400, -40, 800, 80, 20).endFill()
+    fondo.position.set(W / 2, y); cintaPremio.addChild(fondo)
+    const t1 = texto(PREMIO_ESPECIAL[premio.tipo].txt, 36, { fill: PREMIO_ESPECIAL[premio.tipo].color, borde: 6 }); t1.position.set(W / 2, y - 12); cintaPremio.addChild(t1)
+    const sub = ticket ? (KIOSCO ? 'SE ESTÁ IMPRIMIENDO TU CUPÓN · RETIRALO EN LA BARRA' : 'RETIRÁ TU CUPÓN EN LA BARRA') : 'YA ESTÁN EN TU CUENTA'
+    const t2 = texto(sub, 22, { fill: ['#f3ead6', '#f3ead6'], borde: 4, sombra: false }); t2.position.set(W / 2, y + 22); cintaPremio.addChild(t2)
+    if (t1.width > 760) t1.scale.set(760 / t1.width)
+    cintaPremio.scale.set(1); cintaPremio.pivot.set(W / 2, y); cintaPremio.position.set(W / 2, y); cintaPremio.scale.set(.4)
+    tween(cintaPremio, { scale: 1 }, 520, E.outBack)
+    brillos(W / 2, y, ticket ? 0xffe27a : 0x7fe8ff, 30, 420)
+  }
   let cuentaResultado = null   // live countdown on the results button when no attempts are left
   let ultimoTic = 0
   function mostrarPodio(rk) {
@@ -735,17 +841,19 @@ async function main() {
     if (!rk || !rk.ok) {
       const t = texto('NO PUDIMOS REGISTRAR LA PARTIDA', 32, { fill: ['#ffffff', '#ff8a5b'], borde: 5 }); t.position.set(W / 2, 640); podio.addChild(t)
     } else {
-      const titulo = texto(rk.puesto ? `QUEDASTE ${rk.puesto}.º DE ${rk.total} ESTA NOCHE` : '¡A SEGUIR PESCANDO!', 44, { borde: 6 }); titulo.position.set(W / 2, 60); podio.addChild(titulo)
+      const titulo = texto(rk.puesto ? `QUEDASTE ${rk.puesto}.º DE ${rk.total} HOY` : rk.yoPrueba ? 'PARTIDA DE PRUEBA' : '¡A SEGUIR PESCANDO!', 44, { borde: 6 }); titulo.position.set(W / 2, 60); podio.addChild(titulo)
       const filas = [...(rk.top || [])]
       if (rk.yo && !filas.some(f => f.esYo)) filas.push(rk.yo)
+      // testers and employees: their test game apart, without a position
+      if (!rk.yo && rk.yoPrueba) filas.push({ posicion: 0, nombre: 'TU PRUEBA · NO CUENTA', hora: rk.yoPrueba.hora, puntaje: rk.yoPrueba.puntaje, esYo: true })
       const COLOR = [0xe0b440, 0xc9d2dc, 0xc98a4c]
       filas.slice(0, 4).forEach((f, i) => {
         const y = 628 + i * 52, fila = new PIXI.Container(); fila.position.set(W / 2, y); podio.addChild(fila)
         const g = new PIXI.Graphics()
         g.lineStyle(1.5, f.esYo ? 0xf0d275 : 0xc9a84c, f.esYo ? 1 : .4).beginFill(f.esYo ? 0x3a2a0c : 0x061226, .9).drawRoundedRect(-380, -22, 760, 44, 12).endFill()
         fila.addChild(g)
-        if (f.posicion <= 3) { const m = new PIXI.Graphics(); m.beginFill(COLOR[f.posicion - 1]).drawCircle(-345, 0, 16).endFill(); fila.addChild(m) }
-        const pos = texto(f.posicion <= 3 ? String(f.posicion) : f.posicion + '.º', 24, { borde: 4, sombra: false, fill: f.posicion <= 3 ? ['#2a1606', '#2a1606'] : undefined, stroke: f.posicion <= 3 ? '#fff3c4' : undefined }); pos.position.set(-345, 1); fila.addChild(pos)
+        if (f.posicion >= 1 && f.posicion <= 3) { const m = new PIXI.Graphics(); m.beginFill(COLOR[f.posicion - 1]).drawCircle(-345, 0, 16).endFill(); fila.addChild(m) }
+        const pos = texto(!f.posicion ? '—' : f.posicion <= 3 ? String(f.posicion) : f.posicion + '.º', 24, { borde: 4, sombra: false, fill: f.posicion >= 1 && f.posicion <= 3 ? ['#2a1606', '#2a1606'] : undefined, stroke: f.posicion >= 1 && f.posicion <= 3 ? '#fff3c4' : undefined }); pos.position.set(-345, 1); fila.addChild(pos)
         const nom = texto(f.nombre + (f.esYo ? '  · VOS' : '') + (f.prueba ? '  (prueba)' : ''), 26, { fill: CREMA, borde: 4, sombra: false }); nom.anchor.set(0, .5); nom.position.set(-310, 0); fila.addChild(nom)
         const hora = texto(f.hora, 22, { fill: ['#c8bfb2', '#c8bfb2'], borde: 3, sombra: false }); hora.position.set(150, 0); fila.addChild(hora)
         const pts = texto(f.puntaje.toLocaleString('es-AR'), 30, { borde: 4, sombra: false }); pts.anchor.set(1, .5); pts.position.set(360, 0); fila.addChild(pts)
@@ -845,6 +953,11 @@ async function main() {
     if (S.estado === 'jugando') {
       const trans = (t - S.t0) / 1000
       while (S.idx < S.plan.length && S.plan[S.idx].t <= trans) crearItem(S.plan[S.idx++], true)
+      if (S.especial && !S.especialSalio) {
+        const def = TIPOS[S.especial.tipo]
+        if (def.aviso && !S.especialAviso && trans >= S.especial.t - 1.1) { S.especialAviso = true; S.especialEv = planEspecial(S.especial); avisoEspecial(S.especialEv) }
+        if (trans >= S.especial.t) { S.especialSalio = true; crearItem(S.especialEv || (S.especialEv = planEspecial(S.especial)), true) }
+      }
       S.tiempo = Math.max(0, DURACION - trans)
       const seg = Math.ceil(S.tiempo)
       if (seg !== S.ultimoSeg) {
@@ -862,7 +975,8 @@ async function main() {
         if (c.estado || !c.atrapable) continue
         const d = Math.hypot(c.x - hx, c.y - hy)
         if (c.vy > 0 && d < 150) cerca = true
-        if (c.vy > 0 && d < RADIO_ATRAPE + c.def.largo * .12) atrapar(c)
+        const radio = c.def.especial ? RADIO_ATRAPE * c.def.red : RADIO_ATRAPE + c.def.largo * .12
+        if (c.vy > 0 && d < radio) atrapar(c)
       }
       if (cerca && aroBrillo.alpha < .25) aroBrillo.alpha = .25
       else if (!cerca && aroBrillo.alpha > 0 && aroBrillo.alpha <= .25) aroBrillo.alpha = Math.max(0, aroBrillo.alpha - ms * .002)
@@ -887,7 +1001,7 @@ async function main() {
 
     // menu button breathing
     if (menu.visible) { const b = 1 + Math.sin(t * .004) * .045; boton.scale.set(b); botonTxt.scale.set(1 + Math.sin(t * .004) * .02); logo.y = 232 + Math.sin(t * .0015) * 6 }
-    if (instr.visible && S.estado === 'instrucciones') botonI.scale.set(1 + Math.sin(t * .005) * .04)
+    if (instr.visible && S.estado === 'instrucciones') { botonI.scale.set(1 + Math.sin(t * .005) * .04); especialesLuz.alpha = .5 + Math.sin(t * .004) * .22; for (const f of especialesPeces) { f.y = f.baseY + Math.sin(t * .004 + f.fase) * 5; f.rotation = Math.sin(t * .003 + f.fase) * .06 } }
     if (resultado.visible && S.estado === 'resultado') boton2.scale.set(1 + Math.sin(t * .004) * .04)
     // countdowns tick once per second (menu button and results button)
     if (KIOSCO && t - ultimoTic > 1000) {
@@ -901,7 +1015,7 @@ async function main() {
     fpsAcum += app.ticker.FPS; fpsN++; fpsT += ms
     if (fpsT > 3000) { const media = fpsAcum / fpsN; if (media < 45 && calidad > .5) { calidad = .5; agua.filters = null; console.warn('calidad reducida, fps', media.toFixed(0)) } fpsAcum = fpsN = fpsT = 0 }
   }
-  window.__pesca = { S, empezar, get items() { return items }, ARO, bote, AGUA_Y, app, TX, crearItem }   // for automated tests
+  window.__pesca = { S, empezar, get items() { return items }, ARO, bote, AGUA_Y, app, TX, crearItem, poses, pose }   // for automated tests
 }
 main().catch(e => { console.error(e); const c = document.getElementById('cargando'); if (c) c.textContent = 'No se pudo cargar el juego' })
 </script>
