@@ -592,6 +592,8 @@ export const adminClubSocios = (token) =>
   api('/api/admin/club/socios', { headers: authHeaders(token) })
 export const adminPesca = (token, fecha) =>
   api(`/api/admin/pesca${fecha ? `?fecha=${encodeURIComponent(fecha)}` : ''}`, { headers: authHeaders(token) })
+export const adminPescaEspeciales = (token, datos) =>
+  api('/api/admin/pesca/especiales', { method: 'PUT', headers: authHeaders(token), body: JSON.stringify(datos) })
 export const adminClubSocio = (token, id) =>
   api(`/api/admin/club/socio/${encodeURIComponent(id)}`, { headers: authHeaders(token) })
 export const adminClubSetNw = (token, nwMensual) =>

@@ -2,7 +2,7 @@
 // opera distinto: desde el celular, mirando cómo viene el día y tocando una
 // cosa puntual. Usa el mismo login de admin.
 import { useState, useEffect } from 'react'
-import { adminPesca, adminLogin, adminForgotPassword, adminResetPassword, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
+import { adminPesca, adminPescaEspeciales, adminLogin, adminForgotPassword, adminResetPassword, adminClubOverview, adminClubSetNw, adminSpinSettings } from '../api/client'
 import {
   FortunaAdmin, ClubCatalog, ClubDeliver, ClubManualOps,
 } from '../components/club/panels'
@@ -324,6 +324,7 @@ function PescaAdmin({ token, toast }) {
           filas={d.ranking.map(r => ({ pos: r.posicion + '.º', nombre: r.nombre, hora: r.hora, pts: pts(r.puntaje), nota: r.prueba ? 'prueba (no cobra)' : r.posicion <= 3 ? `gana ${d.reglas.premios[r.posicion - 1]}` : '' }))}
           vacio="Nadie jugó esa jornada." />
       </Bloque>
+      <PescaEspeciales token={token} toast={toast} config={d.configEspeciales} especiales={d.especiales || []} />
       <Bloque titulo="Ganadores pagados">
         <Tabla
           columnas={[{ key: 'fecha', label: 'Jornada' }, { key: 'ganadores', label: 'Ganadores' }, { key: 'pagado', label: 'Pagado' }]}
@@ -331,6 +332,63 @@ function PescaAdmin({ token, toast }) {
           vacio="Todavía no se pagó ninguna jornada." />
       </Bloque>
     </>
+  )
+}
+
+// special fish: % per game and daily caps (the server draws them); shows the max it can cost
+const CAMPOS_ESPECIALES = [
+  ['ticketPct', 'Pez Jackpoints (ticket $5.000) · % por partida', 0.5],
+  ['ticketMaxDia', 'Tope de tickets por día', 1],
+  ['pts100Pct', 'Pez 100 puntos · % por partida', 0.5],
+  ['pts50Pct', 'Pez 50 puntos · % por partida', 0.5],
+  ['ptsMaxDia', 'Tope de peces de puntos por día (100 + 50)', 1],
+]
+const NOMBRE_ESPECIAL = { ticket: 'Pez Jackpoints · ticket $5.000', pts100: 'Pez 100 puntos', pts50: 'Pez 50 puntos' }
+function PescaEspeciales({ token, toast, config, especiales }) {
+  const [cfg, setCfg] = useState(config || {})
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { if (config) setCfg(config) }, [config])
+  const num = k => Number(cfg[k]) || 0
+  const suma = num('ticketPct') + num('pts100Pct') + num('pts50Pct')
+  const maxDiaPesos = num('ticketMaxDia') * 5000, maxDiaPts = num('ptsMaxDia') * 100
+  const pesos = n => '$' + n.toLocaleString('es-AR')
+  async function guardar() {
+    if (suma > 100) { toast.show('La suma de los % no puede pasar de 100.', 'err'); return }
+    setBusy(true)
+    try { const r = await adminPescaEspeciales(token, cfg); setCfg(r.config); toast.show('Peces especiales guardados') }
+    catch (err) { toast.show(err.message, 'err') }
+    finally { setBusy(false) }
+  }
+  const atrapados = especiales.filter(e => e.atrapado)
+  const estilo = { padding: '9px 12px', borderRadius: 10, border: '1px solid rgba(201,168,76,.3)', background: 'rgba(0,0,0,.35)', color: '#E8DFD0', fontFamily: 'inherit', width: '100%', boxSizing: 'border-box' }
+  return (
+    <Bloque titulo="Peces especiales">
+      <label style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 14, color: '#E8DFD0', cursor: 'pointer' }}>
+        <input type="checkbox" checked={!!cfg.activo} onChange={e => setCfg({ ...cfg, activo: e.target.checked })} style={{ width: 18, height: 18 }} />
+        Activos (si los apagás, ninguna partida trae pez especial)
+      </label>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+        {CAMPOS_ESPECIALES.map(([k, label, paso]) => (
+          <label key={k} style={{ display: 'flex', flexDirection: 'column', gap: 6, color: '#9a8f82', fontSize: 13, minWidth: 0 }}>
+            {label}
+            <input type="number" min="0" step={paso} value={cfg[k] ?? ''} onChange={e => setCfg({ ...cfg, [k]: e.target.value })} style={estilo} />
+          </label>
+        ))}
+      </div>
+      <p style={{ color: suma > 100 ? '#ff8a7a' : '#9a8f82', fontSize: 14, margin: '12px 0' }}>
+        Chance de que una partida traiga algún pez especial: {suma.toLocaleString('es-AR')} %.
+        {' '}Máximo posible por día: <b style={{ color: '#F0D275' }}>{pesos(maxDiaPesos)}</b> en tickets + <b style={{ color: '#F0D275' }}>{maxDiaPts.toLocaleString('es-AR')}</b> puntos
+        {' '}· por mes (30 días): {pesos(maxDiaPesos * 30)} + {(maxDiaPts * 30).toLocaleString('es-AR')} puntos.
+        {' '}El ticket respeta 1 ticket por socio por día (contando Fortuna) y la lista negra.
+      </p>
+      <button className="ca__btn ca__btn--ok" disabled={busy} onClick={guardar}>{busy ? 'Guardando…' : 'Guardar'}</button>
+      <h3 style={{ color: '#F0D275', fontSize: 15, margin: '22px 0 8px' }}>Esta jornada: {especiales.length} salieron · {atrapados.length} atrapados</h3>
+      <Tabla
+        columnas={[{ key: 'hora', label: 'Hora' }, { key: 'nombre', label: 'Socio' }, { key: 'tipo', label: 'Pez' }, { key: 'estado', label: 'Resultado' }]}
+        filas={especiales.map(e => ({ hora: e.hora, nombre: e.nombre, tipo: NOMBRE_ESPECIAL[e.tipo] || e.tipo,
+          estado: e.atrapado ? (e.tipo === 'ticket' ? `atrapado · cupón ${e.premio || ''}` : `atrapado · +${e.premio || ''} pts`) : 'no lo agarró' }))}
+        vacio="Todavía no salió ningún pez especial en esta jornada." />
+    </Bloque>
   )
 }
 
