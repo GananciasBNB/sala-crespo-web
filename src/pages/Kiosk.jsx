@@ -84,6 +84,9 @@ function SesionTimer({ lastActRef, paused, onExpirar, margen = SESION_MS }) {
 
 // Contador del giro AISLADO: su tick de 1s re-renderiza solo este bloque,
 // nunca el Home entero (si viviera arriba, toda la pantalla titila).
+// yesterday's sala date in AR time (the sala day changes at 03:00 / 04:00, close enough for a label)
+const ayerISO = () => new Date(Date.now() - 3 * 3600e3 - 4 * 3600e3 - 86400e3).toISOString().slice(0, 10)
+
 // La Gran Pesca: live countdown to the next attempt ("Otro intento en 2:14:05")
 function CuentaPesca({ hasta, onFin }) {
   const [ahora, setAhora] = useState(Date.now())
@@ -1382,6 +1385,18 @@ export default function Kiosk() {
             <div className="kiosk__rank-kick">LA GRAN PESCA · JUEGO DEL DÍA</div>
             <div className="kiosk__rank-tit">Ranking del día</div>
             <div className="kiosk__rank-sub">Al cierre de la sala, los 3 primeros ganan puntos Jackpoints</div>
+            {/* the last paid day's winners: proof that it really pays */}
+            {ranking.anteriores?.ganadores?.length > 0 && (
+              <div className="kiosk__rank-ayer">
+                <span className="kiosk__rank-ayer-tit">GANADORES {ranking.anteriores.fecha === ayerISO() ? 'DE AYER' : 'DEL ' + ranking.anteriores.fecha.slice(8, 10) + '/' + ranking.anteriores.fecha.slice(5, 7)}</span>
+                {ranking.anteriores.ganadores.map(g => (
+                  <span key={g.posicion} className="kiosk__rank-ayer-g">
+                    <i className={`kiosk__rank-med kiosk__rank-med--${g.posicion}`}>{g.posicion}</i>
+                    <b>{g.nombre}</b> {g.puntaje.toLocaleString('es-AR')} <em>+{g.puntos} pts</em>
+                  </span>
+                ))}
+              </div>
+            )}
             {ranking.filas?.length || ranking.yoPrueba ? (
               <div className="kiosk__rank-tabla">
                 <div className="kiosk__rank-fila kiosk__rank-fila--head"><span /><span>SOCIO</span><span>HORA</span><span>PUNTAJE</span></div>

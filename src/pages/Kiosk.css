@@ -886,3 +886,15 @@
 .kiosk__rank-nom small { display: inline; margin-left: 10px; }
 .kiosk__rank-pie { margin-top: 8px; }
 .kiosk__rank-fila--head { font-size: 13px; padding-top: 0; padding-bottom: 0; }
+
+/* La Gran Pesca ranking: the previous day's winners in one strip */
+.kiosk__rank-ayer { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px 18px; width: 100%; box-sizing: border-box;
+  padding: 7px 12px; margin-bottom: 6px; border-radius: 12px; background: rgba(240,210,117,.08); border: 1px solid rgba(240,210,117,.35); }
+.kiosk__rank-ayer-tit { font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 2px; color: #F0D275; }
+.kiosk__rank-ayer-g { display: inline-flex; align-items: center; gap: 7px; color: #EDE4D3; font-size: 16px; white-space: nowrap; }
+.kiosk__rank-ayer-g .kiosk__rank-med { width: 24px; height: 24px; font-size: 12px; }
+.kiosk__rank-ayer-g em { font-style: normal; font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 1px; color: #C9A84C; }
+.kiosk__rank-ayer { gap: 4px 12px; padding: 6px 10px; }
+.kiosk__rank-ayer-tit { font-size: 12px; letter-spacing: 1.5px; }
+.kiosk__rank-ayer-g { font-size: 15px; gap: 5px; }
+.kiosk__rank-ayer-g em { font-size: 12px; }

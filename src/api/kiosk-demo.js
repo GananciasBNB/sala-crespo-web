@@ -254,6 +254,8 @@ export async function pescaTerminar(token, { puntaje, token: partida, especialAt
 }
 export async function pescaRanking(token) {
   await wait(150)
-  return { ...pescaVista(getPlayer(load(), token), 10), premios: [500, 300, 200] }
+  const ayer = new Date(Date.now() - 7 * 3600e3 - 86400e3).toISOString().slice(0, 10)
+  return { ...pescaVista(getPlayer(load(), token), 10), premios: [500, 300, 200],
+    anteriores: { fecha: ayer, ganadores: [{ posicion: 1, nombre: 'Roberto A.', puntaje: 2810, puntos: 500 }, { posicion: 2, nombre: 'Laura B.', puntaje: 2455, puntos: 300 }, { posicion: 3, nombre: 'Jorge D.', puntaje: 2120, puntos: 200 }] } }
 }
 export async function pescaLider() { await wait(100); return { lider: { nombre: 'María G.', puntaje: 2340 } } }
