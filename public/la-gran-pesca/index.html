@@ -608,8 +608,30 @@ async function main() {
   cinta.addChild(placa(960, 132))
   const cintaTxt = texto('LOS MEJORES PESCADORES DEL DÍA\nGANAN PUNTOS JACKPOINTS', 40, { borde: 6 }); cintaTxt.style.lineHeight = 50; cinta.addChild(cintaTxt)
   const boton = new PIXI.Container(); boton.position.set(W / 2, 712); menu.addChild(boton)
-  const botonImg = new PIXI.Sprite(T['ui-boton']); botonImg.anchor.set(.5); botonImg.scale.set(.37); boton.addChild(botonImg)
-  const botonTxt = texto('TOCÁ PARA JUGAR', 56, { borde: 8 }); botonTxt.position.set(W / 2, 866); menu.addChild(botonTxt)
+  // a big gold pill: the dark round button over dark water was hard to see (Pacha 17/10)
+  function texPildora(w, h, c1, c2, c3, borde) {
+    const cv = document.createElement('canvas'); cv.width = w + 24; cv.height = h + 24
+    const g = cv.getContext('2d'), r = h / 2, x = 12, y = 12
+    const gr = g.createLinearGradient(0, y, 0, y + h); gr.addColorStop(0, c1); gr.addColorStop(.5, c2); gr.addColorStop(1, c3)
+    g.beginPath(); g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath()
+    g.fillStyle = gr; g.fill(); g.lineWidth = 5; g.strokeStyle = borde; g.stroke()
+    g.lineWidth = 2; g.strokeStyle = 'rgba(255,255,255,.45)'; g.beginPath(); g.moveTo(x + r, y + 9); g.lineTo(x + w - r, y + 9); g.stroke()
+    return PIXI.Texture.from(cv)
+  }
+  const botonLuz = new PIXI.Sprite(TX.glow); botonLuz.anchor.set(.5); botonLuz.tint = 0xffd75a; botonLuz.blendMode = PIXI.BLEND_MODES.ADD; botonLuz.scale.set(3.2, 1.1); botonLuz.alpha = .55; boton.addChild(botonLuz)
+  const botonImg = new PIXI.Sprite(texPildora(600, 130, '#fff6cf', '#f0d275', '#c9a84c', '#fff3c4')); botonImg.anchor.set(.5); boton.addChild(botonImg)
+  const botonEtiqueta = texto('¡JUGAR AHORA!', 66, { fill: ['#0b1a33', '#0b1a33'], borde: 0, sombra: false }); botonEtiqueta.position.set(0, 4); boton.addChild(botonEtiqueta)
+  const botonReflejo = new PIXI.Sprite(TX.glow); botonReflejo.anchor.set(.5); botonReflejo.scale.set(.5, .9); botonReflejo.alpha = .8; botonReflejo.blendMode = PIXI.BLEND_MODES.ADD; boton.addChild(botonReflejo)
+  const botonMascara = new PIXI.Sprite(botonImg.texture); botonMascara.anchor.set(.5); boton.addChild(botonMascara); botonReflejo.mask = botonMascara
+  const botonTxt = texto('TOCÁ EL BOTÓN DORADO PARA EMPEZAR', 28, { borde: 5 }); botonTxt.position.set(W / 2, 806); menu.addChild(botonTxt)
+  // no attempts left: grey pill with the countdown
+  function pintarBotonMenu(sinIntentosAhora, cuenta) {
+    botonEtiqueta.text = sinIntentosAhora ? `PRÓXIMO INTENTO EN ${cuenta}` : '¡JUGAR AHORA!'
+    botonEtiqueta.style.fontSize = sinIntentosAhora ? 40 : 66
+    botonImg.tint = botonMascara.tint = sinIntentosAhora ? 0x8a8a8a : 0xffffff
+    botonLuz.visible = botonReflejo.visible = !sinIntentosAhora
+    botonTxt.visible = !sinIntentosAhora
+  }
   const mejorC = new PIXI.Container(); mejorC.position.set(W / 2, 962); mejorC.visible = false; menu.addChild(mejorC)
   mejorC.addChild(placa(520, 64, 0x061226, .85))
   const mejorTxt = texto('', 30, { fill: CREMA, borde: 5, sombra: false }); mejorC.addChild(mejorTxt)
@@ -690,8 +712,7 @@ async function main() {
       const e = estadoKiosco; if (!e) { mejorC.visible = false; return }
       const m = e.mejorHoy || 0
       const intentos = e.intentosQuedan > 99 ? 'PRUEBA · SIN LÍMITE' : e.intentosQuedan > 0 ? `TE ${e.intentosQuedan === 1 ? 'QUEDA 1 INTENTO' : `QUEDAN ${e.intentosQuedan} INTENTOS`}` : 'TUS 2 INTENTOS YA SE USARON'
-      botonTxt.text = sinIntentos() ? `PRÓXIMO INTENTO EN ${cuentaRegresiva(e.proximoIntento)}` : 'TOCÁ PARA JUGAR'
-      boton.alpha = sinIntentos() ? .45 : 1
+      pintarBotonMenu(sinIntentos(), sinIntentos() ? cuentaRegresiva(e.proximoIntento) : '')
       mejorTxt.text = m ? `TU MEJOR PESCA DE HOY · ${m.toLocaleString('es-AR')}   ·   ${intentos}` : intentos
       mejorC.removeChildren(); mejorC.addChild(placa(Math.max(440, mejorTxt.width + 70), 64, 0x061226, .85)); mejorC.addChild(mejorTxt)
       mejorC.visible = true
@@ -985,7 +1006,7 @@ async function main() {
     } else if (S.estado === 'menu' || S.estado === 'resultado') {
       ambiente(ms)
       // the boat drifts by itself; on the results it stays to the side so the card never hides the fisherman
-      if (!controlActivo) objetivoX = S.estado === 'resultado' ? MAX_X - 20 + Math.sin(t * .0005) * 20 : W / 2 + Math.sin(t * .00035) * 300
+      if (!controlActivo) objetivoX = S.estado === 'resultado' ? MAX_X - 20 + Math.sin(t * .0005) * 20 : MAX_X - 40 + Math.sin(t * .0005) * 25
     }
     correrItems(ms, t)
     correrParticulas(ms)
@@ -1000,7 +1021,7 @@ async function main() {
     mundo.x = (Math.random() - .5) * sacudida; mundo.y = (Math.random() - .5) * sacudida
 
     // menu button breathing
-    if (menu.visible) { const b = 1 + Math.sin(t * .004) * .045; boton.scale.set(b); botonTxt.scale.set(1 + Math.sin(t * .004) * .02); logo.y = 232 + Math.sin(t * .0015) * 6 }
+    if (menu.visible) { const b = 1 + Math.sin(t * .004) * .03; boton.scale.set(b); logo.y = 232 + Math.sin(t * .0015) * 6; botonLuz.alpha = .45 + Math.sin(t * .005) * .25; botonReflejo.x = ((t * .5) % 1400) - 700 }
     if (instr.visible && S.estado === 'instrucciones') { botonI.scale.set(1 + Math.sin(t * .005) * .04); especialesLuz.alpha = .5 + Math.sin(t * .004) * .22; for (const f of especialesPeces) { f.y = f.baseY + Math.sin(t * .004 + f.fase) * 5; f.rotation = Math.sin(t * .003 + f.fase) * .06 } }
     if (resultado.visible && S.estado === 'resultado') boton2.scale.set(1 + Math.sin(t * .004) * .04)
     // countdowns tick once per second (menu button and results button)
