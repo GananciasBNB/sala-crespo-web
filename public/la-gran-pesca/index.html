@@ -84,6 +84,7 @@ function tween(obj, props, dur, ease = E.outCubic, delay = 0) {
 }
 function correrTweens(ms) {
   for (const tw of tweens) {
+    if (tw.obj.destroyed) { tw.done = true; continue }   // destroyed meanwhile: just finish it
     tw.t += ms
     if (tw.t < 0) continue
     const p = Math.min(1, tw.t / tw.dur), e = tw.ease(p)
@@ -271,7 +272,7 @@ async function main() {
   }
   function tweenEsc(obj, objetivo, dur) {
     const sx = obj.scale.x, sy = obj.scale.y, t0 = performance.now()
-    const paso = () => { const p = Math.min(1, (performance.now() - t0) / dur), e = E.outBack(p); obj.scale.set(sx + (objetivo - sx) * e, sy + (objetivo - sy) * e); if (p < 1) requestAnimationFrame(paso) }
+    const paso = () => { if (obj.destroyed) return; const p = Math.min(1, (performance.now() - t0) / dur), e = E.outBack(p); obj.scale.set(sx + (objetivo - sx) * e, sy + (objetivo - sy) * e); if (p < 1) requestAnimationFrame(paso) }
     requestAnimationFrame(paso)
   }
 
@@ -318,6 +319,7 @@ async function main() {
     const g = new PIXI.Graphics(); g.position.set(x, y); fxAtras.addChild(g)
     const t0 = performance.now()
     const paso = () => {
+      if (g.destroyed) return
       const k = Math.min(1, (performance.now() - t0) / vida), w = ancho * (0.3 + k)
       g.clear(); g.lineStyle(3 * (1 - k) + 1, 0xcfe9ff, alpha * (1 - k)); g.drawEllipse(0, 0, w, w * 0.22)
       if (k < 1) requestAnimationFrame(paso); else g.destroy()
@@ -502,10 +504,9 @@ async function main() {
     // the item drops into the net and disappears with a splash of light
     aroBrillo.alpha = .9; tween(aroBrillo, { alpha: 0 }, 420)
     tween(c, { x: hx, y: hy + 18 }, 150, E.outQuad)
-    tween(c, { alpha: 0 }, 220, E.lin, 90)
     const esc = Math.abs(c.scale.x)
     tweenEsc(c, esc * .45, 240)
-    setTimeout(() => { c.destroy({ children: true }); items = items.filter(i => i !== c) }, 340)
+    tween(c, { alpha: 0 }, 220, E.lin, 90).then(() => { items = items.filter(i => i !== c); if (!c.destroyed) c.destroy({ children: true }) })
     for (let i = 0; i < 8 * calidad; i++) particula(TX.gota, fxFrente, hx, hy + 20, { vx: (Math.random() - .5) * 280, vy: -80 - Math.random() * 220, g: 1300, vida: 480, esc: .13, escFin: .05, estirar: true })
   }
   function actualizarRacha() {
@@ -641,7 +642,7 @@ async function main() {
   let vozInstr = null
   function tweenEsc2(obj, sx2, sy2, dur) {
     const sx = obj.scale.x, sy = obj.scale.y, t0 = performance.now()
-    const paso = () => { const p = Math.min(1, (performance.now() - t0) / dur), e = E.outBack(p); obj.scale.set(sx + (sx2 - sx) * e, sy + (sy2 - sy) * e); if (p < 1) requestAnimationFrame(paso) }
+    const paso = () => { if (obj.destroyed) return; const p = Math.min(1, (performance.now() - t0) / dur), e = E.outBack(p); obj.scale.set(sx + (sx2 - sx) * e, sy + (sy2 - sy) * e); if (p < 1) requestAnimationFrame(paso) }
     requestAnimationFrame(paso)
   }
   tocarPara(boton2, () => { if (S.estado === 'resultado') volverAJugar() })
@@ -796,7 +797,16 @@ async function main() {
   Sonido.alDesbloquear = () => { if (S.estado === 'menu' || S.estado === 'resultado') Sonido.musicaDe('musica-menu', .35) }
   // the kiosk Chrome allows autoplay: try right away once the sounds are loaded
   setTimeout(() => { if (Sonido.ctx && Sonido.ctx.state === 'running') Sonido.desbloquear() }, 1500)
+  // An exception inside the PIXI ticker stops the render loop for good (the game "freezes"):
+  // every frame runs guarded, errors are logged once per message and the game goes on.
+  const erroresVistos = new Set()
   app.ticker.add(() => {
+    try { cuadro() } catch (e) {
+      const clave = String(e && e.message)
+      if (!erroresVistos.has(clave)) { erroresVistos.add(clave); console.error('[pesca] error en un cuadro (el juego sigue):', e) }
+    }
+  })
+  function cuadro() {
     const ms = Math.min(50, app.ticker.deltaMS), t = performance.now()
     correrTweens(ms)
 
@@ -890,7 +900,7 @@ async function main() {
     // adaptive quality: if the cabinet can't hold ~45 fps, drop the water filter and halve particles
     fpsAcum += app.ticker.FPS; fpsN++; fpsT += ms
     if (fpsT > 3000) { const media = fpsAcum / fpsN; if (media < 45 && calidad > .5) { calidad = .5; agua.filters = null; console.warn('calidad reducida, fps', media.toFixed(0)) } fpsAcum = fpsN = fpsT = 0 }
-  })
+  }
   window.__pesca = { S, empezar, get items() { return items }, ARO, bote, AGUA_Y, app, TX, crearItem }   // for automated tests
 }
 main().catch(e => { console.error(e); const c = document.getElementById('cargando'); if (c) c.textContent = 'No se pudo cargar el juego' })
