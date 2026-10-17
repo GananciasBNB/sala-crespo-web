@@ -107,7 +107,7 @@ const Sonido = {
       this.master = this.ctx.createGain(); this.master.gain.value = 0.9; this.master.connect(this.ctx.destination)
       const nombres = ['salto', 'cae-agua', 'atrapa', 'atrapa-plata', 'atrapa-dorado', 'atrapa-legendario', 'basura', 'racha',
         'cuenta', 'ya', 'ultimos10', 'tiempo', 'conteo', 'record', 'tap', 'ambiente', 'musica-juego', 'musica-menu',
-        'voz-3', 'voz-2', 'voz-1', 'voz-ya', 'voz-dorado', 'voz-legendario', 'voz-racha', 'voz-ultimos10', 'voz-tiempo', 'voz-record', 'voz-instrucciones']
+        'voz-3', 'voz-2', 'voz-1', 'voz-ya', 'voz-dorado', 'voz-legendario', 'voz-racha', 'voz-ultimos10', 'voz-tiempo', 'voz-record', 'voz-top2', 'voz-top3', 'voz-instrucciones']
       await Promise.all(nombres.map(async n => {
         try {
           const r = await fetch(SFX + n + '.mp3'); if (!r.ok) return
@@ -682,8 +682,11 @@ async function main() {
     await espera(500)
     let rk = null
     if (KIOSCO) rk = await pedirAlKiosco('pesca-terminar', { token: tokenPartida, puntaje: S.puntaje, atrapados: S.atrapados, mejorRacha: S.mejorCombo, dorados: S.dorados })
-    const mejorAntes = KIOSCO ? Math.max(0, (estadoKiosco?.mejorHoy || 0)) : mejorDeHoy(), record = S.puntaje > mejorAntes
-    if (!KIOSCO && record) guardarMejor(S.puntaje)
+    // only the podium is announced: this game put you 1st, 2nd or 3rd of tonight's ranking
+    // (improving your own score without reaching the top 3 is not announced)
+    const mejorAntes = KIOSCO ? Math.max(0, (estadoKiosco?.mejorHoy || 0)) : mejorDeHoy()
+    const podioNoche = KIOSCO && rk?.ok && rk.puesto >= 1 && rk.puesto <= 3 && S.puntaje > 0 && S.puntaje >= (rk.mejorHoy || 0) ? rk.puesto : 0
+    if (!KIOSCO && S.puntaje > mejorAntes) guardarMejor(S.puntaje)
     if (KIOSCO && rk?.ok && estadoKiosco) Object.assign(estadoKiosco, { mejorHoy: rk.mejorHoy, intentosQuedan: rk.intentosQuedan, proximoIntento: rk.proximoIntento })
     acomodarResultado(KIOSCO)
     resPts.text = '0'
@@ -700,10 +703,16 @@ async function main() {
     clearInterval(tick)
     const escPts = KIOSCO ? .82 : 1
     resPts.scale.set(escPts * 1.18); tween(resPts, { scale: escPts }, 380, E.outBack)
-    if (record && fin > 0) {
-      resMejor.text = '¡NUEVO RÉCORD DE HOY!'; resMejor.style.fill = ['#ffffff', '#7ee08a']
+    if (podioNoche === 1) {
+      resMejor.text = '¡SOS EL MEJOR DE LA NOCHE HASTA AHORA!'; resMejor.style.fill = ['#ffffff', '#7ee08a']
       Sonido.tocar('record', 1); Sonido.voz('voz-record'); brillos(W / 2, 430, 0xffe08a, 40, 420)
+    } else if (podioNoche) {
+      resMejor.text = `¡FELICITACIONES! ENTRASTE AL TOP ${podioNoche}`; resMejor.style.fill = ['#ffffff', '#7ee08a']
+      Sonido.tocar('record', .85); Sonido.voz('voz-top' + podioNoche); brillos(W / 2, 430, 0xffe08a, 26, 380)
     } else resMejor.text = `TU MEJOR PESCA DE HOY · ${Math.max(mejorAntes, fin).toLocaleString('es-AR')}`
+    // long messages shrink to fit inside the card frame
+    const anchoMax = KIOSCO ? 430 : 560
+    if (resMejor.width > anchoMax) resMejor.scale.set(resMejor.scale.x * anchoMax / resMejor.width)
     if (KIOSCO) mostrarPodio(rk)
     S.estado = 'resultado'
     Sonido.musicaDe('musica-menu', .35)
