@@ -54,7 +54,7 @@
   // From this seed on: 6 to 8 per day, at least 2 of each kind, never before second 8.
   // Only common/silver fish turn into junk (or junk back into common fish), so the gold and
   // legendary fish of the day stay where they were.
-  const CUOTA_DESDE = 20261018
+  const CUOTA_DESDE = 20261017   // applied mid-day on 17/10 (Pacha: that day had a single junk item)
   function cuotaDeBasura(ev, rnd) {
     const objetivo = 6 + Math.floor(rnd() * 3)
     const esBasura = e => BASURA.includes(e.tipo)
