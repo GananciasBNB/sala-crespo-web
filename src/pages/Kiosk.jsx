@@ -343,7 +343,14 @@ export default function Kiosk() {
   // Cumpleaños: el socio lo carga una vez desde la burbuja de la Home (DDMMAAAA)
   const [showCumple, setShowCumple] = useState(false)
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
-  const [madre, setMadre] = useState(VER_MADRE ? { nombre: 'Ana', puntos: 2000, contador: 0 } : null)   // { nombre, puntos, cuponImpreso, imprimiendo, listo, error }
+  const [madre, setMadre] = useState(null)
+  // preview: a first tap opens it, so the browser lets the music and the greeting play like at the cabinet
+  const [verMadreBoton, setVerMadreBoton] = useState(VER_MADRE)
+  function abrirVistaPreviaMadre() {
+    setVerMadreBoton(false)
+    setMadre({ nombre: 'Ana', puntos: 2000, contador: 0 })
+    setTimeout(() => voz('dia-madre'), 1100)
+  }   // { nombre, puntos, cuponImpreso, imprimiendo, listo, error }
   const [cumpleDigits, setCumpleDigits] = useState('')
   const [cumpleBusy, setCumpleBusy] = useState(false)
   const [cumpleErr, setCumpleErr] = useState('')
@@ -1240,6 +1247,12 @@ export default function Kiosk() {
       )}
 
       {/* Cargar cumpleaños: teclado numérico DD MM AAAA */}
+      {verMadreBoton && (
+        <div className="kiosk__carta kiosk__madre-fondo">
+          <button className="kiosk__cta kiosk__madre-aceptar" onClick={abrirVistaPreviaMadre}>▶ VER EL MENSAJE DEL DÍA DE LA MADRE</button>
+        </div>
+      )}
+
       {madre && (
         <div className="kiosk__carta kiosk__madre-fondo">
           <div className="kiosk__madre" onClick={e => e.stopPropagation()}>
