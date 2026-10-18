@@ -595,6 +595,8 @@ export const adminClubOverview = (token) =>
   api('/api/admin/club/overview', { headers: authHeaders(token) })
 export const adminClubDetail = (token, tipo) =>
   api(`/api/admin/club/detail/${encodeURIComponent(tipo)}`, { headers: authHeaders(token) })
+export const adminClubReporte = (token, desde, hasta) =>
+  api(`/api/admin/club/reporte?${new URLSearchParams({ ...(desde ? { desde } : {}), ...(hasta ? { hasta } : {}) })}`, { headers: authHeaders(token) })
 export const adminClubSocios = (token) =>
   api('/api/admin/club/socios', { headers: authHeaders(token) })
 export const adminPesca = (token, fecha) =>

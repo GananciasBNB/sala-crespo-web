@@ -8,12 +8,14 @@ import {
 } from '../components/club/panels'
 import { DetalleHoja, FeedHoy, SociosLista, Tabla } from '../components/club/club-detail'
 import WhatsAppAdmin from '../components/club/whatsapp'
+import ReporteJackpoints from '../components/club/reporte-jackpoints'
 import './ClubAdmin.css'
 
 const TOKEN_KEY = 'sc_admin_token'
 
 const SECCIONES = [
   { id: 'hoy',      icon: '📊', label: 'Hoy',      sub: 'Cómo viene el día' },
+  { id: 'reporte',  icon: '📈', label: 'Reporte',  sub: 'KPIs en vivo por período' },
   { id: 'fortuna',  icon: '🎰', label: 'Fortuna',  sub: 'Premios y reglas' },
   { id: 'canjes',   icon: '🛍',  label: 'Canjes',   sub: 'Catálogo y promos' },
   { id: 'sorteo',   icon: '🎟',  label: 'Sorteo',   sub: 'El sorteo del mes' },
@@ -73,6 +75,7 @@ export default function ClubAdmin() {
 
       <main className="ca__main">
         {seccion === 'hoy'     && <Hoy token={token} toast={toast} onIr={setSeccion} />}
+        {seccion === 'reporte' && <ReporteJackpoints token={token} toast={toast} />}
         {seccion === 'fortuna' && <FortunaAdmin token={token} toast={toast} />}
         {seccion === 'canjes'  && <ClubCatalog token={token} toast={toast} />}
         {seccion === 'sorteo'  && <Sorteo token={token} toast={toast} />}
