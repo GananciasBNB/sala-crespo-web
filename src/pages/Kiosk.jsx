@@ -165,6 +165,18 @@ function musicaClubPlay() {
 }
 function musicaClubPause() { try { if (musicaClub) musicaClub.pause() } catch { /* idem */ } }
 
+// Día de la Madre: soft celebration music under the pop-up (the club music pauses meanwhile)
+let musicaMadre = null, madrePendiente = false   // pendiente: the browser blocked autoplay, start on the first tap
+function musicaMadrePlay() {
+  try {
+    if (!musicaMadre) { musicaMadre = new Audio('/kiosk-audio/musica-dia-madre.mp3'); musicaMadre.volume = 0.55; musicaMadre.preload = 'auto' }
+    musicaMadre.currentTime = 0
+    const p = musicaMadre.play()
+    if (p) p.then(() => { madrePendiente = false }).catch(err => { madrePendiente = true; console.warn('musica dia de la madre bloqueada:', err && err.name) })
+  } catch { /* sin audio no es fatal */ }
+}
+function musicaMadreStop() { try { if (musicaMadre) { musicaMadre.pause(); musicaMadre.currentTime = 0 } } catch { /* idem */ } }
+
 // Audio del kiosk: Chrome bloquea el play() cuando pasó demasiado tiempo desde
 // el último toque (por ejemplo tras esperar al servidor en el login). Por eso
 // los MP3 se precargan y se "desbloquean" con el primer toque de la pantalla:
@@ -429,9 +441,12 @@ export default function Kiosk() {
   // Música del Club: arranca al cargar (con el flag de kiosk) o al primer toque;
   // se pausa mientras el juego está abierto y vuelve al cerrarlo.
   useEffect(() => {
-    if (showGiro || showPesca) musicaClubPause()   // the games bring their own music
+    if (showGiro || showPesca || madre) musicaClubPause()   // the games and the Día de la Madre pop-up bring their own music
     else musicaClubPlay()
-  }, [showGiro, showPesca])
+  }, [showGiro, showPesca, !!madre]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (madre) musicaMadrePlay(); else musicaMadreStop()
+  }, [!!madre]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Diálogo con Fortuna Dorada (iframe): al abrirse pide init (le pasamos el
   // token para que gire contra el servidor); cada giro jugado refresca el
@@ -577,7 +592,7 @@ export default function Kiosk() {
       const e = await diaMadreEstado(token)
       if (!e?.elegible || (e.puntosRecibidos && e.cuponImpreso)) return
       setMadre({ nombre: e.nombre, puntos: e.puntos, puntosRecibidos: e.puntosRecibidos, cuponImpreso: e.cuponImpreso, prueba: e.prueba, contador: 0 })
-      setTimeout(() => vozDespues('dia-madre'), 700)   // after the machine's welcome voice
+      setTimeout(() => voz('dia-madre'), 1100)   // after the music's first bar
     } catch (err) { console.warn('dia de la madre:', err) }
   }
   // nothing is credited until she accepts: one tap = the 1.000 points (counting up) + the coupon
@@ -906,7 +921,7 @@ export default function Kiosk() {
     <div
       className={`kiosk${DEMO ? ' kiosk--demo' : ''}${kbCampo ? ' kiosk--kb' : ''}`}
       onClick={screen === 'idle' ? () => { voz('ui-tap', 0.7); setScreen('dni') } : undefined}
-      onPointerDownCapture={() => { lastActRef.current = Date.now(); desbloquearAudio(); if (!showGiro) musicaClubPlay() }}
+      onPointerDownCapture={() => { lastActRef.current = Date.now(); desbloquearAudio(); if (!showGiro && !madre) musicaClubPlay(); if (madre && madrePendiente) { madrePendiente = false; musicaMadrePlay(); if (!madre.listo) voz('dia-madre') } }}
       onKeyDownCapture={() => { lastActRef.current = Date.now() }}
     >
       <div className="kiosk__bg" />
