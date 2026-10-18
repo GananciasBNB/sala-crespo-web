@@ -898,3 +898,10 @@
 .kiosk__rank-ayer-tit { font-size: 12px; letter-spacing: 1.5px; }
 .kiosk__rank-ayer-g { font-size: 15px; gap: 5px; }
 .kiosk__rank-ayer-g em { font-size: 12px; }
+
+/* La Gran Pesca card: the countdown reads like Fortuna's; JUGAR beats while there are attempts left */
+.kiosk__pesca-espera { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0 2px; }
+.kiosk__pesca-espera .kiosk__hub-countdown { flex: none; justify-content: center; font-size: 38px; text-shadow: 0 0 18px rgba(240,210,117,.35); }
+@keyframes kiosk-late { 0%, 100% { transform: scale(1); } 8% { transform: scale(1.07) translateY(-3px); } 16% { transform: scale(.98); } 24% { transform: scale(1.04) translateY(-1px); } 34% { transform: scale(1); } }
+.kiosk__cta--late { animation: kiosk-late 1.6s ease-in-out infinite; box-shadow: 0 0 22px rgba(255,215,90,.55), inset 0 -3px 0 rgba(120,80,20,.35) !important; }
+.kiosk__cta--late:active { animation: none; }

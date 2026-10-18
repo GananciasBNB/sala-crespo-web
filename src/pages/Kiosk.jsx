@@ -88,7 +88,7 @@ function SesionTimer({ lastActRef, paused, onExpirar, margen = SESION_MS }) {
 const ayerISO = () => new Date(Date.now() - 3 * 3600e3 - 4 * 3600e3 - 86400e3).toISOString().slice(0, 10)
 
 // La Gran Pesca: live countdown to the next attempt ("Otro intento en 2:14:05")
-function CuentaPesca({ hasta, onFin }) {
+function CuentaPesca({ hasta, onFin, soloHora }) {
   const [ahora, setAhora] = useState(Date.now())
   useEffect(() => {
     const iv = setInterval(() => setAhora(Date.now()), 1000)
@@ -97,7 +97,8 @@ function CuentaPesca({ hasta, onFin }) {
   const s = Math.max(0, Math.ceil((new Date(hasta).getTime() - ahora) / 1000))
   useEffect(() => { if (s === 0 && onFin) onFin() }, [s === 0]) // eslint-disable-line react-hooks/exhaustive-deps
   const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), seg = s % 60
-  return <>OTRO INTENTO EN {h ? `${h}:${String(m).padStart(2, '0')}` : m}:{String(seg).padStart(2, '0')}</>
+  const hora = `${h ? `${h}:${String(m).padStart(2, '0')}` : m}:${String(seg).padStart(2, '0')}`
+  return soloHora ? <>{hora}</> : <>OTRO INTENTO EN {hora}</>
 }
 
 function FortunaEstado({ token, refreshKey, onJugar, art }) {
@@ -1072,9 +1073,13 @@ export default function Kiosk() {
                       : `Vos: ${pescaInfo.puesto ? pescaInfo.puesto + '.º' : '—'} · ya usaste tus 2 intentos`) : 'Los 3 mejores del día ganan puntos'}</span>
                     <span className="kiosk__pesca-ver">VER RANKING ›</span>
                   </button>
+                  {/* no attempts left: the countdown in big gold, like Fortuna Dorada (inside a disabled button it was too dim) */}
                   {pescaInfo?.intentosQuedan === 0 && pescaInfo.proximoIntento
-                    ? <button className="kiosk__cta kiosk__cta--hub" disabled><CuentaPesca hasta={pescaInfo.proximoIntento} onFin={refrescarPesca} /></button>
-                    : <button className="kiosk__cta kiosk__cta--hub" onClick={jugarPesca}>JUGAR</button>}
+                    ? <div className="kiosk__pesca-espera">
+                        <div className="kiosk__hub-sub kiosk__hub-sub--antes">Próximo intento en:</div>
+                        <div className="kiosk__hub-countdown"><CuentaPesca soloHora hasta={pescaInfo.proximoIntento} onFin={refrescarPesca} /></div>
+                      </div>
+                    : <button className={`kiosk__cta kiosk__cta--hub${pescaInfo?.intentosQuedan > 0 ? ' kiosk__cta--late' : ''}`} onClick={jugarPesca}>JUGAR</button>}
                 </div>
               </div>
             </div>
