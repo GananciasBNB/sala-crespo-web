@@ -9,7 +9,7 @@ import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconT
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
 const DEMO = demoApi.isKioskDemo()
-const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider } = DEMO ? demoApi : realApi
+const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider, diaMadreEstado, diaMadrePuntos, diaMadreCupon } = DEMO ? demoApi : realApi
 const { API_BASE } = realApi
 const kioskKey = DEMO ? () => 'demo' : realApi.kioskKey
 
@@ -298,6 +298,8 @@ export default function Kiosk() {
   const [checkin, setCheckin] = useState(null)
   // Cumpleaños: el socio lo carga una vez desde la burbuja de la Home (DDMMAAAA)
   const [showCumple, setShowCumple] = useState(false)
+  // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
+  const [madre, setMadre] = useState(null)   // { nombre, puntos, cuponImpreso, imprimiendo, listo, error }
   const [cumpleDigits, setCumpleDigits] = useState('')
   const [cumpleBusy, setCumpleBusy] = useState(false)
   const [cumpleErr, setCumpleErr] = useState('')
@@ -344,7 +346,7 @@ export default function Kiosk() {
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false); setShowPesca(false); setRanking(null); setPescaInfo(null)
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
-    setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
+    setMadre(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
 
   // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
@@ -536,6 +538,30 @@ export default function Kiosk() {
     if (!p.termsAccepted) { setPlayer(p); setScreen('terminos'); return }
     const c = await loyaltyCheckin(p.token).catch(() => null)
     setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
+    abrirDiaMadre(p.token)
+  }
+  async function abrirDiaMadre(token) {
+    try {
+      const e = await diaMadreEstado(token)
+      if (!e?.elegible || (e.puntosRecibidos && e.cuponImpreso)) return
+      setMadre({ nombre: e.nombre, puntos: e.puntos, puntosRecibidos: e.puntosRecibidos, cuponImpreso: e.cuponImpreso, prueba: e.prueba, contador: 0 })
+    } catch (err) { console.warn('dia de la madre:', err) }
+  }
+  // nothing is credited until she accepts: one tap = the 1.000 points (counting up) + the coupon
+  async function aceptarRegaloMadre() {
+    if (!player?.token || madre?.aceptando) return
+    setMadre(m => ({ ...m, aceptando: true, error: '' }))
+    try {
+      if (!madre.puntosRecibidos) {
+        const r = await diaMadrePuntos(player.token)
+        if (typeof r?.balance === 'number') setBalance(r.balance)
+      }
+      if (!madre.cuponImpreso) await diaMadreCupon(player.token)
+      setMadre(m => ({ ...m, aceptando: false, puntosRecibidos: true, cuponImpreso: true, listo: true }))
+      const total = madre.puntos || 1000, t0 = performance.now()
+      const subir = () => { const k = Math.min(1, (performance.now() - t0) / 1400); setMadre(m => m && ({ ...m, contador: Math.round(total * (1 - Math.pow(1 - k, 3))) })); if (k < 1) requestAnimationFrame(subir) }
+      requestAnimationFrame(subir)
+    } catch { setMadre(m => ({ ...m, aceptando: false, error: 'No pudimos completar tu regalo. Probá de nuevo o avisá en la caja.' })) }
   }
   async function aceptarBasesYEntrar() {
     if (aceptandoBases || !player?.token) return
@@ -777,6 +803,7 @@ export default function Kiosk() {
       const r = await kioskSignup({ dni, name: reg.name.trim(), tel: reg.tel.trim(), email: reg.email.trim(), pin, acceptTerms: true })
       const c = await loyaltyCheckin(r.player.token).catch(() => null)
       setPlayer(r.player); setCheckin(c); setBalance(c?.balance ?? r.balance ?? 0); setScreen('done')
+      abrirDiaMadre(r.player.token)
     } catch (e) { setErr(e.message) } finally { setBusy(false) }
   }
 
@@ -1156,6 +1183,42 @@ export default function Kiosk() {
       )}
 
       {/* Cargar cumpleaños: teclado numérico DD MM AAAA */}
+      {madre && (
+        <div className="kiosk__carta kiosk__madre-fondo">
+          <div className="kiosk__madre" onClick={e => e.stopPropagation()}>
+            <img className="kiosk__madre-img" src="/jackpoints/dia-madre.webp" alt="" />
+            <img className="kiosk__madre-logo" src="/jackpoints/logo.webp" alt="Jackpoints" />
+            <div className="kiosk__madre-kick">18 DE OCTUBRE · DÍA DE LA MADRE</div>
+            <h2 className="kiosk__madre-tit">¡Feliz día{madre.nombre ? `, ${madre.nombre}` : ''}!</h2>
+            <p className="kiosk__madre-txt">Gracias por ser parte de Jackpoints. Hoy queremos celebrarte con un regalo especial.</p>
+            <div className="kiosk__madre-regalos">
+              <div className={`kiosk__madre-regalo${madre.listo ? ' kiosk__madre-regalo--ok' : ''}`}>
+                <b>{madre.listo ? '+' + madre.contador.toLocaleString('es-AR') : (madre.puntos || 1000).toLocaleString('es-AR')}</b>
+                <span>{madre.listo ? <>puntos de regalo<br />¡ya están en tu cuenta!</> : <>puntos de regalo<br />para tu cuenta</>}</span>
+              </div>
+              <div className={`kiosk__madre-regalo${madre.listo ? ' kiosk__madre-regalo--ok' : ''}`}>
+                <b><IconoBebida /></b>
+                <span>{madre.listo ? <>¡tu cortesía se está imprimiendo!<br />canjeala en la caja</> : <>una bebida de cortesía<br />se canjea en la caja</>}</span>
+              </div>
+            </div>
+            {madre.listo ? (
+              <>
+                <div className="kiosk__madre-ok">✓ ¡Listo! Retirá tu cupón y canjealo en la caja.</div>
+                <button className="kiosk__cta" onClick={() => setMadre(null)}>CONTINUAR</button>
+              </>
+            ) : (
+              <>
+                <button className="kiosk__cta kiosk__cta--late kiosk__madre-aceptar" disabled={madre.aceptando} onClick={aceptarRegaloMadre}>
+                  {madre.aceptando ? 'UN SEGUNDO…' : '¡ACEPTAR MI REGALO!'}
+                </button>
+                {madre.error && <div className="kiosk__err">{madre.error}</div>}
+                <button className="kiosk__madre-luego" onClick={() => setMadre(null)}>Ahora no</button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {showCumple && (
         <div className="kiosk__carta" onClick={() => setShowCumple(false)}>
           <div className="kiosk__carta-panel kiosk__cumple-panel" onClick={e => e.stopPropagation()}>

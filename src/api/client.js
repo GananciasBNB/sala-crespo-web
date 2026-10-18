@@ -540,6 +540,13 @@ export const pescaEmpezar = (token) =>
   api('/api/pesca/empezar', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const pescaTerminar = (token, datos) =>
   api('/api/pesca/terminar', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() }, body: JSON.stringify(datos) })
+// Día de la Madre 2026 (kiosk pop-up)
+export const diaMadreEstado = (token) =>
+  api('/api/promo/dia-madre', { headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const diaMadrePuntos = (token) =>
+  api('/api/promo/dia-madre/puntos', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const diaMadreCupon = (token) =>
+  api('/api/promo/dia-madre/cupon', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const pescaRanking = (token) =>
   api('/api/pesca/ranking', { headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const pescaLider = () =>

@@ -218,6 +218,27 @@ export function demoSpinsLeft(token) {
   return Math.max(1, s.left)
 }
 
+// ── Día de la Madre (demo): shows on Sunday 18/10 or with ?madre=1, nothing real ──
+export async function diaMadreEstado(token) {
+  await wait(120)
+  const db = load(), p = getPlayer(db, token)
+  const ahora = new Date(), domingo = ahora >= new Date('2026-10-18T03:00:00Z') && ahora < new Date('2026-10-19T06:00:00Z')
+  if (!domingo && !new URLSearchParams(location.search).get('madre')) return { elegible: false }
+  const nombre = (p.name || '').split(' ')[0] || ''
+  return { elegible: true, puntos: 1000, puntosRecibidos: !!p.diaMadrePts, cuponImpreso: !!p.diaMadreCupon, nombre, prueba: true }
+}
+export async function diaMadrePuntos(token) {
+  await wait(200)
+  const db = load(), p = getPlayer(db, token)
+  if (!p.diaMadrePts) { p.diaMadrePts = true; p.balance = (p.balance || 0) + 1000; save(db) }
+  return { ok: true, puntos: 1000, balance: p.balance }
+}
+export async function diaMadreCupon(token) {
+  await wait(300)
+  const db = load(), p = getPlayer(db, token); p.diaMadreCupon = true; save(db)
+  return { ok: true, codigo: 'FD-DEMO' }
+}
+
 // ── La Gran Pesca (demo): unlimited attempts and a made-up leaderboard around the player ──
 const PESCA_RIVALES = [['María G.', '21:43', 2340], ['Juan P.', '22:10', 2185], ['Carlos B.', '20:58', 1960], ['Rubén S.', '21:15', 1420], ['Silvia M.', '22:31', 1310], ['Diego H.', '20:12', 1180], ['Norma K.', '23:40', 990], ['Omar R.', '21:05', 860], ['Lucía F.', '22:48', 745]]
 function pescaVista(p, top = 10) {

@@ -101,15 +101,19 @@ function Armar($job) {
       $t += $CENTRO + "PRESENTALO EN LA BARRA" + (Linea)
     }
     'premio' {
-      $t += "* Fortuna Dorada *" + (Linea 2)
-      $t += $NEGRITA + "GANASTE" + $NORMAL + (Linea)
+      # titulo / subtitulo / pie are optional (La Gran Pesca, Dia de la Madre...); default is Fortuna Dorada
+      $titulo = if ($p.titulo) { $p.titulo } else { '* Fortuna Dorada *' }
+      $subtitulo = if ($p.subtitulo) { $p.subtitulo } else { 'GANASTE' }
+      $t += $titulo + (Linea 2)
+      $t += $NEGRITA + $subtitulo + $NORMAL + (Linea)
       $t += $NEGRITA + (Grande $p.premio) + $NORMAL + $CHICO + (Linea 2)
       $t += (QR $p.codigo) + (Linea) + (Barras $p.codigo) + (Linea)
       $t += $DOBLE + $p.codigo + $CHICO + (Linea 2)
       $t += $IZQ + "Socio: $($p.nombre)" + (Linea)
       $t += "DNI:   $($p.dni)" + (Linea)
       $t += "Fecha: $($p.fecha)" + (Linea 2)
-      $t += $CENTRO + "RETIRALO EN LA BARRA CON TU DNI" + (Linea)
+      $pie = if ($p.pie) { $p.pie } else { 'RETIRALO EN LA BARRA CON TU DNI' }
+      $t += $CENTRO + $pie + (Linea)
     }
   }
   $t += (Linea 6) + $CORTE   # 6 lineas: el cabezal queda unos mm abajo del cutter

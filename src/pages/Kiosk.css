@@ -905,3 +905,30 @@
 @keyframes kiosk-late { 0%, 100% { transform: scale(1); } 8% { transform: scale(1.07) translateY(-3px); } 16% { transform: scale(.98); } 24% { transform: scale(1.04) translateY(-1px); } 34% { transform: scale(1); } }
 .kiosk__cta--late { animation: kiosk-late 1.6s ease-in-out infinite; box-shadow: 0 0 22px rgba(255,215,90,.55), inset 0 -3px 0 rgba(120,80,20,.35) !important; }
 .kiosk__cta--late:active { animation: none; }
+
+/* Día de la Madre 2026 pop-up */
+.kiosk__madre-fondo { z-index: 90; }
+.kiosk__madre { position: relative; width: min(760px, 92vw); max-height: 96vh; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 0 34px 26px; text-align: center; border-radius: 26px; border: 2px solid #F0D275;
+  background: linear-gradient(180deg, #0d2244, #050b18 70%); box-shadow: 0 0 60px rgba(240,210,117,.35), 0 30px 80px rgba(0,0,0,.6); animation: kmadre .5s cubic-bezier(.2,1.4,.4,1); }
+@keyframes kmadre { from { transform: scale(.7); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+.kiosk__madre-img { width: calc(100% + 68px); height: 300px; object-fit: cover; margin: 0 -34px; -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent); mask-image: linear-gradient(180deg, #000 70%, transparent); }
+.kiosk__madre-logo { width: 120px; margin-top: -78px; filter: drop-shadow(0 6px 14px rgba(0,0,0,.6)); }
+.kiosk__madre-kick { font-family: 'Oswald', var(--font-body); letter-spacing: 4px; font-size: 14px; color: #F0D275; }
+.kiosk__madre-tit { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 46px; line-height: 1.05; margin: 0; color: #fff3c4; text-shadow: 0 0 22px rgba(255,190,200,.35); }
+.kiosk__madre-txt { font-size: 19px; color: #f3ead6; margin: 0; max-width: 560px; }
+.kiosk__madre-regalos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: 100%; margin: 6px 0 4px; }
+.kiosk__madre-regalo { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 10px; border-radius: 16px; background: rgba(240,210,117,.08); border: 1px solid rgba(240,210,117,.45); min-width: 0; }
+.kiosk__madre-regalo b { font-family: 'Playfair Display', Georgia, serif; font-size: 40px; color: #ffd75a; line-height: 1; display: flex; align-items: center; justify-content: center; min-height: 44px; }
+.kiosk__madre-regalo b svg { width: 44px; height: 44px; }
+.kiosk__madre-regalo span { font-size: 15px; color: #f3ead6; line-height: 1.3; }
+.kiosk__madre .kiosk__cta { max-width: 420px; }
+.kiosk__madre-ok { font-family: 'Oswald', var(--font-body); font-size: 20px; letter-spacing: 1px; color: #7ee08a; }
+.kiosk__madre-luego { background: none; border: 0; color: #a9b3c6; font-size: 15px; text-decoration: underline; cursor: pointer; padding: 6px; }
+.kiosk__madre-img { max-width: none; height: 360px; object-position: center 40%; }
+
+.kiosk__madre-regalo--ok { border-color: #7ee08a; background: rgba(126,224,138,.1); animation: kmadre-ok .5s ease-out; }
+.kiosk__madre-regalo--ok b { color: #fff3c4; }
+@keyframes kmadre-ok { 0% { transform: scale(.9) } 60% { transform: scale(1.06) } 100% { transform: scale(1) } }
+.kiosk__madre-aceptar { font-size: 26px !important; padding: 20px 40px !important; }
+.kiosk__madre .kiosk__madre-aceptar { font-size: 22px !important; white-space: nowrap; max-width: 520px; padding: 18px 34px !important; }
