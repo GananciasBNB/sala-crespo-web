@@ -266,6 +266,34 @@ function Numpad({ onDigit, onBack, onClear }) {
 }
 
 // Copa de cortesía (SVG inline, nada de emojis)
+// Día de la Madre: two champagne flutes toasting, in gold, with bubbles and a sparkle
+function CopasBrindis() {
+  return (
+    <svg viewBox="0 0 100 80" className="kiosk__copas" aria-hidden="true">
+      <defs>
+        <linearGradient id="cbOro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff6cf" /><stop offset=".5" stopColor="#f0d275" /><stop offset="1" stopColor="#b8862e" /></linearGradient>
+        <linearGradient id="cbVino" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe9a8" /><stop offset="1" stopColor="#e9b04a" /></linearGradient>
+      </defs>
+      <g transform="rotate(6 35 72)">
+        <path d="M27 8 h16 l-2.6 32 a5.4 5.4 0 0 1 -10.8 0 z" fill="rgba(255,255,255,.07)" stroke="url(#cbOro)" strokeWidth="2.4" strokeLinejoin="round" />
+        <path d="M28.1 18 h13.8 l-2 21.5 a4.9 4.9 0 0 1 -9.8 0 z" fill="url(#cbVino)" opacity=".92" />
+        <line x1="35" y1="45" x2="35" y2="68" stroke="#e9c35a" strokeWidth="2.6" strokeLinecap="round" />
+        <ellipse cx="35" cy="70" rx="8" ry="2.4" fill="url(#cbOro)" />
+        <circle cx="33" cy="30" r="1.1" fill="#fffbe8" /><circle cx="36.5" cy="25" r=".9" fill="#fffbe8" /><circle cx="35" cy="35" r=".8" fill="#fffbe8" />
+      </g>
+      <g transform="rotate(-6 65 72)">
+        <path d="M57 8 h16 l-2.6 32 a5.4 5.4 0 0 1 -10.8 0 z" fill="rgba(255,255,255,.07)" stroke="url(#cbOro)" strokeWidth="2.4" strokeLinejoin="round" />
+        <path d="M58.1 18 h13.8 l-2 21.5 a4.9 4.9 0 0 1 -9.8 0 z" fill="url(#cbVino)" opacity=".92" />
+        <line x1="65" y1="45" x2="65" y2="68" stroke="#e9c35a" strokeWidth="2.6" strokeLinecap="round" />
+        <ellipse cx="65" cy="70" rx="8" ry="2.4" fill="url(#cbOro)" />
+        <circle cx="63" cy="30" r="1.1" fill="#fffbe8" /><circle cx="66.5" cy="25" r=".9" fill="#fffbe8" /><circle cx="65" cy="35" r=".8" fill="#fffbe8" />
+      </g>
+      <path d="M50 1.5 l1.7 4.6 4.6 1.7 -4.6 1.7 -1.7 4.6 -1.7 -4.6 -4.6 -1.7 4.6 -1.7 z" fill="#fff3c4" />
+      <circle cx="41" cy="6" r="1.2" fill="#fff3c4" /><circle cx="59" cy="5" r="1" fill="#fff3c4" />
+    </svg>
+  )
+}
+
 function IconoBebida() {
   return (
     <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" style={{ flexShrink: 0 }}>
@@ -301,7 +329,7 @@ export default function Kiosk() {
   // Cumpleaños: el socio lo carga una vez desde la burbuja de la Home (DDMMAAAA)
   const [showCumple, setShowCumple] = useState(false)
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
-  const [madre, setMadre] = useState(VER_MADRE ? { nombre: 'Ana', puntos: 1000, contador: 0 } : null)   // { nombre, puntos, cuponImpreso, imprimiendo, listo, error }
+  const [madre, setMadre] = useState(VER_MADRE ? { nombre: 'Ana', puntos: 2000, contador: 0 } : null)   // { nombre, puntos, cuponImpreso, imprimiendo, listo, error }
   const [cumpleDigits, setCumpleDigits] = useState('')
   const [cumpleBusy, setCumpleBusy] = useState(false)
   const [cumpleErr, setCumpleErr] = useState('')
@@ -547,6 +575,7 @@ export default function Kiosk() {
       const e = await diaMadreEstado(token)
       if (!e?.elegible || (e.puntosRecibidos && e.cuponImpreso)) return
       setMadre({ nombre: e.nombre, puntos: e.puntos, puntosRecibidos: e.puntosRecibidos, cuponImpreso: e.cuponImpreso, prueba: e.prueba, contador: 0 })
+      setTimeout(() => vozDespues('dia-madre'), 700)   // after the machine's welcome voice
     } catch (err) { console.warn('dia de la madre:', err) }
   }
   // nothing is credited until she accepts: one tap = the 1.000 points (counting up) + the coupon
@@ -554,7 +583,8 @@ export default function Kiosk() {
     if (madre?.aceptando) return
     if (VER_MADRE && !player?.token) {   // preview: just the celebration
       setMadre(m => ({ ...m, puntosRecibidos: true, cuponImpreso: true, listo: true }))
-      const total = madre.puntos || 1000, t0 = performance.now()
+      voz('dia-madre-listo')
+      const total = madre.puntos || 2000, t0 = performance.now()
       const subir = () => { const k = Math.min(1, (performance.now() - t0) / 1400); setMadre(m => m && ({ ...m, contador: Math.round(total * (1 - Math.pow(1 - k, 3))) })); if (k < 1) requestAnimationFrame(subir) }
       requestAnimationFrame(subir); return
     }
@@ -567,7 +597,8 @@ export default function Kiosk() {
       }
       if (!madre.cuponImpreso) await diaMadreCupon(player.token)
       setMadre(m => ({ ...m, aceptando: false, puntosRecibidos: true, cuponImpreso: true, listo: true }))
-      const total = madre.puntos || 1000, t0 = performance.now()
+      voz('dia-madre-listo')
+      const total = madre.puntos || 2000, t0 = performance.now()
       const subir = () => { const k = Math.min(1, (performance.now() - t0) / 1400); setMadre(m => m && ({ ...m, contador: Math.round(total * (1 - Math.pow(1 - k, 3))) })); if (k < 1) requestAnimationFrame(subir) }
       requestAnimationFrame(subir)
     } catch { setMadre(m => ({ ...m, aceptando: false, error: 'No pudimos completar tu regalo. Probá de nuevo o avisá en la caja.' })) }
@@ -1202,11 +1233,11 @@ export default function Kiosk() {
             <p className="kiosk__madre-txt">Gracias por ser parte de Jackpoints. Hoy queremos celebrarte con un regalo especial.</p>
             <div className="kiosk__madre-regalos">
               <div className={`kiosk__madre-regalo${madre.listo ? ' kiosk__madre-regalo--ok' : ''}`}>
-                <b>{madre.listo ? '+' + madre.contador.toLocaleString('es-AR') : (madre.puntos || 1000).toLocaleString('es-AR')}</b>
+                <b>{madre.listo ? '+' + madre.contador.toLocaleString('es-AR') : (madre.puntos || 2000).toLocaleString('es-AR')}</b>
                 <span>{madre.listo ? <>puntos de regalo<br />¡ya están en tu cuenta!</> : <>puntos de regalo<br />para tu cuenta</>}</span>
               </div>
               <div className={`kiosk__madre-regalo${madre.listo ? ' kiosk__madre-regalo--ok' : ''}`}>
-                <b><IconoBebida /></b>
+                <b><CopasBrindis /></b>
                 <span>{madre.listo ? <>¡tu cortesía se está imprimiendo!<br />canjeala en la caja</> : <>una bebida de cortesía<br />se canjea en la caja</>}</span>
               </div>
             </div>

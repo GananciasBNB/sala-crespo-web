@@ -225,13 +225,13 @@ export async function diaMadreEstado(token) {
   const ahora = new Date(), domingo = ahora >= new Date('2026-10-18T03:00:00Z') && ahora < new Date('2026-10-19T06:00:00Z')
   if (!domingo && !new URLSearchParams(location.search).get('madre')) return { elegible: false }
   const nombre = (p.name || '').split(' ')[0] || ''
-  return { elegible: true, puntos: 1000, puntosRecibidos: !!p.diaMadrePts, cuponImpreso: !!p.diaMadreCupon, nombre, prueba: true }
+  return { elegible: true, puntos: 2000, puntosRecibidos: !!p.diaMadrePts, cuponImpreso: !!p.diaMadreCupon, nombre, prueba: true }
 }
 export async function diaMadrePuntos(token) {
   await wait(200)
   const db = load(), p = getPlayer(db, token)
-  if (!p.diaMadrePts) { p.diaMadrePts = true; p.balance = (p.balance || 0) + 1000; save(db) }
-  return { ok: true, puntos: 1000, balance: p.balance }
+  if (!p.diaMadrePts) { p.diaMadrePts = true; p.balance = (p.balance || 0) + 2000; save(db) }
+  return { ok: true, puntos: 2000, balance: p.balance }
 }
 export async function diaMadreCupon(token) {
   await wait(300)
