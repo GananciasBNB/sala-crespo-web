@@ -169,7 +169,7 @@ function musicaClubPause() { try { if (musicaClub) musicaClub.pause() } catch { 
 let musicaMadre = null, madrePendiente = false   // pendiente: the browser blocked autoplay, start on the first tap
 function musicaMadrePlay() {
   try {
-    if (!musicaMadre) { musicaMadre = new Audio('/kiosk-audio/musica-dia-madre.mp3'); musicaMadre.volume = 0.32;   // under the voice like the club music (it was masking the greeting in a full sala) musicaMadre.preload = 'auto' }
+    if (!musicaMadre) { musicaMadre = new Audio('/kiosk-audio/musica-dia-madre.mp3'); musicaMadre.volume = 0.32; musicaMadre.preload = 'auto' }   // volume under the voice, like the club music
     musicaMadre.currentTime = 0
     const p = musicaMadre.play()
     if (p) p.then(() => { madrePendiente = false }).catch(err => { madrePendiente = true; console.warn('musica dia de la madre bloqueada:', err && err.name) })
