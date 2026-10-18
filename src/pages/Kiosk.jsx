@@ -9,6 +9,8 @@ import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconT
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
 const DEMO = demoApi.isKioskDemo()
+// /kiosk?demo=1&madre=ver opens the Día de la Madre pop-up straight away (preview, nothing real)
+const VER_MADRE = DEMO && new URLSearchParams(window.location.search).get('madre') === 'ver'
 const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider, diaMadreEstado, diaMadrePuntos, diaMadreCupon } = DEMO ? demoApi : realApi
 const { API_BASE } = realApi
 const kioskKey = DEMO ? () => 'demo' : realApi.kioskKey
@@ -299,7 +301,7 @@ export default function Kiosk() {
   // Cumpleaños: el socio lo carga una vez desde la burbuja de la Home (DDMMAAAA)
   const [showCumple, setShowCumple] = useState(false)
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
-  const [madre, setMadre] = useState(null)   // { nombre, puntos, cuponImpreso, imprimiendo, listo, error }
+  const [madre, setMadre] = useState(VER_MADRE ? { nombre: 'Ana', puntos: 1000, contador: 0 } : null)   // { nombre, puntos, cuponImpreso, imprimiendo, listo, error }
   const [cumpleDigits, setCumpleDigits] = useState('')
   const [cumpleBusy, setCumpleBusy] = useState(false)
   const [cumpleErr, setCumpleErr] = useState('')
@@ -549,7 +551,14 @@ export default function Kiosk() {
   }
   // nothing is credited until she accepts: one tap = the 1.000 points (counting up) + the coupon
   async function aceptarRegaloMadre() {
-    if (!player?.token || madre?.aceptando) return
+    if (madre?.aceptando) return
+    if (VER_MADRE && !player?.token) {   // preview: just the celebration
+      setMadre(m => ({ ...m, puntosRecibidos: true, cuponImpreso: true, listo: true }))
+      const total = madre.puntos || 1000, t0 = performance.now()
+      const subir = () => { const k = Math.min(1, (performance.now() - t0) / 1400); setMadre(m => m && ({ ...m, contador: Math.round(total * (1 - Math.pow(1 - k, 3))) })); if (k < 1) requestAnimationFrame(subir) }
+      requestAnimationFrame(subir); return
+    }
+    if (!player?.token) return
     setMadre(m => ({ ...m, aceptando: true, error: '' }))
     try {
       if (!madre.puntosRecibidos) {
