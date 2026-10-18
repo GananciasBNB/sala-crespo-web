@@ -958,3 +958,19 @@
 .kiosk__copa-chispa { transform-box: view-box; transform-origin: 50px 10px; animation: kchispa 2.6s ease-out infinite; opacity: 0; }
 @keyframes kchispa { 0%, 36% { opacity: 0; transform: scale(.3); } 40% { opacity: 1; transform: scale(1.25); } 60% { opacity: .9; transform: scale(1); } 80%, 100% { opacity: 0; transform: scale(.8); } }
 .kiosk__madre-regalo .kiosk__copas { width: 112px; height: 78px; }
+
+/* "Volver al Club" when the action is over (no spins left, game finished, a redemption done):
+   big gold pill with a pulsing glow and the arrow nudging left */
+.kiosk__carta-close.kiosk__carta-close--destacado {
+  top: 18px; right: 18px; font-size: 26px; letter-spacing: 2px; padding: 18px 40px; font-weight: 700;
+  color: #0b1a33; background: linear-gradient(180deg, #fff6cf, #ffd75a 50%, #e0a92e); border: 3px solid #fffbe8;
+  text-shadow: none; animation: kvolver 1.4s ease-in-out infinite;
+}
+@keyframes kvolver {
+  0%, 100% { transform: translateX(0) scale(1); box-shadow: 0 0 0 3px rgba(0,0,0,.45), 0 0 24px rgba(255,215,90,.55); }
+  50% { transform: translateX(-8px) scale(1.06); box-shadow: 0 0 0 3px rgba(0,0,0,.45), 0 0 46px 10px rgba(255,215,90,.85); }
+}
+.kiosk__cta.kiosk__cta--volver.kiosk__cta--volver-listo {
+  color: #0b1a33; background: linear-gradient(180deg, #fff6cf, #ffd75a 50%, #e0a92e); border: 3px solid #fffbe8;
+  font-size: 20px; font-weight: 700; animation: kvolver 1.4s ease-in-out infinite;
+}

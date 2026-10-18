@@ -395,7 +395,7 @@ export default function Kiosk() {
     setScreen('idle'); setDni(''); setPin(''); setPlayer(null); setBalance(0)
     setCheckin(null); setReg({ name: '', tel: '', email: '' }); setErr(''); setRegErr(null); setKb(null); setBusy(false)
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false); setShowPesca(false); setRanking(null); setPescaInfo(null)
-    setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setCuponEstado(''); setLookup(null)
+    setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setPescaTerminada(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
     setMadre(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
@@ -459,6 +459,7 @@ export default function Kiosk() {
   // token para que gire contra el servidor); cada giro jugado refresca el
   // estado y, agotada la ventana, se destaca el "Volver al Club".
   const [giroJugado, setGiroJugado] = useState(false)
+  const [pescaTerminada, setPescaTerminada] = useState(false)   // the game ended: highlight the way back
   const [spinRefresh, setSpinRefresh] = useState(0)
   useEffect(() => {
     function onMsg(e) {
@@ -473,9 +474,11 @@ export default function Kiosk() {
         const responder = (datos) => { try { e.source.postMessage({ respuestaPesca: true, id: e.data.id, ...datos }, '*') } catch (err) { console.warn('pesca: iframe cerrado', err) } }
         if (e.data.tipo === 'pesca-listo') { try { e.source.postMessage({ tipo: 'pesca-estado', ...(pescaInfoRef.current || {}) }, '*') } catch (err) { console.warn(err) } }
         else if (e.data.tipo === 'pesca-empezar') {
+          setPescaTerminada(false)
           pescaEmpezar(player.token).then(r => responder({ ok: true, ...r }))
             .catch(err => responder({ ok: false, error: err.body?.error === 'sin_intentos' ? 'sin_intentos' : 'error', proximoIntento: err.body?.proximoIntento || null }))
         } else if (e.data.tipo === 'pesca-terminar') {
+          setPescaTerminada(true)
           const { token, puntaje, atrapados, mejorRacha, dorados } = e.data
           pescaTerminar(player.token, { token, puntaje, atrapados, mejorRacha, dorados, especialAtrapado: e.data.especialAtrapado === true })
             .then(r => { responder({ ok: true, ...r }); refrescarPesca() })
@@ -1491,7 +1494,7 @@ export default function Kiosk() {
               </div>
             </div>
             <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprime un cupón: presentalo en la barra para retirarlo.</p>
-            <button className="kiosk__cta kiosk__cta--volver" onClick={() => setShowCanjes(false)}>← VOLVER</button>
+            <button className={`kiosk__cta kiosk__cta--volver${Object.keys(canjeados).length ? ' kiosk__cta--volver-listo' : ''}`} onClick={() => setShowCanjes(false)}>{Object.keys(canjeados).length ? '← VOLVER AL CLUB' : '← VOLVER'}</button>
           </div>
         </div>
       )}
@@ -1514,7 +1517,7 @@ export default function Kiosk() {
       {showPesca && (
         <div className="kiosk__carta">
           <iframe src="/la-gran-pesca/index.html?kiosco=1" title="La Gran Pesca" allow="autoplay" />
-          <button className="kiosk__carta-close" onClick={() => { setShowPesca(false); refrescarPesca() }}>✕ Volver al Club</button>
+          <button className={`kiosk__carta-close ${pescaTerminada ? 'kiosk__carta-close--destacado' : ''}`} onClick={() => { setShowPesca(false); setPescaTerminada(false); refrescarPesca() }}>{pescaTerminada ? '← VOLVER AL CLUB' : '✕ Volver al Club'}</button>
         </div>
       )}
 
