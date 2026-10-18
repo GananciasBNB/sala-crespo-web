@@ -1,5 +1,5 @@
 # Short updater for La Maquina del Club (typed by hand at the cabinet):
-#   Windows + R  ->  powershell irm saladejuegoscrespo.ar/u.ps1|iex
+#   Windows + R  ->  powershell irm https://www.saladejuegoscrespo.ar/u.ps1|iex   (PS 5 does not follow the 308 to www/https)
 # Downloads the latest printer agent and restarts the PC so everything starts fresh.
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
