@@ -936,3 +936,25 @@
 .kiosk__madre-regalo b .kiosk__copas { width: 96px; height: 80px; filter: drop-shadow(0 0 10px rgba(255,215,90,.4)); }
 .kiosk__madre-regalo b { min-height: 62px; }
 .kiosk__madre-regalo b { min-height: 80px; }
+
+/* Día de la Madre: big numbers and words, short line below */
+.kiosk__madre-regalo { justify-content: center; gap: 2px; padding: 14px 10px 16px; }
+.kiosk__madre-pts { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 54px; line-height: 1; color: #ffd75a; text-shadow: 0 0 18px rgba(255,215,90,.35); }
+.kiosk__madre-regalo--ok .kiosk__madre-pts { color: #fff3c4; }
+.kiosk__madre-grande { font-family: 'Oswald', var(--font-body); font-weight: 700; font-size: 30px; letter-spacing: 4px; line-height: 1.1; color: #fff3c4; }
+.kiosk__madre-regalo span { font-size: 16px; color: #e6dccb; margin-top: 2px; }
+.kiosk__madre-regalo .kiosk__copas { width: 92px; height: 64px; filter: drop-shadow(0 0 10px rgba(255,215,90,.4)); overflow: visible; }
+/* the flutes lean in, clink with a small bounce, and a sparkle pops on the hit */
+.kiosk__copa { transform-box: view-box; animation: kbrindis 2.6s ease-in-out infinite; }
+.kiosk__copa--izq { transform-origin: 35px 72px; --lado: 1; }
+.kiosk__copa--der { transform-origin: 65px 72px; --lado: -1; }
+@keyframes kbrindis {
+  0%, 100% { transform: rotate(calc(var(--lado) * -4deg)); }
+  38% { transform: rotate(calc(var(--lado) * 7deg)); }
+  44% { transform: rotate(calc(var(--lado) * 4deg)); }
+  50% { transform: rotate(calc(var(--lado) * 6.5deg)); }
+  70% { transform: rotate(calc(var(--lado) * 6deg)); }
+}
+.kiosk__copa-chispa { transform-box: view-box; transform-origin: 50px 10px; animation: kchispa 2.6s ease-out infinite; opacity: 0; }
+@keyframes kchispa { 0%, 36% { opacity: 0; transform: scale(.3); } 40% { opacity: 1; transform: scale(1.25); } 60% { opacity: .9; transform: scale(1); } 80%, 100% { opacity: 0; transform: scale(.8); } }
+.kiosk__madre-regalo .kiosk__copas { width: 112px; height: 78px; }
