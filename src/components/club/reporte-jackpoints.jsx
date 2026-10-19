@@ -9,7 +9,9 @@ const n = v => (Number(v) || 0).toLocaleString('es-AR')
 const pct = (a, b) => (b ? Math.round((a / b) * 100) + '%' : '–')
 const etiqueta = f => { const d = new Date(f + 'T12:00:00Z'); return DIAS[d.getUTCDay()].replace(/^./, c => c.toUpperCase()) + ' ' + f.slice(8, 10) }
 const fechaLarga = f => `${etiqueta(f)}/${f.slice(5, 7)}/${f.slice(0, 4)}`
-const PREMIO = { ticket2000: 'Ticket $5.000 (bonus)', ticket1000: 'Ticket $2.500 (bonus)' }
+const plata = v => '$' + n(v)
+const guion = v => (v ? n(v) : '–')
+const guionPlata = v => (v ? plata(v) : '–')
 
 // automatic notes from simple rules (the hand-written "anda bien / a mirar" of the static report)
 function notas(r, f) {
@@ -35,6 +37,23 @@ function Tabla({ cols, filas }) {
   )
 }
 
+// one table per topic, one row per sala day + total
+function TablaJornadas({ dias, enCurso, titulo, ayuda, cols, fila, total }) {
+  return (
+    <section className="rep__caja">
+      <h2>{titulo}</h2>
+      <p className="rep__nota">{ayuda}</p>
+      <div className="rep__scroll"><table className="rep__num">
+        <thead><tr><th>Jornada</th>{cols.map(c => <th key={c}>{c}</th>)}</tr></thead>
+        <tbody>
+          {dias.map(([d, x]) => <tr key={d}><td>{etiqueta(d)}{d === enCurso ? ' · en curso' : ''}</td>{fila(x, d).map((v, i) => <td key={i}>{v}</td>)}</tr>)}
+          <tr className="rep__tot"><td>Total</td>{total.map((v, i) => <td key={i}>{v}</td>)}</tr>
+        </tbody>
+      </table></div>
+    </section>
+  )
+}
+
 export default function ReporteJackpoints({ token, toast }) {
   const [desde, setDesde] = useState('2026-10-11')
   const [hasta, setHasta] = useState('')
@@ -53,7 +72,8 @@ export default function ReporteJackpoints({ token, toast }) {
   if (!r) return <p className="ca__cargando">Cargando…</p>
   const f = Object.keys(r.porDia).sort()
   const sum = c => f.reduce((a, d) => a + (r.porDia[d]?.[c] || 0), 0)
-  const tickPesca = d => r.pescaEsp[d]?.ticketAtrapado || 0
+  const dias = f.map(d => [d, r.porDia[d] || {}])
+  const sumPts = o => f.reduce((a, d) => a + (r.porDia[d]?.pts?.[o] || 0), 0)
   const maxAct = Math.max(1, ...f.map(d => r.porDia[d]?.activos || 0))
   const esp = Object.values(r.pescaEsp).reduce((a, e) => ({ ts: a.ts + e.ticketSalio, ta: a.ta + e.ticketAtrapado, ps: a.ps + e.ptsSalio, pa: a.pa + e.ptsAtrapado }), { ts: 0, ta: 0, ps: 0, pa: 0 })
   const dm = r.detalle.madres, dmOk = dm.filter(m => m.cortesia === 'delivered').length
@@ -62,7 +82,12 @@ export default function ReporteJackpoints({ token, toast }) {
   const PANELES = {
     nuevos: ['Clientes nuevos', <Tabla cols={['Socio', 'DNI', 'Alta', 'Email', 'Cumple']} filas={r.detalle.nuevos.map(x => [x.name, x.dni, x.cuando, x.email ? 'sí' : '—', x.cumple ? 'sí' : '—'])} />],
     vuelven: ['Volvieron otro día', <Tabla cols={['Socio', 'DNI', 'Días', 'Jornadas']} filas={r.detalle.vuelven.map(x => [x.name, x.dni, x.dias, x.fechas])} />],
-    tickets: ['Tickets entregados', <Tabla cols={['Cuándo', 'Socio', 'DNI', 'Juego', 'Premio']} filas={r.detalle.tickets.map(x => [x.cuando, x.name, x.dni, x.origen, PREMIO[x.premio] || x.premio])} />],
+    tickets: ['Tickets entregados', <>
+      <p className="rep__nota">Total {plata(r.plata?.total)} · Fortuna Dorada {plata(r.plata?.fortuna)} · La Gran Pesca {plata(r.plata?.pesca)} · cobrado en caja {plata(r.plata?.cobrado)}{r.plata?.sinCobrar ? ` · sin cobrar todavía ${plata(r.plata.sinCobrar)}` : ''}</p>
+      <Tabla cols={['Cuándo', 'Socio', 'DNI', 'Juego', 'Cómo salió', 'Monto', 'En caja']} filas={r.detalle.tickets.map(x => [
+        x.cuando, x.name, x.dni, x.juego, x.via, plata(x.monto),
+        x.status === 'delivered' ? `Cobrado ${x.cobrado || ''}${x.cajero ? ` · ${x.cajero}` : ''}` : x.status === 'cancelled' ? 'Anulado' : 'Sin cobrar'])} />
+    </>],
     madres: ['Día de la Madre', <Tabla cols={['Cuándo', 'Socio', 'DNI', 'Cortesía']} filas={dm.map(x => [x.cuando, x.name, x.dni, x.cortesia === 'delivered' ? 'canjeada' : x.cortesia === 'pending' ? 'por canjear' : 'sin imprimir'])} />],
   }
   const Tarjeta = ({ id, valor, label, det, dest }) => {
@@ -95,7 +120,7 @@ export default function ReporteJackpoints({ token, toast }) {
         <Tarjeta id="vuelven" valor={pct(vuelven, r.recurrencia?.socios)} label="Volvieron otro día" det={`${n(vuelven)} de ${n(r.recurrencia?.socios)} · ${n(r.recurrencia?.tres)} vinieron 3 días o más`} />
         <Tarjeta valor={n(sum('visitas'))} label="Visitas registradas" det={`${String(r.recurrencia?.promedio || 0).replace('.', ',')} días por socio`} />
         <Tarjeta valor={n(sum('giros'))} label="Giros de Fortuna" det="en el período" />
-        <Tarjeta id="tickets" valor={n(r.detalle.tickets.length)} label="Tickets entregados" det="Fortuna (giro y bonus) + pez Jackpoints" />
+        <Tarjeta id="tickets" valor={plata(r.plata?.total)} label={`${n(r.detalle.tickets.length)} tickets entregados`} det={`Fortuna ${plata(r.plata?.fortuna)} · Pesca ${plata(r.plata?.pesca)} · cobrado ${plata(r.plata?.cobrado)}`} />
         <Tarjeta valor={n(r.pesca?.partidas)} label="Partidas de La Gran Pesca" det={`${n(r.pesca?.socios)} socios distintos`} />
         {dm.length > 0
           ? <Tarjeta id="madres" dest valor={n(dm.length)} label="Madres con su regalo" det={`${dmOk} cortesías ya canjeadas · ${dm.length - dmOk} por canjear`} />
@@ -117,18 +142,25 @@ export default function ReporteJackpoints({ token, toast }) {
         </div>
       </section>
 
-      <section className="rep__caja">
-        <h2>Detalle por jornada</h2>
-        <div className="rep__scroll"><table className="rep__num">
-          <thead><tr><th>Jornada</th><th>Activos</th><th>Nuevos</th><th>Giros</th><th>Tickets</th><th>Cupones</th><th>Pts entregados</th><th>Pesca</th></tr></thead>
-          <tbody>
-            {f.map(d => { const x = r.porDia[d] || {}; return (
-              <tr key={d}><td>{etiqueta(d)}{d === r.enCurso ? ' · en curso' : ''}</td><td>{n(x.activos)}</td><td>{n(x.nuevos)}</td><td>{n(x.giros)}</td><td>{n((x.tickets || 0) + tickPesca(d))}</td><td>{n(x.cupones)}</td><td>{n(x.ptsEmitidos)}</td><td>{x.pescaPartidas ? `${n(x.pescaPartidas)} · ${n(x.pescadores)} socios` : '–'}</td></tr>
-            ) })}
-            <tr className="rep__tot"><td>Total</td><td>{n(r.recurrencia?.socios)} únicos</td><td>{n(sum('nuevos'))}</td><td>{n(sum('giros'))}</td><td>{n(r.detalle.tickets.length)}</td><td>{n(sum('cupones'))}</td><td>{n(sum('ptsEmitidos'))}</td><td>{n(r.pesca?.partidas)}</td></tr>
-          </tbody>
-        </table></div>
-      </section>
+      <TablaJornadas dias={dias} enCurso={r.enCurso} titulo="Resumen por jornada" ayuda="Cuánta gente usó la máquina y qué se le entregó en total ese día."
+        cols={['Socios activos', 'Nuevos', 'Plata en tickets', 'Cobrado en caja', 'Puntos entregados', 'Cupones del sorteo']}
+        fila={x => [n(x.activos), guion(x.nuevos), guionPlata(x.pesos), guionPlata(x.cobrado), guion(x.ptsEmitidos), guion(x.cupones)]}
+        total={[`${n(r.recurrencia?.socios)} únicos`, n(sum('nuevos')), plata(r.plata?.total), plata(r.plata?.cobrado), n(sum('ptsEmitidos')), n(sum('cupones'))]} />
+
+      <TablaJornadas dias={dias} enCurso={r.enCurso} titulo="Fortuna Dorada por jornada" ayuda="Giros de la ruleta: tickets (por giro o por bonus) y puntos que ganaron."
+        cols={['Giros', 'Socios que giraron', 'Tickets', 'Plata en tickets', 'Puntos ganados']}
+        fila={x => [guion(x.giros), guion(x.giradores), guion(x.fortunaTickets), guionPlata(x.fortunaPesos), guion(x.pts?.fortuna)]}
+        total={[n(sum('giros')), '', n(sum('fortunaTickets')), plata(r.plata?.fortuna), n(sumPts('fortuna'))]} />
+
+      <TablaJornadas dias={dias} enCurso={r.enCurso} titulo="La Gran Pesca por jornada" ayuda="Juego del día: el pez Jackpoints da un ticket de $5.000; los puntos son de los peces de puntos y de los premios a los 3 mejores."
+        cols={['Partidas', 'Socios que jugaron', 'Pez ticket: salió', 'Pez ticket: atrapado', 'Plata en tickets', 'Puntos ganados']}
+        fila={(x, d) => [guion(x.pescaPartidas), guion(x.pescadores), guion(r.pescaEsp[d]?.ticketSalio), guion(r.pescaEsp[d]?.ticketAtrapado), guionPlata(x.pescaPesos), guion(x.pts?.pesca)]}
+        total={[n(sum('pescaPartidas')), `${n(r.pesca?.socios)} únicos`, n(esp.ts), `${n(esp.ta)} (${pct(esp.ta, esp.ts)})`, plata(r.plata?.pesca), n(sumPts('pesca'))]} />
+
+      <TablaJornadas dias={dias} enCurso={r.enCurso} titulo="De dónde salieron los puntos" ayuda="Puntos acreditados a los socios cada día, según el motivo. Regalos = Día de la Madre, cumpleaños y cargas a mano."
+        cols={['Por visita', 'Bienvenida', 'Fortuna Dorada', 'La Gran Pesca', 'Regalos', 'Total']}
+        fila={x => [guion(x.pts?.visitas), guion(x.pts?.bienvenida), guion(x.pts?.fortuna), guion(x.pts?.pesca), guion(x.pts?.otros), n(x.ptsEmitidos)]}
+        total={[n(sumPts('visitas')), n(sumPts('bienvenida')), n(sumPts('fortuna')), n(sumPts('pesca')), n(sumPts('otros')), n(sum('ptsEmitidos'))]} />
 
       <div className="rep__dos">
         <section className="rep__caja">
