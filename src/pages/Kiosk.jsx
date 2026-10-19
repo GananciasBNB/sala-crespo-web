@@ -739,6 +739,17 @@ export default function Kiosk() {
       if (!/hoy/i.test(err.message || '')) setErr('No pudimos canjear el pack. Probá de nuevo o consultá en la barra.')
     }
   }
+  // Right after the free coupon prints: offer the points pack (spends points, the pack is the upsell)
+  function ofrecerPack() {
+    if (!vinculada || packEstado || !pack?.disponible || !pack.puede || balance < pack.points) return
+    setTimeout(() => setConfirmar({
+      titulo: `¿QUERÉS ${pack.size} CUPONES MÁS?`,
+      texto: `Más cupones en la urna, más chances de ganar los $${sorteoMonto.toLocaleString('es-AR')}. Canjeá ${pack.size} cupones por ${pack.points.toLocaleString('es-AR')} puntos (te quedan ${(balance - pack.points).toLocaleString('es-AR')}).`,
+      okLabel: `SÍ, QUIERO ${pack.size} MÁS`,
+      cancelLabel: 'NO, GRACIAS',
+      onOk: () => ejecutarPack(),
+    }), 2500)   // let the coupon voice play and the "imprimiendo" state show first
+  }
   async function imprimirCupon() {
     if (cuponEstado) return
     setCuponEstado('imprimiendo')
@@ -746,6 +757,7 @@ export default function Kiosk() {
       const r = await loyaltyRaffleTicket(player.token)   // registra el cupon y lo manda a la termica
       voz('cupon')
       lastActRef.current = Date.now()
+      ofrecerPack()
       setTimeout(() => setCuponEstado(r.puede && !DEMO ? '' : 'listo'), 3500)
       if (DEMO) setTimeout(() => setCuponEstado(''), 9500) // demo: show 'listo', then allow another
     } catch (err) {
@@ -1342,7 +1354,7 @@ export default function Kiosk() {
             <div className="kiosk__hub-title">{confirmar.titulo}</div>
             <p className="kiosk__carta-txt kiosk__confirm-txt">{confirmar.texto}</p>
             <div className="kiosk__confirm-btns">
-              <button className="kiosk__cta kiosk__cta--hub kiosk__cta--pack" onClick={() => setConfirmar(null)}>NO, VOLVER</button>
+              <button className="kiosk__cta kiosk__cta--hub kiosk__cta--pack" onClick={() => setConfirmar(null)}>{confirmar.cancelLabel || 'NO, VOLVER'}</button>
               <button className="kiosk__cta kiosk__cta--hub" onClick={() => { const ok = confirmar.onOk; setConfirmar(null); ok() }}>{confirmar.okLabel}</button>
             </div>
           </div>

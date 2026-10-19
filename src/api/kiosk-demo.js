@@ -10,7 +10,7 @@ const SPINS_PER_WINDOW = 3
 const WINDOW_MS = 3 * 60 * 60 * 1000
 const DEMO_GIFT = 100000 // demo-only points so testers can try every redemption
 // Demo: no daily limit on coupons or packs, so testers can repeat them
-const PACK = { size: 10, points: 150, perDay: 999 }
+const PACK = { size: 5, points: 150, perDay: 999 }
 const TICKETS_PER_DAY = 999
 
 export const isKioskDemo = () => {
