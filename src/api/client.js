@@ -810,3 +810,9 @@ export const kioskInscribeTournament = (data) =>
 // Pack de cupones canjeado con puntos (10 por 150 pts, 1 por día; se ajusta en el panel)
 export const loyaltyRafflePack = (token) =>
   api('/api/loyalty/raffle-pack', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
+
+// "Contanos de vos": profile questions for points (kiosk only)
+export const encuestaEstado = (token) =>
+  api('/api/club/encuesta', { headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const encuestaResponder = (token, { id, valores, texto }) =>
+  api('/api/club/encuesta', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() }, body: kioskBody({ id, valores, texto }) })
