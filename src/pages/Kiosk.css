@@ -1002,8 +1002,9 @@
 .kiosk__enc-prog { font-size: 13px; color: var(--text2); margin-top: -4px; }
 .kiosk__enc-titulo { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 32px; line-height: 1.2; color: #fdf6e6; margin-top: 6px; }
 .kiosk__enc-ayuda { font-size: 15px; color: var(--gold); margin-top: -6px; }
-.kiosk__enc-ops { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 4px; }
-.kiosk__enc-ops--muchas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kiosk__enc-ops { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; align-self: stretch; }
+/* --cols per row; a shorter last row grows to fill the width so the edges stay even */
+.kiosk__enc-ops > .kiosk__enc-op { flex: 1 1 calc((100% - (var(--cols, 2) - 1) * 10px) / var(--cols, 2)); }
 .kiosk__enc-op {
   min-height: 64px; padding: 10px 12px; border-radius: 14px; cursor: pointer; touch-action: manipulation;
   display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; overflow-wrap: anywhere;
@@ -1031,7 +1032,7 @@
 @keyframes kioskEncGanado { 0% { opacity: 0; transform: translate(-50%, 10px); } 15%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -12px); } }
 .kiosk__enc-fin { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 10px 0; }
 @media (max-width: 700px) {
-  .kiosk__enc-ops, .kiosk__enc-ops--muchas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kiosk__enc-ops > .kiosk__enc-op { flex-basis: calc((100% - 10px) / 2); }
   .kiosk__enc-titulo { font-size: 24px; }
   .kiosk__enc-op { font-size: 16px; min-height: 54px; }
 }

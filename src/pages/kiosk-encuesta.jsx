@@ -6,6 +6,10 @@ import { useEffect, useRef, useState } from 'react'
 // round; when the round runs out it says how many are left, with a way to see the
 // skipped ones again. Typed fields are always optional (contact data we don't have,
 // "Otra", a date as day + month).
+// columns per number of options so rows look even (3 -> 3, 4 -> 2+2, 7 -> 4+3, 8 -> 4+4, 12 -> 3 per row);
+// a shorter last row stretches to the full width (see .kiosk__enc-op flex-grow)
+const COLUMNAS = { 1: 1, 2: 2, 3: 3, 4: 2, 5: 3, 6: 3, 7: 4, 8: 4, 9: 3, 12: 3 }
+const columnas = n => COLUMNAS[n] || 4
 const EMAIL_OK = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
 /** '2503' -> '25/03' (the date field types digits only) */
 export const fechaVista = d => (d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2, 4)}` : d)
@@ -115,7 +119,7 @@ export default function KioskEncuesta({ estado, texto, setTexto, inputProps, onC
           <>
             <div className="kiosk__enc-titulo">{q.titulo}</div>
             {q.multi && <div className="kiosk__enc-ayuda">Podés marcar varias</div>}
-            <div className={`kiosk__enc-ops${q.opciones.length > 6 ? ' kiosk__enc-ops--muchas' : ''}`}>
+            <div className="kiosk__enc-ops" style={{ '--cols': columnas(q.opciones.length) }}>
               {q.opciones.map(op => (
                 <button key={op} type="button" disabled={busy}
                   className={`kiosk__enc-op${sel.includes(op) ? ' on' : ''}`} onClick={() => tocar(op)}>
