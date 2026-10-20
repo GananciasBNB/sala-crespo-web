@@ -22,7 +22,7 @@ export const PREGUNTAS = [
     opciones: ['Crespo', 'Paraná', 'Ramírez', 'Libertador San Martín', 'Seguí', 'Viale', 'Diamante', 'Otra'],
     texto: { Otra: { modo: 'name', label: '¿De dónde sos? (opcional)', ph: 'Ej. Hasenkamp' } },
   },
-  { id: 'genero', titulo: 'Sos…', opciones: ['Mujer', 'Hombre', 'Prefiero no decir'] },
+  { id: 'genero', titulo: 'Sos…', opciones: ['Mujer', 'Hombre'] },
   { id: 'hijos', titulo: '¿Tenés hijos?', opciones: ['No', 'Sí, menores de 18', 'Sí, mayores de 18', 'Sí, de las dos edades'] },
   {
     id: 'ocupacion', titulo: '¿A qué te dedicás?',
