@@ -3,7 +3,6 @@ import * as realApi from '../api/client'
 import * as demoApi from '../api/kiosk-demo'
 import './Kiosk.css'
 import KioskKeyboard from './kiosk-keyboard'
-import KioskEncuesta from './kiosk-encuesta'
 import { sugerencias } from './kiosk-suggest'
 import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa } from './kiosk-art'
 
@@ -12,9 +11,7 @@ import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconT
 const DEMO = demoApi.isKioskDemo()
 // /kiosk?demo=1&madre=ver opens the Día de la Madre pop-up straight away (preview, nothing real)
 const VER_MADRE = DEMO && new URLSearchParams(window.location.search).get('madre') === 'ver'
-// /kiosk?demo=1&encuesta=ver logs a test member in and opens 'Contanos de vos' straight away (preview)
-const VER_ENCUESTA = DEMO && new URLSearchParams(window.location.search).get('encuesta') === 'ver'
-const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider, diaMadreEstado, diaMadrePuntos, diaMadreCupon, encuestaEstado, encuestaResponder } = DEMO ? demoApi : realApi
+const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider, diaMadreEstado, diaMadrePuntos, diaMadreCupon } = DEMO ? demoApi : realApi
 const { API_BASE } = realApi
 const kioskKey = DEMO ? () => 'demo' : realApi.kioskKey
 
@@ -142,8 +139,7 @@ function FortunaEstado({ token, refreshKey, onJugar, art }) {
         {left === 1 ? '¡Te queda 1 giro en esta ronda!' : `Tenés ${left} giros gratis · premios y puntos`}
       </div>
       {art}
-      {/* pulses like La Gran Pesca's JUGAR: this button only shows while there are spins left */}
-      <button className="kiosk__cta kiosk__cta--hub kiosk__cta--late" onClick={onJugar}>JUGÁ AHORA</button>
+      <button className="kiosk__cta kiosk__cta--hub" onClick={onJugar}>JUGÁ AHORA</button>
     </>
   )
 }
@@ -346,11 +342,6 @@ export default function Kiosk() {
   const [checkin, setCheckin] = useState(null)
   // Cumpleaños: el socio lo carga una vez desde la burbuja de la Home (DDMMAAAA)
   const [showCumple, setShowCumple] = useState(false)
-  // "Contanos de vos": profile questions for points (the server sends the pending ones)
-  const [showEncuesta, setShowEncuesta] = useState(false)
-  const [encuesta, setEncuesta] = useState(null)
-  const [encTexto, setEncTexto] = useState('')
-  const [encCampo, setEncCampo] = useState(null)   // { modo, label, ph } of the field being typed
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
   const [madre, setMadre] = useState(null)
   // preview: a first tap opens it, so the browser lets the music and the greeting play like at the cabinet
@@ -406,7 +397,7 @@ export default function Kiosk() {
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false); setShowPesca(false); setRanking(null); setPescaInfo(null)
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setPescaTerminada(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
-    setMadre(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
+    setMadre(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
 
   // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
@@ -452,7 +443,7 @@ export default function Kiosk() {
     if (screen !== 'idle' && screen !== 'done') idleTimer.current = setTimeout(reset, IDLE_MS)
     return () => idleTimer.current && clearTimeout(idleTimer.current)
   }, [screen, dni, pin, reg, reset])
-  useEffect(() => { lastActRef.current = Date.now() }, [screen, showCarta, showMovs, showCanjes, showGiro, showPesca, ranking, showEncuesta])
+  useEffect(() => { lastActRef.current = Date.now() }, [screen, showCarta, showMovs, showCanjes, showGiro, showPesca, ranking])
 
   // Música del Club: arranca al cargar (con el flag de kiosk) o al primer toque;
   // se pausa mientras el juego está abierto y vuelve al cerrarlo.
@@ -824,45 +815,6 @@ export default function Kiosk() {
     } finally { setCumpleBusy(false) }
   }
 
-  useEffect(() => {
-    if (screen !== 'done' || !player?.token) return
-    encuestaEstado(player.token).then(setEncuesta).catch(e => { console.warn('encuesta:', e.message); setEncuesta(null) })
-  }, [screen, player?.token]) // eslint-disable-line react-hooks/exhaustive-deps
-  const hayEncuesta = !!encuesta?.preguntas?.length
-  // preview link: test member (no email / phone, so the contact fields show up) and the panel open
-  const encuestaAbiertaRef = useRef(false)
-  useEffect(() => {
-    if (!VER_ENCUESTA) return
-    const DNI_PRUEBA = '99887766', PIN_PRUEBA = '1234'
-    ;(async () => {
-      try {
-        let jugador
-        try { jugador = await kioskLogin(DNI_PRUEBA, PIN_PRUEBA) }
-        catch { jugador = (await kioskSignup({ dni: DNI_PRUEBA, name: 'Socio Prueba', tel: '', email: '', pin: PIN_PRUEBA, acceptTerms: true })).player }
-        const c = await loyaltyCheckin(jugador.token).catch(() => null)
-        setPlayer(jugador); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
-      } catch (e) { console.error('vista previa encuesta:', e) }
-    })()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (VER_ENCUESTA && encuesta && !encuestaAbiertaRef.current) { encuestaAbiertaRef.current = true; setShowEncuesta(true) }
-  }, [encuesta])
-  function abrirEncuesta() { voz('ui-tap', 0.7); setEncTexto(''); setShowEncuesta(true) }
-  function cerrarEncuesta() { setKb(null); setEncCampo(null); setShowEncuesta(false) }
-  async function responderEncuesta(respuesta) {
-    if (!vinculada) throw new Error(SOLO_EN_SALA)
-    const r = await encuestaResponder(player.token, respuesta)
-    setEncuesta(r)
-    if (typeof r.balance === 'number') setBalance(r.balance)
-    // a phone / email typed here is now on file: keep 'Mis datos' in sync
-    if (respuesta.id === 'contacto' && respuesta.texto) {
-      const campo = respuesta.texto.includes('@') ? 'email' : 'tel'
-      setPlayer(p => (p && !p[campo] ? { ...p, [campo]: respuesta.texto } : p))
-    }
-    voz('ui-tap', 0.7)
-    return r
-  }
-
   async function submitDni() {
     if (!vinculada) { setErr(SOLO_EN_SALA); return }
     if (!/^\d{7,8}$/.test(dni)) { setErr('El DNI son 7 u 8 números'); return }
@@ -942,10 +894,9 @@ export default function Kiosk() {
     email: { mode: 'email', label: 'Email (opcional)', ph: 'tu@email.com', max: 80, get: () => reg.email, set: v => setReg(r => ({ ...r, email: v })), next: null },
     dtel: { mode: 'num', label: 'Teléfono', ph: 'Ej. 343 4123456', max: 15, get: () => datosForm.tel, set: v => setDatosForm(f => ({ ...f, tel: v })), next: 'demail' },
     demail: { mode: 'email', label: 'Email', ph: 'tu@email.com', max: 80, get: () => datosForm.email, set: v => setDatosForm(f => ({ ...f, email: v })), next: null },
-    qtexto: { mode: encCampo?.modo === 'fecha' ? 'num' : (encCampo?.modo || 'name'), label: encCampo?.label || 'Tu respuesta', ph: encCampo?.ph || '', max: encCampo?.modo === 'fecha' ? 4 : 80, get: () => encTexto, set: v => setEncTexto(v), next: null },
   }
   // only while its form is on screen (leaving the screen hides it without extra cleanup)
-  const kbVisible = kb && ((kb === 'qtexto' && showEncuesta) || (kb !== 'qtexto' && ((screen === 'register' && !kb.startsWith('d')) || (showDatos && kb.startsWith('d')))))
+  const kbVisible = kb && ((screen === 'register' && !kb.startsWith('d')) || (showDatos && kb.startsWith('d')))
   const kbCampo = kbVisible ? KB[kb] : null
   function kbKey(k) {
     if (!kbCampo) return
@@ -1163,8 +1114,6 @@ export default function Kiosk() {
           <div className="kiosk__done-saludo">
             <div className="kiosk__done-kicker">{esNuevo ? '¡Ya sos parte del Club!' : '¡Hola de nuevo!'}</div>
             <h1 className="kiosk__done-name">{firstName}</h1>
-            {/* inside the name box: the right corner only keeps the invitations (birthday, survey) */}
-            {checkin?.alreadyToday && <div className="kiosk__done-visita">✓ Visita de hoy registrada</div>}
           </div>
           <img className="kiosk__done-logo" src="/jackpoints/logo.webp" alt="Jackpoints" onError={e => { e.target.style.display = 'none' }} />
 
@@ -1178,18 +1127,13 @@ export default function Kiosk() {
               <div className="kiosk__done-earned kiosk__done-earned--cumple"><IconoTorta size={30} /> ¡Feliz cumpleaños! +{checkin.birthday.points} puntos de regalo</div>
             </div>
           )}
-          {(faltaCumple || hayEncuesta) && (
+          {(checkin?.alreadyToday || faltaCumple) && (
             <div className="kiosk__corner-stack">
+              {checkin?.alreadyToday && <div className="kiosk__visita-corner">✓ Visita de hoy registrada</div>}
               {faltaCumple && (
                 <button className="kiosk__cumple-bubble" onClick={abrirCumple}>
                   <span className="kiosk__cumple-ring"><IconoTorta size={34} /></span>
                   <span className="kiosk__cumple-txt"><small>Regalo especial</small>¿Cuándo es tu cumple?</span>
-                </button>
-              )}
-              {hayEncuesta && (
-                <button className="kiosk__cumple-bubble kiosk__enc-bubble" onClick={abrirEncuesta}>
-                  <span className="kiosk__cumple-ring">💬</span>
-                  <span className="kiosk__cumple-txt"><small>+{encuesta.puntos} puntos por respuesta</small>Contanos de vos</span>
                 </button>
               )}
             </div>
@@ -1362,10 +1306,6 @@ export default function Kiosk() {
         </div>
       )}
 
-      {showEncuesta && (
-        <KioskEncuesta estado={encuesta} texto={encTexto} setTexto={setEncTexto} inputProps={kbInput('qtexto')}
-          onCampo={c => { setEncCampo(c); if (!c) setKb(k => (k === 'qtexto' ? null : k)) }} onResponder={responderEncuesta} onCerrar={cerrarEncuesta} />
-      )}
       {showCumple && (
         <div className="kiosk__carta" onClick={() => setShowCumple(false)}>
           <div className="kiosk__carta-panel kiosk__cumple-panel" onClick={e => e.stopPropagation()}>

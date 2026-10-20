@@ -21,7 +21,7 @@ function GoldDefs({ id }) {
 // Slot mini screen: real capture of Fortuna Dorada's reels
 export function ArtFortuna() {
   return (
-    <div className="kiosk-art kiosk-art--screen kiosk-art--fortuna" aria-hidden="true">
+    <div className="kiosk-art kiosk-art--screen" aria-hidden="true">
       <img src="/kiosk-art/fortuna-mini.webp" alt="" draggable="false" />
       <span className="kiosk-art__shine" />
     </div>
