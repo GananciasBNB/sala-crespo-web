@@ -4,6 +4,7 @@
 // Only the public read-only endpoints (catalog, active tournament) hit the server
 // so the tester sees the real prizes and the real tournament.
 import { getLoyaltyCatalog as realCatalog, getActiveTournament as realTournament } from './client'
+import { PREGUNTAS, PUNTOS_POR_RESPUESTA } from './encuesta-preguntas'
 
 const STORE_KEY = 'kiosk_demo_v1'
 const SPINS_PER_WINDOW = 3
@@ -280,3 +281,28 @@ export async function pescaRanking(token) {
     anteriores: { fecha: ayer, ganadores: [{ posicion: 1, nombre: 'Roberto A.', puntaje: 2810, puntos: 500 }, { posicion: 2, nombre: 'Laura B.', puntaje: 2455, puntos: 300 }, { posicion: 3, nombre: 'Jorge D.', puntaje: 2120, puntos: 200 }] } }
 }
 export async function pescaLider() { await wait(100); return { lider: { nombre: 'María G.', puntaje: 2340 } } }
+
+// ── "Contanos de vos" (demo): answers live in the demo store, points are made up ──
+function encuestaVista(p) {
+  const r = p.encuesta || {}
+  return {
+    preguntas: PREGUNTAS.filter(q => !r[q.id]), respondidas: Object.keys(r).length, total: PREGUNTAS.length,
+    puntos: PUNTOS_POR_RESPUESTA, tieneEmail: !!p.email, tieneTel: !!p.tel,
+  }
+}
+export async function encuestaEstado(token) { await wait(150); return encuestaVista(getPlayer(load(), token)) }
+export async function encuestaResponder(token, { id, valores, texto }) {
+  await wait()
+  const db = load(); const p = getPlayer(db, token)
+  const q = PREGUNTAS.find(x => x.id === id)
+  if (!q) throw new Error('Pregunta desconocida')
+  if (!Array.isArray(valores) || !valores.length || valores.some(v => !q.opciones.includes(v))) throw new Error('Elegí una opción')
+  p.encuesta ||= {}
+  if (p.encuesta[id]) throw new Error('Esa pregunta ya la respondiste')
+  p.encuesta[id] = { valores, texto: texto || null }
+  // contact data typed in the survey fills what the member didn't have
+  if (id === 'contacto' && texto) { if (texto.includes('@')) { if (!p.email) p.email = texto } else if (!p.tel) p.tel = texto }
+  addTx(p, 'earn_survey', PUNTOS_POR_RESPUESTA, `Contanos de vos: ${q.titulo}`)
+  save(db)
+  return { ok: true, puntos: PUNTOS_POR_RESPUESTA, balance: p.balance, ...encuestaVista(p) }
+}

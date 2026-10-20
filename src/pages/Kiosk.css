@@ -979,3 +979,67 @@
   color: #0b1a33; background: linear-gradient(180deg, #fff6cf, #ffd75a 50%, #e0a92e); border: 3px solid #fffbe8;
   font-size: 20px; font-weight: 700; animation: kvolver 1.4s ease-in-out infinite;
 }
+
+/* ───────── "Contanos de vos": profile questions for points ───────── */
+.kiosk__enc-bubble .kiosk__cumple-ring { font-size: 26px; }
+.kiosk__enc-panel { position: relative; max-width: 760px; width: 100%; text-align: center; gap: 12px; max-height: 92vh; overflow-y: auto; }
+.kiosk--kb .kiosk__enc-panel { max-height: 52vh; }
+.kiosk__enc-top { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.kiosk__enc-kicker { font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 3px; color: var(--gold); text-align: left; }
+/* closing must be obvious and impossible to mix up with skipping */
+.kiosk__enc-cerrar {
+  flex: none; cursor: pointer; padding: 14px 22px; border-radius: 14px; touch-action: manipulation;
+  background: rgba(150,40,40,.25); border: 2px solid rgba(255,138,122,.65); color: #ffd9d2;
+  font: 700 18px 'Oswald', var(--font-body); letter-spacing: 2px;
+}
+.kiosk__enc-otra {
+  align-self: center; cursor: pointer; padding: 14px 24px; border-radius: 14px; touch-action: manipulation;
+  background: rgba(255,255,255,.04); border: 1.5px dashed rgba(240,210,117,.45); color: #e6dccb;
+  font-family: var(--font-body); font-weight: 600; font-size: 17px;
+}
+.kiosk__enc-barra { align-self: stretch; height: 8px; border-radius: 6px; background: rgba(255,255,255,.12); overflow: hidden; margin: 0 40px; }
+.kiosk__enc-barra i { display: block; height: 100%; background: linear-gradient(90deg, #c9a84c, #f0d275); transition: width .4s; }
+.kiosk__enc-prog { font-size: 13px; color: var(--text2); margin-top: -4px; }
+.kiosk__enc-titulo { font-family: 'Playfair Display', Georgia, serif; font-weight: 700; font-size: 32px; line-height: 1.2; color: #fdf6e6; margin-top: 6px; }
+.kiosk__enc-ayuda { font-size: 15px; color: var(--gold); margin-top: -6px; }
+.kiosk__enc-ops { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 4px; }
+.kiosk__enc-ops--muchas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kiosk__enc-op {
+  min-height: 64px; padding: 10px 12px; border-radius: 14px; cursor: pointer; touch-action: manipulation;
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 0; overflow-wrap: anywhere;
+  background: #0b1a33; border: 2px solid rgba(240,210,117,.3); color: #fdf6e6;
+  font-family: var(--font-body); font-weight: 600; font-size: 19px;
+}
+.kiosk__enc-op.on { border-color: var(--gold); background: rgba(240,210,117,.14); box-shadow: 0 0 14px rgba(240,210,117,.25); }
+.kiosk__enc-check {
+  width: 24px; height: 24px; flex: none; border-radius: 6px; border: 2px solid rgba(240,210,117,.6);
+  display: grid; place-items: center; font-size: 15px; color: var(--gold);
+}
+.kiosk__enc-campo { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+.kiosk__enc-campo span { font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; }
+.kiosk__enc-campo input {
+  width: 100%; padding: 14px 16px; border-radius: 12px; background: #091325; color: #fdf6e6;
+  border: 2px solid var(--gold); font-size: 22px; font-family: var(--font-body);
+}
+.kiosk__enc-guardar { align-self: center; min-width: 300px; margin: 4px 0 0; }
+.kiosk__enc-ganado {
+  position: absolute; top: 76px; left: 50%; transform: translateX(-50%); z-index: 3; pointer-events: none;
+  padding: 10px 26px; border-radius: 30px; background: linear-gradient(180deg, #fff1b8, #f0d275 55%, #c9a84c);
+  color: #2a1606; font: 700 22px 'Oswald', var(--font-body); letter-spacing: 1px; box-shadow: 0 8px 22px rgba(0,0,0,.5);
+  animation: kioskEncGanado 1.4s ease-out forwards;
+}
+@keyframes kioskEncGanado { 0% { opacity: 0; transform: translate(-50%, 10px); } 15%, 75% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -12px); } }
+.kiosk__enc-fin { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 10px 0; }
+@media (max-width: 700px) {
+  .kiosk__enc-ops, .kiosk__enc-ops--muchas { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kiosk__enc-titulo { font-size: 24px; }
+  .kiosk__enc-op { font-size: 16px; min-height: 54px; }
+}
+/* the panel scrolls when the field + keyboard don't fit: its children must never shrink
+   (the GUARDAR button was being squashed to a sliver) */
+.kiosk__enc-panel > * { flex-shrink: 0; }
+.kiosk__enc-campo { align-self: stretch; }
+.kiosk__done-visita { margin-top: 6px; font-family: 'Oswald', var(--font-body); font-size: 13px; letter-spacing: 1.5px; color: var(--text2); }
+/* Fortuna Dorada thumbnail = the real v2 board (3x3 + its own gold frame, 560x458) */
+.kiosk-art--screen.kiosk-art--fortuna { aspect-ratio: 560 / 458; border: 0; border-radius: 8px; box-shadow: 0 0 18px rgba(201,168,76,.3); }
+.kiosk__juego-arte .kiosk-art--fortuna, .kiosk__hub--a .kiosk__juego-arte .kiosk-art--fortuna { height: 230px; }
