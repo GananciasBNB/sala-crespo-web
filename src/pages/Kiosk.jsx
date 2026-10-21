@@ -490,7 +490,8 @@ export default function Kiosk() {
           setPescaTerminada(true)
           const { token, puntaje, atrapados, mejorRacha, dorados } = e.data
           pescaTerminar(player.token, { token, puntaje, atrapados, mejorRacha, dorados, especialAtrapado: e.data.especialAtrapado === true })
-            .then(r => { responder({ ok: true, ...r }); refrescarPesca() })
+            // a points fish is credited on the server: bring balance and movements up to date (like Fortuna does)
+            .then(r => { responder({ ok: true, ...r }); refrescarPesca(); if (r?.premioEspecial) refrescarCuenta() })
             .catch(err => { console.error('pesca terminar:', err); responder({ ok: false }) })
         } else if (e.data.tipo === 'pesca-ranking') { setShowPesca(false); abrirRanking() }
         return
