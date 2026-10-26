@@ -18,13 +18,13 @@ const PASOS = [
 ]
 
 const BENEFICIOS = [
-  { i: 'star', t: 'Puntos por visita', d: '50 puntos cada día que venís, hagas lo que hagas. Constancia que se convierte en consumo.', k: 'Todos los días' },
+  { i: 'star', t: 'Puntos por visita', d: '50 puntos cada día que venís, hagas lo que hagas. Y si respondés "Contanos de vos" en la máquina, sumás 20 puntos más por cada pregunta.', k: 'Todos los días' },
   { i: 'slot', t: 'Fortuna Dorada', d: 'El slot de la máquina. 3 giros cada 3 horas, con premios de hasta 500 puntos y tickets promocionales de $5.000.', k: 'Cada visita' },
   { i: 'fish', t: 'La Gran Pesca', d: 'El juego del día: 30 segundos para atrapar peces con la red. Los 3 mejores del día ganan 500, 300 y 200 puntos, y si atrapás un pez especial te llevás un ticket de $5.000 o puntos extra.', k: 'Nuevo · todos los días' },
-  { i: 'ticket', t: 'Sorteo del mes', d: 'Un cupón por visita para el sorteo mensual de $150.000 en tickets. ¿Querés más chances? Canjeá un pack de 10 cupones por 150 puntos.', k: '$150.000 por mes' },
+  { i: 'ticket', t: 'Sorteo del mes', d: 'Un cupón por visita para el sorteo mensual de $150.000 en tickets. ¿Querés más chances? Canjeá un pack de 5 cupones por 150 puntos.', k: '$150.000 por mes' },
   { i: 'bag', t: 'Bebidas, comidas y tickets', d: 'Canjeá tus puntos por lo que quieras de la carta o por tickets promocionales para jugar. Cupón en mano, retirás en la barra.', k: 'Con tus puntos' },
   { i: 'trophy', t: 'Torneos de slots', d: 'Anotate a los torneos directamente desde la máquina. Torneos mensuales que clasifican a una Gran Final por $2.000.000 en tickets.', k: 'Gran Final en diciembre' },
-  { i: 'mail', t: 'Bebida de cortesía', d: 'Dejanos tu email al sumarte y te llega una bebida de cortesía para tu próxima visita. Además te avisamos de shows, torneos y promos.', k: 'Al registrarte' },
+  { i: 'mail', t: 'Bebida de cortesía', d: 'Dejanos tu email al sumarte y te llega una bebida de cortesía para tu próxima visita (una por persona). Además te avisamos de shows, torneos y promos.', k: 'Al registrarte' },
 ]
 
 const ICONOS = {
@@ -140,10 +140,10 @@ export default function Jackpoints() {
           <div className="jp__sorteo">
             <div className="jp__eyebrow">Sorteo del mes</div>
             <div className="jp__big">$150.000</div>
-            <p>en tickets, todos los meses, entre los cupones de la urna. Cada visita te da un cupón. Y con 150 puntos te llevás un pack de 10 cupones más.</p>
+            <p>en tickets, todos los meses, entre los cupones de la urna. Cada visita te da un cupón. Y con 150 puntos te llevás un pack de 5 cupones más.</p>
             <div className="jp__pills">
               <span><b>1</b> cupón por visita, gratis</span>
-              <span><b>+10</b> cupones por 150 puntos</span>
+              <span><b>+5</b> cupones por 150 puntos</span>
               <span><b>1</b> pack por día</span>
             </div>
           </div>
@@ -159,9 +159,9 @@ export default function Jackpoints() {
             <div><b>Bebidas</b><span>Gaseosas, aguas, cervezas y tragos de la barra.</span></div>
             <div><b>Comidas</b><span>Picadas, sándwiches y lo que salga de la cocina.</span></div>
             <div><b>Tickets promocionales</b><span>Para jugar en la sala, en distintos valores.</span></div>
-            <div><b>Cupones del sorteo</b><span>Pack de 10 por 150 puntos. Más chances al mes.</span></div>
+            <div><b>Cupones del sorteo</b><span>Pack de 5 por 150 puntos. Más chances al mes.</span></div>
           </div>
-          <p className="jp__note">Elegís en la máquina, se imprime tu cupón y lo retirás en la barra. Los canjes no vencen: cuando quieras, lo pasás a buscar.</p>
+          <p className="jp__note">Elegís en la máquina, se imprime tu cupón y lo retirás en la barra. Los canjes con puntos no vencen: cuando quieras, lo pasás a buscar. Los tickets que ganás en Fortuna Dorada o en La Gran Pesca valen 7 días (la fecha va impresa en el cupón).</p>
         </div>
       </section>
 
