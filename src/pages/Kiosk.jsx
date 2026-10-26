@@ -703,7 +703,9 @@ export default function Kiosk() {
   const [datosBusy, setDatosBusy] = useState(false)
   const telActual = player?.tel || lookup?.player?.tel || ''
   const emailActual = player?.email || lookup?.player?.email || ''
-  const faltanDatos = !datosOk && (!telActual || !emailActual)
+  // the courtesy is once per email/phone for life: only offer it if this member can still get it
+  const ofrecerCortesia = !emailActual && lookup?.player?.cortesiaDisponible !== false
+  const faltanDatos = !datosOk && (!telActual || ofrecerCortesia)
   function abrirDatos() {
     voz('mis-datos')
     setDatosForm({ tel: telActual, email: emailActual })
@@ -722,7 +724,7 @@ export default function Kiosk() {
       setPlayer(p => p ? { ...p, tel: telNuevo, email: emailNuevo } : p)
       setDatosOk(true); setShowDatos(false)
       // the backend sends the courtesy voucher only on the FIRST email saved
-      voz(!emailActual && emailNuevo ? 'cortesia-email' : 'ui-tap', !emailActual && emailNuevo ? 0.95 : 0.7)
+      voz(ofrecerCortesia && emailNuevo ? 'cortesia-email' : 'ui-tap', ofrecerCortesia && emailNuevo ? 0.95 : 0.7)
     } catch {
       setErr('No pudimos guardar tus datos. Consultá en la barra.')
     } finally { setDatosBusy(false) }
@@ -1240,7 +1242,7 @@ export default function Kiosk() {
             <button className="kiosk__mini-btn" onClick={() => { setShowCarta(true); voz('carta') }}>NUESTRA CARTA</button>
             {faltanDatos && (
               <button className="kiosk__datos-hint" onClick={abrirDatos}>
-                {!emailActual
+                {ofrecerCortesia
                   ? <><IconoBebida /> Ingresá tu email y recibí una cortesía</>
                   : 'Te falta cargar tu teléfono'}
               </button>
@@ -1479,7 +1481,7 @@ export default function Kiosk() {
                   placeholder="Ej. 3435 123456" />
               </label>
               <label className="kiosk__field">
-                <span>Email {!emailActual && <b className="kiosk__cortesia"><IconoBebida /> Completalo y recibí una bebida de cortesía</b>}</span>
+                <span>Email {ofrecerCortesia && <b className="kiosk__cortesia"><IconoBebida /> Completalo y recibí una bebida de cortesía</b>}</span>
                 <input type="email" value={datosForm.email} maxLength={80} autoComplete="off" {...kbInput('demail')}
                   onChange={e => setDatosForm(f => ({ ...f, email: e.target.value }))}
                   placeholder="tu@email.com" />
