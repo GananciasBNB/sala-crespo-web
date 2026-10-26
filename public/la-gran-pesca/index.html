@@ -42,6 +42,8 @@ const KIOSCO = params.get('kiosco') === '1' && window.parent !== window
 // special fish: in the kiosk the server draws it per game; locally ?especial=ticket|pts100|pts50 (&especialT=seconds)
 const ESPECIALES = ['ticket', 'pts100', 'pts50']
 const ESPECIAL_PRUEBA = !KIOSCO && ESPECIALES.includes(params.get('especial')) ? { tipo: params.get('especial'), t: Number(params.get('especialT')) || 8 } : null
+// testing only (outside the kiosk): ?finta=1 always feints, ?finta=0 never
+const FINTA_PRUEBA = !KIOSCO && ['0', '1'].includes(params.get('finta')) ? params.get('finta') === '1' : null
 let pedidoId = 0
 const esperas = {}
 let estadoKiosco = null   // { mejorHoy, intentosQuedan, proximoIntento }
@@ -411,6 +413,7 @@ async function main() {
     }
     c.x = ev.x0; c.y = ev.y0
     c.vy = -Math.sqrt(2 * g * (ev.y0 - ev.apex)); c.vx = ev.vx; c.g = g
+    c.finta = ev.finta || null; c.yAgua = ev.y0
     c.y0 = ev.y0
     c.scale.set(c.esc)
     fxItems.addChild(c); items.push(c)
@@ -422,6 +425,16 @@ async function main() {
     const s = ms / 1000
     for (const c of items) {
       if (c.estado === 'atrapado') continue
+      // Jackpoints fish feint: at the top of the jump it turns toward another point, recomputing
+      // its sideways speed so it still lands in the water; a flash and a sound give it away
+      if (c.finta && !c.fintaHecha && !c.estado && c.vy >= -60) {
+        c.fintaHecha = true
+        const caida = Math.max(.15, (-c.vy + Math.sqrt(c.vy * c.vy + 2 * c.g * Math.max(0, c.yAgua - c.y))) / c.g)
+        c.vx = (c.finta.xNuevo - c.x) / caida
+        anillo(c.x, c.y, 140, 600, .9)
+        if (c.halo) c.halo.alpha = 1
+        Sonido.tocar('racha', .7, 1.6)
+      }
       c.vy += c.g * s; c.x += c.vx * s; c.y += c.vy * s
       if (c.puntos) {
         const N = c.puntos.length
@@ -563,13 +576,25 @@ async function main() {
     const { g, apex, viaje } = TIPOS[e.tipo].salto, y0 = 880, vuelo = 2 * Math.sqrt(2 * g * (y0 - apex)) / g
     const lo = MIN_X + ARO.x + 40, hi = MAX_X + ARO.x - 40, medio = (lo + hi) / 2
     const red = bote.x + ARO.x
-    // lands in the half of the range far from the net: the player has to cross
-    const xFin = red < medio ? medio + Math.random() * (hi - medio) : lo + Math.random() * (medio - lo)
+    // points fish land in the half far from the net (the player has to cross). The Jackpoints
+    // fish (ticket) lands anywhere: players had learned to wait on the far side (catch rate
+    // went from 18% to 41%, Pacha 26/10/2026)
+    const xFin = e.tipo === 'ticket' ? lo + Math.random() * (hi - lo)
+      : red < medio ? medio + Math.random() * (hi - medio) : lo + Math.random() * (medio - lo)
     const lado = Math.random() < .5 ? 1 : -1
     let x0 = xFin + lado * (viaje[0] + Math.random() * (viaje[1] - viaje[0]))
     if (x0 < 160 || x0 > W - 160) x0 = xFin - lado * (viaje[0] + Math.random() * (viaje[1] - viaje[0]))
     x0 = Math.max(160, Math.min(W - 160, x0))
-    return { t: e.t, tipo: e.tipo, x0, y0, apex, g, vx: (xFin - x0) / vuelo }
+    // ...and about half of the times it feints at the top of the jump: it turns toward another
+    // point at least 280 px away (?finta=1 / ?finta=0 force it for testing)
+    let finta = null
+    const quiereFinta = FINTA_PRUEBA !== null ? FINTA_PRUEBA : Math.random() < .55
+    if (e.tipo === 'ticket' && quiereFinta) {
+      let xNuevo = xFin
+      for (let i = 0; i < 12 && Math.abs(xNuevo - xFin) < 280; i++) xNuevo = lo + Math.random() * (hi - lo)
+      if (Math.abs(xNuevo - xFin) >= 280) finta = { xNuevo }
+    }
+    return { t: e.t, tipo: e.tipo, x0, y0, apex, g, vx: (xFin - x0) / vuelo, finta }
   }
   function avisoEspecial(ev) {
     const color = TIPOS[ev.tipo].brillo

@@ -1044,3 +1044,23 @@
 /* Fortuna Dorada thumbnail = the real v2 board (3x3 + its own gold frame, 560x458) */
 .kiosk-art--screen.kiosk-art--fortuna { aspect-ratio: 560 / 458; border: 0; border-radius: 8px; box-shadow: 0 0 18px rgba(201,168,76,.3); }
 .kiosk__juego-arte .kiosk-art--fortuna, .kiosk__hub--a .kiosk__juego-arte .kiosk-art--fortuna { height: 230px; }
+
+/* ───────── Raffle reminder (fixed, next to the balance) + "te alcanza para" ───────── */
+.kiosk__saldo-sorteo {
+  display: inline-block; vertical-align: middle; margin-left: 14px; padding: 6px 14px; border-radius: 999px;
+  font-family: 'Oswald', var(--font-body); font-size: 15px; letter-spacing: .5px; color: #fff3c4;
+  background: rgba(240,210,117,.12); border: 1.5px solid rgba(240,210,117,.7);
+  animation: kioskSorteoLatido 2.4s ease-in-out infinite;
+}
+.kiosk__saldo-sorteo--hoy { background: rgba(240,210,117,.25); border-color: var(--gold-light); }
+@keyframes kioskSorteoLatido { 0%, 100% { box-shadow: 0 0 8px rgba(240,210,117,.15); } 50% { box-shadow: 0 0 20px rgba(240,210,117,.45); } }
+.kiosk__hub--a .kiosk__hub-card--sorteo { border-color: var(--gold-light); box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 22px rgba(240,210,117,.3), 0 10px 26px rgba(0,0,0,.55); }
+.kiosk__sorteo-cuando { display: block; color: var(--gold-light); font-size: 1.05em; text-transform: uppercase; letter-spacing: .5px; }
+.kiosk__alcance { color: var(--gold-light); }
+.kiosk__idle-sorteo {
+  display: flex; width: fit-content; max-width: 92%; margin: -6px auto 14px; padding: 8px 18px; border-radius: 999px; gap: 6px;
+  font-family: 'Oswald', var(--font-body); font-size: 17px; letter-spacing: 1px; color: #fff3c4;
+  background: rgba(10,20,38,.8); border: 1.5px solid var(--gold); animation: kioskSorteoLatido 2.4s ease-in-out infinite;
+}
+.kiosk__idle-sorteo b { color: var(--gold-light); }
+@media (max-width: 700px) { .kiosk__saldo-sorteo { display: block; width: fit-content; margin: 8px auto 0; font-size: 13px; } }

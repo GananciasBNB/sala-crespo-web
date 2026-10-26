@@ -188,6 +188,7 @@ export async function loyaltyRaffleStatus(token) {
   raffleDay(p); save(db)
   return {
     hoy: p.ticketsToday, limite: TICKETS_PER_DAY, puede: p.ticketsToday < TICKETS_PER_DAY, monto: 150000,
+    sorteo: { fecha: demoSorteo(), cupones: p.cupones || 0 },
     pack: { ...PACK, hoy: p.packsToday, disponible: true, puede: p.packsToday < PACK.perDay, alcanza: p.balance >= PACK.points },
   }
 }
@@ -196,7 +197,7 @@ export async function loyaltyRaffleTicket(token) {
   const db = load(); const p = getPlayer(db, token)
   raffleDay(p)
   if (p.ticketsToday >= TICKETS_PER_DAY) throw new Error('Ya imprimiste tu cupón de hoy.')
-  p.ticketsToday += 1; save(db)
+  p.ticketsToday += 1; p.cupones = (p.cupones || 0) + 1; save(db)
   return { ok: true, codigo: 'DEMO', hoy: p.ticketsToday, limite: TICKETS_PER_DAY, puede: true }
 }
 export async function loyaltyRafflePack(token) {
@@ -205,7 +206,7 @@ export async function loyaltyRafflePack(token) {
   raffleDay(p)
   if (p.packsToday >= PACK.perDay) throw new Error('Ya canjeaste tu pack de hoy.')
   if (p.balance < PACK.points) throw new Error('insufficient_balance')
-  p.packsToday += 1
+  p.packsToday += 1; p.cupones = (p.cupones || 0) + PACK.size
   addTx(p, 'redeem', -PACK.points, `Pack de ${PACK.size} cupones del sorteo`)
   save(db)
   return { ok: true, balance: p.balance }
@@ -280,7 +281,13 @@ export async function pescaRanking(token) {
   return { ...pescaVista(getPlayer(load(), token), 10), premios: [500, 300, 200],
     anteriores: { fecha: ayer, ganadores: [{ posicion: 1, nombre: 'Roberto A.', puntaje: 2810, puntos: 500 }, { posicion: 2, nombre: 'Laura B.', puntaje: 2455, puntos: 300 }, { posicion: 3, nombre: 'Jorge D.', puntaje: 2120, puntos: 200 }] } }
 }
-export async function pescaLider() { await wait(100); return { lider: { nombre: 'María G.', puntaje: 2340 } } }
+export async function pescaLider() { await wait(100); return { lider: { nombre: 'María G.', puntaje: 2340 }, sorteo: { fecha: demoSorteo(), monto: 150000 } } }
+// demo draw: next Thursday at 23:00 Argentina (the real date comes from the server)
+function demoSorteo() {
+  const ar = new Date(Date.now() - 3 * 3600e3), d = new Date(Date.UTC(ar.getUTCFullYear(), ar.getUTCMonth(), ar.getUTCDate()))
+  d.setUTCDate(d.getUTCDate() + ((4 - d.getUTCDay() + 7) % 7 || 7))
+  return new Date(d.getTime() + 26 * 3600e3).toISOString()   // 23:00 AR = 02:00 UTC next day
+}
 
 // ── "Contanos de vos" (demo): answers live in the demo store, points are made up ──
 function encuestaVista(p) {
