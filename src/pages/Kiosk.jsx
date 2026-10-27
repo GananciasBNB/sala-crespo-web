@@ -92,14 +92,15 @@ function SesionTimer({ lastActRef, paused, onExpirar, margen = SESION_MS }) {
 // yesterday's sala date in AR time (the sala day changes at 03:00 / 04:00, close enough for a label)
 const ayerISO = () => new Date(Date.now() - 3 * 3600e3 - 4 * 3600e3 - 86400e3).toISOString().slice(0, 10)
 
-// Next raffle draw for the fixed reminders: { dia: 'hoy' | 'jueves 29', hora: '23 h' }
+// Next raffle draw for the fixed reminders: { dia: 'hoy' | 'jueves 29', hora: '23 h', dias: calendar days left }
 const DIAS_SEMANA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
 function fmtSorteo(fecha) {
   const d = new Date(fecha)
   if (!fecha || Number.isNaN(d.getTime()) || d < new Date()) return null
   const ar = new Date(d.getTime() - 3 * 3600e3), hoyAr = new Date(Date.now() - 3 * 3600e3)
   const esHoy = ar.toISOString().slice(0, 10) === hoyAr.toISOString().slice(0, 10)
-  return { dia: esHoy ? 'hoy' : `${DIAS_SEMANA[ar.getUTCDay()]} ${ar.getUTCDate()}`, hora: `${ar.getUTCHours()} h`, esHoy }
+  const dias = Math.round((Date.parse(ar.toISOString().slice(0, 10)) - Date.parse(hoyAr.toISOString().slice(0, 10))) / 86400e3)
+  return { dia: esHoy ? 'hoy' : `${DIAS_SEMANA[ar.getUTCDay()]} ${ar.getUTCDate()}`, hora: `${ar.getUTCHours()} h`, esHoy, dias }
 }
 
 // La Gran Pesca: live countdown to the next attempt ("Otro intento en 2:14:05")
@@ -1227,14 +1228,31 @@ export default function Kiosk() {
             </div>
           )}
 
-          <div className="kiosk__saldo-line">Tenés <strong>{balance.toLocaleString('es-AR')}</strong> puntos
-            {/* fixed raffle reminder (Pacha: always visible, no pop-up) */}
-            {fmtSorteo(sorteo?.fecha) && (
-              <span className={`kiosk__saldo-sorteo${fmtSorteo(sorteo.fecha).esHoy ? ' kiosk__saldo-sorteo--hoy' : ''}`}>
-                🎟️ Sorteo ${sorteoMonto.toLocaleString('es-AR')} · {fmtSorteo(sorteo.fecha).dia} a las {fmtSorteo(sorteo.fecha).hora} · {sorteo.cupones === 1 ? 'tenés 1 cupón' : `tenés ${sorteo.cupones} cupones`}
-              </span>
-            )}
-          </div>
+          <div className="kiosk__saldo-line">Tenés <strong>{balance.toLocaleString('es-AR')}</strong> puntos</div>
+
+          {/* fixed raffle banner (Pacha: always visible, no pop-up): countdown, coupons, print, in-person rule */}
+          {fmtSorteo(sorteo?.fecha) && (() => {
+            const fs = fmtSorteo(sorteo.fecha)
+            const cuenta = fs.esHoy ? '¡ES HOY!' : fs.dias === 1 ? 'FALTA 1 DÍA' : `FALTAN ${fs.dias} DÍAS`
+            return (
+              <div className={`kiosk__sorteo-banner${fs.esHoy ? ' kiosk__sorteo-banner--hoy' : ''}`}>
+                <div className="kiosk__sorteo-banner-txt">
+                  <div className="kiosk__sorteo-banner-l1">🎟️ <b>{cuenta}</b> para el sorteo de <b>${sorteoMonto.toLocaleString('es-AR')}</b> · {fs.dia} a las {fs.hora}</div>
+                  <div className="kiosk__sorteo-banner-l2">
+                    {sorteo.cupones === 0 ? 'Todavía no tenés cupones en la urna' : sorteo.cupones === 1 ? <>Tenés <b>1 cupón</b> en la urna</> : <>Tenés <b>{sorteo.cupones} cupones</b> en la urna</>}
+                    {' · '}<span className="kiosk__sorteo-banner-presencial">Recordá: el sorteo es presencial, tenés que estar en la sala</span>
+                  </div>
+                </div>
+                {cuponEstado === 'listo' ? (
+                  <div className="kiosk__sorteo-banner-ok">✓ Cupón de hoy impreso<br />¡depositalo en la urna!</div>
+                ) : cuponEstado === 'imprimiendo' ? (
+                  <div className="kiosk__sorteo-banner-ok">Imprimiendo…</div>
+                ) : (
+                  <button className="kiosk__cta kiosk__cta--hub kiosk__sorteo-banner-btn" onClick={imprimirCupon}>IMPRIMÍ TU CUPÓN</button>
+                )}
+              </div>
+            )
+          })()}
 
           <div className="kiosk__done-row">
             <button className="kiosk__mini-btn" onClick={abrirMovs}>MIS MOVIMIENTOS</button>

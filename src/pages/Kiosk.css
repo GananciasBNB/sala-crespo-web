@@ -1046,13 +1046,21 @@
 .kiosk__juego-arte .kiosk-art--fortuna, .kiosk__hub--a .kiosk__juego-arte .kiosk-art--fortuna { height: 230px; }
 
 /* ───────── Raffle reminder (fixed, next to the balance) + "te alcanza para" ───────── */
-.kiosk__saldo-sorteo {
-  display: inline-block; vertical-align: middle; margin-left: 14px; padding: 6px 14px; border-radius: 999px;
-  font-family: 'Oswald', var(--font-body); font-size: 15px; letter-spacing: .5px; color: #fff3c4;
-  background: rgba(240,210,117,.12); border: 1.5px solid rgba(240,210,117,.7);
+.kiosk__sorteo-banner {
+  display: flex; align-items: center; gap: 18px; width: fit-content; max-width: 94%; margin: -4px auto 14px; padding: 10px 14px 10px 20px;
+  border-radius: 16px; text-align: left; font-family: 'Oswald', var(--font-body); letter-spacing: .5px; color: #fff3c4;
+  background: linear-gradient(90deg, rgba(240,210,117,.16), rgba(10,20,38,.85)); border: 1.5px solid rgba(240,210,117,.75);
   animation: kioskSorteoLatido 2.4s ease-in-out infinite;
 }
-.kiosk__saldo-sorteo--hoy { background: rgba(240,210,117,.25); border-color: var(--gold-light); }
+.kiosk__sorteo-banner--hoy { background: linear-gradient(90deg, rgba(240,210,117,.32), rgba(10,20,38,.85)); border-color: var(--gold-light); }
+.kiosk__sorteo-banner-txt { min-width: 0; }
+.kiosk__sorteo-banner-l1 { font-size: 19px; }
+.kiosk__sorteo-banner-l1 b { color: var(--gold-light); }
+.kiosk__sorteo-banner-l2 { font-size: 15px; margin-top: 3px; color: var(--cream); }
+.kiosk__sorteo-banner-l2 b { color: var(--gold-light); }
+.kiosk__sorteo-banner-presencial { color: #ffd48a; font-weight: 600; }
+.kiosk__sorteo-banner-btn { flex: none; margin: 0; white-space: nowrap; }
+.kiosk__sorteo-banner-ok { flex: none; font-size: 14px; line-height: 1.25; text-align: center; color: #9be7a5; }
 @keyframes kioskSorteoLatido { 0%, 100% { box-shadow: 0 0 8px rgba(240,210,117,.15); } 50% { box-shadow: 0 0 20px rgba(240,210,117,.45); } }
 .kiosk__hub--a .kiosk__hub-card--sorteo { border-color: var(--gold-light); box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 22px rgba(240,210,117,.3), 0 10px 26px rgba(0,0,0,.55); }
 .kiosk__sorteo-cuando { display: block; color: var(--gold-light); font-size: 1.05em; text-transform: uppercase; letter-spacing: .5px; }
@@ -1063,4 +1071,9 @@
   background: rgba(10,20,38,.8); border: 1.5px solid var(--gold); animation: kioskSorteoLatido 2.4s ease-in-out infinite;
 }
 .kiosk__idle-sorteo b { color: var(--gold-light); }
-@media (max-width: 700px) { .kiosk__saldo-sorteo { display: block; width: fit-content; margin: 8px auto 0; font-size: 13px; } }
+@media (max-width: 700px) {
+  .kiosk__sorteo-banner { flex-direction: column; align-items: stretch; gap: 8px; width: 94%; text-align: center; padding: 10px 14px; }
+  .kiosk__sorteo-banner-btn { align-self: center; }
+  .kiosk__sorteo-banner-l1 { font-size: 16px; }
+  .kiosk__sorteo-banner-l2 { font-size: 13px; }
+}

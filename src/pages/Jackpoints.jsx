@@ -140,7 +140,7 @@ export default function Jackpoints() {
           <div className="jp__sorteo">
             <div className="jp__eyebrow">Sorteo del mes</div>
             <div className="jp__big">$150.000</div>
-            <p>en tickets, todos los meses, entre los cupones de la urna. Cada visita te da un cupón. Y con 150 puntos te llevás un pack de 5 cupones más.</p>
+            <p>en tickets, todos los meses, entre los cupones de la urna. Cada visita te da un cupón. Y con 150 puntos te llevás un pack de 5 cupones más. El sorteo es presencial: para ganar tenés que estar en la sala.</p>
             <div className="jp__pills">
               <span><b>1</b> cupón por visita, gratis</span>
               <span><b>+5</b> cupones por 150 puntos</span>
