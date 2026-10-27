@@ -1053,13 +1053,14 @@
   animation: kioskSorteoLatido 2.4s ease-in-out infinite;
 }
 .kiosk__sorteo-banner--hoy { background: linear-gradient(90deg, rgba(240,210,117,.32), rgba(10,20,38,.85)); border-color: var(--gold-light); }
-.kiosk__sorteo-banner-txt { min-width: 0; }
+.kiosk__sorteo-banner-txt { flex: 1 1 auto; min-width: 0; }
 .kiosk__sorteo-banner-l1 { font-size: 19px; }
 .kiosk__sorteo-banner-l1 b { color: var(--gold-light); }
 .kiosk__sorteo-banner-l2 { font-size: 15px; margin-top: 3px; color: var(--cream); }
 .kiosk__sorteo-banner-l2 b { color: var(--gold-light); }
 .kiosk__sorteo-banner-presencial { color: #ffd48a; font-weight: 600; }
-.kiosk__sorteo-banner-btn { flex: none; margin: 0; white-space: nowrap; }
+/* triple class: beats .kiosk__cta.kiosk__cta--hub (width 100%), which squeezed the text to one word per line */
+.kiosk__cta.kiosk__cta--hub.kiosk__sorteo-banner-btn { flex: none; width: auto; margin: 0; padding: 12px 22px; }
 .kiosk__sorteo-banner-ok { flex: none; font-size: 14px; line-height: 1.25; text-align: center; color: #9be7a5; }
 @keyframes kioskSorteoLatido { 0%, 100% { box-shadow: 0 0 8px rgba(240,210,117,.15); } 50% { box-shadow: 0 0 20px rgba(240,210,117,.45); } }
 .kiosk__hub--a .kiosk__hub-card--sorteo { border-color: var(--gold-light); box-shadow: 0 0 0 1px rgba(0,0,0,.6), 0 0 22px rgba(240,210,117,.3), 0 10px 26px rgba(0,0,0,.55); }
