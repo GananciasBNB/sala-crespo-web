@@ -548,7 +548,7 @@ export default function Kiosk() {
       voz('torneo-inscripto')
     } catch (e) {
       console.error('inscripcion torneo:', e)
-      setErr('No pudimos completar tu inscripción. Consultá en la barra.')
+      setErr(e.status === 403 ? e.message : 'No pudimos completar tu inscripción. Consultá en la barra.')
     } finally { setTourneyBusy(false) }
   }
 
