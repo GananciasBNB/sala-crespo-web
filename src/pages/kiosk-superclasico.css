@@ -2,6 +2,9 @@
 .kiosk__perk-art .kiosk-art--screen.kiosk-art--fortuna { aspect-ratio: 1; }
 .kiosk__perk-art .kiosk-art--fortuna img { position: absolute; width: 340%; height: auto; max-width: none; left: -234%; top: -3%; object-fit: initial; }
 
+/* Exit button on one line: two lines pushed it against the cabinet's bottom edge */
+.kiosk__cta.kiosk__cta--done { max-width: none; width: auto; white-space: nowrap; padding-top: 12px; padding-bottom: 12px; }
+
 /* Superclásico pop-up (1/11/2026). Same tokens as .kiosk__madre / .kiosk__cta */
 .ksuper { position: fixed; inset: 0; z-index: 95; display: flex; align-items: center; justify-content: center; background: linear-gradient(rgba(5,11,24,.62), rgba(5,11,24,.62)), url('/kiosk-bg-noche.jpg') center / cover no-repeat, #050b18; font-family: 'DM Sans', sans-serif; color: #fdf6e6; }
 .ksuper__papelitos { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }

@@ -59,6 +59,16 @@ function fmtTorneoFecha(iso) {
   } catch (e) { console.warn('fecha torneo:', e); return '' }
 }
 
+// Short form for the tournament card: one line, the cabinet screen has no height to spare
+function fmtTorneoCorto(iso) {
+  try {
+    const tz = 'America/Argentina/Buenos_Aires', d = new Date(iso)
+    const dia = d.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'numeric', timeZone: tz })
+    const hora = d.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: tz })
+    return `${dia.replace(',', '').replace('-', '/')} · ${hora}`
+  } catch (e) { console.warn('fecha torneo:', e); return '' }
+}
+
 function fmtCountdown(totalSec) {
   const h = Math.floor(totalSec / 3600)
   const m = Math.floor((totalSec % 3600) / 60)
@@ -1314,7 +1324,7 @@ export default function Kiosk() {
                 <div className="kiosk__extra-ico"><ArtTorneo /></div>
                 <div className="kiosk__extra-col">
                   <div className="kiosk__hub-title">TORNEO DE SLOTS</div>
-                  <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Torneo de slots'} · participá por $2.000.000{tourney?.tournament_date && <b className="kiosk__sorteo-cuando">{fmtTorneoFecha(tourney.tournament_date)}</b>}</div>
+                  <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Torneo de slots'} · participá por $2.000.000{tourney?.tournament_date && <b className="kiosk__sorteo-cuando">{fmtTorneoCorto(tourney.tournament_date)}</b>}</div>
                   {tourneyReg ? (
                     <div className="kiosk__hub-ok">✓ Ya estás inscripto{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''}{tourney?.tournament_date ? ` · te esperamos el ${fmtTorneoFecha(tourney.tournament_date)}` : ''}</div>
                   ) : (
