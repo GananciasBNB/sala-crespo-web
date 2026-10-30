@@ -6,12 +6,15 @@ import KioskKeyboard from './kiosk-keyboard'
 import KioskEncuesta from './kiosk-encuesta'
 import { sugerencias } from './kiosk-suggest'
 import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa } from './kiosk-art'
+import KioskSuperclasico, { debeVerSuperclasico } from './kiosk-superclasico'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
 // goes to an in-browser simulator — no DB writes, no printing, no mails.
 const DEMO = demoApi.isKioskDemo()
 // /kiosk?demo=1&madre=ver opens the Día de la Madre pop-up straight away (preview, nothing real)
 const VER_MADRE = DEMO && new URLSearchParams(window.location.search).get('madre') === 'ver'
+// /kiosk?demo=1&super=ver opens the Superclásico pop-up straight away (preview)
+const VER_SUPER = DEMO && new URLSearchParams(window.location.search).get('super') === 'ver'
 // /kiosk?demo=1&encuesta=ver logs a test member in and opens 'Contanos de vos' straight away (preview)
 const VER_ENCUESTA = DEMO && new URLSearchParams(window.location.search).get('encuesta') === 'ver'
 const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider, diaMadreEstado, diaMadrePuntos, diaMadreCupon, encuestaEstado, encuestaResponder } = DEMO ? demoApi : realApi
@@ -364,6 +367,7 @@ export default function Kiosk() {
   const [encCampo, setEncCampo] = useState(null)   // { modo, label, ph } of the field being typed
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
   const [madre, setMadre] = useState(null)
+  const [superclasico, setSuperclasico] = useState(VER_SUPER)
   // preview: a first tap opens it, so the browser lets the music and the greeting play like at the cabinet
   const [verMadreBoton, setVerMadreBoton] = useState(VER_MADRE)
   function abrirVistaPreviaMadre() {
@@ -418,7 +422,7 @@ export default function Kiosk() {
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false); setShowPesca(false); setRanking(null); setPescaInfo(null)
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setPescaTerminada(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
-    setMadre(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
+    setSuperclasico(false); setMadre(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
 
   // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
@@ -629,6 +633,7 @@ export default function Kiosk() {
     const c = await loyaltyCheckin(p.token).catch(() => null)
     setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
     abrirDiaMadre(p.token)
+    if (debeVerSuperclasico(p.dni || dni)) setSuperclasico(true)
   }
   async function abrirDiaMadre(token) {
     try {
@@ -961,6 +966,7 @@ export default function Kiosk() {
       const c = await loyaltyCheckin(r.player.token).catch(() => null)
       setPlayer(r.player); setCheckin(c); setBalance(c?.balance ?? r.balance ?? 0); setScreen('done')
       abrirDiaMadre(r.player.token)
+      if (debeVerSuperclasico(dni)) setSuperclasico(true)
     } catch (e) { setErr(e.message) } finally { setBusy(false) }
   }
 
@@ -1308,7 +1314,7 @@ export default function Kiosk() {
                 <div className="kiosk__extra-ico"><ArtTorneo /></div>
                 <div className="kiosk__extra-col">
                   <div className="kiosk__hub-title">TORNEO DE SLOTS</div>
-                  <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Torneo de slots'} · participá por $2.000.000</div>
+                  <div className="kiosk__hub-sub">{tourney?.name ? tourney.name : 'Torneo de slots'} · participá por $2.000.000{tourney?.tournament_date && <b className="kiosk__sorteo-cuando">{fmtTorneoFecha(tourney.tournament_date)}</b>}</div>
                   {tourneyReg ? (
                     <div className="kiosk__hub-ok">✓ Ya estás inscripto{tourneyReg.registrationNo ? ` con el N° ${tourneyReg.registrationNo}` : ''}{tourney?.tournament_date ? ` · te esperamos el ${fmtTorneoFecha(tourney.tournament_date)}` : ''}</div>
                   ) : (
@@ -1383,6 +1389,8 @@ export default function Kiosk() {
       )}
 
       {/* Cargar cumpleaños: teclado numérico DD MM AAAA */}
+      {superclasico && <KioskSuperclasico onContinuar={() => setSuperclasico(false)} />}
+
       {verMadreBoton && (
         <div className="kiosk__carta kiosk__madre-fondo">
           <button className="kiosk__cta kiosk__madre-aceptar" onClick={abrirVistaPreviaMadre}>▶ VER EL MENSAJE DEL DÍA DE LA MADRE</button>
