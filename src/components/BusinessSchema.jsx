@@ -43,6 +43,8 @@ export default function BusinessSchema() {
     '@id': `${SITE}/#business`,
     name: 'Sala de Juegos Crespo',
     alternateName: 'Sala Crespo',
+    legalName: 'Electric Line S.R.L.',
+    taxID: '30-67016680-1',
     url: `${SITE}/`,
     logo: `${SITE}/logo-light.jpg`,
     image: `${SITE}/logo-light.jpg`,

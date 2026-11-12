@@ -84,7 +84,7 @@ export default function Footer() {
 
       <div className="footer__bottom">
         <div className="container footer__bottom-inner">
-          <p>© {year} Sala de Juegos Crespo · Todos los derechos reservados</p>
+          <p>© {year} Sala de Juegos Crespo es operada por <strong>Electric Line S.R.L.</strong> · CUIT 30-67016680-1 · San Martín 1053, Crespo, Entre Ríos · Todos los derechos reservados</p>
           <p className="footer__casinos">Operado bajo <strong>Casinos de Entre Ríos</strong> · Habilitación IAFAS</p>
         </div>
       </div>
