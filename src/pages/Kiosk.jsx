@@ -182,11 +182,23 @@ function FortunaEstado({ token, refreshKey, onJugar, art }) {
 // app y se pausa mientras Fortuna Dorada está abierta (el juego tiene la suya).
 let musicaClub = null
 const MUSICA_VOL = 0.1   // colchon de fondo: audible sin tapar las voces
+let musicaSrc = '/kiosk-audio/musica-club.mp3', musicaVol = MUSICA_VOL
+// the event terminal plays its own track (rock, louder: it is outdoors); the sala keeps the club music
+function musicaClubFuente(src, vol) {
+  if (src === musicaSrc) return
+  musicaSrc = src; musicaVol = vol
+  try {
+    if (!musicaClub) return
+    const sonaba = !musicaClub.paused
+    musicaClub.pause(); musicaClub.src = src; musicaClub.volume = vol
+    if (sonaba) { const p = musicaClub.play(); if (p) p.catch(err => console.warn('musica del evento bloqueada:', err && err.name)) }
+  } catch (err) { console.warn('musica del evento:', err) }
+}
 function musicaClubPlay() {
   try {
     if (!musicaClub) {
-      musicaClub = new Audio('/kiosk-audio/musica-club.mp3')
-      musicaClub.loop = true; musicaClub.volume = MUSICA_VOL
+      musicaClub = new Audio(musicaSrc)
+      musicaClub.loop = true; musicaClub.volume = musicaVol
       musicaClub.preload = 'auto'
     }
     if (!musicaClub.paused) return
@@ -458,6 +470,7 @@ export default function Kiosk() {
     realApi.kioskTerminal().then(setTerminal).catch(e => console.warn('kiosk terminal:', e.message))
   }, [vinculada])
   const evento = terminal?.terminal === 'evento'
+  useEffect(() => { if (evento) musicaClubFuente('/kiosk-audio/musica-evento-rock.mp3', 0.3) }, [evento])
   // Event terminal: no printed coupon, so what the member won is shown on screen (code + where to collect)
   const [premios, setPremios] = useState([])
   const [showPremios, setShowPremios] = useState(false)
