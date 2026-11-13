@@ -490,7 +490,7 @@ export default function Kiosk() {
       const cs = getComputedStyle(k)
       const avail = k.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 8
       const need = c.scrollHeight
-      if (need > avail) c.style.zoom = String(Math.max(0.6, avail / need))
+      if (need > avail) c.style.zoom = String(Math.max(evento ? 0.42 : 0.6, avail / need))
     }
     const t1 = setTimeout(fit, 50); const t2 = setTimeout(fit, 600)
     window.addEventListener('resize', fit)
@@ -1080,7 +1080,7 @@ export default function Kiosk() {
     >
       <div className="kiosk__bg" />
       {DEMO && <div className="kiosk__demo-badge">MODO PRUEBA · nada se guarda ni se imprime</div>}
-      {evento && <div className="kiosk__demo-badge">{terminal.nombre} · Los premios se retiran en la sala con tu DNI</div>}
+      {evento && screen === 'idle' && <div className="kiosk__demo-badge">{terminal.nombre} · Los premios se retiran en la sala con tu DNI</div>}
       <div className="kiosk__vignette" />
 
       {/* ───────── IDLE ───────── */}
@@ -1287,8 +1287,9 @@ export default function Kiosk() {
           {/* fixed raffle banner (Pacha: always visible, no pop-up): countdown, coupons, print, in-person rule */}
           {evento && (
             <div className="kiosk__sorteo-banner">
+              <img src="/kiosk-art/evento-logo.png" alt={terminal.nombre} style={{ height: 64, borderRadius: 10, flex: 'none' }} onError={e => { e.currentTarget.style.display = 'none' }} />
               <div className="kiosk__sorteo-banner-txt">
-                <div className="kiosk__sorteo-banner-l1">🎁 <b>Todo lo que ganes acá te espera en Sala de Juegos Crespo</b></div>
+                <div className="kiosk__sorteo-banner-l1">🎁 <b>Todo lo que ganes en {terminal.nombre} te espera en Sala de Juegos Crespo</b></div>
                 <div className="kiosk__sorteo-banner-l2">Tus puntos ya quedan en tu cuenta · Los tickets se retiran en la sala con tu DNI (tenés 7 días)</div>
               </div>
               {premios.length > 0 && (
