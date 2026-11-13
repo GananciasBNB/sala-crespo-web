@@ -467,7 +467,7 @@ export default function Kiosk() {
   // Demo on computers: shrink the visible screen just enough to fit the window,
   // whatever its size, so testers never need to scroll. Phones keep scrolling.
   useEffect(() => {
-    if (!DEMO) return
+    if (!DEMO && !evento) return   // the event notebook has any screen size: fit like the demo does
     const pick = () => document.querySelector('.kiosk > .kiosk__idle, .kiosk > .kiosk__step, .kiosk > .kiosk__done')
     const fit = () => {
       const k = document.querySelector('.kiosk'); const c = pick()
