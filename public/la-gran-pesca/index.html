@@ -50,7 +50,7 @@ let estadoKiosco = null   // { mejorHoy, intentosQuedan, proximoIntento }
 addEventListener('message', (e) => {
   const d = e.data || {}
   if (d.respuestaPesca && esperas[d.id]) { esperas[d.id](d); delete esperas[d.id] }
-  else if (d.tipo === 'pesca-estado') { estadoKiosco = d; if (typeof window.__refrescarMenu === 'function') window.__refrescarMenu() }
+  else if (d.tipo === 'pesca-estado') { estadoKiosco = d; if (d.sinImpresora && d.rankingPesos > 0 && typeof window.__premioEvento === 'function') window.__premioEvento(d.rankingPesos); if (typeof window.__refrescarMenu === 'function') window.__refrescarMenu() }
 })
 function pedirAlKiosco(tipo, datos = {}) {
   return new Promise(res => {
@@ -693,6 +693,7 @@ async function main() {
   })
   const premiosC = new PIXI.Container(); premiosC.position.set(W / 2, 822); instr.addChild(premiosC)
   premiosC.addChild(placa(1000, 112))
+  window.__premioEvento = (pesos) => { try { premiosTxt.text = `EL MEJOR PUNTAJE DE LA NOCHE GANA\nUN TICKET DE $${Number(pesos).toLocaleString('es-AR')} PARA USAR EN LA SALA` } catch (err) { console.warn('premio evento:', err) } }
   const premiosTxt = texto(`CADA DÍA, LOS 3 MEJORES GANAN PUNTOS JACKPOINTS\n1.º ${PREMIOS[0]}   ·   2.º ${PREMIOS[1]}   ·   3.º ${PREMIOS[2]}`, 34, { borde: 5 }); premiosTxt.style.lineHeight = 44; premiosC.addChild(premiosTxt)
   const botonI = new PIXI.Container(); botonI.position.set(W / 2, 950); instr.addChild(botonI)
   // the special fish, highlighted: gold frame, glow and the prize of each one
@@ -873,7 +874,7 @@ async function main() {
     fondo.lineStyle(3, 0xf0d275, 1).beginFill(ticket ? 0x3a2a0c : 0x0b2a44, .95).drawRoundedRect(-400, -40, 800, 80, 20).endFill()
     fondo.position.set(W / 2, y); cintaPremio.addChild(fondo)
     const t1 = texto(PREMIO_ESPECIAL[premio.tipo].txt, 36, { fill: PREMIO_ESPECIAL[premio.tipo].color, borde: 6 }); t1.position.set(W / 2, y - 12); cintaPremio.addChild(t1)
-    const sub = ticket ? (KIOSCO ? 'SE ESTÁ IMPRIMIENDO TU CUPÓN · RETIRALO EN LA BARRA' : 'RETIRÁ TU CUPÓN EN LA BARRA') : 'YA ESTÁN EN TU CUENTA'
+    const sub = ticket ? (KIOSCO && estadoKiosco?.sinImpresora ? 'RETIRALO EN SALA DE JUEGOS CRESPO CON TU DNI' : KIOSCO ? 'SE ESTÁ IMPRIMIENDO TU CUPÓN · RETIRALO EN LA BARRA' : 'RETIRÁ TU CUPÓN EN LA BARRA') : 'YA ESTÁN EN TU CUENTA'
     const t2 = texto(sub, 22, { fill: ['#f3ead6', '#f3ead6'], borde: 4, sombra: false }); t2.position.set(W / 2, y + 22); cintaPremio.addChild(t2)
     if (t1.width > 760) t1.scale.set(760 / t1.width)
     cintaPremio.scale.set(1); cintaPremio.pivot.set(W / 2, y); cintaPremio.position.set(W / 2, y); cintaPremio.scale.set(.4)

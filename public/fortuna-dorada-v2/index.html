@@ -939,7 +939,7 @@ cargarTexturas(URLS)
   let SRV = null; // { token, apiBase }
   window.addEventListener('message', (e) => {
     if (e && e.data && e.data.tipo === 'init' && e.data.token) {
-      SRV = { token: e.data.token, apiBase: e.data.apiBase || '', kioskKey: e.data.kioskKey || '' };
+      SRV = { token: e.data.token, apiBase: e.data.apiBase || '', kioskKey: e.data.kioskKey || '', sinImpresora: !!e.data.sinImpresora };
       bonusHabilitado = !!T.bonus;   // the server only sends a bonus to clients that declare it
       voz('giro-bienvenida');
       fetch(SRV.apiBase + '/api/loyalty/spin-status', { headers: { Authorization: 'Bearer ' + SRV.token } })
@@ -1245,7 +1245,7 @@ cargarTexturas(URLS)
       mostrarCartel('SE CORTÓ LA CONEXIÓN', 'Tu giro NO se descontó — tocá GIRAR de nuevo', '#c9c0d0');
     } else if (premio.id !== 'nada') {
       mostrarCartel('¡GANASTE ' + premio.label + '!',
-        esTicket ? 'Retiralo en la barra con tu DNI' : 'Ya están acreditados en tu cuenta', '#F0D275', esTicket);
+        esTicket ? (SRV && SRV.sinImpresora ? 'Retiralo en Sala de Juegos Crespo con tu DNI' : 'Retiralo en la barra con tu DNI') : 'Ya están acreditados en tu cuenta', '#F0D275', esTicket);
       burst(esTicket ? 200 : 110);
       // the server held the ticket print until now, so it does not come out mid-spin
       if (esTicket && SRV) fetch(SRV.apiBase + '/api/loyalty/spin/release', {

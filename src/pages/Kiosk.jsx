@@ -80,6 +80,9 @@ function fmtCountdown(totalSec) {
 // Cierre de sesión del Home: contador visible en los últimos 10s, urgente a los
 // 5s; cualquier toque lo renueva. Aislado para que su tick no repinte el Home.
 const SESION_MS = 40000
+// prize tickets expire 7 days after they were won (db.js TICKET_VENCE_DIAS)
+const venceEl = (creado) => new Date(new Date(creado).getTime() + 7 * 86400000).toLocaleDateString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: '2-digit', month: '2-digit' })
+
 function SesionTimer({ lastActRef, paused, onExpirar, margen = SESION_MS }) {
   const [rem, setRem] = useState(margen)
   useEffect(() => {
@@ -430,6 +433,7 @@ export default function Kiosk() {
     setScreen('idle'); setDni(''); setPin(''); setPlayer(null); setBalance(0)
     setCheckin(null); setReg({ name: '', tel: '', email: '' }); setErr(''); setRegErr(null); setKb(null); setBusy(false)
     setTourney(null); setTourneyReg(null); setTourneyBusy(false); setShowTorneoOk(false); setShowCarta(false); setShowGiro(false); setShowPesca(false); setRanking(null); setPescaInfo(null)
+    setShowPremios(false); setPremios([]); setPremioNuevo(false); premiosPrev.current = null
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setPescaTerminada(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
     setSuperclasico(false); setMadre(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
@@ -447,6 +451,18 @@ export default function Kiosk() {
     } catch { /* sin storage */ }
   }, [])
   const vinculada = !!kioskKey()
+  // Event terminal (a notebook outside the sala, no printer): prizes are collected in the sala by DNI
+  const [terminal, setTerminal] = useState(null)
+  useEffect(() => {
+    if (DEMO || !vinculada || !realApi.kioskTerminal) return
+    realApi.kioskTerminal().then(setTerminal).catch(e => console.warn('kiosk terminal:', e.message))
+  }, [vinculada])
+  const evento = terminal?.terminal === 'evento'
+  // Event terminal: no printed coupon, so what the member won is shown on screen (code + where to collect)
+  const [premios, setPremios] = useState([])
+  const [showPremios, setShowPremios] = useState(false)
+  const [premioNuevo, setPremioNuevo] = useState(false)
+  const premiosPrev = useRef(null)   // pending prizes seen so far in this session (null = not loaded yet)
 
   // Demo on computers: shrink the visible screen just enough to fit the window,
   // whatever its size, so testers never need to scroll. Phones keep scrolling.
@@ -478,7 +494,11 @@ export default function Kiosk() {
     if (screen !== 'idle' && screen !== 'done') idleTimer.current = setTimeout(reset, IDLE_MS)
     return () => idleTimer.current && clearTimeout(idleTimer.current)
   }, [screen, dni, pin, reg, reset])
-  useEffect(() => { lastActRef.current = Date.now() }, [screen, showCarta, showMovs, showCanjes, showGiro, showPesca, ranking, showEncuesta])
+  useEffect(() => { lastActRef.current = Date.now() }, [screen, showCarta, showMovs, showCanjes, showGiro, showPesca, ranking, showEncuesta, showPremios])
+  // a prize won on the event terminal: as soon as the game closes, show it (there is no paper)
+  useEffect(() => {
+    if (evento && premioNuevo && !showGiro && !showPesca) { setShowPremios(true); setPremioNuevo(false) }
+  }, [evento, premioNuevo, showGiro, showPesca])
 
   // Música del Club: arranca al cargar (con el flag de kiosk) o al primer toque;
   // se pausa mientras el juego está abierto y vuelve al cerrarlo.
@@ -500,14 +520,14 @@ export default function Kiosk() {
     function onMsg(e) {
       if (!e?.data?.tipo) return
       if (e.data.tipo === 'listo' && player?.token && !DEMO) {
-        try { e.source.postMessage({ tipo: 'init', token: player.token, apiBase: API_BASE, kioskKey: kioskKey() }, '*') } catch { /* iframe cerrado */ }
+        try { e.source.postMessage({ tipo: 'init', token: player.token, apiBase: API_BASE, kioskKey: kioskKey(), sinImpresora: evento }, '*') } catch { /* iframe cerrado */ }
       }
       if (e.data.tipo === 'actividad') { lastActRef.current = Date.now(); return }
       // La Gran Pesca: the game asks, this page calls the server with the member's session
       if (String(e.data.tipo).startsWith('pesca-') && player?.token) {
         lastActRef.current = Date.now()
         const responder = (datos) => { try { e.source.postMessage({ respuestaPesca: true, id: e.data.id, ...datos }, '*') } catch (err) { console.warn('pesca: iframe cerrado', err) } }
-        if (e.data.tipo === 'pesca-listo') { try { e.source.postMessage({ tipo: 'pesca-estado', ...(pescaInfoRef.current || {}) }, '*') } catch (err) { console.warn(err) } }
+        if (e.data.tipo === 'pesca-listo') { try { e.source.postMessage({ tipo: 'pesca-estado', ...(pescaInfoRef.current || {}), sinImpresora: evento, rankingPesos: evento ? (terminal.rankingPesos || 0) : 0 }, '*') } catch (err) { console.warn(err) } }
         else if (e.data.tipo === 'pesca-empezar') {
           setPescaTerminada(false)
           pescaEmpezar(player.token).then(r => responder({ ok: true, ...r }))
@@ -531,7 +551,7 @@ export default function Kiosk() {
     }
     window.addEventListener('message', onMsg)
     return () => window.removeEventListener('message', onMsg)
-  }, [player]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [player, evento]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Home del socio: torneo activo (para la inscripción 1-toque). Si el lookup
   // ya dijo que está inscripto, la tarjeta lo refleja sin que tenga que tocar.
@@ -606,6 +626,10 @@ export default function Kiosk() {
     getLoyaltyMe(player.token).then(me => {
       setMovs(me.transactions || [])
       if (typeof me.balance === 'number') setBalance(me.balance)
+      const pend = (me.pending || []).filter(p => p.code)
+      setPremios(pend)
+      if (premiosPrev.current !== null && pend.length > premiosPrev.current) setPremioNuevo(true)
+      premiosPrev.current = pend.length
     }).catch(() => {})
   }
   function abrirMovs() {
@@ -1043,6 +1067,7 @@ export default function Kiosk() {
     >
       <div className="kiosk__bg" />
       {DEMO && <div className="kiosk__demo-badge">MODO PRUEBA · nada se guarda ni se imprime</div>}
+      {evento && <div className="kiosk__demo-badge">{terminal.nombre} · Los premios se retiran en la sala con tu DNI</div>}
       <div className="kiosk__vignette" />
 
       {/* ───────── IDLE ───────── */}
@@ -1054,13 +1079,13 @@ export default function Kiosk() {
           <p className="kiosk__idle-sub">Registrá tu visita en 30 segundos y empezá a ganar HOY.</p>
           <div className="kiosk__perks">
             <div className="kiosk__perk kiosk__perk--star"><div className="kiosk__perk-art"><ArtFortuna /></div><span className="kiosk__perk-num kiosk__perk-num--brand">FORTUNA DORADA</span><span className="kiosk__perk-lbl">Tres giros gratis cada 3 horas (ganá puntos y tickets promocionales)</span></div>
-            <div className="kiosk__perk kiosk__perk--pesca"><span className="kiosk__nuevo kiosk__nuevo--chico">NUEVO</span><div className="kiosk__perk-art"><img src="/la-gran-pesca/img/pescador-quieto.webp" alt="" className="kiosk__perk-pesca" /></div><span className="kiosk__perk-num kiosk__perk-num--brand">LA GRAN PESCA</span><span className="kiosk__perk-lbl">Juego del día: los 3 mejores ganan puntos</span></div>
+            <div className="kiosk__perk kiosk__perk--pesca"><span className="kiosk__nuevo kiosk__nuevo--chico">NUEVO</span><div className="kiosk__perk-art"><img src="/la-gran-pesca/img/pescador-quieto.webp" alt="" className="kiosk__perk-pesca" /></div><span className="kiosk__perk-num kiosk__perk-num--brand">LA GRAN PESCA</span><span className="kiosk__perk-lbl">{evento && terminal.rankingPesos > 0 ? `El mejor de la noche gana un ticket de $${terminal.rankingPesos.toLocaleString('es-AR')}` : 'Juego del día: los 3 mejores ganan puntos'}</span></div>
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtVisita /></div><span className="kiosk__perk-num kiosk__perk-num--brand">SUMÁ 50 PUNTOS POR TU VISITA</span><span className="kiosk__perk-lbl">Todos los días</span></div>
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtSorteo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">PARTICIPÁ DE SORTEOS</span><span className="kiosk__perk-lbl">Obtené cupones a diario</span></div>
             <div className="kiosk__perk"><div className="kiosk__perk-art"><ArtTorneo /></div><span className="kiosk__perk-num kiosk__perk-num--brand">TORNEOS DE SLOTS</span><span className="kiosk__perk-lbl">Inscribite acá y competí por premios</span></div>
           </div>
           {(vinculada || DEMO) && fmtSorteo(sorteoIdle?.fecha) && (
-            <div className="kiosk__idle-sorteo">🎟️ {fmtSorteo(sorteoIdle.fecha).dia.toUpperCase()} · {fmtSorteo(sorteoIdle.fecha).hora.toUpperCase()} · <b>SORTEO DE ${Number(sorteoIdle.monto || 0).toLocaleString('es-AR')}</b> · Entrá y sacá tu cupón</div>
+            <div className="kiosk__idle-sorteo">🎟️ {fmtSorteo(sorteoIdle.fecha).dia.toUpperCase()} · {fmtSorteo(sorteoIdle.fecha).hora.toUpperCase()} · <b>SORTEO DE ${Number(sorteoIdle.monto || 0).toLocaleString('es-AR')}</b> · {evento ? 'Sacá tu cupón en la sala' : 'Entrá y sacá tu cupón'}</div>
           )}
           {(vinculada || DEMO) && (
             <div className="kiosk__lider-pesca">{liderPesca
@@ -1247,7 +1272,18 @@ export default function Kiosk() {
           <div className="kiosk__saldo-line">Tenés <strong>{balance.toLocaleString('es-AR')}</strong> puntos</div>
 
           {/* fixed raffle banner (Pacha: always visible, no pop-up): countdown, coupons, print, in-person rule */}
-          {fmtSorteo(sorteo?.fecha) && (() => {
+          {evento && (
+            <div className="kiosk__sorteo-banner">
+              <div className="kiosk__sorteo-banner-txt">
+                <div className="kiosk__sorteo-banner-l1">🎁 <b>Todo lo que ganes acá te espera en Sala de Juegos Crespo</b></div>
+                <div className="kiosk__sorteo-banner-l2">Tus puntos ya quedan en tu cuenta · Los tickets se retiran en la sala con tu DNI (tenés 7 días)</div>
+              </div>
+              {premios.length > 0 && (
+                <button className="kiosk__cta kiosk__cta--hub kiosk__sorteo-banner-btn" onClick={() => setShowPremios(true)}>🎁 MIS PREMIOS ({premios.length})</button>
+              )}
+            </div>
+          )}
+          {!evento && fmtSorteo(sorteo?.fecha) && (() => {
             const fs = fmtSorteo(sorteo.fecha)
             const cuenta = fs.esHoy ? '¡ES HOY!' : fs.dias === 1 ? 'FALTA 1 DÍA' : `FALTAN ${fs.dias} DÍAS`
             return (
@@ -1344,14 +1380,16 @@ export default function Kiosk() {
                       ? <>Sorteamos ${sorteoMonto.toLocaleString('es-AR')} <b className="kiosk__sorteo-cuando">{fmtSorteo(sorteo.fecha).dia} a las {fmtSorteo(sorteo.fecha).hora}</b></>
                       : <>Imprimí tu cupón y participá por ${sorteoMonto.toLocaleString('es-AR')}</>}
                   </div>
-                  {cuponEstado === 'listo' ? (
+                  {evento ? (
+                    <div className="kiosk__hub-ok">Vení a la sala y sacá tu cupón todos los días</div>
+                  ) : cuponEstado === 'listo' ? (
                     <div className="kiosk__hub-ok">✓ Cupón impreso · depositalo en la urna</div>
                   ) : cuponEstado === 'imprimiendo' ? (
                     <div className="kiosk__hub-ok kiosk__hub-ok--proceso">Imprimiendo tu cupón…</div>
                   ) : (
                     <button className="kiosk__cta kiosk__cta--hub" onClick={imprimirCupon}>IMPRIMÍ TU CUPÓN</button>
                   )}
-                  {pack?.disponible && (
+                  {!evento && pack?.disponible && (
                     packEstado === 'listo' ? (
                       <div className="kiosk__hub-ok">✓ Pack de {pack.size} cupones canjeado · mañana podés otro</div>
                     ) : packEstado === 'canjeando' ? (
@@ -1590,6 +1628,31 @@ export default function Kiosk() {
         </div>
       )}
 
+      {/* Event terminal: what the member has to collect in the sala (no printed coupon here) */}
+      {showPremios && (
+        <div className="kiosk__carta" onClick={() => setShowPremios(false)}>
+          <div className="kiosk__carta-panel kiosk__puntos" onClick={e => e.stopPropagation()}>
+            <div className="kiosk__hub-title">🎁 {premios.length === 1 ? '¡ESTE PREMIO ES TUYO!' : '¡ESTOS PREMIOS SON TUYOS!'}</div>
+            <div className="kiosk__puntos-col kiosk__puntos-col--solo">
+              {premios.length === 0 && <p className="kiosk__carta-txt">Todavía no tenés premios para retirar. ¡Seguí jugando!</p>}
+              {premios.map(p => (
+                <div key={p.id} className="kiosk__mov">
+                  <div className="kiosk__mov-info">
+                    <div className="kiosk__mov-lbl" style={{ fontSize: 22 }}>{p.reward_name}</div>
+                    <div className="kiosk__mov-fecha" style={{ fontSize: 15 }}>{p.kind === 'prize' ? `Retiralo antes del ${venceEl(p.created_at)}` : 'Retiralo en la barra de la sala'}</div>
+                  </div>
+                  <div className="kiosk__mov-pts" style={{ fontSize: 20, whiteSpace: 'nowrap' }}>{p.code}</div>
+                </div>
+              ))}
+            </div>
+            {premios.length > 0 && (
+              <p className="kiosk__carta-txt" style={{ fontSize: 19 }}><b>Retiralo en Sala de Juegos Crespo (San Martín 1053) con tu DNI.</b><br />No hace falta ningún papel: ya quedó guardado a tu nombre.</p>
+            )}
+            <button className="kiosk__cta kiosk__cta--volver" onClick={() => setShowPremios(false)}>← VOLVER</button>
+          </div>
+        </div>
+      )}
+
       {/* Canjes: vidriera del catálogo — primero lo que YA puede llevarse */}
       {showCanjes && (
         <div className="kiosk__carta" onClick={() => setShowCanjes(false)}>
@@ -1630,7 +1693,7 @@ export default function Kiosk() {
                           {r.points.toLocaleString('es-AR')} pts
                         </div>
                         {canjeados[r.id] ? (
-                          <div className="kiosk__mov-ok">✓ Listo. Retirá tu cupón y presentalo en la barra</div>
+                          <div className="kiosk__mov-ok">{evento ? '✓ Listo. Retiralo en la sala con tu DNI' : '✓ Listo. Retirá tu cupón y presentalo en la barra'}</div>
                         ) : puede ? (
                           <button className="kiosk__mov-btn" disabled={busyReward === r.id} onClick={() => canjear(r)}>
                             {busyReward === r.id ? 'Canjeando…' : 'CANJEAR'}
@@ -1648,7 +1711,7 @@ export default function Kiosk() {
               ))}
               </div>
             </div>
-            <p className="kiosk__carta-txt">Una vez seleccionado el canje, se imprime un cupón: presentalo en la barra para retirarlo.</p>
+            <p className="kiosk__carta-txt">{evento ? 'Una vez seleccionado el canje, queda a tu nombre: retiralo en la barra de Sala de Juegos Crespo con tu DNI.' : 'Una vez seleccionado el canje, se imprime un cupón: presentalo en la barra para retirarlo.'}</p>
             <button className={`kiosk__cta kiosk__cta--volver${Object.keys(canjeados).length ? ' kiosk__cta--volver-listo' : ''}`} onClick={() => setShowCanjes(false)}>{Object.keys(canjeados).length ? '← VOLVER AL CLUB' : '← VOLVER'}</button>
           </div>
         </div>
@@ -1701,7 +1764,7 @@ export default function Kiosk() {
                 {ranking.filas.map(f => (
                   <div key={f.posicion} className={`kiosk__rank-fila${f.esYo ? ' kiosk__rank-fila--yo' : ''}`}>
                     <span className="kiosk__rank-pos">{f.posicion <= 3 ? <i className={`kiosk__rank-med kiosk__rank-med--${f.posicion}`}>{f.posicion}</i> : `${f.posicion}.º`}</span>
-                    <span className="kiosk__rank-nom">{f.nombre}{f.esYo && <em> · VOS</em>}{f.prueba && <em> · prueba</em>}{f.premio > 0 && <small>GANA {f.premio} PUNTOS</small>}</span>
+                    <span className="kiosk__rank-nom">{f.nombre}{f.esYo && <em> · VOS</em>}{f.prueba && <em> · prueba</em>}{evento ? (f.posicion === 1 && terminal.rankingPesos > 0 && <small>GANA UN TICKET DE ${terminal.rankingPesos.toLocaleString('es-AR')}</small>) : (f.premio > 0 && <small>GANA {f.premio} PUNTOS</small>)}</span>
                     <span className="kiosk__rank-hora">{f.hora}</span>
                     <span className="kiosk__rank-pts">{f.puntaje.toLocaleString('es-AR')}</span>
                   </div>

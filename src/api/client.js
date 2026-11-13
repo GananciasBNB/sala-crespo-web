@@ -532,6 +532,8 @@ export const loyaltyCheckin = (token) =>
 // creación de PIN si viene con esta llave (se provisiona una vez en el gabinete).
 export const kioskKey = () => { try { return localStorage.getItem('kiosk_key') || '' } catch { return '' } }
 const kioskHeaders = () => { const k = kioskKey(); return k ? { 'x-kiosk-key': k } : {} }
+// which terminal this key is: { terminal: 'sala' } or { terminal: 'evento', nombre, sinImpresora }
+export const kioskTerminal = () => api('/api/kiosk/terminal', { headers: kioskHeaders() })
 
 // La Gran Pesca (juego del día): only from the keyed kiosk
 export const pescaEstado = (token) =>
