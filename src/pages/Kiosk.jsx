@@ -392,6 +392,7 @@ export default function Kiosk() {
   const [encCampo, setEncCampo] = useState(null)   // { modo, label, ph } of the field being typed
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
   const [madre, setMadre] = useState(null)
+  const [regalo, setRegalo] = useState(null)   // promo ticket waiting for this member (Monday to Thursday)
   const [superclasico, setSuperclasico] = useState(VER_SUPER)
   // preview: a first tap opens it, so the browser lets the music and the greeting play like at the cabinet
   const [verMadreBoton, setVerMadreBoton] = useState(VER_MADRE)
@@ -448,7 +449,7 @@ export default function Kiosk() {
     setShowPremios(false); setPremios([]); setPremioNuevo(false); premiosPrev.current = null
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setPescaTerminada(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
-    setSuperclasico(false); setMadre(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
+    setSuperclasico(false); setMadre(null); setRegalo(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
 
   // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
@@ -680,7 +681,24 @@ export default function Kiosk() {
     const c = await loyaltyCheckin(p.token).catch(() => null)
     setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
     abrirDiaMadre(p.token)
+    abrirRegalo(p.token)
     if (debeVerSuperclasico(p.dni || dni)) setSuperclasico(true)
+  }
+  async function abrirRegalo(token) {
+    try {
+      if (DEMO) return
+      const e = await realApi.regaloSemanaEstado(token)
+      if (e?.elegible) setRegalo({ ...e, listo: false, enviando: false, error: '' })
+    } catch (err) { console.warn('regalo de la semana:', err) }
+  }
+  async function recibirRegalo() {
+    if (!player?.token || regalo?.enviando) return
+    setRegalo(g => ({ ...g, enviando: true, error: '' }))
+    try {
+      const r = await realApi.regaloSemanaReclamar(player.token)
+      if (!r?.ok) throw new Error(r?.error === 'fuera_de_dia' ? 'El ticket se retira de lunes a jueves.' : 'Este ticket ya fue retirado.')
+      setRegalo(g => ({ ...g, enviando: false, listo: true, codigo: r.codigo }))
+    } catch (err) { setRegalo(g => g && ({ ...g, enviando: false, error: err.message || 'No se pudo entregar. Avisá en caja.' })) }
   }
   async function abrirDiaMadre(token) {
     try {
@@ -1013,6 +1031,7 @@ export default function Kiosk() {
       const c = await loyaltyCheckin(r.player.token).catch(() => null)
       setPlayer(r.player); setCheckin(c); setBalance(c?.balance ?? r.balance ?? 0); setScreen('done')
       abrirDiaMadre(r.player.token)
+      abrirRegalo(r.player.token)
       if (debeVerSuperclasico(dni)) setSuperclasico(true)
     } catch (e) { setErr(e.message) } finally { setBusy(false) }
   }
@@ -1456,6 +1475,41 @@ export default function Kiosk() {
       {verMadreBoton && (
         <div className="kiosk__carta kiosk__madre-fondo">
           <button className="kiosk__cta kiosk__madre-aceptar" onClick={abrirVistaPreviaMadre}>▶ VER EL MENSAJE DEL DÍA DE LA MADRE</button>
+        </div>
+      )}
+
+      {regalo && !madre && (
+        <div className="kiosk__carta kiosk__madre-fondo">
+          <div className="kiosk__madre" onClick={e => e.stopPropagation()}>
+            <img className="kiosk__madre-logo" src="/jackpoints/logo.webp" alt="Jackpoints" />
+            <div className="kiosk__madre-kick">UN REGALO PARA VOS</div>
+            <h2 className="kiosk__madre-tit">{regalo.listo ? '¡Listo!' : `Tenés un ticket esperándote${regalo.nombre ? `, ${regalo.nombre}` : ''}`}</h2>
+            <div className="kiosk__madre-regalos">
+              <div className={`kiosk__madre-regalo${regalo.listo ? ' kiosk__madre-regalo--ok' : ''}`}>
+                <div className="kiosk__madre-pts">${Number(regalo.pesos || 0).toLocaleString('es-AR')}</div>
+                <div className="kiosk__madre-grande">TICKET PROMOCIONAL</div>
+                <span>{regalo.listo ? '¡tu cupón se está imprimiendo!' : 'a tu nombre, para jugar en la sala'}</span>
+              </div>
+            </div>
+            {regalo.listo ? (
+              <>
+                <p className="kiosk__madre-txt">Retirá el cupón de la impresora y canjealo en la caja con tu DNI.</p>
+                <button className="kiosk__cta" onClick={() => setRegalo(null)}>CONTINUAR</button>
+              </>
+            ) : regalo.disponibleHoy ? (
+              <>
+                <p className="kiosk__madre-txt">Tocá el botón y se imprime tu cupón. Vale una sola vez.</p>
+                {regalo.error && <p className="kiosk__madre-txt" role="alert">{regalo.error}</p>}
+                <button className="kiosk__cta" disabled={regalo.enviando} onClick={recibirRegalo}>{regalo.enviando ? 'UN MOMENTO…' : 'RECIBIR MI TICKET'}</button>
+                <button className="kiosk__madre-luego" onClick={() => setRegalo(null)}>Ahora no</button>
+              </>
+            ) : (
+              <>
+                <p className="kiosk__madre-txt">Vení de <b>lunes a jueves</b>, ingresá en esta máquina y es tuyo. Te espera hasta el {regalo.hastaTxt}.</p>
+                <button className="kiosk__cta" onClick={() => setRegalo(null)}>ENTENDIDO</button>
+              </>
+            )}
+          </div>
         </div>
       )}
 

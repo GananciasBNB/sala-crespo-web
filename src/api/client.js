@@ -543,6 +543,11 @@ export const pescaEmpezar = (token) =>
 export const pescaTerminar = (token, datos) =>
   api('/api/pesca/terminar', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() }, body: JSON.stringify(datos) })
 // Día de la Madre 2026 (kiosk pop-up)
+// Regalo de la semana: a promo ticket waiting for chosen members, Monday to Thursday only
+export const regaloSemanaEstado = (token) =>
+  api('/api/promo/regalo-semana', { headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const regaloSemanaReclamar = (token) =>
+  api('/api/promo/regalo-semana/reclamar', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const diaMadreEstado = (token) =>
   api('/api/promo/dia-madre', { headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const diaMadrePuntos = (token) =>
