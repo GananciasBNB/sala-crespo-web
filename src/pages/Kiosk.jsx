@@ -5,7 +5,7 @@ import './Kiosk.css'
 import KioskKeyboard from './kiosk-keyboard'
 import KioskEncuesta from './kiosk-encuesta'
 import { sugerencias } from './kiosk-suggest'
-import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa } from './kiosk-art'
+import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa, ArtCofre } from './kiosk-art'
 import KioskSuperclasico, { debeVerSuperclasico } from './kiosk-superclasico'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
@@ -36,7 +36,7 @@ const ATTRACT_MS = 180000 // frase de atracción cada 3 min en idle
 // en el SERVIDOR — el kiosk solo lo consulta y muestra el contador.
 
 const TX_LABELS = {
-  earn_checkin: 'Puntos por visita', earn_ayb: 'Consumo en barra', earn_birthday: 'Regalo de cumpleaños',
+  earn_checkin: 'Puntos por visita', earn_ayb: 'Consumo en barra', earn_birthday: 'Regalo de cumpleaños', earn_cofre: 'Cofre Jackpoints',
   earn_signup_bonus: 'Bienvenida al Club', earn_manual: 'Ajuste del Club', redeem: 'Canje', refund: 'Devolución', expire: 'Vencimiento',
 }
 function fmtTxFecha(iso) {
@@ -392,6 +392,7 @@ export default function Kiosk() {
   const [encCampo, setEncCampo] = useState(null)   // { modo, label, ph } of the field being typed
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
   const [madre, setMadre] = useState(null)
+  const [cofre, setCofre] = useState(null)     // Días de cofres: earned today or waiting to be opened
   const [regalo, setRegalo] = useState(null)   // promo ticket waiting for this member (Monday to Thursday)
   const [superclasico, setSuperclasico] = useState(VER_SUPER)
   // preview: a first tap opens it, so the browser lets the music and the greeting play like at the cabinet
@@ -449,7 +450,7 @@ export default function Kiosk() {
     setShowPremios(false); setPremios([]); setPremioNuevo(false); premiosPrev.current = null
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setPescaTerminada(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
-    setSuperclasico(false); setMadre(null); setRegalo(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
+    setSuperclasico(false); setMadre(null); setRegalo(null); setCofre(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
 
   // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
@@ -682,6 +683,7 @@ export default function Kiosk() {
     setPlayer(p); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
     abrirDiaMadre(p.token)
     abrirRegalo(p.token)
+    abrirCofres(p.token)
     if (debeVerSuperclasico(p.dni || dni)) setSuperclasico(true)
   }
   async function abrirRegalo(token) {
@@ -699,6 +701,25 @@ export default function Kiosk() {
       if (!r?.ok) throw new Error(r?.error === 'fuera_de_dia' ? 'El ticket se retira de lunes a jueves.' : 'Este ticket ya fue retirado.')
       setRegalo(g => ({ ...g, enviando: false, listo: true, codigo: r.codigo }))
     } catch (err) { setRegalo(g => g && ({ ...g, enviando: false, error: err.message || 'No se pudo entregar. Avisá en caja.' })) }
+  }
+  async function abrirCofres(token) {
+    try {
+      if (DEMO) return
+      const e = await realApi.cofresEstado(token)
+      if (e?.activo) setCofre({ ...e, abriendo: null, sumados: 0, error: '' })
+    } catch (err) { console.warn('cofres:', err) }
+  }
+  async function abrirUnCofre(dia) {
+    if (!player?.token || cofre?.abriendo) return
+    setCofre(c => ({ ...c, abriendo: dia, error: '' }))
+    const espera = new Promise(r => setTimeout(r, 900))   // let the chest shake before the reveal
+    try {
+      const [r] = await Promise.all([realApi.cofresAbrir(player.token), espera])
+      if (!r?.ok) throw new Error(r?.error === 'ya_abierto' ? 'Ese cofre ya fue abierto.' : 'Hoy no se pueden abrir cofres.')
+      if (typeof r.balance === 'number') setBalance(r.balance)
+      setCofre(c => c && ({ ...c, abriendo: null, sumados: c.sumados + r.pts, pendientes: r.pendientes,
+        cofres: c.cofres.map(x => x.dia === r.dia ? { ...x, abierto: true, pts: r.pts, recien: true } : x) }))
+    } catch (err) { setCofre(c => c && ({ ...c, abriendo: null, error: err.message || 'No se pudo abrir. Avisá en caja.' })) }
   }
   async function abrirDiaMadre(token) {
     try {
@@ -1032,6 +1053,7 @@ export default function Kiosk() {
       setPlayer(r.player); setCheckin(c); setBalance(c?.balance ?? r.balance ?? 0); setScreen('done')
       abrirDiaMadre(r.player.token)
       abrirRegalo(r.player.token)
+      abrirCofres(r.player.token)
       if (debeVerSuperclasico(dni)) setSuperclasico(true)
     } catch (e) { setErr(e.message) } finally { setBusy(false) }
   }
@@ -1475,6 +1497,52 @@ export default function Kiosk() {
       {verMadreBoton && (
         <div className="kiosk__carta kiosk__madre-fondo">
           <button className="kiosk__cta kiosk__madre-aceptar" onClick={abrirVistaPreviaMadre}>▶ VER EL MENSAJE DEL DÍA DE LA MADRE</button>
+        </div>
+      )}
+
+      {cofre && !regalo && !madre && (
+        <div className="kiosk__carta kiosk__madre-fondo">
+          <div className="kiosk__madre kiosk__cofres" onClick={e => e.stopPropagation()}>
+            <img className="kiosk__madre-logo" src="/jackpoints/logo.webp" alt="Jackpoints" />
+            <div className="kiosk__madre-kick">DÍAS DE COFRES</div>
+            {cofre.modo === 'ganaste' ? (
+              <>
+                <h2 className="kiosk__madre-tit">¡Ganaste el cofre de hoy{cofre.nombre ? `, ${cofre.nombre}` : ''}!</h2>
+                <div className="kiosk__cofres-fila">
+                  {cofre.cofres.map(x => (
+                    <div key={x.dia} className="kiosk__cofre"><ArtCofre /><span>Cofre del {x.diaTxt}</span></div>
+                  ))}
+                </div>
+                <p className="kiosk__madre-txt">Volvé de <b>lunes a jueves</b>, ingresá en esta máquina y abrilo: adentro hay <b>hasta {Number(cofre.maxPts).toLocaleString('es-AR')} puntos</b>.</p>
+                {cofre.quedanDiasDeEntrega?.length > 0 && <p className="kiosk__madre-txt">Si venís el <b>{cofre.quedanDiasDeEntrega.join(' y el ')}</b>, ganás otro cofre.</p>}
+                <p className="kiosk__cofres-vence">Tenés hasta el {cofre.abrirHastaTxt} para abrirlo.</p>
+                <button className="kiosk__cta" onClick={() => setCofre(null)}>ENTENDIDO</button>
+              </>
+            ) : (
+              <>
+                <h2 className="kiosk__madre-tit">{cofre.pendientes > 0
+                  ? `${cofre.nombre ? `${cofre.nombre}, t` : 'T'}enés ${cofre.pendientes === 1 ? 'un cofre' : `${cofre.pendientes} cofres`} para abrir`
+                  : `¡Sumaste ${cofre.sumados.toLocaleString('es-AR')} puntos!`}</h2>
+                <div className="kiosk__cofres-fila">
+                  {cofre.cofres.map(x => (
+                    <button key={x.dia} type="button" disabled={x.abierto || !!cofre.abriendo}
+                      className={`kiosk__cofre kiosk__cofre--btn${cofre.abriendo === x.dia ? ' kiosk__cofre--temblando' : ''}${x.abierto ? ' kiosk__cofre--abierto' : ''}`}
+                      onClick={() => abrirUnCofre(x.dia)}>
+                      <ArtCofre abierto={x.abierto} />
+                      {x.abierto
+                        ? <b className={`kiosk__cofre-pts${x.recien ? ' kiosk__cofre-pts--nuevo' : ''}`}>+{Number(x.pts).toLocaleString('es-AR')}</b>
+                        : <b className="kiosk__cofre-toca">{cofre.abriendo === x.dia ? '…' : 'TOCÁ PARA ABRIR'}</b>}
+                      <span>Cofre del {x.diaTxt}</span>
+                    </button>
+                  ))}
+                </div>
+                {cofre.error && <p className="kiosk__madre-txt" role="alert">{cofre.error}</p>}
+                {cofre.pendientes > 0
+                  ? <button className="kiosk__madre-luego" onClick={() => setCofre(null)}>Abrir después (hasta el {cofre.abrirHastaTxt})</button>
+                  : <button className="kiosk__cta" onClick={() => setCofre(null)}>CONTINUAR</button>}
+              </>
+            )}
+          </div>
         </div>
       )}
 

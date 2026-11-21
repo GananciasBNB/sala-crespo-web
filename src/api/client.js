@@ -548,6 +548,11 @@ export const regaloSemanaEstado = (token) =>
   api('/api/promo/regalo-semana', { headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const regaloSemanaReclamar = (token) =>
   api('/api/promo/regalo-semana/reclamar', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
+// Días de cofres: chests earned on delivery days, opened Monday to Thursday
+export const cofresEstado = (token) =>
+  api('/api/promo/cofres', { headers: { ...authHeaders(token), ...kioskHeaders() } })
+export const cofresAbrir = (token) =>
+  api('/api/promo/cofres/abrir', { method: 'POST', headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const diaMadreEstado = (token) =>
   api('/api/promo/dia-madre', { headers: { ...authHeaders(token), ...kioskHeaders() } })
 export const diaMadrePuntos = (token) =>

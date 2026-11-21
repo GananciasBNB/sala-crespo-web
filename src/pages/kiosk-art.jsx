@@ -182,3 +182,43 @@ export function ArtSorteo() {
     </svg>
   )
 }
+
+// Treasure chest for "Días de cofres": closed (waiting) or open (lid up, glow)
+export function ArtCofre({ abierto = false }) {
+  const id = abierto ? 'cofreA' : 'cofreC'
+  return (
+    <svg className={`kiosk-cofre${abierto ? ' kiosk-cofre--abierto' : ''}`} viewBox="0 0 120 110" aria-hidden="true">
+      <GoldDefs id={id} />
+      <defs>
+        <linearGradient id={`${id}-wood`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#8B3A1E" /><stop offset="1" stopColor="#4A1A0C" />
+        </linearGradient>
+        <radialGradient id={`${id}-glow`} cx=".5" cy=".5" r=".5">
+          <stop offset="0" stopColor="#FFF1B8" stopOpacity=".95" /><stop offset="1" stopColor="#FFD75A" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {abierto && <ellipse cx="60" cy="52" rx="56" ry="34" fill={`url(#${id}-glow)`} />}
+      {/* body */}
+      <rect x="14" y="54" width="92" height="46" rx="6" fill={`url(#${id}-wood)`} stroke={`url(#${id}-gold)`} strokeWidth="4" />
+      <rect x="14" y="70" width="92" height="7" fill={`url(#${id}-goldH)`} />
+      <rect x="30" y="54" width="7" height="46" fill={`url(#${id}-gold)`} />
+      <rect x="83" y="54" width="7" height="46" fill={`url(#${id}-gold)`} />
+      {abierto ? (
+        <>
+          {/* lid tilted back + coins */}
+          <path d="M16 50 L22 18 Q60 4 98 18 L104 50 Z" fill={`url(#${id}-wood)`} stroke={`url(#${id}-gold)`} strokeWidth="4" />
+          <circle cx="44" cy="52" r="8" fill={`url(#${id}-gold)`} /><circle cx="60" cy="48" r="9" fill={`url(#${id}-gold)`} /><circle cx="76" cy="52" r="8" fill={`url(#${id}-gold)`} />
+        </>
+      ) : (
+        <>
+          <path d="M14 56 L14 40 Q60 14 106 40 L106 56 Z" fill={`url(#${id}-wood)`} stroke={`url(#${id}-gold)`} strokeWidth="4" />
+          <rect x="30" y="27" width="7" height="29" fill={`url(#${id}-gold)`} />
+          <rect x="83" y="27" width="7" height="29" fill={`url(#${id}-gold)`} />
+          {/* lock */}
+          <rect x="50" y="48" width="20" height="20" rx="4" fill={`url(#${id}-gold)`} />
+          <circle cx="60" cy="56" r="3" fill="#4A1A0C" /><rect x="58.5" y="57" width="3" height="6" fill="#4A1A0C" />
+        </>
+      )}
+    </svg>
+  )
+}
