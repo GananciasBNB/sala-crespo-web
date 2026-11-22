@@ -200,3 +200,49 @@ button.cofre .cofre-pie, .cofre--abierto .cofre-pie { min-height: 64px; }
   .tarjeta-slot-img img { height: 36px; }
   .tarjeta-abrir small { font-size: 11px; }
 }
+
+/* live countdown to the opening day */
+.cofre-cuenta { display: inline-flex; align-items: baseline; gap: 4px; font-family: 'Oswald', var(--font-body); color: #ffd75a; }
+.cofre-cuenta b { font-size: 46px; font-weight: 700; line-height: 1; min-width: 1.1em; text-align: center; text-shadow: 0 0 16px rgba(255,215,90,.45); }
+.cofre-cuenta small { font-size: 18px; color: #e6dccb; margin-right: 8px; }
+.cofre-cuenta--ya { font-size: 30px; color: #7ee08a; }
+.entrega-guardado { display: flex; flex-direction: column; align-items: center; gap: 4px; animation: cofre-pop .5s cubic-bezier(.2,1.6,.4,1) both; }
+.entrega-guardado > span { font-family: 'Oswald', var(--font-body); font-size: 18px; letter-spacing: 3px; color: #e6dccb; text-transform: uppercase; }
+.entrega-play { position: relative; z-index: 6; font-size: 22px !important; animation: cofre-latido 1.4s ease-in-out infinite; }
+
+/* ticket prize */
+.cofre-ticket-tit { font-family: 'Oswald', var(--font-body); font-size: 18px; letter-spacing: 3px; color: #7ee08a; animation: cofre-pop .5s cubic-bezier(.2,1.7,.4,1); }
+.cofre-pts--ticket { font-size: 60px; color: #fff3c4; text-shadow: 0 0 26px rgba(255,215,90,.9); }
+.cofre--ticket.cofre--abierto .cofre-rayos { background: repeating-conic-gradient(from 0deg, rgba(126,224,138,.55) 0 6deg, rgba(255,196,70,.7) 6deg 12deg, transparent 12deg 18deg); }
+
+/* member's home screen strip */
+.franja-cofres { display: flex; align-items: center; gap: 18px; width: 100%; max-width: 1220px; box-sizing: border-box; margin: 0 auto 16px; padding: 12px 22px;
+  border-radius: 20px; border: 2px solid #F0D275; background: linear-gradient(135deg, #3a2a0c, #1a1206 55%, #2e2109);
+  box-shadow: 0 0 28px rgba(240,210,117,.25); }
+.franja-cofres-imgs { display: flex; flex-shrink: 0; }
+.franja-cofres-imgs img { height: 70px; width: auto; filter: drop-shadow(0 6px 8px rgba(0,0,0,.6)); animation: cofre-flota-suave 3s ease-in-out infinite; }
+.franja-cofres-imgs img + img { margin-left: -14px; animation-delay: .5s; }
+.franja-cofres-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; }
+.franja-cofres-txt b { font-family: 'Oswald', var(--font-body); font-size: 22px; letter-spacing: 4px; color: #ffd75a; }
+.franja-cofres-txt span { font-size: 17px; color: #f3ead6; }
+.franja-cofres-cuenta { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.franja-cofres-cuenta small { font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: #e6dccb; }
+.franja-cofres-cuenta > b { font-family: 'Oswald', var(--font-body); font-size: 24px; color: #ffd75a; }
+.franja-cofres-cuenta .cofre-cuenta b { font-size: 34px; }
+.franja-cofres-cuenta .cofre-cuenta small { font-size: 14px; margin-right: 5px; }
+.franja-cofres-btn { flex-shrink: 0; width: auto !important; padding-left: 28px !important; padding-right: 28px !important; animation: cofre-latido 1.4s ease-in-out infinite; }
+@keyframes cofre-flota-suave { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
+@media (max-width: 520px) {
+  .cofre-cuenta b { font-size: 30px; }
+  .cofre-cuenta small { font-size: 13px; margin-right: 4px; }
+  .cofre-pts--ticket { font-size: 38px; }
+  .cofre-ticket-tit { font-size: 13px; letter-spacing: 1px; }
+  .entrega-play { font-size: 16px !important; }
+  .franja-cofres { flex-wrap: wrap; gap: 10px; padding: 10px 12px; }
+  .franja-cofres-imgs img { height: 48px; }
+  .franja-cofres-txt b { font-size: 16px; }
+  .franja-cofres-txt span { font-size: 13px; }
+}
+.entrega-guardado .cofre-cuenta b { font-family: 'Oswald', var(--font-body); font-size: 46px; color: #ffd75a; text-shadow: 0 0 16px rgba(255,215,90,.45); }
+@media (max-width: 520px) { .entrega-guardado .cofre-cuenta b { font-size: 30px; } }

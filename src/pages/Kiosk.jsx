@@ -6,7 +6,7 @@ import KioskKeyboard from './kiosk-keyboard'
 import KioskEncuesta from './kiosk-encuesta'
 import { sugerencias } from './kiosk-suggest'
 import { ArtFortuna, ArtTorneo, ArtCanjes, ArtCarta, ArtVisita, ArtSorteo, IconTicket, IconCopa } from './kiosk-art'
-import CofresPopup from './kiosk-cofres'
+import CofresPopup, { FranjaCofres } from './kiosk-cofres'
 import KioskSuperclasico, { debeVerSuperclasico } from './kiosk-superclasico'
 
 // Demo mode (/kiosk?demo=1): shareable test link. Same screens, but every call
@@ -18,10 +18,11 @@ const VER_MADRE = DEMO && new URLSearchParams(window.location.search).get('madre
 const VER_SUPER = DEMO && new URLSearchParams(window.location.search).get('super') === 'ver'
 // /kiosk?demo=1&cofre=ver (tap to open) or &cofre=ganaste (weekend) previews 'Días de cofres' (nothing real)
 const VER_COFRE = DEMO ? new URLSearchParams(window.location.search).get('cofre') : null
+const COFRE_BASE = { nombre: 'Socio', minPts: 100, maxPts: 1000, maxTicket: 20000, abrirHastaTxt: 'jueves 26/11', abreEn: '2026-11-23T12:00:00-03:00' }
 const COFRE_PREVIEW = VER_COFRE === 'ganaste'
-  ? { modo: 'ganaste', nombre: 'Socio', pendientes: 1, cofres: [{ dia: '2026-11-21', diaTxt: 'sábado', abierto: false }], quedanDiasDeEntrega: ['domingo'], maxPts: 1000, abrirHastaTxt: 'jueves 26/11' }
+  ? { ...COFRE_BASE, modo: 'ganaste', pendientes: 1, antesDeAbrir: true, cofres: [{ dia: '2026-11-21', diaTxt: 'sábado', abierto: false }], quedanDiasDeEntrega: ['domingo'] }
   : VER_COFRE === 'ver'
-    ? { modo: 'abrir', nombre: 'Socio', pendientes: 2, cofres: [{ dia: '2026-11-21', diaTxt: 'sábado', abierto: false }, { dia: '2026-11-22', diaTxt: 'domingo', abierto: false }], maxPts: 1000, abrirHastaTxt: 'jueves 26/11' }
+    ? { ...COFRE_BASE, modo: 'abrir', pendientes: 2, cofres: [{ dia: '2026-11-21', diaTxt: 'sábado', abierto: false }, { dia: '2026-11-22', diaTxt: 'domingo', abierto: false }], quedanDiasDeEntrega: [] }
     : null
 // /kiosk?demo=1&encuesta=ver logs a test member in and opens 'Contanos de vos' straight away (preview)
 const VER_ENCUESTA = DEMO && new URLSearchParams(window.location.search).get('encuesta') === 'ver'
@@ -400,6 +401,7 @@ export default function Kiosk() {
   const [encCampo, setEncCampo] = useState(null)   // { modo, label, ph } of the field being typed
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
   const [madre, setMadre] = useState(null)
+  const [cofreInfo, setCofreInfo] = useState(null)   // member's chests for the home-screen strip
   const [cofre, setCofre] = useState(COFRE_PREVIEW && { ...COFRE_PREVIEW, abriendo: null, sumados: 0, error: '' })     // Días de cofres: earned today or waiting to be opened
   const [regalo, setRegalo] = useState(null)   // promo ticket waiting for this member (Monday to Thursday)
   const [superclasico, setSuperclasico] = useState(VER_SUPER)
@@ -458,7 +460,7 @@ export default function Kiosk() {
     setShowPremios(false); setPremios([]); setPremioNuevo(false); premiosPrev.current = null
     setShowMovs(false); setShowCanjes(false); setMovs([]); setCanjeados({}); setBusyReward(null); setGiroJugado(false); setPescaTerminada(false); setCuponEstado(''); setLookup(null)
     setShowDatos(false); setDatosForm({ tel: '', email: '' }); setDatosOk(false); setDatosBusy(false)
-    setSuperclasico(false); setMadre(null); setRegalo(null); setCofre(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
+    setSuperclasico(false); setMadre(null); setRegalo(null); setCofre(null); setCofreInfo(null); setShowEncuesta(false); setEncuesta(null); setEncTexto(''); setEncCampo(null); setShowCumple(false); setCumpleDigits(''); setCumpleBusy(false); setCumpleErr(''); setCumpleListo(false); setCumpleGracias(false)
   }, [])
 
   // Vinculación de la máquina: una sola vez, abrir /kiosk?key=LLAVE en el
@@ -712,24 +714,37 @@ export default function Kiosk() {
   }
   async function abrirCofres(token) {
     try {
-      if (DEMO) return
+      if (DEMO) { if (COFRE_PREVIEW) setCofreInfo({ ...COFRE_PREVIEW, modo: VER_COFRE === 'ver' ? 'abrir' : null }); return }   // demo: show the home strip
       const e = await realApi.cofresEstado(token)
-      if (e?.activo) setCofre({ ...e, abriendo: null, sumados: 0, error: '' })
+      setCofreInfo(e?.cofres?.length ? e : null)
+      if (!e?.activo) return
+      // the weekend hand-over plays once per member and day (repeat logins skip it; the strip stays)
+      if (e.modo === 'ganaste') {
+        const clave = `cofre-visto-${e.hoy}-${token.slice(-12)}`
+        try { if (localStorage.getItem(clave)) return; localStorage.setItem(clave, '1') } catch (err) { console.warn('cofres storage:', err) }
+      }
+      setCofre({ ...e, abriendo: null, sumados: 0, error: '' })
     } catch (err) { console.warn('cofres:', err) }
   }
   async function abrirUnCofre(dia) {
     if (cofre?.abriendo || (!player?.token && !COFRE_PREVIEW)) return
     setCofre(c => ({ ...c, abriendo: dia, error: '' }))
     const espera = new Promise(r => setTimeout(r, 1100))   // let the chest shake before the reveal
-    // preview: random points from the real table, nothing is saved
-    const simular = () => { const r = Math.random() * 100; const pts = r < 40 ? 100 : r < 70 ? 200 : r < 88 ? 300 : r < 97 ? 500 : 1000
-      return { ok: true, dia, pts, pendientes: cofre.cofres.filter(x => !x.abierto && x.dia !== dia).length } }
+    // preview: the first chest pays random points, the second shows the ticket; nothing is saved
+    const simular = () => {
+      const quedan = cofre.cofres.filter(x => !x.abierto && x.dia !== dia).length
+      if (cofre.cofres.some(x => x.abierto)) return { ok: true, dia, tipo: 'ticket', pesos: 20000, pts: 0, pendientes: quedan }
+      const r = Math.random() * 100; const pts = r < 40 ? 100 : r < 70 ? 200 : r < 87 ? 300 : r < 96 ? 500 : 1000
+      return { ok: true, dia, tipo: 'puntos', pts, pendientes: quedan }
+    }
     try {
       const [r] = await Promise.all([player?.token ? realApi.cofresAbrir(player.token) : simular(), espera])
       if (!r?.ok) throw new Error(r?.error === 'ya_abierto' ? 'Ese cofre ya fue abierto.' : 'Hoy no se pueden abrir cofres.')
       if (typeof r.balance === 'number') setBalance(r.balance)
-      setCofre(c => c && ({ ...c, abriendo: null, sumados: c.sumados + r.pts, pendientes: r.pendientes,
-        cofres: c.cofres.map(x => x.dia === r.dia ? { ...x, abierto: true, pts: r.pts, recien: true } : x) }))
+      const abierto = x => ({ ...x, abierto: true, pts: r.pts, pesos: r.tipo === 'ticket' ? r.pesos : undefined })
+      setCofre(c => c && ({ ...c, abriendo: null, sumados: c.sumados + (r.pts || 0), pendientes: r.pendientes,
+        cofres: c.cofres.map(x => x.dia === r.dia ? { ...abierto(x), recien: true } : x) }))
+      setCofreInfo(i => i && ({ ...i, cofres: i.cofres.map(x => x.dia === r.dia ? abierto(x) : x) }))
     } catch (err) { setCofre(c => c && ({ ...c, abriendo: null, error: err.message || 'No se pudo abrir. Avisá en caja.' })) }
   }
   async function abrirDiaMadre(token) {
@@ -1386,6 +1401,8 @@ export default function Kiosk() {
           </div>
 
           {err && <div className="kiosk__err">{err}</div>}
+
+          <FranjaCofres info={cofreInfo} onAbrir={() => setCofre({ ...cofreInfo, pendientes: cofreInfo.cofres.filter(x => !x.abierto).length, abriendo: null, sumados: 0, error: '' })} />
 
           <div className="kiosk__hub kiosk__hub--a" onClick={tocarTarjeta}>
             <div className="kiosk__juegos">
