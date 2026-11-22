@@ -191,7 +191,7 @@ function FortunaEstado({ token, refreshKey, onJugar, art }) {
 // app y se pausa mientras Fortuna Dorada está abierta (el juego tiene la suya).
 let musicaClub = null
 const MUSICA_VOL = 0.1   // colchon de fondo: audible sin tapar las voces
-let musicaSrc = '/kiosk-audio/musica-club.mp3', musicaVol = MUSICA_VOL
+let musicaSrc = '/kiosk-audio/musica-club-tropical.mp3', musicaVol = MUSICA_VOL
 // the event terminal plays its own track (rock, louder: it is outdoors); the sala keeps the club music
 function musicaClubFuente(src, vol) {
   if (src === musicaSrc) return
