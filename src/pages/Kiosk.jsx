@@ -387,6 +387,28 @@ function Dots({ value, len }) {
 
 export default function Kiosk() {
   const [screen, setScreen] = useState('idle') // idle | dni | pin | register | done
+  // Auto-update: every 5 min compare the deployed bundle with the one running; when it changed, reload
+  // as soon as the machine sits idle on the attract screen (never in the middle of a member's session).
+  const [hayVersionNueva, setHayVersionNueva] = useState(false)
+  useEffect(() => {
+    if (DEMO) return
+    const actual = document.querySelector('script[src*="/assets/index-"]')?.getAttribute('src')
+    if (!actual) return
+    const revisar = async () => {
+      try {
+        const html = await fetch(`/kiosk?v=${Date.now()}`, { cache: 'no-store' }).then(r => r.text())
+        const nuevo = (html.match(/\/assets\/index-[\w-]+\.js/) || [])[0]
+        if (nuevo && !actual.endsWith(nuevo)) setHayVersionNueva(true)
+      } catch (err) { console.warn('auto-update:', err) }
+    }
+    const t = setInterval(revisar, 5 * 60 * 1000)
+    return () => clearInterval(t)
+  }, [])
+  useEffect(() => {
+    if (!hayVersionNueva || screen !== 'idle') return
+    const t = setTimeout(() => window.location.reload(), 3000)   // still idle 3 s later
+    return () => clearTimeout(t)
+  }, [hayVersionNueva, screen])
   const [dni, setDni] = useState('')
   const [pin, setPin] = useState('')
   const [player, setPlayer] = useState(null)
