@@ -91,3 +91,15 @@ button.cofre .cofre-pie, .cofre--abierto .cofre-pie { min-height: 64px; }
   .cofre-img--abierto { width: 194px; }
   .cofre-destello { transform: rotate(calc(var(--i) * 360deg / var(--n))) translateX(96px) rotate(calc(var(--i) * -360deg / var(--n))); }
 }
+@media (max-width: 520px) {
+  .cofres-fila { gap: 8px; flex-wrap: nowrap; }
+  .cofre-escena { width: 156px; height: 146px; }
+  .cofre-img { width: 132px; }
+  .cofre-img--abierto { width: 142px; }
+  .cofre-destello { transform: rotate(calc(var(--i) * 360deg / var(--n))) translateX(70px) rotate(calc(var(--i) * -360deg / var(--n))); }
+  .cofre-pts { font-size: 34px; }
+  .cofre-pts small { font-size: 13px; }
+  .cofre-toca { font-size: 14px; letter-spacing: 1px; }
+  .cofre-etiqueta { font-size: 13px; }
+  .cofre-moneda { width: 18px; height: 18px; margin: -9px; }
+}
