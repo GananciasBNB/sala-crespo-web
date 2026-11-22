@@ -15,6 +15,7 @@ const SFX = {
   abre: ['/kiosk-audio/cofre-abre.mp3', 0.9],
   monedas: ['/kiosk-audio/cofre-monedas.mp3', 0.75],
   conteo: ['/kiosk-audio/cofre-conteo.mp3', 0.45],
+  guardado: ['/kiosk-audio/cofre-guardado.mp3', 0.9],
 }
 const cache = {}
 
@@ -126,8 +127,111 @@ function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta, nuevo }) {
 const diaCorto = x => `${x.diaTxt.slice(0, 3).toUpperCase()} ${x.dia.slice(8, 10)}`
 const mayus = s => s.charAt(0).toUpperCase() + s.slice(1)
 
+// Weekend hand-over: thank-you copy, the chest drops in, then flies into the member's "Mis cofres" card.
+// Phases: 0 intro text · 1 chest landed · 2 flying to the card · 3 stored (button shows)
+const T_CAE = 900, T_VUELA = 3400, T_VUELO_MS = 800
+
+function EntregaCofre({ cofre, onCerrar }) {
+  const [fase, setFase] = useState(0)
+  const vuelaRef = useRef(null)
+  const slotRef = useRef(null)
+  const rafVuelo = useRef(0)
+  const hoy = cofre.cofres[cofre.cofres.length - 1]?.dia   // today's chest is the last one earned
+  const previos = cofre.cofres.filter(x => x.dia !== hoy)
+  const ordinal = cofre.cofres.length === 1 ? 'primer' : cofre.cofres.length === 2 ? 'segundo' : 'nuevo'
+  const futuros = cofre.quedanDiasDeEntrega || []
+
+  useEffect(() => {
+    let reintento = null
+    const sonarGanaste = () => {
+      const a = cache.ganaste
+      if (!a) return
+      a.volume = SFX.ganaste[1]
+      a.play().catch(() => {   // preview link: autoplay blocked until the first touch
+        reintento = () => a.play().catch(err => console.warn('cofre audio:', err))
+        document.addEventListener('pointerdown', reintento, { once: true })
+      })
+    }
+    const t1 = setTimeout(() => setFase(1), T_CAE)
+    const t1s = setTimeout(sonarGanaste, T_CAE + 420)
+    const t2 = setTimeout(() => {
+      const el = vuelaRef.current, slot = slotRef.current
+      if (el && slot) {
+        const a = el.getBoundingClientRect(), b = slot.getBoundingClientRect()
+        const dx = (b.left + b.width / 2) - (a.left + a.width / 2)
+        const dy = (b.top + b.height / 2) - (a.top + a.height / 2)
+        const s = Math.max(0.12, (b.width * 0.9) / a.width)
+        // frame by frame: a small hop up, then an accelerating arc into the slot
+        const t0 = performance.now()
+        const paso = now => {
+          const k = Math.min(1, (now - t0) / T_VUELO_MS)
+          const e = k * k * k                                     // ease-in: slow lift, fast dive
+          const hop = Math.sin(Math.min(1, k * 1.6) * Math.PI) * -60   // up-arc at the start
+          const sc = k < 0.2 ? 1 + k * 0.4 : 1.08 + (s - 1.08) * e
+          el.style.transform = `translate(${dx * e}px, ${dy * e + hop * (1 - e)}px) scale(${sc})`
+          el.style.opacity = k > 0.9 ? String((1 - k) * 10) : '1'
+          if (k < 1) rafVuelo.current = requestAnimationFrame(paso)
+        }
+        rafVuelo.current = requestAnimationFrame(paso)
+      }
+      sonar('guardado')
+      setFase(2)
+    }, T_VUELA)
+    const t3 = setTimeout(() => setFase(3), T_VUELA + T_VUELO_MS)
+    return () => { [t1, t1s, t2, t3].forEach(clearTimeout); cancelAnimationFrame(rafVuelo.current); if (reintento) document.removeEventListener('pointerdown', reintento) }
+  }, [])
+
+  const slot = (key, etiqueta, estado, clase, ref) => (
+    <div key={key} ref={ref} className={`tarjeta-slot ${clase}`}>
+      <div className="tarjeta-slot-img"><img src={IMG_CERRADO} alt="" draggable="false" /></div>
+      <b>{etiqueta}</b><span>{estado}</span>
+    </div>
+  )
+
+  return (
+    <div className="kiosk__carta kiosk__madre-fondo">
+      <div className="kiosk__madre cofres-modal cofres-modal--ganaste" onClick={e => e.stopPropagation()}>
+        <img className="kiosk__madre-logo" src="/jackpoints/logo.webp" alt="Jackpoints" />
+        <div className="kiosk__madre-kick entrega-in" style={{ '--d': '.15s' }}>GRACIAS POR VENIR</div>
+        <h2 className="kiosk__madre-tit entrega-tit">¡Premiamos tu fidelidad{cofre.nombre ? `, ${cofre.nombre}` : ''}!</h2>
+        <p className="cofres-regla entrega-in" style={{ '--d': '.5s' }}>
+          Este fin de semana te regalamos un <b>cofre sorpresa por cada día que venís</b>. Lo abrís <b>de lunes a jueves</b> en Sala Crespo… <b>¡y tiene premio!</b>
+        </p>
+
+        <div className="entrega-escenario">
+          {fase >= 1 && fase < 3 && (
+            <div className="entrega-vuela" ref={vuelaRef}>
+              <Cofre x={{ dia: hoy, abierto: false }} nuevo etiqueta="" />
+            </div>
+          )}
+          {fase === 1 && <p className="entrega-leyenda">Acá tenés tu {ordinal} cofre del día</p>}
+          {fase === 3 && (
+            <p className="entrega-guardado"><b>¡Guardado en tu tarjeta!</b><span>Te esperamos de lunes a jueves para abrirlo</span></p>
+          )}
+        </div>
+
+        <div className="tarjeta-cofres entrega-in" style={{ '--d': '.75s' }}>
+          <div className="tarjeta-cab"><img src="/jackpoints/logo.webp" alt="" /> MIS COFRES</div>
+          <div className="tarjeta-slots">
+            {previos.map(x => slot(x.dia, diaCorto(x), '¡Guardado!', 'tarjeta-slot--lleno'))}
+            {slot(hoy, cofre.cofres.length ? diaCorto(cofre.cofres[cofre.cofres.length - 1]) : 'HOY',
+              fase === 3 ? '¡Guardado!' : 'Hoy',
+              fase === 3 ? 'tarjeta-slot--lleno tarjeta-slot--nuevo' : 'tarjeta-slot--esperando', slotRef)}
+            {futuros.map(d => slot(d, d.slice(0, 3).toUpperCase(), `Volvé el ${d} y sumás otro`, 'tarjeta-slot--futuro'))}
+            <div className="tarjeta-abrir"><b>LUN a JUE</b><span>Los abrís acá</span><small>hasta {Number(cofre.maxPts).toLocaleString('es-AR')} pts</small></div>
+          </div>
+        </div>
+
+        <p className="cofres-vence">Tenés hasta el {cofre.abrirHastaTxt} para abrirlos.</p>
+        <button className={`kiosk__cta entrega-boton${fase === 3 ? ' entrega-boton--listo' : ''}`} onClick={onCerrar}>¡GENIAL!</button>
+      </div>
+    </div>
+  )
+}
+
 export default function CofresPopup({ cofre, onAbrir, onCerrar }) {
   const ganaste = cofre.modo === 'ganaste'
+  if (ganaste) return <EntregaCofre cofre={cofre} onCerrar={onCerrar} />
   const nombre = cofre.nombre ? `, ${cofre.nombre}` : ''
   const titulo = ganaste
     ? (cofre.cofres.length > 1 ? `¡Ganaste tu ${cofre.cofres.length === 2 ? 'segundo' : 'otro'} cofre${nombre}!` : `¡Ganaste un cofre${nombre}!`)
@@ -136,20 +240,6 @@ export default function CofresPopup({ cofre, onAbrir, onCerrar }) {
       : `¡Sumaste ${Number(cofre.sumados || 0).toLocaleString('es-AR')} puntos!`
   const fantasmas = ganaste ? (cofre.quedanDiasDeEntrega || []) : []
   const hoy = ganaste ? cofre.cofres[cofre.cofres.length - 1]?.dia : null   // today's chest is the last one earned
-
-  // weekend: the chest lands at ~450 ms; if the browser blocks autoplay (preview link), play on the first touch
-  useEffect(() => {
-    if (!ganaste) return
-    const a = cache.ganaste
-    if (!a) return
-    a.volume = SFX.ganaste[1]
-    let reintento = null
-    const t = setTimeout(() => a.play().catch(() => {
-      reintento = () => a.play().catch(err => console.warn('cofre audio:', err))
-      document.addEventListener('pointerdown', reintento, { once: true })
-    }), 450)
-    return () => { clearTimeout(t); if (reintento) document.removeEventListener('pointerdown', reintento) }
-  }, [ganaste])
 
   return (
     <div className="kiosk__carta kiosk__madre-fondo">
