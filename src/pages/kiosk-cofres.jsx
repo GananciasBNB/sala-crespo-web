@@ -6,14 +6,28 @@ import './kiosk-cofres.css'
 
 const IMG_CERRADO = '/kiosk-art/cofre-cerrado.webp'
 const IMG_ABIERTO = '/kiosk-art/cofre-abierto.webp'
-const SONIDO_APERTURA = '/la-gran-pesca/sfx/atrapa-legendario.mp3'
 const FLASH_MS = 380        // the open art appears at the flash peak
 const CONTEO_MS = 1400
-
-function sonar(src, volume = 0.85) {
-  try { const a = new Audio(src); a.volume = volume; a.play().catch(err => console.warn('cofre audio:', err)) }
-  catch (err) { console.warn('cofre audio:', err) }
+// ElevenLabs SFX (giro-diario-assets/gen-sfx-cofres.mjs); volumes level them (conteo comes out louder)
+const SFX = {
+  ganaste: ['/kiosk-audio/cofre-ganaste.mp3', 1],
+  tiembla: ['/kiosk-audio/cofre-tiembla.mp3', 0.8],
+  abre: ['/kiosk-audio/cofre-abre.mp3', 0.9],
+  monedas: ['/kiosk-audio/cofre-monedas.mp3', 0.75],
+  conteo: ['/kiosk-audio/cofre-conteo.mp3', 0.45],
 }
+const cache = {}
+
+function sonar(nombre) {
+  try {
+    const [src, volume] = SFX[nombre]
+    const a = cache[nombre] || (cache[nombre] = new Audio(src))
+    a.volume = volume; a.currentTime = 0
+    a.play().catch(err => console.warn('cofre audio:', err))
+  } catch (err) { console.warn('cofre audio:', err) }
+}
+// preload so the first tap sounds on time
+if (typeof window !== 'undefined') Object.keys(SFX).forEach(n => { try { const a = cache[n] = new Audio(SFX[n][0]); a.preload = 'auto' } catch (err) { console.warn('cofre audio:', err) } })
 
 // stable random coin trajectories per chest
 function useMonedas(n, seed) {
@@ -52,8 +66,9 @@ function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta }) {
     if (!x.abierto || !x.recien || yaAnimado.current) return
     yaAnimado.current = true
     setFase('revelando')
-    sonar(SONIDO_APERTURA)
-    const t1 = setTimeout(() => setFase('abierto'), FLASH_MS)
+    sonar('abre')
+    const t1 = setTimeout(() => { setFase('abierto'); sonar('monedas') }, FLASH_MS)
+    const t2 = setTimeout(() => sonar('conteo'), FLASH_MS + 250)
     const t0 = performance.now() + FLASH_MS
     let raf = 0
     const subir = now => {
@@ -62,8 +77,10 @@ function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta }) {
       if (k < 1) raf = requestAnimationFrame(subir)
     }
     raf = requestAnimationFrame(subir)
-    return () => { clearTimeout(t1); cancelAnimationFrame(raf) }
+    return () => { clearTimeout(t1); clearTimeout(t2); cancelAnimationFrame(raf) }
   }, [x.abierto, x.recien, x.pts])
+
+  useEffect(() => { if (abriendo) sonar('tiembla') }, [abriendo])
 
   const abierto = fase === 'abierto'   // the open art only shows from the flash peak on
   const clases = ['cofre',
@@ -110,6 +127,20 @@ export default function CofresPopup({ cofre, onAbrir, onCerrar }) {
       ? `${cofre.nombre ? `${cofre.nombre}, t` : 'T'}enés ${cofre.pendientes === 1 ? 'un cofre' : `${cofre.pendientes} cofres`} para abrir`
       : `¡Sumaste ${Number(cofre.sumados || 0).toLocaleString('es-AR')} puntos!`
   const fantasmas = ganaste ? (cofre.quedanDiasDeEntrega || []) : []
+
+  // weekend: celebrate the earned chest; if the browser blocks autoplay (preview link), play on the first touch
+  useEffect(() => {
+    if (!ganaste) return
+    const a = cache.ganaste
+    if (!a) return
+    a.volume = SFX.ganaste[1]
+    let reintento = null
+    a.play().catch(() => {
+      reintento = () => a.play().catch(err => console.warn('cofre audio:', err))
+      document.addEventListener('pointerdown', reintento, { once: true })
+    })
+    return () => { if (reintento) document.removeEventListener('pointerdown', reintento) }
+  }, [ganaste])
 
   return (
     <div className="kiosk__carta kiosk__madre-fondo">
