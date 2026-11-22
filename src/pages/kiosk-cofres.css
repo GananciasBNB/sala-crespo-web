@@ -1,0 +1,93 @@
+/* Días de cofres: chest art + opening animation */
+.cofres-modal { width: min(900px, 94vw); }
+.cofres-fila { display: flex; justify-content: center; gap: 26px; flex-wrap: wrap; width: 100%; margin: 4px 0 2px; }
+.cofres-vence { font-size: 15px; color: #a9b3c6; margin: 0; }
+
+.cofre { position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0;
+  background: none; border: 0; padding: 0; color: inherit; font: inherit; -webkit-tap-highlight-color: transparent; }
+button.cofre { cursor: pointer; }
+.cofre-escena { position: relative; width: 300px; height: 270px; display: grid; place-items: center; }
+
+/* art: both images stacked, the flash hides the swap */
+.cofre-img { position: absolute; width: 250px; height: auto; left: 50%; top: 50%; transform: translate(-50%, -48%);
+  filter: drop-shadow(0 18px 22px rgba(0,0,0,.55)); pointer-events: none; user-select: none; }
+.cofre-img--abierto { opacity: 0; width: 268px; }
+.cofre--abierto .cofre-img--cerrado { opacity: 0; }
+.cofre--abierto .cofre-img--abierto { opacity: 1; animation: cofre-pop .55s cubic-bezier(.2,1.7,.4,1); }
+
+/* closed: soft breathing glow + floating */
+.cofre-halo { position: absolute; inset: -4% -10% -6%; border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(255,220,110,.8), rgba(255,170,40,.38) 55%, transparent 80%);
+  animation: cofre-respira 2.2s ease-in-out infinite; }
+.cofre:not(.cofre--abierto) .cofre-img--cerrado { animation: cofre-flota 3s ease-in-out infinite; }
+.cofre--tocable .cofre-halo { animation-duration: 1.4s; }
+.cofre--tocable:active .cofre-img--cerrado { transform: translate(-50%, -48%) scale(.96); }
+
+/* sparkles around the closed chest */
+.cofre-destello { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; pointer-events: none;
+  background: radial-gradient(circle, #fff 0 12%, transparent 13%), conic-gradient(from 45deg, transparent 0 20%, #fff6c8 22%, transparent 24% 45%, #fff6c8 47%, transparent 49% 70%, #fff6c8 72%, transparent 74% 95%, #fff6c8 97%, transparent 99%);
+  border-radius: 50%; opacity: 0;
+  transform: rotate(calc(var(--i) * 360deg / var(--n))) translateX(132px) rotate(calc(var(--i) * -360deg / var(--n)));
+  animation: cofre-titila 2.4s ease-in-out infinite; animation-delay: calc(var(--i) * .34s); }
+
+/* shaking while the server answers */
+.cofre--temblando .cofre-img--cerrado { animation: cofre-tiembla .12s linear infinite !important; }
+.cofre--temblando .cofre-halo { animation: cofre-carga .9s ease-in forwards; }
+
+/* golden flash */
+.cofre-flash { position: absolute; inset: -30%; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: radial-gradient(closest-side, #fffbe6 0, #ffe07a 35%, rgba(255,190,60,.45) 60%, transparent 75%); }
+.cofre--revelando .cofre-flash { animation: cofre-flash .9s ease-out forwards; }
+
+/* light rays behind the open chest */
+.cofre-rayos { position: absolute; inset: -38% -30%; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: repeating-conic-gradient(from 0deg, rgba(255,196,70,.7) 0 6deg, transparent 6deg 18deg);
+  -webkit-mask-image: radial-gradient(closest-side, #000 20%, rgba(0,0,0,.5) 50%, transparent 85%); mask-image: radial-gradient(closest-side, #000 20%, rgba(0,0,0,.5) 50%, transparent 85%); }
+.cofre--abierto .cofre-rayos { opacity: 1; animation: cofre-gira 14s linear infinite, cofre-aparece .6s ease-out; }
+.cofre--abierto .cofre-halo { animation: none; background: radial-gradient(closest-side, rgba(255,230,140,.85), rgba(255,180,50,.35) 50%, transparent 80%); }
+
+/* coins bursting out */
+.cofre-monedas { position: absolute; left: 50%; top: 46%; width: 0; height: 0; pointer-events: none; z-index: 3; }
+.cofre-moneda { position: absolute; width: 26px; height: 26px; margin: -13px; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle at 35% 30%, #fff6c8 0 18%, #ffd75a 30%, #e0a526 62%, #9a6a12 100%);
+  box-shadow: inset 0 0 0 2px rgba(255,240,180,.55), 0 0 10px rgba(255,200,60,.6);
+  animation: cofre-moneda var(--t) cubic-bezier(.2,.7,.4,1) var(--d) forwards; }
+
+/* footer: points / call to action / label */
+.cofre-pie { display: flex; flex-direction: column; align-items: center; gap: 2px; justify-content: flex-start; }
+button.cofre .cofre-pie, .cofre--abierto .cofre-pie { min-height: 64px; }
+.cofre-toca { font-family: 'Oswald', var(--font-body); font-size: 20px; letter-spacing: 3px; color: #ffd75a; animation: cofre-latido 1.4s ease-in-out infinite; }
+.cofre-pts { font-family: 'Playfair Display', Georgia, serif; font-weight: 900; font-size: 52px; line-height: 1; color: #fff3c4;
+  text-shadow: 0 0 22px rgba(255,215,90,.65); display: flex; align-items: baseline; gap: 8px; animation: cofre-pop .5s cubic-bezier(.2,1.7,.4,1); }
+.cofre-pts small { font-family: 'Oswald', var(--font-body); font-weight: 600; font-size: 18px; letter-spacing: 2px; color: #ffd75a; text-shadow: none; }
+.cofre-etiqueta { font-size: 16px; color: #e6dccb; }
+
+/* not earned yet (weekend preview of tomorrow's chest) */
+.cofre--fantasma .cofre-img { filter: grayscale(1) brightness(.35) drop-shadow(0 10px 14px rgba(0,0,0,.5)); }
+.cofre--fantasma .cofre-halo { opacity: .15; }
+.cofre--fantasma .cofre-img--cerrado { animation: none !important; }
+.cofre--fantasma .cofre-etiqueta { color: #a9b3c6; }
+
+@keyframes cofre-respira { 0%, 100% { transform: scale(.92); opacity: .75; } 50% { transform: scale(1.06); opacity: 1; } }
+@keyframes cofre-flota { 0%, 100% { transform: translate(-50%, -48%); } 50% { transform: translate(-50%, -52%); } }
+@keyframes cofre-titila { 0%, 100% { opacity: 0; scale: .3; } 45% { opacity: 1; scale: 1; } 60% { opacity: 0; scale: .4; } }
+@keyframes cofre-tiembla { 0% { transform: translate(-50%, -48%) rotate(-3deg); } 50% { transform: translate(-50%, -48%) rotate(3deg) scale(1.02); } 100% { transform: translate(-50%, -48%) rotate(-3deg); } }
+@keyframes cofre-carga { to { transform: scale(1.25); opacity: 1; } }
+@keyframes cofre-flash { 0% { opacity: 0; transform: scale(.4); } 35% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1.3); } }
+@keyframes cofre-gira { to { transform: rotate(360deg); } }
+@keyframes cofre-aparece { from { opacity: 0; transform: scale(.5); } }
+@keyframes cofre-pop { 0% { scale: .6; } 100% { scale: 1; } }
+@keyframes cofre-latido { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes cofre-moneda {
+  0% { opacity: 0; transform: translate(0, 0) scale(.3) rotate(0); }
+  10% { opacity: 1; }
+  55% { transform: translate(var(--x), var(--y)) scale(var(--s)) rotate(calc(var(--giro) * .6)); }
+  100% { opacity: 0; transform: translate(calc(var(--x) * 1.25), calc(var(--y) + var(--caida) + 140px)) scale(var(--s)) rotate(var(--giro)); }
+}
+
+@media (max-width: 700px) {
+  .cofre-escena { width: 220px; height: 200px; }
+  .cofre-img { width: 180px; }
+  .cofre-img--abierto { width: 194px; }
+  .cofre-destello { transform: rotate(calc(var(--i) * 360deg / var(--n))) translateX(96px) rotate(calc(var(--i) * -360deg / var(--n))); }
+}
