@@ -1424,7 +1424,7 @@ export default function Kiosk() {
 
           {err && <div className="kiosk__err">{err}</div>}
 
-          <FranjaCofres info={cofreInfo} onAbrir={() => setCofre({ ...cofreInfo, pendientes: cofreInfo.cofres.filter(x => !x.abierto).length, abriendo: null, sumados: 0, error: '' })} />
+          <FranjaCofres info={cofreInfo} onAbrir={() => setCofre({ ...cofreInfo, modo: 'abrir', pendientes: cofreInfo.cofres.filter(x => !x.abierto).length, abriendo: null, sumados: 0, error: '' })} />
 
           <div className="kiosk__hub kiosk__hub--a" onClick={tocarTarjeta}>
             <div className="kiosk__juegos">

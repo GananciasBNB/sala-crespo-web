@@ -341,7 +341,7 @@ export function FranjaCofres({ info, onAbrir }) {
           ? 'Ya abriste tus cofres. ¡Gracias por venir!'
           : `Tenés ${pendientes === 1 ? '1 cofre guardado' : `${pendientes} cofres guardados`} · podés ganar puntos y tickets`}</span>
       </div>
-      {pendientes > 0 && (info.modo === 'abrir'
+      {pendientes > 0 && (info.modo === 'abrir' || info.puedeAbrir
         ? <button type="button" className="kiosk__cta kiosk__cta--hub franja-cofres-btn" onClick={onAbrir}>ABRIR MIS COFRES</button>
         : info.antesDeAbrir
           ? <div className="franja-cofres-cuenta"><small>Se abren en</small><CuentaCofre hasta={info.abreEn} corta /></div>
