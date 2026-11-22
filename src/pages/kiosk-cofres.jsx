@@ -56,7 +56,7 @@ function Destellos({ n = 7 }) {
   ))
 }
 
-function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta }) {
+function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta, nuevo }) {
   const [fase, setFase] = useState(x.abierto ? 'abierto' : 'cerrado')   // cerrado | revelando | abierto
   const [conteo, setConteo] = useState(x.abierto && !x.recien ? x.pts : 0)
   const monedas = useMonedas(18, x.dia)
@@ -85,6 +85,7 @@ function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta }) {
   const abierto = fase === 'abierto'   // the open art only shows from the flash peak on
   const clases = ['cofre',
     fantasma && 'cofre--fantasma',
+    nuevo && 'cofre--nuevo',
     clickable && !x.abierto && 'cofre--tocable',
     abriendo && 'cofre--temblando',
     fase === 'revelando' && 'cofre--revelando',
@@ -102,6 +103,9 @@ function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta }) {
         <img className="cofre-img cofre-img--cerrado" src={IMG_CERRADO} alt="" draggable="false" />
         <img className="cofre-img cofre-img--abierto" src={IMG_ABIERTO} alt="" draggable="false" />
         {!abierto && !fantasma && <Destellos />}
+        {nuevo && (
+          <div className="cofre-monedas cofre-monedas--llegada">{monedas.map((st, i) => <span key={i} className="cofre-chispa" style={st} />)}</div>
+        )}
         {(fase === 'revelando' || (abierto && x.recien)) && (
           <div className="cofre-monedas">{monedas.map((st, i) => <span key={i} className="cofre-moneda" style={st} />)}</div>
         )}
@@ -119,49 +123,63 @@ function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta }) {
   )
 }
 
+const diaCorto = x => `${x.diaTxt.slice(0, 3).toUpperCase()} ${x.dia.slice(8, 10)}`
+const mayus = s => s.charAt(0).toUpperCase() + s.slice(1)
+
 export default function CofresPopup({ cofre, onAbrir, onCerrar }) {
   const ganaste = cofre.modo === 'ganaste'
+  const nombre = cofre.nombre ? `, ${cofre.nombre}` : ''
   const titulo = ganaste
-    ? `¡Ganaste el cofre de hoy${cofre.nombre ? `, ${cofre.nombre}` : ''}!`
+    ? (cofre.cofres.length > 1 ? `¡Ganaste tu ${cofre.cofres.length === 2 ? 'segundo' : 'otro'} cofre${nombre}!` : `¡Ganaste un cofre${nombre}!`)
     : cofre.pendientes > 0
       ? `${cofre.nombre ? `${cofre.nombre}, t` : 'T'}enés ${cofre.pendientes === 1 ? 'un cofre' : `${cofre.pendientes} cofres`} para abrir`
       : `¡Sumaste ${Number(cofre.sumados || 0).toLocaleString('es-AR')} puntos!`
   const fantasmas = ganaste ? (cofre.quedanDiasDeEntrega || []) : []
+  const hoy = ganaste ? cofre.cofres[cofre.cofres.length - 1]?.dia : null   // today's chest is the last one earned
 
-  // weekend: celebrate the earned chest; if the browser blocks autoplay (preview link), play on the first touch
+  // weekend: the chest lands at ~450 ms; if the browser blocks autoplay (preview link), play on the first touch
   useEffect(() => {
     if (!ganaste) return
     const a = cache.ganaste
     if (!a) return
     a.volume = SFX.ganaste[1]
     let reintento = null
-    a.play().catch(() => {
+    const t = setTimeout(() => a.play().catch(() => {
       reintento = () => a.play().catch(err => console.warn('cofre audio:', err))
       document.addEventListener('pointerdown', reintento, { once: true })
-    })
-    return () => { if (reintento) document.removeEventListener('pointerdown', reintento) }
+    }), 450)
+    return () => { clearTimeout(t); if (reintento) document.removeEventListener('pointerdown', reintento) }
   }, [ganaste])
 
   return (
     <div className="kiosk__carta kiosk__madre-fondo">
-      <div className="kiosk__madre cofres-modal" onClick={e => e.stopPropagation()}>
+      <div className={`kiosk__madre cofres-modal${ganaste ? ' cofres-modal--ganaste' : ''}`} onClick={e => e.stopPropagation()}>
         <img className="kiosk__madre-logo" src="/jackpoints/logo.webp" alt="Jackpoints" />
-        <div className="kiosk__madre-kick">DÍAS DE COFRES</div>
-        <h2 className="kiosk__madre-tit">{titulo}</h2>
+        <div className="kiosk__madre-kick">{ganaste ? 'REGALO POR TU VISITA' : 'DÍAS DE COFRES'}</div>
+        <h2 className="kiosk__madre-tit cofres-tit">{titulo}</h2>
+        {ganaste && <p className="cofres-regla">Este fin de semana, <b>cada día que venís te llevás un cofre</b>.</p>}
         <div className="cofres-fila">
           {cofre.cofres.map(x => (
-            <Cofre key={x.dia} x={x} clickable={!ganaste} abriendo={cofre.abriendo === x.dia}
+            <Cofre key={x.dia} x={x} clickable={!ganaste} abriendo={cofre.abriendo === x.dia} nuevo={x.dia === hoy}
               onAbrir={onAbrir} etiqueta={`Cofre del ${x.diaTxt}`} />
           ))}
           {fantasmas.map(d => (
-            <Cofre key={d} x={{ dia: d, abierto: false }} fantasma etiqueta={`${d.charAt(0).toUpperCase() + d.slice(1)}: si venís, es tuyo`} />
+            <Cofre key={d} x={{ dia: d, abierto: false }} fantasma etiqueta={`${mayus(d)}: si venís, es tuyo`} />
           ))}
         </div>
         {ganaste ? (
           <>
-            <p className="kiosk__madre-txt">Volvé de <b>lunes a jueves</b>, ingresá en esta máquina y abrilo: adentro hay <b>hasta {Number(cofre.maxPts).toLocaleString('es-AR')} puntos</b>.</p>
-            <p className="cofres-vence">Tenés hasta el {cofre.abrirHastaTxt} para abrirlo.</p>
-            <button className="kiosk__cta" onClick={onCerrar}>ENTENDIDO</button>
+            <ol className="cofres-pasos">
+              {cofre.cofres.map(x => (
+                <li key={x.dia} className="cofres-paso cofres-paso--ok"><b>{diaCorto(x)}</b><span>✓ ¡Ganado!</span></li>
+              ))}
+              {fantasmas.map(d => (
+                <li key={d} className="cofres-paso"><b>{d.slice(0, 3).toUpperCase()}</b><span>Venís y ganás otro</span></li>
+              ))}
+              <li className="cofres-paso cofres-paso--abrir"><b>LUN a JUE</b><span>Los abrís acá: hasta {Number(cofre.maxPts).toLocaleString('es-AR')} puntos cada uno</span></li>
+            </ol>
+            <p className="cofres-vence">Tenés hasta el {cofre.abrirHastaTxt} para abrirlos.</p>
+            <button className="kiosk__cta" onClick={onCerrar}>¡GENIAL!</button>
           </>
         ) : (
           <>

@@ -103,3 +103,41 @@ button.cofre .cofre-pie, .cofre--abierto .cofre-pie { min-height: 64px; }
   .cofre-etiqueta { font-size: 13px; }
   .cofre-moneda { width: 18px; height: 18px; margin: -9px; }
 }
+
+/* weekend: the earned chest lands with a flash, rays and sparks */
+.cofres-tit { animation: cofre-pop .6s cubic-bezier(.2,1.6,.4,1) .55s both; }
+.cofres-regla { margin: 0; font-size: 21px; color: #f3ead6; max-width: 640px; animation: cofre-aparece-y .5s ease-out .8s both; }
+.cofres-regla b { color: #ffd75a; }
+.cofre.cofre--nuevo:not(.cofre--abierto) .cofre-img--cerrado { animation: cofre-cae .75s cubic-bezier(.35,1.45,.55,1) both, cofre-flota 3s ease-in-out .75s infinite; }
+.cofre--nuevo .cofre-rayos { opacity: 1; animation: cofre-aparece .5s ease-out .45s both, cofre-gira 14s linear .45s infinite; }
+.cofre--nuevo .cofre-halo { animation: cofre-aparece .4s ease-out .45s both, cofre-respira 2.2s ease-in-out 1s infinite; }
+.cofre--nuevo .cofre-flash { animation: cofre-flash .8s ease-out .42s both; }
+.cofre-monedas--llegada { top: 62%; }
+.cofre-chispa { position: absolute; width: 12px; height: 12px; margin: -6px; border-radius: 50%; opacity: 0;
+  background: radial-gradient(circle, #fff 0 25%, #ffe07a 45%, transparent 70%);
+  animation: cofre-moneda var(--t) cubic-bezier(.2,.7,.4,1) calc(.45s + var(--d)) forwards; }
+
+/* 3-step timeline: earned days, days to come, opening window */
+.cofres-pasos { list-style: none; margin: 6px 0 0; padding: 0; display: flex; gap: 10px; width: 100%; justify-content: center; animation: cofre-aparece-y .5s ease-out 1s both; }
+.cofres-paso { flex: 1 1 0; min-width: 0; max-width: 240px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 10px 8px;
+  border-radius: 14px; background: rgba(255,255,255,.04); border: 1px dashed rgba(240,210,117,.45); color: #e6dccb; font-size: 15px; line-height: 1.25; }
+.cofres-paso b { font-family: 'Oswald', var(--font-body); font-size: 17px; letter-spacing: 2px; color: #ffd75a; }
+.cofres-paso--ok { border: 1px solid #7ee08a; background: rgba(126,224,138,.1); }
+.cofres-paso--ok span { color: #7ee08a; font-weight: 700; }
+.cofres-paso--abrir { border: 1px solid rgba(240,210,117,.7); background: rgba(240,210,117,.1); }
+.cofres-modal--ganaste .kiosk__cta { animation: cofre-aparece-y .5s ease-out 1.2s both; }
+
+@keyframes cofre-cae {
+  0% { transform: translate(-50%, -260%) scale(.7); opacity: 0; }
+  55% { transform: translate(-50%, -44%) scale(1.06, .92); opacity: 1; }
+  75% { transform: translate(-50%, -56%) scale(.98, 1.03); }
+  100% { transform: translate(-50%, -48%) scale(1); }
+}
+@keyframes cofre-aparece-y { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 520px) {
+  .cofres-regla { font-size: 16px; }
+  .cofres-pasos { gap: 6px; }
+  .cofres-paso { font-size: 12px; padding: 8px 4px; }
+  .cofres-paso b { font-size: 13px; letter-spacing: 1px; }
+}
