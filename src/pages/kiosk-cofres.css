@@ -216,11 +216,11 @@ button.cofre .cofre-pie, .cofre--abierto .cofre-pie { min-height: 64px; }
 .cofre--ticket.cofre--abierto .cofre-rayos { background: repeating-conic-gradient(from 0deg, rgba(126,224,138,.55) 0 6deg, rgba(255,196,70,.7) 6deg 12deg, transparent 12deg 18deg); }
 
 /* member's home screen strip */
-.franja-cofres { display: flex; align-items: center; gap: 18px; width: 100%; max-width: 1220px; box-sizing: border-box; margin: 0 auto 16px; padding: 12px 22px;
+.franja-cofres { display: flex; align-items: center; gap: 18px; width: 100%; max-width: 1220px; box-sizing: border-box; margin: 0 auto 10px; padding: 6px 20px;
   border-radius: 20px; border: 2px solid #F0D275; background: linear-gradient(135deg, #3a2a0c, #1a1206 55%, #2e2109);
   box-shadow: 0 0 28px rgba(240,210,117,.25); }
 .franja-cofres-imgs { display: flex; flex-shrink: 0; }
-.franja-cofres-imgs img { height: 70px; width: auto; filter: drop-shadow(0 6px 8px rgba(0,0,0,.6)); animation: cofre-flota-suave 3s ease-in-out infinite; }
+.franja-cofres-imgs img { height: 52px; width: auto; filter: drop-shadow(0 6px 8px rgba(0,0,0,.6)); animation: cofre-flota-suave 3s ease-in-out infinite; }
 .franja-cofres-imgs img + img { margin-left: -14px; animation-delay: .5s; }
 .franja-cofres-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; text-align: left; }
 .franja-cofres-txt b { font-family: 'Oswald', var(--font-body); font-size: 22px; letter-spacing: 4px; color: #ffd75a; }

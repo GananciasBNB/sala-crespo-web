@@ -1078,3 +1078,12 @@
   .kiosk__sorteo-banner-l1 { font-size: 16px; }
   .kiosk__sorteo-banner-l2 { font-size: 13px; }
 }
+
+/* Logout always visible: the screen has no scroll, so members with extra rows (chests strip, birthday,
+   missing data) pushed it off the bottom. It stays fixed above the bottom edge and the home reserves its space. */
+.kiosk__done { padding-bottom: 92px; box-sizing: border-box; }
+.kiosk__cta.kiosk__cta--done {
+  position: fixed; left: 50%; right: auto; bottom: 36px; z-index: 40; margin: 0; transform: translateX(-50%); width: auto !important; max-width: 90vw;
+  white-space: nowrap; padding: 13px 40px; background: rgba(8,18,40,.94); box-shadow: 0 10px 30px rgba(0,0,0,.75);
+}
+.kiosk__cta.kiosk__cta--done:active { transform: translateX(-50%) scale(.97); }

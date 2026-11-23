@@ -26,6 +26,8 @@ const COFRE_PREVIEW = VER_COFRE === 'ganaste'
     : null
 // /kiosk?demo=1&encuesta=ver logs a test member in and opens 'Contanos de vos' straight away (preview)
 const VER_ENCUESTA = DEMO && new URLSearchParams(window.location.search).get('encuesta') === 'ver'
+// /kiosk?demo=1&socio=ver logs the test member in and lands on their home screen (add &cofre=ganaste for the chest strip)
+const VER_SOCIO = DEMO && new URLSearchParams(window.location.search).get('socio') === 'ver'
 const { kioskLookupDni, kioskLogin, kioskSignup, kioskAcceptTerms, clubCreatePin, loyaltyCheckin, getActiveTournament, kioskInscribeTournament, promoUpdateContact, kioskSetBirthday, getLoyaltyMe, getLoyaltyCatalog, redeemLoyaltyReward, getSpinStatus, loyaltyRaffleStatus, loyaltyRaffleTicket, loyaltyRafflePack, pescaEstado, pescaEmpezar, pescaTerminar, pescaRanking, pescaLider, diaMadreEstado, diaMadrePuntos, diaMadreCupon, encuestaEstado, encuestaResponder } = DEMO ? demoApi : realApi
 const { API_BASE } = realApi
 const kioskKey = DEMO ? () => 'demo' : realApi.kioskKey
@@ -424,7 +426,7 @@ export default function Kiosk() {
   // Día de la Madre 2026: pop-up for women at login (points credited when it opens, coupon on tap)
   const [madre, setMadre] = useState(null)
   const [cofreInfo, setCofreInfo] = useState(null)   // member's chests for the home-screen strip
-  const [cofre, setCofre] = useState(COFRE_PREVIEW && { ...COFRE_PREVIEW, abriendo: null, sumados: 0, error: '' })     // Días de cofres: earned today or waiting to be opened
+  const [cofre, setCofre] = useState(!VER_SOCIO && COFRE_PREVIEW && { ...COFRE_PREVIEW, abriendo: null, sumados: 0, error: '' })     // Días de cofres: earned today or waiting to be opened
   const [regalo, setRegalo] = useState(null)   // promo ticket waiting for this member (Monday to Thursday)
   const [superclasico, setSuperclasico] = useState(VER_SUPER)
   // preview: a first tap opens it, so the browser lets the music and the greeting play like at the cabinet
@@ -1001,7 +1003,7 @@ export default function Kiosk() {
   // preview link: test member (no email / phone, so the contact fields show up) and the panel open
   const encuestaAbiertaRef = useRef(false)
   useEffect(() => {
-    if (!VER_ENCUESTA) return
+    if (!VER_ENCUESTA && !VER_SOCIO) return
     const DNI_PRUEBA = '99887766', PIN_PRUEBA = '1234'
     ;(async () => {
       try {
@@ -1010,6 +1012,7 @@ export default function Kiosk() {
         catch { jugador = (await kioskSignup({ dni: DNI_PRUEBA, name: 'Socio Prueba', tel: '', email: '', pin: PIN_PRUEBA, acceptTerms: true })).player }
         const c = await loyaltyCheckin(jugador.token).catch(() => null)
         setPlayer(jugador); setCheckin(c); setBalance(c?.balance ?? 0); setScreen('done')
+        abrirCofres(jugador.token)
       } catch (e) { console.error('vista previa encuesta:', e) }
     })()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
