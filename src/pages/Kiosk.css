@@ -1087,3 +1087,5 @@
   white-space: nowrap; padding: 13px 40px; background: rgba(8,18,40,.94); box-shadow: 0 10px 30px rgba(0,0,0,.75);
 }
 .kiosk__cta.kiosk__cta--done:active { transform: translateX(-50%) scale(.97); }
+/* if something still does not fit, overflow goes to the bottom (the reserved logout space), never the logo on top */
+.kiosk { align-items: safe center; }

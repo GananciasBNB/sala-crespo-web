@@ -513,10 +513,10 @@ export default function Kiosk() {
   const [premioNuevo, setPremioNuevo] = useState(false)
   const premiosPrev = useRef(null)   // pending prizes seen so far in this session (null = not loaded yet)
 
-  // Demo on computers: shrink the visible screen just enough to fit the window,
-  // whatever its size, so testers never need to scroll. Phones keep scrolling.
+  // Shrink the visible screen just enough to fit the window, whatever its size: the sala cabinet has no
+  // scroll, so a member home with extra rows (chests, birthday, notices) used to lose the logo or the
+  // logout button off the edges. Demo, event notebook and sala cabinet all fit. Phones keep scrolling.
   useEffect(() => {
-    if (!DEMO && !evento) return   // the event notebook has any screen size: fit like the demo does
     const pick = () => document.querySelector('.kiosk > .kiosk__idle, .kiosk > .kiosk__step, .kiosk > .kiosk__done')
     const fit = () => {
       const k = document.querySelector('.kiosk'); const c = pick()
@@ -526,7 +526,7 @@ export default function Kiosk() {
       const cs = getComputedStyle(k)
       const avail = k.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom) - 8
       const need = c.scrollHeight
-      if (need > avail) c.style.zoom = String(Math.max(evento ? 0.42 : 0.6, avail / need))
+      if (need > avail) c.style.zoom = String(Math.max(evento ? 0.42 : 0.5, avail / need))
     }
     const t1 = setTimeout(fit, 50); const t2 = setTimeout(fit, 600)
     window.addEventListener('resize', fit)
