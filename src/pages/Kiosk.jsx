@@ -22,7 +22,7 @@ const COFRE_BASE = { nombre: 'Socio', minPts: 100, maxPts: 1000, maxTicket: 2000
 const COFRE_PREVIEW = VER_COFRE === 'ganaste'
   ? { ...COFRE_BASE, modo: 'ganaste', pendientes: 1, antesDeAbrir: true, cofres: [{ dia: '2026-11-21', diaTxt: 'sábado', abierto: false }], quedanDiasDeEntrega: ['domingo'] }
   : VER_COFRE === 'hoy'   // one-day edition (group visit), opens next week
-    ? { ...COFRE_BASE, modo: 'ganaste', diasEntrega: 1, pendientes: 1, antesDeAbrir: true, cofres: [{ dia: '2026-11-24', diaTxt: 'martes', abierto: false }], quedanDiasDeEntrega: [], abrirDesdeTxt: 'lunes 30/11', abrirHastaTxt: 'jueves 03/12', abreEn: '2026-11-30T12:00:00-03:00' }
+    ? { ...COFRE_BASE, modo: 'ganaste', diasEntrega: 1, maxTicket: 0, sorteoTicket: 20000, pendientes: 1, antesDeAbrir: true, cofres: [{ dia: '2026-11-24', diaTxt: 'martes', abierto: false }], quedanDiasDeEntrega: [], abrirDesdeTxt: 'lunes 30/11', abrirHastaTxt: 'jueves 03/12', abreEn: '2026-11-30T12:00:00-03:00' }
   : VER_COFRE === 'ver'
     ? { ...COFRE_BASE, modo: 'abrir', pendientes: 2, cofres: [{ dia: '2026-11-21', diaTxt: 'sábado', abierto: false }, { dia: '2026-11-22', diaTxt: 'domingo', abierto: false }], quedanDiasDeEntrega: [] }
     : null

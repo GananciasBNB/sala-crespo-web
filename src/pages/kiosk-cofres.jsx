@@ -61,7 +61,7 @@ const mayus = s => s.charAt(0).toUpperCase() + s.slice(1)
 // "Podés ganar desde 100 hasta 1.000 puntos ¡y también tickets de $20.000!"
 function QueGanas({ cofre }) {
   if (!cofre.maxPts) return null
-  return <>podés ganar <b>desde {fmtPts(cofre.minPts)} hasta {fmtPts(cofre.maxPts)} puntos</b>{cofre.maxTicket ? <> <b>¡y también tickets de {pesos(cofre.maxTicket)}!</b></> : '.'}</>
+  return <>podés ganar <b>desde {fmtPts(cofre.minPts)} hasta {fmtPts(cofre.maxPts)} puntos</b>{cofre.sorteoTicket ? <> <b>¡y participás del sorteo de un ticket de {pesos(cofre.sorteoTicket)}!</b></> : cofre.maxTicket ? <> <b>¡y también tickets de {pesos(cofre.maxTicket)}!</b></> : '.'}</>
 }
 
 // Live countdown to the opening day
@@ -107,7 +107,7 @@ function Destellos({ n = 7 }) {
   ))
 }
 
-function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta, nuevo }) {
+function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta, nuevo, sorteo }) {
   const valor = x.pesos || x.pts || 0
   const [fase, setFase] = useState(x.abierto ? 'abierto' : 'cerrado')   // cerrado | revelando | abierto
   const [conteo, setConteo] = useState(x.abierto && !x.recien ? valor : 0)
@@ -173,7 +173,7 @@ function Cofre({ x, clickable, abriendo, onAbrir, fantasma, etiqueta, nuevo }) {
           : clickable && !fantasma
             ? <b className="cofre-toca">{abriendo ? 'ABRIENDO…' : 'TOCÁ PARA ABRIR'}</b>
             : null}
-        <span className="cofre-etiqueta">{abierto && x.pesos ? 'Retirá tu cupón de la impresora' : etiqueta}</span>
+        <span className="cofre-etiqueta">{abierto && x.pesos ? 'Retirá tu cupón de la impresora' : abierto && sorteo ? '¡Ya participás del sorteo!' : etiqueta}</span>
       </div>
     </Tag>
   )
@@ -236,10 +236,10 @@ function EntregaCofre({ cofre, onCerrar }) {
       setFase(2); sonar('guardado'); volar()                                 // into the card
       await dormir(T_VUELO_MS); if (!vivo) return
       setFase(3)
-      hablar('voz-cofre-guardado')                                           // what you can win + Monday to Thursday
+      hablar(cofre.sorteoTicket ? 'voz-cofre-guardado-sorteo' : 'voz-cofre-guardado')                                           // what you can win + Monday to Thursday
     })()
     return () => { vivo = false; cancelAnimationFrame(rafVuelo.current); callar() }
-  }, [arrancar, segundo, unDia])
+  }, [arrancar, segundo, unDia, cofre.sorteoTicket])
 
   const slot = (key, etiqueta, estado, clase, ref) => (
     <div key={key} ref={ref} className={`tarjeta-slot ${clase}`}>
@@ -287,7 +287,7 @@ function EntregaCofre({ cofre, onCerrar }) {
               fase === 3 ? '¡Guardado!' : 'Hoy',
               fase === 3 ? 'tarjeta-slot--lleno tarjeta-slot--nuevo' : 'tarjeta-slot--esperando', slotRef)}
             {futuros.map(d => slot(d, d.slice(0, 3).toUpperCase(), `Volvé el ${d} y sumás otro`, 'tarjeta-slot--futuro'))}
-            <div className="tarjeta-abrir"><b>LUN a JUE</b><span>Los abrís acá</span>{cofre.maxTicket ? <small>¡puntos y tickets!</small> : <small>hasta {fmtPts(cofre.maxPts)} pts</small>}</div>
+            <div className="tarjeta-abrir"><b>LUN a JUE</b><span>Los abrís acá</span>{cofre.sorteoTicket ? <small>¡puntos y sorteo!</small> : cofre.maxTicket ? <small>¡puntos y tickets!</small> : <small>hasta {fmtPts(cofre.maxPts)} pts</small>}</div>
           </div>
         </div>
 
@@ -317,7 +317,7 @@ function AbrirCofres({ cofre, onAbrir, onCerrar }) {
         {cofre.pendientes > 0 && <p className="cofres-regla">{mayus('tocá cada cofre: ')}<QueGanas cofre={cofre} /></p>}
         <div className="cofres-fila">
           {cofre.cofres.map(x => (
-            <Cofre key={x.dia} x={x} clickable abriendo={cofre.abriendo === x.dia} onAbrir={onAbrir} etiqueta={`Cofre del ${x.diaTxt}`} />
+            <Cofre key={x.dia} x={x} clickable abriendo={cofre.abriendo === x.dia} onAbrir={onAbrir} sorteo={!!cofre.sorteoTicket} etiqueta={`Cofre del ${x.diaTxt}`} />
           ))}
         </div>
         {cofre.error && <p className="kiosk__madre-txt" role="alert">{cofre.error}</p>}
@@ -342,7 +342,7 @@ export function FranjaCofres({ info, onAbrir }) {
         <b>MIS COFRES</b>
         <span>{pendientes === 0
           ? 'Ya abriste tus cofres. ¡Gracias por venir!'
-          : `Tenés ${pendientes === 1 ? '1 cofre guardado' : `${pendientes} cofres guardados`} · podés ganar puntos y tickets`}</span>
+          : `Tenés ${pendientes === 1 ? '1 cofre guardado' : `${pendientes} cofres guardados`} · ${info.sorteoTicket ? 'podés ganar puntos y participar del sorteo' : 'podés ganar puntos y tickets'}`}</span>
       </div>
       {pendientes > 0 && (info.modo === 'abrir' || info.puedeAbrir
         ? <button type="button" className="kiosk__cta kiosk__cta--hub franja-cofres-btn" onClick={onAbrir}>ABRIR MIS COFRES</button>
