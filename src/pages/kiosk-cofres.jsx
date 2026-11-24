@@ -192,6 +192,7 @@ function EntregaCofre({ cofre, onCerrar }) {
   const hoy = cofre.cofres[cofre.cofres.length - 1]?.dia   // today's chest is the last one earned
   const previos = cofre.cofres.filter(x => x.dia !== hoy)
   const segundo = cofre.cofres.length >= 2
+  const unDia = cofre.diasEntrega === 1      // one-day edition (e.g. a group visit): "hoy" instead of "este fin de semana"
   const futuros = cofre.quedanDiasDeEntrega || []
 
   // probe autoplay once: the kiosk allows it (the member already tapped); a phone preview may not
@@ -225,12 +226,12 @@ function EntregaCofre({ cofre, onCerrar }) {
       rafVuelo.current = requestAnimationFrame(paso)
     }
     ;(async () => {
-      await Promise.all([hablar('voz-cofre-intro', 9000), dormir(3200)])          // thank-you + the rule
+      await Promise.all([hablar(unDia ? 'voz-cofre-intro-hoy' : 'voz-cofre-intro', 9000), dormir(3200)])          // thank-you + the rule
       if (!vivo) return
       setFase(1)                                                             // chest drops in
       await dormir(420); if (!vivo) return
       sonar('ganaste')
-      await Promise.all([hablar(segundo ? 'voz-cofre-segundo' : 'voz-cofre-primero', 3200), dormir(1600)])
+      await Promise.all([hablar(unDia ? 'voz-cofre-tuyo' : segundo ? 'voz-cofre-segundo' : 'voz-cofre-primero', 3200), dormir(1600)])
       await dormir(500); if (!vivo) return
       setFase(2); sonar('guardado'); volar()                                 // into the card
       await dormir(T_VUELO_MS); if (!vivo) return
@@ -238,7 +239,7 @@ function EntregaCofre({ cofre, onCerrar }) {
       hablar('voz-cofre-guardado')                                           // what you can win + Monday to Thursday
     })()
     return () => { vivo = false; cancelAnimationFrame(rafVuelo.current); callar() }
-  }, [arrancar, segundo])
+  }, [arrancar, segundo, unDia])
 
   const slot = (key, etiqueta, estado, clase, ref) => (
     <div key={key} ref={ref} className={`tarjeta-slot ${clase}`}>
@@ -254,7 +255,9 @@ function EntregaCofre({ cofre, onCerrar }) {
         <div className="kiosk__madre-kick entrega-in" style={{ '--d': '.15s' }}>GRACIAS POR VENIR</div>
         <h2 className="kiosk__madre-tit entrega-tit">¡Premiamos tu fidelidad{cofre.nombre ? `, ${cofre.nombre}` : ''}!</h2>
         <p className="cofres-regla entrega-in" style={{ '--d': '.5s' }}>
-          Este fin de semana te regalamos un <b>cofre sorpresa por cada día que venís</b>. Lo abrís <b>de lunes a jueves</b> en Sala Crespo: <QueGanas cofre={cofre} />
+          {unDia
+            ? <>Hoy te regalamos un <b>cofre sorpresa por tu visita</b>. Lo abrís <b>del {cofre.abrirDesdeTxt} al {cofre.abrirHastaTxt}</b> en Sala Crespo: <QueGanas cofre={cofre} /></>
+            : <>Este fin de semana te regalamos un <b>cofre sorpresa por cada día que venís</b>. Lo abrís <b>de lunes a jueves</b> en Sala Crespo: <QueGanas cofre={cofre} /></>}
         </p>
 
         <div className="entrega-escenario">
@@ -266,7 +269,7 @@ function EntregaCofre({ cofre, onCerrar }) {
               <Cofre x={{ dia: hoy, abierto: false }} nuevo etiqueta="" />
             </div>
           )}
-          {fase === 1 && <p className="entrega-leyenda">¡Acá tenés tu {segundo ? 'segundo' : 'primer'} cofre!</p>}
+          {fase === 1 && <p className="entrega-leyenda">{unDia ? '¡Acá tenés tu cofre!' : `¡Acá tenés tu ${segundo ? 'segundo' : 'primer'} cofre!`}</p>}
           {fase === 3 && (
             <div className="entrega-guardado">
               <b>¡Guardado en tu tarjeta!</b>
@@ -288,7 +291,7 @@ function EntregaCofre({ cofre, onCerrar }) {
           </div>
         </div>
 
-        <p className="cofres-vence">Tenés hasta el {cofre.abrirHastaTxt} para abrirlos.</p>
+        <p className="cofres-vence">Tenés hasta el {cofre.abrirHastaTxt} para {cofre.cofres.length > 1 ? 'abrirlos' : 'abrirlo'}.</p>
         <button className={`kiosk__cta entrega-boton${fase === 3 ? ' entrega-boton--listo' : ''}`} onClick={() => { callar(); onCerrar() }}>¡GENIAL!</button>
       </div>
     </div>
