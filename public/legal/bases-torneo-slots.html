@@ -108,6 +108,32 @@
       border-top: 1px solid rgba(255,255,255,0.05);
     }
     footer a { color: inherit; }
+    table.premios { width: 100%; border-collapse: collapse; margin: 16px 0 8px; font-size: 15px; }
+    table.premios th, table.premios td { padding: 9px 10px; border-bottom: 1px solid rgba(255,255,255,0.1); text-align: left; vertical-align: top; }
+    table.premios th { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: #C9A84C; }
+    table.premios td.n, table.premios th.n { text-align: right; white-space: nowrap; }
+    table.premios tr.total td { font-weight: 800; border-top: 2px solid rgba(201,168,76,0.6); border-bottom: none; }
+    .version { font-size: 12px; opacity: 0.6; margin-top: 6px !important; }
+    .firma { margin-top: 44px; display: flex; gap: 40px; flex-wrap: wrap; }
+    .firma div { flex: 1 1 220px; border-top: 1px solid rgba(255,255,255,0.4); padding-top: 6px; font-size: 13px; opacity: 0.75; }
+    @page { size: A4; margin: 16mm 16mm 18mm; }
+    @media print {
+      body { background: #fff; color: #111; line-height: 1.5; font-size: 11pt; }
+      header { background: none; border-bottom: 1px solid #ccc; padding-top: 0; }
+      header img, .cta-back, footer, .web-only { display: none; }
+      main { max-width: none; padding: 10px 0 0; }
+      h2 { color: #7a5a12; border-bottom-color: #ddd; break-after: avoid; font-size: 16pt; margin-top: 22px; }
+      strong { color: #111; }
+      a { color: #111; text-decoration: none; }
+      .prize, .callout { background: none !important; border-color: #ccc !important; break-inside: avoid; }
+      .gold .amount, .bronze .amount { color: #111; }
+      .firma div { border-top-color: #333; opacity: 1; }
+      table.premios { font-size: 10pt; break-inside: avoid; }
+      h2.salto { break-before: page; }
+      table.premios th { color: #7a5a12; }
+      table.premios th, table.premios td { border-bottom-color: #ddd; }
+      table.premios tr.total td { border-top-color: #7a5a12; }
+    }
     @media (max-width: 480px) {
       header h1 { font-size: 24px; }
       .grid-prizes { grid-template-columns: 1fr; }
@@ -117,9 +143,10 @@
 <body>
   <header>
     <a href="/"><img src="/logo-sin-fondo.png" alt="Sala de Juegos Crespo" /></a>
-    <div class="eyebrow">🎰 Torneos de Slots 2026 · Camino a la Gran Final</div>
+    <div class="eyebrow">Torneos de Slots 2026 · Camino a la Gran Final</div>
     <h1>Bases y Condiciones</h1>
     <p>Sala de Juegos Crespo — San Martín 1053, Crespo, Entre Ríos</p>
+    <p class="version">Versión 2.0 · 25/11/2026 · Para presentación ante IAFAS</p>
   </header>
 
   <main>
@@ -139,6 +166,14 @@
       Al completar la inscripción, el participante <strong>acepta íntegramente</strong> las presentes Bases y Condiciones,
       autoriza el uso de su imagen con fines promocionales del evento y declara conocer la modalidad del torneo.
     </p>
+    <p>
+      <strong>Exclusiones:</strong> no pueden participar los empleados de Electric Line S.R.L. en relación de dependencia,
+      durante el período en que mantengan dicha relación laboral, ni sus cónyuges y convivientes y sus parientes por
+      consanguinidad o afinidad hasta el segundo grado (padres, hijos, hermanos, abuelos, nietos, suegros, yernos, nueras
+      y cuñados). Tampoco pueden participar las personas alcanzadas por medidas de autoexclusión o de restricción de acceso
+      a salas de juego, mientras dure la medida. Si se constata alguna de estas situaciones, la organización anulará la
+      inscripción y, en su caso, la plaza y el premio obtenidos.
+    </p>
 
     <h2>2. Estructura: satélites y Gran Final</h2>
     <p>
@@ -155,10 +190,6 @@
       (ver punto 3) — <strong>60 finalistas</strong> en total. Un jugador que ya clasificó puede participar de los satélites
       siguientes por los premios propios de ese satélite, pero <strong>no ocupa una nueva plaza</strong>: su lugar pasa al
       siguiente jugador del ranking.
-    </p>
-    <p>
-      La organización podrá otorgar <strong>hasta 4 plazas adicionales</strong> ("comodines") para la Gran Final mediante
-      un mecanismo que se comunicará a través del sitio web y las redes sociales de la Sala.
     </p>
     <p>
       La Gran Final es <strong>exclusiva para clasificados</strong>: no admite inscripción directa. Los finalistas quedan
@@ -185,6 +216,14 @@
       queda registrado en el acta del torneo.
     </p>
     <p>
+      <strong>Puestos de la Gran Final:</strong> el 1°, 2° y 3° puesto se definen en la ronda final de esa noche, por
+      los créditos finales obtenidos. Del 4° puesto en adelante, el orden se determina por la <strong>ronda alcanzada</strong>
+      (quien llegó a una ronda más avanzada queda por delante) y, entre los jugadores eliminados en una misma ronda,
+      por los <strong>créditos obtenidos en esa ronda</strong>. Ante igualdad de créditos, prevalece quien haya obtenido
+      más créditos en la ronda inicial de la Gran Final; de persistir el empate, lo resuelve la organización a la vista
+      del público y queda registrado en el acta del torneo.
+    </p>
+    <p>
       La <strong>asistencia presencial en horario</strong> es obligatoria. La acreditación cierra al inicio del evento;
       la organización se reserva el derecho de excluir a los inscriptos que no se presenten a tiempo.
     </p>
@@ -194,48 +233,32 @@
 
     <div class="grid-prizes">
       <div class="prize gold">
-        <div class="medal">🥇</div>
         <div class="place">1° puesto</div>
         <div class="amount">$100.000</div>
       </div>
       <div class="prize silver">
-        <div class="medal">🥈</div>
         <div class="place">2° puesto</div>
         <div class="amount">$60.000</div>
       </div>
       <div class="prize bronze">
-        <div class="medal">🥉</div>
         <div class="place">3° puesto</div>
         <div class="amount">$40.000</div>
       </div>
     </div>
     <p>Además, los <strong>20 mejores puntajes de la ronda inicial</strong> se aseguran su plaza en la Gran Final (punto 3).</p>
 
-    <h2>5. Premios de la Gran Final</h2>
-    <p>La Gran Final reparte <strong>$2.000.000 en tickets promocionales</strong> entre los 60 finalistas. <strong>Todos los finalistas cobran premio.</strong></p>
-
-    <div class="grid-prizes">
-      <div class="prize gold">
-        <div class="medal">🥇</div>
-        <div class="place">1° puesto</div>
-        <div class="amount">$500.000</div>
-      </div>
-      <div class="prize silver">
-        <div class="medal">🥈</div>
-        <div class="place">2° puesto</div>
-        <div class="amount">$300.000</div>
-      </div>
-      <div class="prize bronze">
-        <div class="medal">🥉</div>
-        <div class="place">3° puesto</div>
-        <div class="amount">$150.000</div>
-      </div>
-    </div>
-    <ul>
-      <li><strong>4° al 20° puesto:</strong> $50.000 cada uno (17 jugadores · $850.000).</li>
-      <li><strong>21° al 60° puesto:</strong> $5.000 cada uno (40 jugadores · $200.000).</li>
-      <li>Las plazas adicionales ("comodines") que lleguen a la Gran Final reciben, como mínimo, el premio del 21° al 60°.</li>
-    </ul>
+    <h2 class="salto">5. Premios de la Gran Final</h2>
+    <p>La Gran Final reparte <strong>$2.000.000 en tickets promocionales</strong> entre los 60 finalistas. <strong>Todos los finalistas cobran premio</strong>, según el puesto final (punto 3):</p>
+    <table class="premios">
+      <tr><th>Puesto</th><th class="n">Jugadores</th><th class="n">Premio por jugador</th><th>Cómo se entrega</th><th class="n">Subtotal</th></tr>
+      <tr><td>1°</td><td class="n">1</td><td class="n">$500.000</td><td>4 vouchers de $125.000</td><td class="n">$500.000</td></tr>
+      <tr><td>2°</td><td class="n">1</td><td class="n">$300.000</td><td>4 vouchers de $75.000</td><td class="n">$300.000</td></tr>
+      <tr><td>3°</td><td class="n">1</td><td class="n">$150.000</td><td>4 vouchers de $37.500</td><td class="n">$150.000</td></tr>
+      <tr><td>4° al 20°</td><td class="n">17</td><td class="n">$50.000</td><td>2 vouchers de $25.000</td><td class="n">$850.000</td></tr>
+      <tr><td>21° al 60°</td><td class="n">40</td><td class="n">$5.000</td><td>1 voucher de $5.000</td><td class="n">$200.000</td></tr>
+      <tr class="total"><td>Total</td><td class="n">60</td><td></td><td></td><td class="n">$2.000.000</td></tr>
+    </table>
+    <p>El finalista que no se acredite en horario el día de la Gran Final pierde su plaza y su premio; los puestos y sus premios se asignan entre los finalistas presentes.</p>
 
     <h2>6. Modalidad de entrega de los premios</h2>
     <p>
@@ -245,17 +268,15 @@
     </p>
     <h3>Satélites</h3>
     <ul>
-      <li>🥇 <strong>1° puesto:</strong> 4 vouchers de $25.000</li>
-      <li>🥈 <strong>2° puesto:</strong> 4 vouchers de $15.000</li>
-      <li>🥉 <strong>3° puesto:</strong> 4 vouchers de $10.000</li>
+      <li><strong>1° puesto:</strong> 4 vouchers de $25.000</li>
+      <li><strong>2° puesto:</strong> 4 vouchers de $15.000</li>
+      <li><strong>3° puesto:</strong> 4 vouchers de $10.000</li>
     </ul>
     <p>El primer voucher se entrega al finalizar el torneo; los restantes se liberan <strong>uno por semana</strong>.</p>
     <h3>Gran Final</h3>
     <ul>
-      <li>🥇 <strong>1° puesto:</strong> 4 vouchers de $125.000</li>
-      <li>🥈 <strong>2° puesto:</strong> 4 vouchers de $75.000</li>
-      <li>🥉 <strong>3° puesto:</strong> 4 vouchers de $37.500</li>
-      <li><strong>4° al 20°:</strong> 2 vouchers de $25.000 (el primero al finalizar la Final, el segundo a la semana).</li>
+      <li><strong>1°, 2° y 3° puesto:</strong> 4 vouchers cada uno. El primero se entrega al finalizar la Gran Final y los restantes se liberan <strong>uno por semana</strong>. Cada voucher indica su fecha de "Canjeable a partir de".</li>
+      <li><strong>4° al 20°:</strong> 2 vouchers de $25.000. El primero al finalizar la Gran Final y el segundo a la semana.</li>
       <li><strong>21° al 60°:</strong> 1 voucher de $5.000, canjeable desde esa misma noche.</li>
     </ul>
 
@@ -268,7 +289,7 @@
     </ul>
 
     <div class="callout">
-      ⚠️ <strong>Juegan los primeros 130 en acreditarse.</strong> Es obligatorio presentarse en horario el día del evento.
+      <strong>Juegan los primeros 130 en acreditarse.</strong> Es obligatorio presentarse en horario el día del evento.
       Recomendamos llegar al menos <strong>30 minutos antes</strong> de la hora de inicio con tu DNI.
     </div>
 
@@ -292,8 +313,8 @@
 
     <h2>10. Operador y normativa aplicable</h2>
     <p>
-      La presente promoción es organizada por <strong>Sala de Juegos Crespo</strong>, operada bajo
-      <strong>Casinos de Entre Ríos</strong>. Las presentes bases se rigen por la normativa vigente
+      La presente promoción es organizada por <strong>Electric Line S.R.L.</strong> (CUIT 30-67016680-1), titular
+      de <strong>Sala de Juegos Crespo</strong>, operada bajo <strong>Casinos de Entre Ríos</strong>. Las presentes bases se rigen por la normativa vigente
       en materia de juegos de azar y promociones de la Provincia de Entre Ríos, República Argentina.
     </p>
 
@@ -302,6 +323,11 @@
       <a href="mailto:info@saladejuegoscrespo.ar">info@saladejuegoscrespo.ar</a>
       o por WhatsApp al <a href="https://wa.me/5493434259136" target="_blank" rel="noopener noreferrer">+54 9 343 425-9136</a>.
     </p>
+
+    <div class="firma">
+      <div>Por el Organizador · aclaración, cargo y fecha</div>
+      <div>Conformidad IAFAS · sello y fecha</div>
+    </div>
 
     <a class="cta-back" href="/torneo">← Volver al torneo</a>
   </main>
